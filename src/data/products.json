@@ -42,12 +42,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "타이머 (T)",
@@ -62,7 +62,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -71,23 +71,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -146,12 +146,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "타이머 (T)",
@@ -166,7 +166,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -175,23 +175,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -250,12 +250,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "타이머 (T)",
@@ -270,7 +270,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -279,23 +279,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -354,12 +354,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -374,7 +374,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -383,23 +383,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -448,12 +448,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -468,7 +468,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -477,23 +477,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -537,12 +537,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -557,7 +557,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -566,23 +566,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -626,12 +626,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -646,7 +646,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -655,23 +655,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -715,12 +715,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -735,7 +735,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -744,23 +744,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -804,12 +804,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -824,7 +824,7 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "베이스 증설",
@@ -833,23 +833,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "고속 카운터",
@@ -908,12 +908,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -928,27 +928,27 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화 구성",
@@ -1007,12 +1007,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -1027,27 +1027,27 @@
       {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화 구성",
@@ -1106,12 +1106,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -1130,23 +1130,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "ioPoints": 1536,
@@ -1195,12 +1195,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -1219,23 +1219,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "ioPoints": 384,
@@ -1279,12 +1279,12 @@
       {
         "label": "연산 방식",
         "value": "반복 연산",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       },
       {
         "label": "타이머",
@@ -1303,23 +1303,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "ioPoints": 384,
@@ -1373,12 +1373,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1387,28 +1387,28 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 32,
@@ -1451,12 +1451,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1465,28 +1465,28 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 32,
@@ -1529,12 +1529,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1543,28 +1543,28 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 16,
@@ -1607,12 +1607,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1621,28 +1621,28 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 32,
@@ -1685,12 +1685,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1699,28 +1699,28 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 32,
@@ -1763,12 +1763,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1777,28 +1777,28 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 16,
@@ -1846,12 +1846,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 20~24V (±10%)",
-        "source": "estimated"
+        "value": "DC 20V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1860,23 +1860,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 32,
@@ -1919,12 +1919,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 20~24V (±10%)",
-        "source": "estimated"
+        "value": "DC 20V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -1933,23 +1933,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 32,
@@ -1992,12 +1992,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 20~24V (±10%)",
-        "source": "estimated"
+        "value": "DC 20V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -2006,23 +2006,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 32,
@@ -2060,12 +2060,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 20~24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -2074,23 +2074,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 16,
@@ -2128,12 +2128,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 20~24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -2142,23 +2142,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
       }
     ],
     "ioPoints": 16,
@@ -2206,12 +2206,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -2220,23 +2220,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-20~70°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "RS485",
@@ -2290,12 +2290,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -2304,23 +2304,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-20~70°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "RS485",
@@ -2374,12 +2374,12 @@
       {
         "label": "타이머/카운터",
         "value": "각 512점",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "전원 전압",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
       },
       {
         "label": "소비전력",
@@ -2388,23 +2388,23 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
+        "value": "-20~70°C",
+        "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
+        "value": "-25~80°C",
+        "source": "catalog"
       },
       {
         "label": "보호 등급",
         "value": "IP20",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "RS485",
@@ -2462,8 +2462,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2504,8 +2504,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2546,8 +2546,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2578,8 +2578,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2610,8 +2610,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2642,8 +2642,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2674,8 +2674,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2706,8 +2706,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -2738,8 +2738,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3324,8 +3324,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3376,8 +3376,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3428,8 +3428,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3480,8 +3480,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3527,8 +3527,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3579,8 +3579,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3621,8 +3621,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "부하 저항",
@@ -3668,8 +3668,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "부하 저항",
@@ -3715,8 +3715,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "부하 저항",
@@ -3762,8 +3762,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "부하 저항",
@@ -3809,8 +3809,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "부하 저항",
@@ -3856,8 +3856,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       },
       {
         "label": "부하 저항",
@@ -3908,8 +3908,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -3955,8 +3955,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4002,8 +4002,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4039,8 +4039,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4309,8 +4309,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4346,8 +4346,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4383,8 +4383,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4420,8 +4420,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4452,8 +4452,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4484,8 +4484,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4516,8 +4516,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -4553,8 +4553,8 @@
       },
       {
         "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
+        "value": "-10~65°C",
+        "source": "catalog"
       }
     ]
   },
@@ -8107,42 +8107,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -8176,42 +8176,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -8245,42 +8245,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -8314,42 +8314,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -8383,42 +8383,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -8452,42 +8452,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -8521,42 +8521,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -8590,42 +8590,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -8664,42 +8664,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -8739,42 +8739,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -8814,42 +8814,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -8889,42 +8889,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -8964,42 +8964,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9039,42 +9039,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9114,42 +9114,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9189,42 +9189,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9264,42 +9264,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9339,42 +9339,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9414,42 +9414,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9489,42 +9489,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "VS",
@@ -9564,42 +9564,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -9639,42 +9639,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -9714,42 +9714,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -9789,42 +9789,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -9864,42 +9864,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -9939,42 +9939,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -10014,42 +10014,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -10089,42 +10089,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -10164,42 +10164,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -10239,42 +10239,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -10314,42 +10314,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -10389,42 +10389,42 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
         "value": "VBScript 기반",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "CS",
@@ -10469,57 +10469,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -10563,57 +10558,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -10657,57 +10647,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -10751,57 +10736,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -10845,57 +10825,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -10939,57 +10914,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -11033,57 +11003,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -11127,57 +11092,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -11221,57 +11181,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "DS",
@@ -11315,57 +11270,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "RS",
@@ -11409,57 +11359,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11504,57 +11449,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11599,57 +11539,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11694,57 +11629,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11789,57 +11719,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11884,57 +11809,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11979,57 +11899,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12074,57 +11989,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12169,57 +12079,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12264,57 +12169,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12359,57 +12259,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12454,57 +12349,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12549,57 +12439,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12644,57 +12529,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12739,57 +12619,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12834,57 +12709,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -12929,57 +12799,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13024,57 +12889,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13119,57 +12979,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13214,57 +13069,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13309,57 +13159,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13404,57 +13249,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13499,57 +13339,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13594,57 +13429,52 @@
       {
         "label": "지원 OS",
         "value": "Windows 10/11 (64bit)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "지원 드라이버",
         "value": "600종 이상 (PLC, Inverter, 계측기 등)",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "트렌드",
         "value": "실시간 / 히스토리 트렌드",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "알람",
         "value": "알람 목록 / 알람 히스토리",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "레포트",
         "value": "일보 / 주보 / 월보",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "통신 프로토콜",
         "value": "OPC DA/UA, Modbus, CIMON, PROFIBUS 등",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "데이터베이스",
         "value": "MS SQL, MySQL, Oracle 연동",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "스크립트",
-        "value": "VBScript 기반",
-        "source": "estimated"
-      },
-      {
-        "label": "웹 모니터링",
-        "value": "HTML5 Web 기반 (CIMON Web)",
-        "source": "estimated"
+        "value": "VBScript / Python",
+        "source": "catalog"
       },
       {
         "label": "분산 시스템",
         "value": "멀티 서버 지원",
-        "source": "estimated"
+        "source": "catalog"
       },
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
-        "source": "estimated"
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -13669,17 +13499,17 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" (17.8 cm)",
+        "value": "7\" Color TFT",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 480 (WVGA)",
+        "value": "800 × 480",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "65,536색 (16 bit)",
+        "value": "65K Colors",
         "source": "catalog"
       },
       {
@@ -13688,8 +13518,18 @@
         "source": "catalog"
       },
       {
-        "label": "터치 방식",
-        "value": "저항막 (Resistive)",
+        "label": "백라이트 수명",
+        "value": "50,000시간",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "128MB DDR2 SDRAM",
+        "source": "catalog"
+      },
+      {
+        "label": "저장장치",
+        "value": "128MB SLC NAND Flash",
         "source": "catalog"
       },
       {
@@ -13698,23 +13538,73 @@
         "source": "catalog"
       },
       {
-        "label": "입력 전원",
-        "value": "DC 24V (±15%)",
+        "label": "이더넷",
+        "value": "없음",
         "source": "catalog"
       },
       {
-        "label": "통신",
-        "value": "Ethernet ×1, USB ×2, COM ×2",
+        "label": "시리얼 (COM1)",
+        "value": "RS232C",
         "source": "catalog"
       },
       {
-        "label": "방수",
-        "value": "IP65 (전면)",
+        "label": "시리얼 (COM2)",
+        "value": "RS422/485",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM3)",
+        "value": "없음",
+        "source": "catalog"
+      },
+      {
+        "label": "USB Host",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "Tool Port",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "SD Card",
+        "value": "없음",
         "source": "catalog"
       },
       {
         "label": "소비전력",
-        "value": "약 13 W",
+        "value": "6W",
+        "source": "catalog"
+      },
+      {
+        "label": "외형 치수 (mm)",
+        "value": "185 × 127 × 54",
+        "source": "catalog"
+      },
+      {
+        "label": "패널 컷 (mm)",
+        "value": "177 × 119",
+        "source": "catalog"
+      },
+      {
+        "label": "재질",
+        "value": "PLASTIC",
+        "source": "catalog"
+      },
+      {
+        "label": "인증",
+        "value": "FCC, UL, CE, KC",
+        "source": "catalog"
+      },
+      {
+        "label": "오디오",
+        "value": "없음",
+        "source": "catalog"
+      },
+      {
+        "label": "입력 전원",
+        "value": "DC 24V",
         "source": "catalog"
       }
     ]
@@ -13729,24 +13619,24 @@
     "description": "7인치, CE 6.0, AC 100-240V, 저항막 터치, CIMON-X 탑재",
     "screenSize": 7,
     "xpanelOs": "CE",
-    "xpanelPower": "AC",
+    "xpanelPower": "DC24V",
     "touchType": "RESISTIVE",
     "hasHighBrightness": false,
     "wideTemp": false,
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" (17.8 cm)",
+        "value": "7\" Color TFT",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 480 (WVGA)",
+        "value": "800 × 480",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "65,536색 (16 bit)",
+        "value": "65K Colors",
         "source": "catalog"
       },
       {
@@ -13755,8 +13645,18 @@
         "source": "catalog"
       },
       {
-        "label": "터치 방식",
-        "value": "저항막 (Resistive)",
+        "label": "백라이트 수명",
+        "value": "50,000시간",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "128MB DDR2 SDRAM",
+        "source": "catalog"
+      },
+      {
+        "label": "저장장치",
+        "value": "128MB SLC NAND Flash",
         "source": "catalog"
       },
       {
@@ -13765,23 +13665,73 @@
         "source": "catalog"
       },
       {
-        "label": "입력 전원",
-        "value": "AC 100-240V",
+        "label": "이더넷",
+        "value": "없음",
         "source": "catalog"
       },
       {
-        "label": "통신",
-        "value": "Ethernet ×1, USB ×2, COM ×2",
+        "label": "시리얼 (COM1)",
+        "value": "RS232C",
         "source": "catalog"
       },
       {
-        "label": "방수",
-        "value": "IP65 (전면)",
+        "label": "시리얼 (COM2)",
+        "value": "RS422/485",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM3)",
+        "value": "없음",
+        "source": "catalog"
+      },
+      {
+        "label": "USB Host",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "Tool Port",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "SD Card",
+        "value": "없음",
         "source": "catalog"
       },
       {
         "label": "소비전력",
-        "value": "약 13 W",
+        "value": "6W",
+        "source": "catalog"
+      },
+      {
+        "label": "외형 치수 (mm)",
+        "value": "185 × 127 × 54",
+        "source": "catalog"
+      },
+      {
+        "label": "패널 컷 (mm)",
+        "value": "177 × 119",
+        "source": "catalog"
+      },
+      {
+        "label": "재질",
+        "value": "PLASTIC",
+        "source": "catalog"
+      },
+      {
+        "label": "인증",
+        "value": "FCC, UL, CE, KC",
+        "source": "catalog"
+      },
+      {
+        "label": "오디오",
+        "value": "1포트 (오디오 포트 내장)",
+        "source": "catalog"
+      },
+      {
+        "label": "입력 전원",
+        "value": "DC 24V",
         "source": "catalog"
       }
     ]
@@ -13803,17 +13753,17 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "10.4\" (26.4 cm)",
+        "value": "10.4\" Color TFT",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 600 (SVGA)",
+        "value": "800 × 600",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "262,144색 (18 bit)",
+        "value": "262K Colors",
         "source": "catalog"
       },
       {
@@ -13822,8 +13772,18 @@
         "source": "catalog"
       },
       {
-        "label": "터치 방식",
-        "value": "저항막 (Resistive)",
+        "label": "백라이트 수명",
+        "value": "50,000시간",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "512MB DDR2 SDRAM",
+        "source": "catalog"
+      },
+      {
+        "label": "저장장치",
+        "value": "128MB SLC NAND Flash",
         "source": "catalog"
       },
       {
@@ -13832,23 +13792,73 @@
         "source": "catalog"
       },
       {
-        "label": "입력 전원",
-        "value": "DC 24V (±15%)",
+        "label": "이더넷",
+        "value": "10/100 BaseT",
         "source": "catalog"
       },
       {
-        "label": "통신",
-        "value": "Ethernet ×1, USB ×2, COM ×2",
+        "label": "시리얼 (COM1)",
+        "value": "RS422/485",
         "source": "catalog"
       },
       {
-        "label": "방수",
-        "value": "IP65 (전면)",
+        "label": "시리얼 (COM2)",
+        "value": "RS232C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM3)",
+        "value": "RS232C",
+        "source": "catalog"
+      },
+      {
+        "label": "USB Host",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "Tool Port",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "SD Card",
+        "value": "1슬롯",
         "source": "catalog"
       },
       {
         "label": "소비전력",
-        "value": "약 15 W",
+        "value": "9W",
+        "source": "catalog"
+      },
+      {
+        "label": "외형 치수 (mm)",
+        "value": "280 × 220 × 47",
+        "source": "catalog"
+      },
+      {
+        "label": "패널 컷 (mm)",
+        "value": "267 × 207",
+        "source": "catalog"
+      },
+      {
+        "label": "재질",
+        "value": "PLASTIC",
+        "source": "catalog"
+      },
+      {
+        "label": "오디오",
+        "value": "없음",
+        "source": "catalog"
+      },
+      {
+        "label": "입력 전원",
+        "value": "DC 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "인증",
+        "value": "FCC, UL, CE, KC",
         "source": "catalog"
       }
     ]
@@ -13863,24 +13873,24 @@
     "description": "10.4인치, WEC7, DC 24V, 오디오 포트, 저항막 터치",
     "screenSize": 10.4,
     "xpanelOs": "WEC7",
-    "xpanelPower": "DC24V",
+    "xpanelPower": "AC",
     "touchType": "RESISTIVE",
     "hasHighBrightness": false,
     "wideTemp": false,
     "specs": [
       {
         "label": "화면 크기",
-        "value": "10.4\" (26.4 cm)",
+        "value": "10.4\" Color TFT",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 600 (SVGA)",
+        "value": "800 × 600",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "262,144색 (18 bit)",
+        "value": "262K Colors",
         "source": "catalog"
       },
       {
@@ -13889,8 +13899,18 @@
         "source": "catalog"
       },
       {
-        "label": "터치 방식",
-        "value": "저항막 (Resistive)",
+        "label": "백라이트 수명",
+        "value": "50,000시간",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "512MB DDR2 SDRAM",
+        "source": "catalog"
+      },
+      {
+        "label": "저장장치",
+        "value": "128MB SLC NAND Flash",
         "source": "catalog"
       },
       {
@@ -13899,23 +13919,73 @@
         "source": "catalog"
       },
       {
-        "label": "입력 전원",
-        "value": "DC 24V (±15%)",
+        "label": "이더넷",
+        "value": "10/100 BaseT",
         "source": "catalog"
       },
       {
-        "label": "통신",
-        "value": "Ethernet ×1, USB ×2, COM ×2",
+        "label": "시리얼 (COM1)",
+        "value": "RS422/485",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM2)",
+        "value": "RS232C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM3)",
+        "value": "RS232C",
+        "source": "catalog"
+      },
+      {
+        "label": "USB Host",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "Tool Port",
+        "value": "1포트",
+        "source": "catalog"
+      },
+      {
+        "label": "SD Card",
+        "value": "1슬롯",
+        "source": "catalog"
+      },
+      {
+        "label": "소비전력",
+        "value": "9W",
+        "source": "catalog"
+      },
+      {
+        "label": "외형 치수 (mm)",
+        "value": "280 × 220 × 47",
+        "source": "catalog"
+      },
+      {
+        "label": "패널 컷 (mm)",
+        "value": "267 × 207",
+        "source": "catalog"
+      },
+      {
+        "label": "재질",
+        "value": "PLASTIC",
         "source": "catalog"
       },
       {
         "label": "오디오",
-        "value": "오디오 포트 내장",
+        "value": "없음",
         "source": "catalog"
       },
       {
-        "label": "방수",
-        "value": "IP65 (전면)",
+        "label": "입력 전원",
+        "value": "AC 100~240V",
+        "source": "catalog"
+      },
+      {
+        "label": "인증",
+        "value": "FCC, UL, CE, KC, KR",
         "source": "catalog"
       }
     ]
