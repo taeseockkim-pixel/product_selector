@@ -111,11 +111,23 @@ src/
 
 ## 작업 완료 기준 (Definition of Done)
 
-1. `npx tsc --noEmit` — 타입 오류 0
-2. `npm run lint` — ESLint 오류 0
-3. `npm run build` — 빌드 성공
-4. 브라우저에서 4개 카테고리(PLC/IPC/SCADA/XPANEL) 동작 확인
-5. 변경 사항을 `docs/exec-plans/` 에 반영
+커밋 전 반드시 아래 명령을 실행하고 **모두 통과**해야 합니다:
+
+```bash
+npm run verify
+```
+
+이 명령은 다음을 자동 검사합니다:
+1. TypeScript 타입 오류 없음
+2. 프로덕션 빌드 성공
+3. 필수 파일(소스, 설정, 문서) 존재
+4. `products.json` 무결성 (id 중복 없음, catalog spec 비율 30%+)
+5. `public/products/` 이미지가 git에 커밋되어 있음
+
+통과 후 추가로 확인:
+- 브라우저에서 4개 카테고리(PLC/IPC/SCADA/XPANEL) 동작 확인
+- 새 이미지 추가 시: `npm run validate:specs` 실행 후 커밋
+- 변경 내용을 `docs/exec-plans/` 에 반영
 
 ---
 
