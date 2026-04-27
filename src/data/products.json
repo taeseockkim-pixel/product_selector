@@ -14067,7 +14067,7 @@
     "description": "10.4인치, WEC7, 700 cd/m² 고휘도, 알루미늄 하우징, 오디오 포트",
     "screenSize": 10.4,
     "xpanelOs": "WEC7",
-    "xpanelPower": "DC24V",
+    "xpanelPower": "AC",
     "touchType": "RESISTIVE",
     "hasHighBrightness": true,
     "wideTemp": false,
@@ -14109,7 +14109,7 @@
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V (±15%)",
+        "value": "AC 100~240V",
         "source": "catalog"
       },
       {
@@ -14134,7 +14134,7 @@
     "description": "12.1인치, WEC7, 16.7M 색상, 600 cd/m² 고휘도, 알루미늄 하우징, 오디오",
     "screenSize": 12.1,
     "xpanelOs": "WEC7",
-    "xpanelPower": "DC24V",
+    "xpanelPower": "AC",
     "touchType": "RESISTIVE",
     "hasHighBrightness": true,
     "wideTemp": false,
@@ -14176,7 +14176,7 @@
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V (±15%)",
+        "value": "AC 100~240V",
         "source": "catalog"
       },
       {
@@ -14201,7 +14201,7 @@
     "description": "15인치, WEC7, 16.7M 색상, 500 cd/m² 고휘도, 알루미늄 하우징, 오디오",
     "screenSize": 15,
     "xpanelOs": "WEC7",
-    "xpanelPower": "DC24V",
+    "xpanelPower": "AC",
     "touchType": "RESISTIVE",
     "hasHighBrightness": true,
     "wideTemp": false,
@@ -14243,7 +14243,7 @@
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V (±15%)",
+        "value": "AC 100~240V",
         "source": "catalog"
       },
       {
