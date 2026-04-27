@@ -10,6 +10,12 @@ export interface Category {
 export interface SpecItem {
   label: string;
   value: string;
+  /**
+   * 'catalog'  : 공식 카탈로그에서 직접 확인된 값 → UI에 표시
+   * 'estimated': AI 추정 또는 미검증 값       → UI에 표시 안 함
+   * 미지정      : 'catalog' 과 동일하게 취급
+   */
+  source?: 'catalog' | 'estimated';
 }
 
 export interface Product {

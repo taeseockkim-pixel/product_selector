@@ -70,20 +70,24 @@ function SpecModal({ product, onClose }: { product: Product; onClose: () => void
         </div>
         <div className="px-6 py-4">
           <p className="text-sm text-gray-500 mb-4">{product.description}</p>
-          {product.specs.length === 0 ? (
-            <p className="text-xs text-gray-400 italic">상세 사양 정보 없음</p>
-          ) : (
-            <table className="w-full text-sm">
-              <tbody>
-                {product.specs.map((s) => (
-                  <tr key={s.label} className="border-b border-gray-50">
-                    <td className="py-2 pr-4 font-medium text-gray-500 w-40 align-top">{s.label}</td>
-                    <td className="py-2 text-gray-800">{s.value}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          {(() => {
+            const verifiedSpecs = product.specs.filter(s => s.source !== 'estimated');
+            if (verifiedSpecs.length === 0) {
+              return <p className="text-xs text-gray-400 italic">상세 사양 정보 없음 (카탈로그 검증 후 업데이트 예정)</p>;
+            }
+            return (
+              <table className="w-full text-sm">
+                <tbody>
+                  {verifiedSpecs.map((s) => (
+                    <tr key={s.label} className="border-b border-gray-50">
+                      <td className="py-2 pr-4 font-medium text-gray-500 w-40 align-top">{s.label}</td>
+                      <td className="py-2 text-gray-800">{s.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            );
+          })()}
         </div>
       </div>
     </div>

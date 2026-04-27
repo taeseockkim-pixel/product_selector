@@ -30,11 +30,60 @@ CIMON 제품 선택 가이드 — 고객이 PLC / IPC / SCADA / XPANEL 제품을
 - `src/types/index.ts` 의 `Product` 인터페이스 필드를 삭제 (다운스트림 영향 큼)
 - `App.tsx` 에 비즈니스 로직 직접 추가 (config 레이어를 통해 우회)
 - Tailwind 클래스 인라인 마구 추가 — `docs/FRONTEND.md` 디자인 토큰 먼저 확인
+- **카탈로그를 확인하지 않고 `specs[]` 에 값을 추가하거나 수정하는 행위** ← 데이터 신뢰성 파괴
 
 ### 반드시 할 것
 - 새 제품 카테고리 추가 시 → `src/types/index.ts`, `src/config/filterConfig.ts`, `src/data/products.json` 세 파일 동시 수정
 - 필터 로직 변경 시 → `filterConfig.ts` 의 `matcher` 함수만 수정 (컴포넌트 불변)
 - `products.json` 구조 변경 시 → `src/data/products.ts` 의 import 방식도 확인
+
+---
+
+## 사양 데이터 거버넌스 (CRITICAL)
+
+### 규칙 요약
+
+`products.json` 의 모든 `specs[]` 항목에는 반드시 `source` 필드를 명시해야 합니다.
+
+| source 값 | 의미 | UI 표시 |
+|---|---|---|
+| `"catalog"` | 공식 카탈로그(PDF/인쇄물)에서 직접 확인된 값 | **표시됨** |
+| `"estimated"` | AI 추정 또는 미검증 값 | **숨김** |
+| 미지정 | `"catalog"` 과 동일하게 처리 (레거시 호환) | 표시됨 |
+
+### AI 에이전트가 specs를 추가/수정할 때
+
+```json
+// ✅ 올바른 방식 — 카탈로그 확인 후
+{ "label": "프로그램 용량", "value": "256K Step", "source": "catalog" }
+
+// ✅ 미확인이면 estimated로 — UI에 표시되지 않지만 데이터는 보존
+{ "label": "타이머", "value": "4096개", "source": "estimated" }
+
+// ❌ 절대 금지 — source 없이 AI 추정값 추가
+{ "label": "타이머", "value": "2048개 (100ms/10ms/1ms)" }
+```
+
+### 검증 명령
+
+```bash
+npm run validate:specs
+# 출력: catalog 수 / estimated 수 / catalog 0개인 제품 목록
+```
+
+변경 후 반드시 실행하고 결과를 커밋 메시지에 첨부하세요.
+
+### 데이터 출처 우선순위
+
+1. **공식 PDF 카탈로그** — 가장 신뢰할 수 있는 출처
+2. **CIMON 공식 홈페이지 제품 페이지** — 카탈로그 보완
+3. **AI 추정** — `source: "estimated"` 로만 허용, UI에 표시 안 됨
+
+### 잘못된 사양이 발견되면
+
+1. `products.json` 에서 해당 항목의 `source` 를 `"estimated"` 로 변경 (즉시 UI에서 숨김)
+2. 올바른 값을 카탈로그에서 확인한 후 `source: "catalog"` 로 수정
+3. `npm run validate:specs` 재실행으로 검증
 
 ---
 
