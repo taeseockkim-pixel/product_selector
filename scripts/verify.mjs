@@ -84,8 +84,27 @@ check('catalog spec 비율 30% 이상 (품질 지표)', () => {
   return ratio >= 30 || `catalog 비율 ${ratio}% — 카탈로그 검증 필요 (catalog: ${catalog}, total: ${total})`;
 });
 
-// ── 5. 이미지 파일 검증 ──────────────────────────────────────
-console.log('\n[5] 이미지');
+// ── 5. 배포 설정 ─────────────────────────────────────────────
+console.log('\n[5] 배포 설정');
+check('vercel.json 존재', () => {
+  if (!existsSync(join(root, 'vercel.json'))) return 'vercel.json 없음 — Vercel 404 발생 가능';
+});
+check('vercel.json 내용: outputDirectory = dist', () => {
+  const v = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'));
+  return v.outputDirectory === 'dist' || `outputDirectory가 "${v.outputDirectory}" — "dist" 이어야 함`;
+});
+check('vercel.json 내용: SPA rewrites 설정됨', () => {
+  const v = JSON.parse(readFileSync(join(root, 'vercel.json'), 'utf8'));
+  const hasRewrite = Array.isArray(v.rewrites) && v.rewrites.some(r => r.destination === '/index.html');
+  return hasRewrite || 'rewrites → /index.html 없음 — 새로고침 시 404 발생';
+});
+check('vercel.json이 git에 커밋됨', () => {
+  const tracked = execSync('git ls-files vercel.json', { cwd: root }).toString().trim();
+  return tracked === 'vercel.json' || '미커밋 — git add vercel.json 필요';
+});
+
+// ── 6. 이미지 파일 검증 ──────────────────────────────────────
+console.log('\n[6] 이미지');
 const imgDir = join(root, 'public/products');
 check('public/products/ 폴더 존재', () => existsSync(imgDir) || '폴더 없음');
 if (existsSync(imgDir)) {
