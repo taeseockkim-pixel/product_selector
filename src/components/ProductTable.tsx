@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Product } from '../types';
 import { resolveProductImage } from '../utils/imageResolver';
 
@@ -11,8 +12,10 @@ interface Props {
 }
 
 function ProductImage({ id, subType }: { id: string; subType: string }) {
+  const [failed, setFailed] = useState(false);
   const src = resolveProductImage(id, subType);
-  if (!src) {
+
+  if (!src || failed) {
     return (
       <div className="w-14 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300 text-[10px] select-none">
         NO IMG
@@ -24,10 +27,7 @@ function ProductImage({ id, subType }: { id: string; subType: string }) {
       src={src}
       alt={id}
       className="w-14 h-10 object-contain rounded-lg bg-gray-50"
-      onError={(e) => {
-        (e.currentTarget as HTMLImageElement).style.display = 'none';
-        (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute('hidden');
-      }}
+      onError={() => setFailed(true)}
     />
   );
 }

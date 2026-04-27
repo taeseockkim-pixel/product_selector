@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "validate:specs": "node scripts/validate-specs.mjs"
+    "validate:specs": "node scripts/validate-specs.mjs",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
