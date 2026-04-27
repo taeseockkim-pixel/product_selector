@@ -13870,7 +13870,7 @@
     "series": "XT",
     "seriesLabel": "XPANEL XT",
     "subType": "XPANEL_HMI",
-    "description": "10.4인치, WEC7, DC 24V, 오디오 포트, 저항막 터치",
+    "description": "10.4인치, WEC7, AC 100~240V, 오디오 포트, 저항막 터치",
     "screenSize": 10.4,
     "xpanelOs": "WEC7",
     "xpanelPower": "AC",
