@@ -1,4 +1,5 @@
 import type { Product } from '../types';
+import { resolveProductImage } from '../utils/imageResolver';
 
 interface Props {
   products: Product[];
@@ -7,6 +8,28 @@ interface Props {
   onCartToggle: (id: string) => void;
   onCompareToggle: (id: string) => void;
   onViewDetail: (product: Product) => void;
+}
+
+function ProductImage({ id, subType }: { id: string; subType: string }) {
+  const src = resolveProductImage(id, subType);
+  if (!src) {
+    return (
+      <div className="w-14 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300 text-[10px] select-none">
+        NO IMG
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={id}
+      className="w-14 h-10 object-contain rounded-lg bg-gray-50"
+      onError={(e) => {
+        (e.currentTarget as HTMLImageElement).style.display = 'none';
+        (e.currentTarget.nextSibling as HTMLElement | null)?.removeAttribute('hidden');
+      }}
+    />
+  );
 }
 
 export default function ProductTable({
@@ -50,9 +73,7 @@ export default function ProductTable({
               <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                 {/* 이미지 */}
                 <td className="px-4 py-3">
-                  <div className="w-14 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300 text-xs">
-                    IMG
-                  </div>
+                  <ProductImage id={p.id} subType={p.subType} />
                 </td>
 
                 {/* 모델명 */}
