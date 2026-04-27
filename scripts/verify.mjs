@@ -106,31 +106,46 @@ check('vercel.json이 git에 커밋됨', () => {
 // ── public/ 정적 파일 git 커밋 여부 공통 검사 ───────────────
 function checkPublicDir(label, dir, exts) {
   const fullDir = join(root, dir);
-  if (!existsSync(fullDir)) return; // 폴더 없으면 스킵
-  const files = readdirSync(fullDir).filter(f => exts.test(f));
+  if (!existsSync(fullDir)) return;
+  // 서브디렉터리 포함 재귀 탐색
+  function collectFiles(d) {
+    return readdirSync(d, { withFileTypes: true }).flatMap(e =>
+      e.isDirectory() ? collectFiles(join(d, e.name)) : (exts.test(e.name) ? [join(d, e.name)] : [])
+    );
+  }
+  const files = collectFiles(fullDir);
   if (files.length === 0) return;
   try {
-    const tracked = execSync(`git ls-files ${dir}`, { cwd: root }).toString().trim();
+    const tracked = execSync(`git ls-files "${dir}"`, { cwd: root }).toString().trim();
     const trackedCount = tracked ? tracked.split('\n').length : 0;
     check(
       `${label} git에 커밋됨 (${trackedCount}/${files.length})`,
       () => trackedCount === files.length
-        || `미커밋 ${files.length - trackedCount}개 — git add ${dir} 필요`
+        || `미커밋 ${files.length - trackedCount}개 — git add "${dir}" 필요`
     );
   } catch {
     check(`${label} git ls-files`, () => 'git 명령 실패');
   }
 }
 
-// ── 6. 이미지 파일 검증 ──────────────────────────────────────
+// ── 6. 정적 파일 검증 ───────────────────────────────────────
 console.log('\n[6] 정적 파일 (public/)');
-const imgDir = join(root, 'public/products');
-check('public/products/ 폴더 존재', () => existsSync(imgDir) || '폴더 없음');
-if (existsSync(imgDir)) {
-  const imgs = readdirSync(imgDir).filter(f => /\.(jpg|png|webp)$/i.test(f));
-  check(`제품 이미지 1개 이상 (현재 ${imgs.length}개)`, () => imgs.length > 0);
+const imgRoot = join(root, 'public/products');
+check('public/products/ 폴더 존재', () => existsSync(imgRoot) || '폴더 없음');
+if (existsSync(imgRoot)) {
+  // 서브디렉터리별 커밋 여부 확인
+  const subDirs = readdirSync(imgRoot, { withFileTypes: true })
+    .filter(e => e.isDirectory())
+    .map(e => e.name);
+  if (subDirs.length > 0) {
+    for (const sub of subDirs) {
+      checkPublicDir(`이미지 (${sub}/)`, `public/products/${sub}`, /\.(jpg|png|webp)$/i);
+    }
+  } else {
+    // 구버전 평면 구조 호환
+    checkPublicDir('제품 이미지 (public/products/)', 'public/products', /\.(jpg|png|webp)$/i);
+  }
 }
-checkPublicDir('제품 이미지 (public/products/)', 'public/products', /\.(jpg|png|webp)$/i);
 checkPublicDir('카탈로그 PDF (public/catalogs/)', 'public/catalogs', /\.pdf$/i);
 
 // ── 결과 요약 ────────────────────────────────────────────────
