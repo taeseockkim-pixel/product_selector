@@ -153,6 +153,10 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
             ],
             matcher: (p, sel) =>
               sel.length === 0 || p.lineup !== 'WS' || sel.includes(p.maxUsers ?? ''),
+            disabledWhen: (filters) => {
+              const lineup = filters['lineup']?.[0];
+              return lineup === 'DS' || lineup === 'RS';
+            },
           },
         ],
       },
@@ -192,6 +196,10 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
               sel.length === 0 ||
               !['VS', 'CS'].includes(p.lineup ?? '') ||
               sel.includes(p.maxUsers ?? ''),
+            disabledWhen: (filters) => {
+              const lineup = filters['lineup']?.[0];
+              return lineup === 'DS' || lineup === 'RS';
+            },
           },
         ],
       },

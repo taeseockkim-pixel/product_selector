@@ -31,7 +31,16 @@ export default function LeftPanel({
     } else {
       next = current.includes(value) ? [] : [value];
     }
-    onFiltersChange({ ...filters, [filterId]: next });
+    const newFilters = { ...filters, [filterId]: next };
+    // 필터 변경 후 disabled 상태가 된 섹션의 선택값 자동 초기화
+    if (subType) {
+      for (const section of subType.filters) {
+        if (section.disabledWhen?.(newFilters)) {
+          newFilters[section.id] = [];
+        }
+      }
+    }
+    onFiltersChange(newFilters);
   }
 
   function clearFilters() {
@@ -90,9 +99,10 @@ export default function LeftPanel({
             {subType.filters.map((section) => {
               const selected = filters[section.id] ?? [];
               const isButtons = section.type === 'buttons';
+              const disabled = section.disabledWhen?.(filters) ?? false;
 
               return (
-                <div key={section.id}>
+                <div key={section.id} className={disabled ? 'opacity-40 pointer-events-none select-none' : ''}>
                   <p className="text-xs font-semibold text-gray-500 mb-2">
                     {section.title}
                   </p>

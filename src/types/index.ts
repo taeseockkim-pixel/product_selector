@@ -68,6 +68,8 @@ export interface FilterSection {
   type: 'buttons' | 'checkboxGrid';
   options: FilterOption[];
   matcher: (product: Product, selected: string[]) => boolean;
+  /** 현재 필터 상태 기준으로 이 섹션을 비활성화할지 여부 */
+  disabledWhen?: (filters: FilterValues) => boolean;
 }
 
 export interface SubTypeConfig {
