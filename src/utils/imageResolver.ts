@@ -1,7 +1,9 @@
 // 폴더별 경로 상수
-const CM1 = '/products/PLC_CM1';
-const IPC = '/products/IPC_IAC';
-// PLC_CM3, SCADA, XPANEL 폴더는 이미지 준비 시 여기에 경로 추가
+const CM1    = '/products/PLC_CM1';
+const IPC    = '/products/IPC_IAC';
+const SCADA  = '/products/SCADA';
+const XPANEL = '/products/XPANEL';
+// PLC_CM3 폴더는 이미지 준비 시 여기에 경로 추가
 
 // ── CM1: 파일명 정확 일치 ────────────────────────────────────
 const CM1_EXACT = new Set([
@@ -87,22 +89,43 @@ const IPC_MAP: Record<string, string> = {
   // RACK PC — 이미지 미준비, 추가 시 여기에 매핑
 };
 
+// ── SCADA: subType → 이미지 ──────────────────────────────────
+const SCADA_MAP: Record<string, string> = {
+  SCADA_STD: `${SCADA}/SCADA.jpg`,
+  SCADA_PRO: `${SCADA}/SCADA_PRO.jpg`,
+};
+
+// ── XPANEL: 제품 ID 패턴 → 이미지 ───────────────────────────
+const XPANEL_PATTERNS: { regex: RegExp; file: string }[] = [
+  { regex: /^(XT|iXT)/,    file: `${XPANEL}/XT_IXT Series.jpg` },
+  { regex: /^CM-eXT/,      file: `${XPANEL}/eXT Series.jpg`    },
+  { regex: /^CM-sHP/,      file: `${XPANEL}/Hybrid.jpg`        },
+];
+
 // ── 메인 해석 함수 ────────────────────────────────────────────
 export function resolveProductImage(productId: string, subType: string): string | null {
   // 1. IPC 직접 매핑
   if (productId in IPC_MAP) return IPC_MAP[productId];
 
-  // 2. CM1 정확 일치
+  // 2. SCADA subType 매핑
+  if (subType in SCADA_MAP) return SCADA_MAP[subType];
+
+  // 3. XPANEL ID 패턴 매핑
+  for (const { regex, file } of XPANEL_PATTERNS) {
+    if (regex.test(productId)) return file;
+  }
+
+  // 4. CM1 정확 일치
   if (CM1_EXACT.has(productId)) return `${CM1}/${productId}.jpg`;
 
-  // 3. CM1 n 패턴 매핑
+  // 5. CM1 n 패턴 매핑
   for (const { regex, file } of CM1_PATTERNS) {
     if (regex.test(productId)) return `${CM1}/${file}.jpg`;
   }
 
-  // 4. CM1 subType 폴백
+  // 6. CM1 subType 폴백
   if (subType in CM1_SUBTYPE) return CM1_SUBTYPE[subType];
 
-  // 5. 이미지 없음 → 플레이스홀더
+  // 7. 이미지 없음 → 플레이스홀더
   return null;
 }
