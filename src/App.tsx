@@ -8,6 +8,7 @@ import PlcLeftPanel from './components/PlcLeftPanel';
 import ProductTable from './components/ProductTable';
 import CartPage from './components/CartPage';
 import ComparePage from './components/ComparePage';
+import SpecModal from './components/SpecModal';
 
 type ViewMode = 'main' | 'cart' | 'compare';
 
@@ -43,55 +44,6 @@ function filterByConfig(
       return section.matcher(p, selected);
     });
   });
-}
-
-// 사양 상세 모달
-function SpecModal({ product, onClose }: { product: Product; onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
-            <h2 className="text-lg font-bold text-gray-800">{product.modelName}</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{product.seriesLabel}</p>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none w-8 h-8 flex items-center justify-center"
-          >
-            ×
-          </button>
-        </div>
-        <div className="px-6 py-4">
-          <p className="text-sm text-gray-500 mb-4">{product.description}</p>
-          {(() => {
-            const verifiedSpecs = product.specs.filter(s => s.source !== 'estimated');
-            if (verifiedSpecs.length === 0) {
-              return <p className="text-xs text-gray-400 italic">상세 사양 정보 없음 (카탈로그 검증 후 업데이트 예정)</p>;
-            }
-            return (
-              <table className="w-full text-sm">
-                <tbody>
-                  {verifiedSpecs.map((s) => (
-                    <tr key={s.label} className="border-b border-gray-50">
-                      <td className="py-2 pr-4 font-medium text-gray-500 w-40 align-top">{s.label}</td>
-                      <td className="py-2 text-gray-800">{s.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            );
-          })()}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default function App() {
