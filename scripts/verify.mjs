@@ -103,26 +103,35 @@ check('vercel.json이 git에 커밋됨', () => {
   return tracked === 'vercel.json' || '미커밋 — git add vercel.json 필요';
 });
 
+// ── public/ 정적 파일 git 커밋 여부 공통 검사 ───────────────
+function checkPublicDir(label, dir, exts) {
+  const fullDir = join(root, dir);
+  if (!existsSync(fullDir)) return; // 폴더 없으면 스킵
+  const files = readdirSync(fullDir).filter(f => exts.test(f));
+  if (files.length === 0) return;
+  try {
+    const tracked = execSync(`git ls-files ${dir}`, { cwd: root }).toString().trim();
+    const trackedCount = tracked ? tracked.split('\n').length : 0;
+    check(
+      `${label} git에 커밋됨 (${trackedCount}/${files.length})`,
+      () => trackedCount === files.length
+        || `미커밋 ${files.length - trackedCount}개 — git add ${dir} 필요`
+    );
+  } catch {
+    check(`${label} git ls-files`, () => 'git 명령 실패');
+  }
+}
+
 // ── 6. 이미지 파일 검증 ──────────────────────────────────────
-console.log('\n[6] 이미지');
+console.log('\n[6] 정적 파일 (public/)');
 const imgDir = join(root, 'public/products');
 check('public/products/ 폴더 존재', () => existsSync(imgDir) || '폴더 없음');
 if (existsSync(imgDir)) {
   const imgs = readdirSync(imgDir).filter(f => /\.(jpg|png|webp)$/i.test(f));
-  check(`이미지 파일 1개 이상 (현재 ${imgs.length}개)`, () => imgs.length > 0);
-
-  // git 추적 여부 확인
-  try {
-    const tracked = execSync('git ls-files public/products/', { cwd: root }).toString().trim();
-    const trackedCount = tracked ? tracked.split('\n').length : 0;
-    check(
-      `이미지가 git에 커밋됨 (추적: ${trackedCount}/${imgs.length})`,
-      () => trackedCount === imgs.length || `미커밋 ${imgs.length - trackedCount}개 — git add public/products/ 필요`
-    );
-  } catch {
-    check('git ls-files 실행', () => 'git 명령 실패');
-  }
+  check(`제품 이미지 1개 이상 (현재 ${imgs.length}개)`, () => imgs.length > 0);
 }
+checkPublicDir('제품 이미지 (public/products/)', 'public/products', /\.(jpg|png|webp)$/i);
+checkPublicDir('카탈로그 PDF (public/catalogs/)', 'public/catalogs', /\.pdf$/i);
 
 // ── 결과 요약 ────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(40));
