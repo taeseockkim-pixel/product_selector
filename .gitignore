@@ -15,6 +15,9 @@ dist-ssr
 # Claude Code local settings
 .claude/settings.local.json
 
+# CSV export (products.json에서 파생된 편집용 임시 파일)
+docs/csv-export/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

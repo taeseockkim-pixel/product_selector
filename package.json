@@ -9,9 +9,13 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "validate:specs": "node scripts/validate-specs.mjs",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "export:csv": "node scripts/export-to-csv.mjs",
+    "import:csv": "node scripts/import-from-csv.mjs",
+    "import:csv:dry": "node scripts/import-from-csv.mjs --dry-run"
   },
   "dependencies": {
+    "@vercel/blob": "^2.3.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

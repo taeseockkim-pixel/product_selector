@@ -88,16 +88,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
-      },
-      {
-        "label": "인터럽트",
-        "value": "I/O / 주기 / 통신",
-        "source": "estimated"
       }
     ],
     "ioPoints": 16384,
@@ -192,16 +182,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
-      },
-      {
-        "label": "인터럽트",
-        "value": "I/O / 주기 / 통신",
-        "source": "estimated"
       }
     ],
     "ioPoints": 8192,
@@ -296,16 +276,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
-      },
-      {
-        "label": "인터럽트",
-        "value": "I/O / 주기 / 통신",
-        "source": "estimated"
       }
     ],
     "ioPoints": 4096,
@@ -362,24 +332,9 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -400,11 +355,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 8192,
@@ -456,24 +406,9 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -494,11 +429,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 4096,
@@ -545,24 +475,9 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -583,11 +498,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 2048,
@@ -634,24 +544,9 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -672,11 +567,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 8192,
@@ -723,24 +613,9 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -761,11 +636,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 4096,
@@ -812,24 +682,9 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -850,11 +705,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 2048,
@@ -916,16 +766,6 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
@@ -949,16 +789,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "이중화 구성",
-        "value": "CPU / 통신 / 전원",
-        "source": "estimated"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 8192,
@@ -1015,16 +845,6 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
         "label": "내장 시리얼",
         "value": "RS-232C 1ch (프로그래밍용)",
         "source": "catalog"
@@ -1048,16 +868,6 @@
         "label": "보호 등급",
         "value": "IP20",
         "source": "catalog"
-      },
-      {
-        "label": "이중화 구성",
-        "value": "CPU / 통신 / 전원",
-        "source": "estimated"
-      },
-      {
-        "label": "고속 카운터",
-        "value": "4ch 내장 (최대 200kHz)",
-        "source": "estimated"
       }
     ],
     "ioPoints": 8192,
@@ -1112,21 +922,6 @@
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, FBD (IEC 61131-3)",
         "source": "catalog"
-      },
-      {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -1203,21 +998,6 @@
         "source": "catalog"
       },
       {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -1285,21 +1065,6 @@
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, FBD (IEC 61131-3)",
         "source": "catalog"
-      },
-      {
-        "label": "타이머",
-        "value": "2048점 (100ms / 10ms / 1ms)",
-        "source": "estimated"
-      },
-      {
-        "label": "카운터",
-        "value": "2048점 (16bit / 32bit)",
-        "source": "estimated"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 7단 (총 8단)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -1381,11 +1146,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -1457,11 +1217,6 @@
         "label": "전원 전압",
         "value": "DC 12V ~ 24V",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -1537,11 +1292,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -1613,11 +1363,6 @@
         "label": "전원 전압",
         "value": "DC 12V ~ 24V",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -1693,11 +1438,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -1769,11 +1509,6 @@
         "label": "전원 전압",
         "value": "DC 12V ~ 24V",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -1854,11 +1589,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -1925,11 +1655,6 @@
         "label": "전원 전압",
         "value": "DC 20V ~ 24V",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -2000,11 +1725,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -2068,11 +1788,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -2134,11 +1849,6 @@
         "label": "전원 전압",
         "value": "DC 12V ~ 24V",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "최대 7W",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -2212,11 +1922,6 @@
         "label": "전원 전압",
         "value": "DC 12V ~ 24V",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "최대 10W",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -2298,11 +2003,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 10W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-20~70°C",
         "source": "catalog"
@@ -2382,11 +2082,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "최대 10W",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-20~70°C",
         "source": "catalog"
@@ -2446,21 +2141,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "60W",
-        "source": "estimated"
-      },
-      {
-        "label": "출력 전압",
-        "value": "+5V / ±15V / +24V",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "광 절연 / 변압기 절연",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -2486,21 +2166,6 @@
         "label": "출력",
         "value": "5V/3.5A, ±15V",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "60W",
-        "source": "estimated"
-      },
-      {
-        "label": "출력 전압",
-        "value": "+5V / ±15V / +24V",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "광 절연 / 변압기 절연",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -2530,21 +2195,6 @@
         "source": "catalog"
       },
       {
-        "label": "소비전력",
-        "value": "60W",
-        "source": "estimated"
-      },
-      {
-        "label": "출력 전압",
-        "value": "+5V / ±15V / +24V",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "광 절연 / 변압기 절연",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -2561,21 +2211,6 @@
     "subType": "CM1_BASE",
     "description": "3 Slot Base",
     "specs": [
-      {
-        "label": "슬롯 수",
-        "value": "3슬롯",
-        "source": "estimated"
-      },
-      {
-        "label": "전원 공급",
-        "value": "전원 모듈 내장형",
-        "source": "estimated"
-      },
-      {
-        "label": "증설 방식",
-        "value": "증설 케이블 (CM0-CBL15/30)",
-        "source": "estimated"
-      },
       {
         "label": "동작 온도",
         "value": "-10~65°C",
@@ -2594,21 +2229,6 @@
     "description": "4 Slot Base",
     "specs": [
       {
-        "label": "슬롯 수",
-        "value": "4슬롯",
-        "source": "estimated"
-      },
-      {
-        "label": "전원 공급",
-        "value": "전원 모듈 내장형",
-        "source": "estimated"
-      },
-      {
-        "label": "증설 방식",
-        "value": "증설 케이블 (CM0-CBL15/30)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -2625,21 +2245,6 @@
     "subType": "CM1_BASE",
     "description": "5 Slot Base",
     "specs": [
-      {
-        "label": "슬롯 수",
-        "value": "5슬롯",
-        "source": "estimated"
-      },
-      {
-        "label": "전원 공급",
-        "value": "전원 모듈 내장형",
-        "source": "estimated"
-      },
-      {
-        "label": "증설 방식",
-        "value": "증설 케이블 (CM0-CBL15/30)",
-        "source": "estimated"
-      },
       {
         "label": "동작 온도",
         "value": "-10~65°C",
@@ -2658,21 +2263,6 @@
     "description": "8 Slot Base",
     "specs": [
       {
-        "label": "슬롯 수",
-        "value": "8슬롯",
-        "source": "estimated"
-      },
-      {
-        "label": "전원 공급",
-        "value": "전원 모듈 내장형",
-        "source": "estimated"
-      },
-      {
-        "label": "증설 방식",
-        "value": "증설 케이블 (CM0-CBL15/30)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -2690,21 +2280,6 @@
     "description": "10 Slot Base",
     "specs": [
       {
-        "label": "슬롯 수",
-        "value": "10슬롯",
-        "source": "estimated"
-      },
-      {
-        "label": "전원 공급",
-        "value": "전원 모듈 내장형",
-        "source": "estimated"
-      },
-      {
-        "label": "증설 방식",
-        "value": "증설 케이블 (CM0-CBL15/30)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -2721,21 +2296,6 @@
     "subType": "CM1_BASE",
     "description": "12 Slot Base",
     "specs": [
-      {
-        "label": "슬롯 수",
-        "value": "12슬롯",
-        "source": "estimated"
-      },
-      {
-        "label": "전원 공급",
-        "value": "전원 모듈 내장형",
-        "source": "estimated"
-      },
-      {
-        "label": "증설 방식",
-        "value": "증설 케이블 (CM0-CBL15/30)",
-        "source": "estimated"
-      },
       {
         "label": "동작 온도",
         "value": "-10~65°C",
@@ -2762,36 +2322,6 @@
         "label": "전압",
         "value": "DC 24V",
         "source": "catalog"
-      },
-      {
-        "label": "입력 방식",
-        "value": "Sink / Source 호환",
-        "source": "estimated"
-      },
-      {
-        "label": "ON 전압",
-        "value": "19V 이상 (또는 15V 이상)",
-        "source": "estimated"
-      },
-      {
-        "label": "OFF 전압",
-        "value": "11V 이하 (또는 9V 이하)",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "3ms 이하 (필터 조정 가능)",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -2814,36 +2344,6 @@
         "label": "전압",
         "value": "DC 24V",
         "source": "catalog"
-      },
-      {
-        "label": "입력 방식",
-        "value": "Sink / Source 호환",
-        "source": "estimated"
-      },
-      {
-        "label": "ON 전압",
-        "value": "19V 이상 (또는 15V 이상)",
-        "source": "estimated"
-      },
-      {
-        "label": "OFF 전압",
-        "value": "11V 이하 (또는 9V 이하)",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "3ms 이하 (필터 조정 가능)",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -2866,36 +2366,6 @@
         "label": "전압",
         "value": "DC 24V",
         "source": "catalog"
-      },
-      {
-        "label": "입력 방식",
-        "value": "Sink / Source 호환",
-        "source": "estimated"
-      },
-      {
-        "label": "ON 전압",
-        "value": "19V 이상 (또는 15V 이상)",
-        "source": "estimated"
-      },
-      {
-        "label": "OFF 전압",
-        "value": "11V 이하 (또는 9V 이하)",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "3ms 이하 (필터 조정 가능)",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -2918,36 +2388,6 @@
         "label": "전압",
         "value": "DC 24V",
         "source": "catalog"
-      },
-      {
-        "label": "입력 방식",
-        "value": "Sink / Source 호환",
-        "source": "estimated"
-      },
-      {
-        "label": "ON 전압",
-        "value": "19V 이상 (또는 15V 이상)",
-        "source": "estimated"
-      },
-      {
-        "label": "OFF 전압",
-        "value": "11V 이하 (또는 9V 이하)",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "3ms 이하 (필터 조정 가능)",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -2970,36 +2410,6 @@
         "label": "전압",
         "value": "DC 24V",
         "source": "catalog"
-      },
-      {
-        "label": "입력 방식",
-        "value": "Sink / Source 호환",
-        "source": "estimated"
-      },
-      {
-        "label": "ON 전압",
-        "value": "19V 이상 (또는 15V 이상)",
-        "source": "estimated"
-      },
-      {
-        "label": "OFF 전압",
-        "value": "11V 이하 (또는 9V 이하)",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "3ms 이하 (필터 조정 가능)",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -3022,26 +2432,6 @@
         "label": "출력",
         "value": "Relay 2A",
         "source": "catalog"
-      },
-      {
-        "label": "정격 전압",
-        "value": "AC 250V / DC 30V",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "10ms 이하",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "Relay",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -3064,26 +2454,6 @@
         "label": "출력",
         "value": "TR Sink 0.5A",
         "source": "catalog"
-      },
-      {
-        "label": "정격 전압",
-        "value": "DC 5~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "1ms 이하",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -3106,26 +2476,6 @@
         "label": "출력",
         "value": "TR Source 0.5A",
         "source": "catalog"
-      },
-      {
-        "label": "정격 전압",
-        "value": "DC 5~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "1ms 이하",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -3148,26 +2498,6 @@
         "label": "출력",
         "value": "TR Sink 0.2A",
         "source": "catalog"
-      },
-      {
-        "label": "정격 전압",
-        "value": "DC 5~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "1ms 이하",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -3190,26 +2520,6 @@
         "label": "출력",
         "value": "TR Source 0.2A",
         "source": "catalog"
-      },
-      {
-        "label": "정격 전압",
-        "value": "DC 5~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "1ms 이하",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -3232,26 +2542,6 @@
         "label": "출력",
         "value": "TR Sink 0.2A",
         "source": "catalog"
-      },
-      {
-        "label": "정격 전압",
-        "value": "DC 5~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "응답 시간",
-        "value": "1ms 이하",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러",
-        "source": "estimated"
-      },
-      {
-        "label": "단자 방식",
-        "value": "스크류 단자",
-        "source": "estimated"
       }
     ]
   },
@@ -3303,21 +2593,6 @@
         "source": "catalog"
       },
       {
-        "label": "입력 범위",
-        "value": "-10~+10V / 0~+10V / 0~+5V",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "최대 분해능",
         "value": "14bit (16384 분할)",
         "source": "catalog"
@@ -3353,21 +2628,6 @@
         "label": "입력",
         "value": "전류",
         "source": "catalog"
-      },
-      {
-        "label": "입력 범위",
-        "value": "4~20mA / 0~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
       },
       {
         "label": "최대 분해능",
@@ -3407,21 +2667,6 @@
         "source": "catalog"
       },
       {
-        "label": "입력 범위",
-        "value": "전압: -10~+10V, 전류: 4~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "최대 분해능",
         "value": "14bit (16384 분할)",
         "source": "catalog"
@@ -3459,21 +2704,6 @@
         "source": "catalog"
       },
       {
-        "label": "입력 범위",
-        "value": "전압: -10~+10V, 전류: 4~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "최대 분해능",
         "value": "14bit (16384 분할)",
         "source": "catalog"
@@ -3504,21 +2734,6 @@
         "label": "ch",
         "value": "4ch",
         "source": "catalog"
-      },
-      {
-        "label": "입력 범위",
-        "value": "전압: -10~+10V, 전류: 4~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
       },
       {
         "label": "최대 분해능",
@@ -3558,21 +2773,6 @@
         "source": "catalog"
       },
       {
-        "label": "입력 범위",
-        "value": "전압: -10~+10V, 전류: 4~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "최대 분해능",
         "value": "16bit (65536 분할)",
         "source": "catalog"
@@ -3610,24 +2810,9 @@
         "source": "catalog"
       },
       {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
-      },
-      {
-        "label": "부하 저항",
-        "value": "2kΩ 이상",
-        "source": "estimated"
       }
     ]
   },
@@ -3657,24 +2842,9 @@
         "source": "catalog"
       },
       {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
-      },
-      {
-        "label": "부하 저항",
-        "value": "2kΩ 이상",
-        "source": "estimated"
       }
     ]
   },
@@ -3704,24 +2874,9 @@
         "source": "catalog"
       },
       {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
-      },
-      {
-        "label": "부하 저항",
-        "value": "2kΩ 이상",
-        "source": "estimated"
       }
     ]
   },
@@ -3751,24 +2906,9 @@
         "source": "catalog"
       },
       {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
-      },
-      {
-        "label": "부하 저항",
-        "value": "2kΩ 이상",
-        "source": "estimated"
       }
     ]
   },
@@ -3798,24 +2938,9 @@
         "source": "catalog"
       },
       {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
-      },
-      {
-        "label": "부하 저항",
-        "value": "600Ω 이하",
-        "source": "estimated"
       }
     ]
   },
@@ -3845,24 +2970,9 @@
         "source": "catalog"
       },
       {
-        "label": "변환 속도",
-        "value": "약 1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
-      },
-      {
-        "label": "부하 저항",
-        "value": "600Ω 이하",
-        "source": "estimated"
       }
     ]
   },
@@ -3885,26 +2995,6 @@
         "label": "센서",
         "value": "Pt100, JPt100",
         "source": "catalog"
-      },
-      {
-        "label": "측정 온도 범위",
-        "value": "-200~+850°C (센서 종류별 상이)",
-        "source": "estimated"
-      },
-      {
-        "label": "분해능",
-        "value": "0.1°C",
-        "source": "estimated"
-      },
-      {
-        "label": "정확도",
-        "value": "±0.5°C",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -3934,26 +3024,6 @@
         "source": "catalog"
       },
       {
-        "label": "측정 온도 범위",
-        "value": "-200~+850°C (센서 종류별 상이)",
-        "source": "estimated"
-      },
-      {
-        "label": "분해능",
-        "value": "0.1°C",
-        "source": "estimated"
-      },
-      {
-        "label": "정확도",
-        "value": "±0.5°C",
-        "source": "estimated"
-      },
-      {
-        "label": "절연 방식",
-        "value": "포토커플러 (채널간 비절연)",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -3981,26 +3051,6 @@
         "source": "catalog"
       },
       {
-        "label": "측정 온도 범위",
-        "value": "-270~+1820°C (센서 종류별 상이)",
-        "source": "estimated"
-      },
-      {
-        "label": "분해능",
-        "value": "0.1°C",
-        "source": "estimated"
-      },
-      {
-        "label": "정확도",
-        "value": "±1°C (±1digit)",
-        "source": "estimated"
-      },
-      {
-        "label": "냉접점 보상",
-        "value": "내장",
-        "source": "estimated"
-      },
-      {
         "label": "동작 온도",
         "value": "-10~65°C",
         "source": "catalog"
@@ -4026,16 +3076,6 @@
         "label": "타입",
         "value": "NTC",
         "source": "catalog"
-      },
-      {
-        "label": "측정 범위",
-        "value": "-30~+100°C",
-        "source": "estimated"
-      },
-      {
-        "label": "분해능",
-        "value": "0.1°C",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -4540,16 +3580,6 @@
         "label": "속도",
         "value": "10/100Mbps",
         "source": "catalog"
-      },
-      {
-        "label": "최대 태그",
-        "value": "30,000 Tags",
-        "source": "estimated"
-      },
-      {
-        "label": "보안",
-        "value": "OPC UA Security Mode",
-        "source": "estimated"
       },
       {
         "label": "동작 온도",
@@ -5107,16 +4137,6 @@
         "label": "단자 방식",
         "value": "커넥터형",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5164,16 +4184,6 @@
         "label": "단자 방식",
         "value": "커넥터형",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5221,16 +4231,6 @@
         "label": "단자 방식",
         "value": "커넥터형",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5288,16 +4288,6 @@
         "label": "단자 방식",
         "value": "커넥터형",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5345,16 +4335,6 @@
         "label": "단자 방식",
         "value": "Terminal Block",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5402,16 +4382,6 @@
         "label": "단자 방식",
         "value": "Terminal Block",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5459,16 +4429,6 @@
         "label": "단자 방식",
         "value": "Terminal Block",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5526,16 +4486,6 @@
         "label": "단자 방식",
         "value": "Terminal Block",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5593,16 +4543,6 @@
         "label": "단자 방식",
         "value": "Terminal Block",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5650,16 +4590,6 @@
         "label": "단자 방식",
         "value": "커넥터형",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5722,16 +4652,6 @@
         "label": "단자 방식",
         "value": "커넥터형",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-25~70°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5801,21 +4721,6 @@
         "label": "분해능",
         "value": "14/16bit",
         "source": "catalog"
-      },
-      {
-        "label": "입력 범위",
-        "value": "전압: -10~+10V / 0~+10V, 전류: 4~20mA / 0~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5838,21 +4743,6 @@
         "label": "분해능",
         "value": "14/16bit",
         "source": "catalog"
-      },
-      {
-        "label": "입력 범위",
-        "value": "전압: -10~+10V / 0~+10V, 전류: 4~20mA / 0~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5875,21 +4765,6 @@
         "label": "AO",
         "value": "2ch 14/16bit",
         "source": "catalog"
-      },
-      {
-        "label": "입력 범위",
-        "value": "전압/전류 범용",
-        "source": "estimated"
-      },
-      {
-        "label": "출력 범위",
-        "value": "전압/전류 범용",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5912,21 +4787,6 @@
         "label": "AO",
         "value": "2ch 12bit",
         "source": "catalog"
-      },
-      {
-        "label": "입력 범위",
-        "value": "전압/전류 범용",
-        "source": "estimated"
-      },
-      {
-        "label": "출력 범위",
-        "value": "전압/전류 범용",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5949,21 +4809,6 @@
         "label": "출력",
         "value": "전류 14bit",
         "source": "catalog"
-      },
-      {
-        "label": "출력 범위",
-        "value": "4~20mA",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -5986,21 +4831,6 @@
         "label": "출력",
         "value": "전압 14bit",
         "source": "catalog"
-      },
-      {
-        "label": "출력 범위",
-        "value": "-10~+10V / 0~+10V",
-        "source": "estimated"
-      },
-      {
-        "label": "변환 속도",
-        "value": "1ms/ch",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -6050,21 +4880,6 @@
         "label": "센서",
         "value": "Pt100/JPt100/Pt1000/Ni1000",
         "source": "catalog"
-      },
-      {
-        "label": "측정 범위",
-        "value": "-200~+850°C",
-        "source": "estimated"
-      },
-      {
-        "label": "분해능",
-        "value": "0.1°C",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -6087,26 +4902,6 @@
         "label": "센서",
         "value": "K/J/E/T/B/R/S/N",
         "source": "catalog"
-      },
-      {
-        "label": "측정 범위",
-        "value": "-270~+1820°C (센서별 상이)",
-        "source": "estimated"
-      },
-      {
-        "label": "분해능",
-        "value": "0.1°C",
-        "source": "estimated"
-      },
-      {
-        "label": "냉접점 보상",
-        "value": "내장",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -6134,11 +4929,6 @@
         "label": "프로토콜",
         "value": "CIMON, Modbus TCP",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -6188,11 +4978,6 @@
         "label": "프로토콜",
         "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -6225,11 +5010,6 @@
         "label": "프로토콜",
         "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -6362,11 +5142,6 @@
         "label": "출력",
         "value": "24V/0.4A",
         "source": "catalog"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-10~55°C",
-        "source": "estimated"
       }
     ]
   },
@@ -6461,54 +5236,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 16GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 128GB (M.2) / 옵션 확장",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       }
     ],
     "screenSize": 10.4,
@@ -6548,54 +5278,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 16GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 128GB (M.2) / 옵션 확장",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -6635,54 +5320,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 16GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 128GB (M.2) / 옵션 확장",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -6722,54 +5362,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 16GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 128GB (M.2) / 옵션 확장",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -6809,54 +5404,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -6896,54 +5446,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -6983,54 +5488,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (NVMe M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -7070,54 +5530,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (NVMe M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -7170,51 +5585,6 @@
         "label": "OS",
         "value": "Windows 11 IoT Enterprise",
         "source": "catalog"
-      },
-      {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (NVMe M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       }
     ],
     "screenSize": 15.6,
@@ -7257,51 +5627,6 @@
         "label": "방수",
         "value": "IP66 (전면)",
         "source": "catalog"
-      },
-      {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (NVMe M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -7351,51 +5676,6 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 64GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (NVMe M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
-      },
-      {
         "label": "OS",
         "value": "Windows 10/11 IoT Enterprise",
         "source": "catalog"
@@ -7433,54 +5713,9 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±10%)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
-      },
-      {
         "label": "방수",
         "value": "IP65 (전면 패널)",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 64GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "스토리지",
-        "value": "SSD 256GB (NVMe M.2)",
-        "source": "estimated"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet (RJ45)",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232/422/485 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "DisplayPort",
-        "value": "1 × DP (외부 모니터 확장)",
-        "source": "estimated"
       },
       {
         "label": "OS",
@@ -7528,26 +5763,6 @@
         "label": "방수",
         "value": "IP68",
         "source": "catalog"
-      },
-      {
-        "label": "USB",
-        "value": "1 × USB-A (터치 신호)",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "DC 12V 또는 DC 24V",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
       }
     ],
     "screenSize": 12.1,
@@ -7589,26 +5804,6 @@
         "label": "영상 입력",
         "value": "HDMI × 1, DP × 1, DVI × 1, VGA × 1",
         "source": "catalog"
-      },
-      {
-        "label": "USB",
-        "value": "1 × USB-A (터치 신호)",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "DC 12V 또는 DC 24V",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
       }
     ],
     "screenSize": 15.6,
@@ -7640,26 +5835,6 @@
         "label": "영상 입력",
         "value": "HDMI × 1, DP × 1, DVI × 1, VGA × 1",
         "source": "catalog"
-      },
-      {
-        "label": "USB",
-        "value": "1 × USB-A (터치 신호)",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "DC 12V 또는 DC 24V",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~55°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-20~70°C",
-        "source": "estimated"
       }
     ],
     "screenSize": 21.5,
@@ -7701,26 +5876,6 @@
         "label": "소비전력",
         "value": "13W",
         "source": "catalog"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0 + 2 × USB 2.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~50°C",
-        "source": "estimated"
       }
     ],
     "screenSize": 0,
@@ -7763,31 +5918,6 @@
         "label": "스토리지",
         "value": "SSD 250GB + HDD Bay (Hot Swap)",
         "source": "catalog"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~45°C",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "AC 100~240V (이중화 전원)",
-        "source": "estimated"
       }
     ],
     "screenSize": 0,
@@ -7825,31 +5955,6 @@
         "label": "스토리지",
         "value": "SSD 250GB + HDD Bay (Hot Swap)",
         "source": "catalog"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "4 × USB 3.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "2 × RS-232 (D-Sub 9pin)",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "0~45°C",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "AC 100~240V (이중화 전원)",
-        "source": "estimated"
       }
     ],
     "screenSize": 0,
@@ -7892,46 +5997,6 @@
         "label": "중량",
         "value": "1.21kg",
         "source": "catalog"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "2 × USB 3.0 + 2 × USB 2.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "1 × RS-232 / 1 × RS-232/422/485",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "DC 9~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-20~60°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-40~70°C",
-        "source": "estimated"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR3L 4GB (최대 8GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "HDMI",
-        "value": "2 × HDMI 2.0",
-        "source": "estimated"
       }
     ],
     "screenSize": 0,
@@ -7964,46 +6029,6 @@
         "label": "OS",
         "value": "Windows 10/11 IoT Enterprise",
         "source": "catalog"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "2 × USB 3.0 + 2 × USB 2.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "1 × RS-232 / 1 × RS-232/422/485",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "DC 9~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-20~60°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-40~70°C",
-        "source": "estimated"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "HDMI",
-        "value": "2 × HDMI 2.0",
-        "source": "estimated"
       }
     ],
     "screenSize": 0,
@@ -8031,46 +6056,6 @@
         "label": "스토리지",
         "value": "SSD 250GB (NVMe)",
         "source": "catalog"
-      },
-      {
-        "label": "LAN",
-        "value": "2 × Gigabit Ethernet",
-        "source": "estimated"
-      },
-      {
-        "label": "USB",
-        "value": "2 × USB 3.0 + 2 × USB 2.0",
-        "source": "estimated"
-      },
-      {
-        "label": "COM",
-        "value": "1 × RS-232 / 1 × RS-232/422/485",
-        "source": "estimated"
-      },
-      {
-        "label": "전원",
-        "value": "DC 9~24V",
-        "source": "estimated"
-      },
-      {
-        "label": "동작 온도",
-        "value": "-20~60°C",
-        "source": "estimated"
-      },
-      {
-        "label": "보존 온도",
-        "value": "-40~70°C",
-        "source": "estimated"
-      },
-      {
-        "label": "메모리",
-        "value": "DDR4 8GB (최대 32GB)",
-        "source": "estimated"
-      },
-      {
-        "label": "HDMI",
-        "value": "2 × HDMI 2.0",
-        "source": "estimated"
       }
     ],
     "screenSize": 0,
@@ -14294,11 +12279,6 @@
         "source": "catalog"
       },
       {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
-      },
-      {
         "label": "터치 방식",
         "value": "정전식 (Capacitive)",
         "source": "catalog"
@@ -14354,11 +12334,6 @@
         "label": "OS",
         "value": "Linux",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
       },
       {
         "label": "터치 방식",
@@ -14423,11 +12398,6 @@
         "source": "catalog"
       },
       {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
-      },
-      {
         "label": "터치 방식",
         "value": "정전식 (Capacitive)",
         "source": "catalog"
@@ -14488,11 +12458,6 @@
         "label": "OS",
         "value": "Linux",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
       },
       {
         "label": "터치 방식",
@@ -14557,11 +12522,6 @@
         "source": "catalog"
       },
       {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
-      },
-      {
         "label": "터치 방식",
         "value": "정전식 (Capacitive)",
         "source": "catalog"
@@ -14622,11 +12582,6 @@
         "label": "OS",
         "value": "Linux",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
       },
       {
         "label": "터치 방식",
@@ -14691,11 +12646,6 @@
         "source": "catalog"
       },
       {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
-      },
-      {
         "label": "터치 방식",
         "value": "정전식 (Capacitive)",
         "source": "catalog"
@@ -14758,11 +12708,6 @@
         "source": "catalog"
       },
       {
-        "label": "메모리",
-        "value": "2GB LPDDR4 / 8GB eMMC",
-        "source": "estimated"
-      },
-      {
         "label": "터치 방식",
         "value": "정전식 (Capacitive)",
         "source": "catalog"
@@ -14821,11 +12766,6 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±15%)",
-        "source": "estimated"
-      },
-      {
         "label": "PLC 성능",
         "value": "10K Steps / 200 ns/Step",
         "source": "catalog"
@@ -14844,11 +12784,6 @@
         "label": "통신",
         "value": "Ethernet ×1, USB ×1, RS-232C ×2",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "11 W",
-        "source": "estimated"
       }
     ]
   },
@@ -14884,11 +12819,6 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±15%)",
-        "source": "estimated"
-      },
-      {
         "label": "PLC 성능",
         "value": "10K Steps / 200 ns/Step",
         "source": "catalog"
@@ -14907,11 +12837,6 @@
         "label": "통신",
         "value": "Ethernet ×1, USB ×1, RS-232C ×2",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "8 W",
-        "source": "estimated"
       }
     ]
   },
@@ -14947,11 +12872,6 @@
         "source": "catalog"
       },
       {
-        "label": "전원",
-        "value": "DC 24V (±15%)",
-        "source": "estimated"
-      },
-      {
         "label": "PLC 성능",
         "value": "10K Steps / 200 ns/Step",
         "source": "catalog"
@@ -14970,11 +12890,6 @@
         "label": "통신",
         "value": "Ethernet ×1, USB ×1, RS-232C ×2",
         "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "8 W",
-        "source": "estimated"
       }
     ]
   }
