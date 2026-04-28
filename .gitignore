@@ -28,3 +28,5 @@ docs/csv-export/
 *.njsproj
 *.sln
 *.sw?
+
+.vercel

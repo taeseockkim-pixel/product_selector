@@ -13,10 +13,9 @@ export interface SpecItem {
   /**
    * 'catalog'  : 공식 카탈로그에서 직접 확인된 값 → UI에 표시
    * 'estimated': AI 추정 또는 미검증 값       → UI에 표시 안 함
-   * 'user'     : 관리자가 수정/추가한 값       → UI에 표시 + "수정됨" 배지
    * 미지정      : 'catalog' 과 동일하게 취급
    */
-  source?: 'catalog' | 'estimated' | 'user';
+  source?: 'catalog' | 'estimated';
 }
 
 export interface Product {
