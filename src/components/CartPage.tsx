@@ -1,6 +1,24 @@
 import { useState } from 'react';
 import type { Product } from '../types';
 
+function getProductImageUrl(p: Product): string | null {
+  if (p.category === 'PLC') {
+    const dir = p.plcSeries === 'CM3' ? 'PLC_CM3' : 'PLC_CM1';
+    return `/products/${dir}/${p.modelName}.jpg`;
+  }
+  if (p.category === 'IPC') {
+    return `/products/IPC_IAC/${p.seriesLabel}.jpg`;
+  }
+  if (p.category === 'SCADA') {
+    const file = p.scadaEdition === 'SCADA_PRO' ? 'SCADA_PRO.jpg' : 'SCADA.jpg';
+    return `/products/SCADA/${file}`;
+  }
+  if (p.category === 'XPANEL') {
+    return `/products/XPANEL/${p.seriesLabel}.jpg`;
+  }
+  return null;
+}
+
 interface Props {
   cartList: string[];
   products: Product[];
@@ -80,9 +98,22 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                 {/* 카드 헤더 */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-4">
-                    {/* 모델 이미지 placeholder */}
-                    <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300 text-xs font-medium flex-shrink-0">
-                      IMG
+                    {/* 모델 이미지 */}
+                    <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {getProductImageUrl(p) ? (
+                        <img
+                          src={getProductImageUrl(p)!}
+                          alt={p.modelName}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).style.display = 'none';
+                            (e.currentTarget.parentElement as HTMLElement).classList.add('text-gray-300', 'text-xs', 'font-medium');
+                            (e.currentTarget.parentElement as HTMLElement).textContent = p.modelName.slice(0, 3);
+                          }}
+                        />
+                      ) : (
+                        <span className="text-gray-300 text-xs font-medium">{p.modelName.slice(0, 3)}</span>
+                      )}
                     </div>
                     <div>
                       <p className="font-semibold text-gray-800">{p.modelName}</p>

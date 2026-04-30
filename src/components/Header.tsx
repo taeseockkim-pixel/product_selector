@@ -8,10 +8,11 @@ export default function Header({ onReset }: HeaderProps) {
       <div className="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between">
         <button onClick={onReset} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-sm">
-              C
-            </div>
-            <span className="text-xl font-bold tracking-wide">CIMON</span>
+            <img
+              src="/products/CIMON_Logo.png"
+              alt="CIMON"
+              className="h-8 w-auto object-contain"
+            />
           </div>
           <span className="text-gray-400 text-sm font-light border-l border-gray-600 pl-3">
             제품 선택 가이드
