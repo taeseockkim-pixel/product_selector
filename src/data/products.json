@@ -83,11 +83,6 @@
         "label": "상대 습도",
         "value": "5~95% RH",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 16384,
@@ -176,11 +171,6 @@
       {
         "label": "상대 습도",
         "value": "5~95% RH",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       }
     ],
@@ -271,11 +261,6 @@
         "label": "상대 습도",
         "value": "5~95% RH",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 4096,
@@ -350,11 +335,6 @@
         "label": "상대 습도",
         "value": "5~95% RH",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 8192,
@@ -424,11 +404,6 @@
         "label": "상대 습도",
         "value": "5~95% RH",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 4096,
@@ -492,11 +467,6 @@
       {
         "label": "상대 습도",
         "value": "5~95% RH",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       }
     ],
@@ -562,11 +532,6 @@
         "label": "상대 습도",
         "value": "5~95% RH",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 8192,
@@ -631,11 +596,6 @@
         "label": "상대 습도",
         "value": "5~95% RH",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 4096,
@@ -699,11 +659,6 @@
       {
         "label": "상대 습도",
         "value": "5~95% RH",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       }
     ],
@@ -784,11 +739,6 @@
         "label": "상대 습도",
         "value": "5~95% RH",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 8192,
@@ -863,11 +813,6 @@
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 8192,
@@ -936,11 +881,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       }
     ],
@@ -1011,11 +951,6 @@
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
         "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
       }
     ],
     "ioPoints": 384,
@@ -1079,11 +1014,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       }
     ],
@@ -1161,11 +1091,6 @@
         "source": "catalog"
       },
       {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
-      },
-      {
         "label": "프로그램 언어",
         "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
@@ -1231,11 +1156,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
@@ -1307,11 +1227,6 @@
         "source": "catalog"
       },
       {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
-      },
-      {
         "label": "프로그램 언어",
         "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
@@ -1377,11 +1292,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
@@ -1453,11 +1363,6 @@
         "source": "catalog"
       },
       {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
-      },
-      {
         "label": "프로그램 언어",
         "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
@@ -1523,11 +1428,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
@@ -1599,11 +1499,6 @@
         "source": "catalog"
       },
       {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
-      },
-      {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, FBD (IEC 61131-3)",
         "source": "catalog"
@@ -1664,11 +1559,6 @@
       {
         "label": "보존 온도",
         "value": "-25~80°C",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
@@ -1735,11 +1625,6 @@
         "source": "catalog"
       },
       {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
-      },
-      {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, FBD (IEC 61131-3)",
         "source": "catalog"
@@ -1795,11 +1680,6 @@
       {
         "label": "보존 온도",
         "value": "-25~80°C",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
@@ -1863,11 +1743,6 @@
       {
         "label": "보존 온도",
         "value": "-25~80°C",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
@@ -1941,11 +1816,6 @@
       {
         "label": "보존 온도",
         "value": "-25~80°C",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
@@ -2023,11 +1893,6 @@
         "source": "catalog"
       },
       {
-        "label": "보호 등급",
-        "value": "IP20",
-        "source": "catalog"
-      },
-      {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
         "source": "catalog"
@@ -2099,11 +1964,6 @@
       {
         "label": "보존 온도",
         "value": "-25~80°C",
-        "source": "catalog"
-      },
-      {
-        "label": "보호 등급",
-        "value": "IP20",
         "source": "catalog"
       },
       {
