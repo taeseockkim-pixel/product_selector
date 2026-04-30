@@ -11,7 +11,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "256K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -21,37 +21,37 @@
       },
       {
         "label": "연산 속도",
-        "value": "LD 27ns/Step",
+        "value": "LD: 27ns/Step, MOV: 27ns/Step, 실수연산: 30ns/Step",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "2Port (1Gbps)",
+        "value": "10/100/1000Mbps, 2 Port",
         "source": "catalog"
       },
       {
         "label": "이중화",
-        "value": "미지원",
+        "value": "-",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "지원",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, 정주기 인터럽트 연산, Stored Program",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
+        "value": "LD, IL, FBD, FBD Extension, SFC, ST",
         "source": "catalog"
       },
       {
         "label": "타이머 (T)",
-        "value": "4,096개 (10ms / 100ms 선택)",
+        "value": "4,096개 (10ms, 100ms 선택)",
         "source": "catalog"
       },
       {
@@ -61,7 +61,7 @@
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
@@ -71,17 +71,17 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -110,7 +110,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -120,32 +120,32 @@
       },
       {
         "label": "연산 속도",
-        "value": "LD 27ns/Step",
+        "value": "LD: 27ns/Step, MOV: 27ns/Step, 실수연산: 30ns/Step",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "2Port (1Gbps)",
+        "value": "10/100/1000Mbps, 2 Port",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "지원",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, 정주기 인터럽트 연산, Stored Program",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
+        "value": "LD, IL, FBD, FBD Extension, SFC, ST",
         "source": "catalog"
       },
       {
         "label": "타이머 (T)",
-        "value": "4,096개 (10ms / 100ms 선택)",
+        "value": "4,096개 (10ms, 100ms 선택)",
         "source": "catalog"
       },
       {
@@ -155,7 +155,7 @@
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
@@ -165,17 +165,17 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -204,7 +204,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "64K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -214,32 +214,32 @@
       },
       {
         "label": "연산 속도",
-        "value": "LD 27ns/Step",
+        "value": "LD: 27ns/Step, MOV: 27ns/Step, 실수연산: 30ns/Step",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "2Port (1Gbps)",
+        "value": "10/100/1000Mbps, 2 Port",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "지원",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, 정주기 인터럽트 연산, Stored Program",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, ST, FBD (IEC 61131-3)",
+        "value": "LD, IL, FBD, FBD Extension, SFC, ST",
         "source": "catalog"
       },
       {
         "label": "타이머 (T)",
-        "value": "4,096개 (10ms / 100ms 선택)",
+        "value": "4,096개 (10ms, 100ms 선택)",
         "source": "catalog"
       },
       {
@@ -249,7 +249,7 @@
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
@@ -259,17 +259,17 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -298,7 +298,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -308,47 +308,47 @@
       },
       {
         "label": "연산 속도",
-        "value": "LD 0.028μs/Step",
+        "value": "LD: 0.028μs/Step, 실수연산: 0.4μs/명령어",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "1Port",
+        "value": "10/100Base-T/TX",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "지원",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -377,7 +377,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -387,42 +387,42 @@
       },
       {
         "label": "내장 이더넷",
-        "value": "1Port",
+        "value": "10/100Base-T/TX",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "지원",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -451,7 +451,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -461,37 +461,37 @@
       },
       {
         "label": "내장 이더넷",
-        "value": "1Port",
+        "value": "10/100Base-T/TX",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -520,7 +520,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -530,37 +530,37 @@
       },
       {
         "label": "내장 이더넷",
-        "value": "미지원",
+        "value": "증설 통신 전용: 10/100Base-T/TX",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -589,7 +589,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -599,37 +599,37 @@
       },
       {
         "label": "내장 이더넷",
-        "value": "미지원",
+        "value": "증설 통신 전용: 10/100Base-T/TX",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -658,7 +658,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -668,37 +668,37 @@
       },
       {
         "label": "내장 이더넷",
-        "value": "미지원",
+        "value": "증설 통신 전용: 10/100Base-T/TX",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -727,7 +727,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "128K Step",
+        "value": "7MByte",
         "source": "catalog"
       },
       {
@@ -737,52 +737,52 @@
       },
       {
         "label": "이중화",
-        "value": "지원 (CPU·통신·전원)",
-        "source": "catalog"
-      },
-      {
-        "label": "베이스 증설",
-        "value": "최대 16단 (Ring)",
-        "source": "catalog"
-      },
-      {
-        "label": "내장 이더넷",
-        "value": "1Port",
-        "source": "catalog"
-      },
-      {
-        "label": "SD Card",
         "value": "지원",
         "source": "catalog"
       },
       {
+        "label": "베이스 증설",
+        "value": "최대 16개 베이스 지원, Ring Topology",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "증설 통신 전용: 10/100Base-T/TX",
+        "source": "catalog"
+      },
+      {
+        "label": "SD Card",
+        "value": "O",
+        "source": "catalog"
+      },
+      {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 115,200bps)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
         "label": "상대 습도",
-        "value": "5~95%RH (비결로)",
+        "value": "5~95% RH",
         "source": "catalog"
       },
       {
@@ -826,27 +826,27 @@
       },
       {
         "label": "베이스 증설",
-        "value": "최대 16단",
+        "value": "최대 16개 베이스 지원",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "미지원",
+        "value": "증설 통신 전용 : 10Base-T",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C 1ch (프로그래밍용)",
+        "value": "RS-232C (최대 38,400bps), 접속타입 : RJ11",
         "source": "catalog"
       },
       {
@@ -900,27 +900,27 @@
       },
       {
         "label": "연산 속도",
-        "value": "LD 775ns/Step",
+        "value": "LD: 775ns/Step, MOV: 375ns/Step",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "증설 통신 전용",
+        "value": "증설 통신 전용 : 10/100Base-T/TX",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C",
+        "value": "RS-232C (최대 38,400bps), 접속타입 : Terminal Block",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
         "source": "catalog"
       },
       {
@@ -974,27 +974,27 @@
       },
       {
         "label": "연산 속도",
-        "value": "LD 500ns/Step",
+        "value": "LD: 500ns/Step, MOV: 250ns/Step",
         "source": "catalog"
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C",
+        "value": "RS-232C (최대 38,400bps), 접속타입 : Terminal Block",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "미지원",
+        "value": "-",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
         "source": "catalog"
       },
       {
@@ -1048,22 +1048,22 @@
       },
       {
         "label": "내장 시리얼",
-        "value": "RS-232C + RS-485",
+        "value": "RS-232C (최대 38,400bps, Terminal Block), RS-485 (최대 115,200bps, RJ45)",
         "source": "catalog"
       },
       {
         "label": "내장 이더넷",
-        "value": "미지원",
+        "value": "-",
         "source": "catalog"
       },
       {
         "label": "연산 방식",
-        "value": "반복 연산",
+        "value": "반복 연산, Stored Program (ROM모드 방식), 정주기 연산",
         "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
         "source": "catalog"
       },
       {
@@ -1112,27 +1112,27 @@
       },
       {
         "label": "연산 속도",
-        "value": "300ns/Step",
+        "value": "300 ns/Step",
         "source": "catalog"
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "SD/MMC",
-        "value": "슬롯 있음",
+        "value": "옵션가능",
         "source": "catalog"
       },
       {
         "label": "프로그램 용량",
-        "value": "32K Step",
+        "value": "10kStep",
         "source": "catalog"
       },
       {
@@ -1167,7 +1167,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1195,17 +1195,17 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "프로그램 용량",
-        "value": "32K Step",
+        "value": "10kStep",
         "source": "catalog"
       },
       {
@@ -1240,7 +1240,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1268,17 +1268,17 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "프로그램 용량",
-        "value": "32K Step",
+        "value": "10kStep",
         "source": "catalog"
       },
       {
@@ -1313,7 +1313,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1341,17 +1341,17 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "미지원",
+        "value": "X",
         "source": "catalog"
       },
       {
         "label": "프로그램 용량",
-        "value": "32K Step",
+        "value": "10kStep",
         "source": "catalog"
       },
       {
@@ -1386,7 +1386,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1414,17 +1414,17 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "미지원",
+        "value": "X",
         "source": "catalog"
       },
       {
         "label": "프로그램 용량",
-        "value": "32K Step",
+        "value": "10kStep",
         "source": "catalog"
       },
       {
@@ -1459,7 +1459,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1487,17 +1487,17 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "미지원",
+        "value": "X",
         "source": "catalog"
       },
       {
         "label": "프로그램 용량",
-        "value": "32K Step",
+        "value": "10kStep",
         "source": "catalog"
       },
       {
@@ -1532,7 +1532,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1560,12 +1560,12 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -1633,12 +1633,12 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -1701,12 +1701,12 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -1769,7 +1769,7 @@
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -1805,6 +1805,11 @@
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM2)",
+        "value": "O",
         "source": "catalog"
       }
     ],
@@ -1832,7 +1837,7 @@
       },
       {
         "label": "Ethernet",
-        "value": "1Port",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -1868,6 +1873,11 @@
       {
         "label": "프로그램 언어",
         "value": "LD, IL, SFC, FBD (IEC 61131-3)",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM2)",
+        "value": "O",
         "source": "catalog"
       }
     ],
@@ -1900,7 +1910,7 @@
       },
       {
         "label": "Ethernet",
-        "value": "2Port (Gigabit)",
+        "value": "O (2Ports)",
         "source": "catalog"
       },
       {
@@ -1945,7 +1955,7 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -1984,7 +1994,7 @@
       },
       {
         "label": "Ethernet",
-        "value": "2Port (Gigabit)",
+        "value": "O (2Ports)",
         "source": "catalog"
       },
       {
@@ -2024,7 +2034,7 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -2063,7 +2073,7 @@
       },
       {
         "label": "Ethernet",
-        "value": "2Port (Gigabit)",
+        "value": "O (2Ports)",
         "source": "catalog"
       },
       {
@@ -2103,7 +2113,7 @@
       },
       {
         "label": "RS485",
-        "value": "1ch",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -2132,12 +2142,12 @@
     "specs": [
       {
         "label": "입력",
-        "value": "AC 88~264V",
+        "value": "1.71A (110V) / 0.85A (220V)",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "5V/3.5A, ±15V, 24V/0.3A",
+        "value": "+24V (0.3A), +5V (3.5A), +15V (0.5A), -15V (0.3A)",
         "source": "catalog"
       },
       {
@@ -2159,12 +2169,12 @@
     "specs": [
       {
         "label": "입력",
-        "value": "DC 19~28V",
+        "value": "1.9A (24V)",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "5V/3.5A, ±15V",
+        "value": "+5V (3.5A), +15V (0.5A), -15V (0.3A)",
         "source": "catalog"
       },
       {
@@ -2186,12 +2196,12 @@
     "specs": [
       {
         "label": "입력",
-        "value": "AC 70~130V",
+        "value": "0.6A (100V)",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "5V/3.5A, ±15V, 24V/0.3A",
+        "value": "+24V (0.3A), +5V (3.5A), +15V (0.5A), -15V (0.3A)",
         "source": "catalog"
       },
       {
@@ -2264,7 +2274,7 @@
     "specs": [
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2281,7 +2291,7 @@
     "specs": [
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2298,7 +2308,7 @@
     "specs": [
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2320,7 +2330,7 @@
       },
       {
         "label": "전압",
-        "value": "DC 24V",
+        "value": "On: DC 19V / Off: DC 11V",
         "source": "catalog"
       }
     ]
@@ -2342,7 +2352,7 @@
       },
       {
         "label": "전압",
-        "value": "DC 24V",
+        "value": "On: DC 15V / Off: DC 9V",
         "source": "catalog"
       }
     ]
@@ -2364,7 +2374,7 @@
       },
       {
         "label": "전압",
-        "value": "DC 24V",
+        "value": "On: DC 19V / Off: DC 11V",
         "source": "catalog"
       }
     ]
@@ -2386,7 +2396,7 @@
       },
       {
         "label": "전압",
-        "value": "DC 24V",
+        "value": "On: DC 15V / Off: DC 9V",
         "source": "catalog"
       }
     ]
@@ -2408,7 +2418,7 @@
       },
       {
         "label": "전압",
-        "value": "DC 24V",
+        "value": "On: DC 19V / Off: DC 11V",
         "source": "catalog"
       }
     ]
@@ -2474,7 +2484,7 @@
       },
       {
         "label": "출력",
-        "value": "TR Source 0.5A",
+        "value": "16점 SRC",
         "source": "catalog"
       }
     ]
@@ -2496,7 +2506,7 @@
       },
       {
         "label": "출력",
-        "value": "TR Sink 0.2A",
+        "value": "32점 SINK",
         "source": "catalog"
       }
     ]
@@ -2518,7 +2528,7 @@
       },
       {
         "label": "출력",
-        "value": "TR Source 0.2A",
+        "value": "32점 SRC",
         "source": "catalog"
       }
     ]
@@ -2540,7 +2550,7 @@
       },
       {
         "label": "출력",
-        "value": "TR Sink 0.2A",
+        "value": "64점 SINK",
         "source": "catalog"
       }
     ]
@@ -2557,12 +2567,12 @@
     "specs": [
       {
         "label": "입력",
-        "value": "8점 DC 24V",
+        "value": "8점 (SINK/SRC 겸용)",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "8점 Relay 2A",
+        "value": "8점 (릴레이)",
         "source": "catalog"
       }
     ]
@@ -2589,12 +2599,12 @@
       },
       {
         "label": "입력",
-        "value": "전압",
+        "value": "0~+5V, 1~+5V, 0~+10V, -10V~+10V",
         "source": "catalog"
       },
       {
         "label": "최대 분해능",
-        "value": "14bit (16384 분할)",
+        "value": "312.5μV(0~5V), 250μV(1~5V), 625μV(0~10V), 1.25mV(-10~10V)",
         "source": "catalog"
       },
       {
@@ -2626,7 +2636,7 @@
       },
       {
         "label": "입력",
-        "value": "전류",
+        "value": "0~20mA, 4~20mA",
         "source": "catalog"
       },
       {
@@ -2663,7 +2673,7 @@
       },
       {
         "label": "입력",
-        "value": "전압·전류 공용",
+        "value": "0~+5V (0~20mA), 1~+5V (4~20mA), 0~+10V, -10V~+10V",
         "source": "catalog"
       },
       {
@@ -2700,7 +2710,7 @@
       },
       {
         "label": "입력",
-        "value": "전압·전류 공용",
+        "value": "0~+5V (0~20mA), 1~+5V (4~20mA), 0~+10V, -10V~+10V",
         "source": "catalog"
       },
       {
@@ -2737,7 +2747,7 @@
       },
       {
         "label": "최대 분해능",
-        "value": "14bit (16384 분할)",
+        "value": "전압: 312.5μV(0~5V), 250μV(1~5V), 625μV(0~10V), 1.25mV(-10~10V) / 전류: 1.25μV(0~20mA), 1.0μV(4~20mA)",
         "source": "catalog"
       },
       {
@@ -2759,7 +2769,7 @@
     "specs": [
       {
         "label": "분해능",
-        "value": "16bit",
+        "value": "16 bit",
         "source": "catalog"
       },
       {
@@ -2769,17 +2779,17 @@
       },
       {
         "label": "절연",
-        "value": "채널간",
+        "value": "아날로그 부와 디지털 부 간의 절연 (Photocoupler) / 채널간 절연",
         "source": "catalog"
       },
       {
         "label": "최대 분해능",
-        "value": "16bit (65536 분할)",
+        "value": "0~+5V: 312.5μV, 1~+5V: 250μV, 0~+10V: 625μV, -10V~+10V: 1.25mV, 0~20mA: 1.25μV, 4~20mA: 1.0μV",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2796,7 +2806,7 @@
     "specs": [
       {
         "label": "분해능",
-        "value": "14bit",
+        "value": "14 bit",
         "source": "catalog"
       },
       {
@@ -2806,12 +2816,12 @@
       },
       {
         "label": "출력",
-        "value": "-10~+10V",
+        "value": "-10V ~ +10V",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2828,22 +2838,22 @@
     "specs": [
       {
         "label": "분해능",
-        "value": "14bit",
+        "value": "14 bit",
         "source": "catalog"
       },
       {
         "label": "ch",
-        "value": "4ch",
+        "value": "4점",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "0~+10V",
+        "value": "0 ~ +10V",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2860,22 +2870,22 @@
     "specs": [
       {
         "label": "분해능",
-        "value": "14bit",
+        "value": "14 bit",
         "source": "catalog"
       },
       {
         "label": "ch",
-        "value": "8ch",
+        "value": "8점",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "-10~+10V",
+        "value": "-10V ~ +10V",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2892,22 +2902,22 @@
     "specs": [
       {
         "label": "분해능",
-        "value": "14bit",
+        "value": "14 bit",
         "source": "catalog"
       },
       {
         "label": "ch",
-        "value": "8ch",
+        "value": "8점",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "0~+10V",
+        "value": "0 ~ +10V",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2924,22 +2934,22 @@
     "specs": [
       {
         "label": "분해능",
-        "value": "14bit",
+        "value": "14 bit",
         "source": "catalog"
       },
       {
         "label": "ch",
-        "value": "4ch",
+        "value": "4점",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "4~20mA",
+        "value": "4 ~ 20mA",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2956,22 +2966,22 @@
     "specs": [
       {
         "label": "분해능",
-        "value": "14bit",
+        "value": "14 bit",
         "source": "catalog"
       },
       {
         "label": "ch",
-        "value": "8ch",
+        "value": "8점",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "4~20mA",
+        "value": "4 ~ 20mA",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -2988,17 +2998,17 @@
     "specs": [
       {
         "label": "채널",
-        "value": "4ch",
+        "value": "4Ch",
         "source": "catalog"
       },
       {
         "label": "센서",
-        "value": "Pt100, JPt100",
+        "value": "Pt100 (JIS C1640-1989, DIN 43760-1980), JPt100 (KS C1603-1991, JIS C1604-1981)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -3015,17 +3025,17 @@
     "specs": [
       {
         "label": "채널",
-        "value": "4ch",
+        "value": "4Ch",
         "source": "catalog"
       },
       {
         "label": "센서",
-        "value": "Pt1000, Ni1000",
+        "value": "Pt1000 (DIN EN60751), Ni1000 (DIN 43760), Ni1000 (TCR 5000)",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -3042,17 +3052,17 @@
     "specs": [
       {
         "label": "채널",
-        "value": "4ch",
+        "value": "4채널",
         "source": "catalog"
       },
       {
         "label": "센서",
-        "value": "K/J/E/T/B/R/S/N",
+        "value": "K, J, E, T, B, R, S, N 형 열전대",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ]
@@ -3074,7 +3084,7 @@
       },
       {
         "label": "타입",
-        "value": "NTC",
+        "value": "NTC TYPE",
         "source": "catalog"
       },
       {
@@ -3096,17 +3106,17 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
         "label": "속도",
-        "value": "200kpps",
+        "value": "200kPPS",
         "source": "catalog"
       },
       {
         "label": "입력",
-        "value": "PNP Open Collector",
+        "value": "1상 입력 / 2상 입력",
         "source": "catalog"
       }
     ]
@@ -3123,17 +3133,17 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
         "label": "속도",
-        "value": "250kpps",
+        "value": "250kPPS",
         "source": "catalog"
       },
       {
         "label": "입력",
-        "value": "Line Driver",
+        "value": "1상 입력 / 2상 입력",
         "source": "catalog"
       }
     ]
@@ -3150,17 +3160,17 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
         "label": "속도",
-        "value": "200kpps",
+        "value": "200kPPS",
         "source": "catalog"
       },
       {
         "label": "입력",
-        "value": "NPN Open Collector",
+        "value": "1상 입력 / 2상 입력",
         "source": "catalog"
       }
     ]
@@ -3177,7 +3187,7 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
@@ -3204,7 +3214,7 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
@@ -3214,7 +3224,7 @@
       },
       {
         "label": "타입",
-        "value": "동적계량용",
+        "value": "등적 계량용",
         "source": "catalog"
       }
     ]
@@ -3231,7 +3241,7 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
@@ -3263,7 +3273,12 @@
       },
       {
         "label": "통신",
-        "value": "Ethernet 1Gbps",
+        "value": "Ethernet 10/100Mbps or 1Gbps",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "Ethernet 10/100Mbps or 1Gbps",
         "source": "catalog"
       }
     ]
@@ -3290,7 +3305,7 @@
       },
       {
         "label": "보간",
-        "value": "직선·원호",
+        "value": "2축 직선/원호 보간",
         "source": "catalog"
       }
     ]
@@ -3312,7 +3327,7 @@
       },
       {
         "label": "통신",
-        "value": "EtherCAT",
+        "value": "CAT.5 이상 STP 케이블, 최대 전송 거리 100m (모듈↔서보 드라이버)",
         "source": "catalog"
       }
     ]
@@ -3339,12 +3354,12 @@
       },
       {
         "label": "통신 속도",
-        "value": "최대 115.2kbps",
+        "value": "300 / 600 / 1200 / 2400 / 4800 / 9600 / 19200 / 38400 / 76800 bps",
         "source": "catalog"
       },
       {
         "label": "프로토콜",
-        "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
+        "value": "HMI 모드(당사 프로토콜, 1:n), MODBUS RTU Slave/Master, PLC링크, 사용자 정의(프로토콜 프로그램)",
         "source": "catalog"
       },
       {
@@ -3376,12 +3391,12 @@
       },
       {
         "label": "통신 속도",
-        "value": "최대 115.2kbps",
+        "value": "300 / 600 / 1200 / 2400 / 4800 / 9600 / 19200 / 38400 / 76800 bps",
         "source": "catalog"
       },
       {
         "label": "프로토콜",
-        "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
+        "value": "HMI 모드(당사 프로토콜, 1:n), MODBUS RTU Slave/Master, PLC링크, 사용자 정의(프로토콜 프로그램)",
         "source": "catalog"
       },
       {
@@ -3413,12 +3428,12 @@
       },
       {
         "label": "통신 속도",
-        "value": "최대 115.2kbps",
+        "value": "300 / 600 / 1200 / 2400 / 4800 / 9600 / 19200 / 38400 / 76800 bps",
         "source": "catalog"
       },
       {
         "label": "프로토콜",
-        "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
+        "value": "HMI 모드(당사 프로토콜, 1:n), MODBUS RTU Slave/Master, PLC링크, 사용자 정의(프로토콜 프로그램)",
         "source": "catalog"
       },
       {
@@ -3445,17 +3460,17 @@
       },
       {
         "label": "Port2",
-        "value": "RS232C Null Modem",
+        "value": "RS232C (널모뎀 전용)",
         "source": "catalog"
       },
       {
         "label": "통신 속도",
-        "value": "최대 115.2kbps",
+        "value": "300 / 600 / 1200 / 2400 / 4800 / 9600 / 19200 / 38400 / 76800 bps",
         "source": "catalog"
       },
       {
         "label": "프로토콜",
-        "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
+        "value": "HMI 모드(당사 프로토콜, 1:n), MODBUS RTU Slave/Master, PLC링크, 사용자 정의(프로토콜 프로그램)",
         "source": "catalog"
       },
       {
@@ -3482,7 +3497,7 @@
       },
       {
         "label": "서비스",
-        "value": "UDP/TCP 16개",
+        "value": "Loader(UDP), HMI Protocol(TCP/UDP), MODBUS TCP Slave, MODBUS TCP Master, PLC Link(공동), 고속 PLC Link",
         "source": "catalog"
       },
       {
@@ -3509,12 +3524,12 @@
     "specs": [
       {
         "label": "속도",
-        "value": "100Mbps 광",
+        "value": "100Mbps",
         "source": "catalog"
       },
       {
         "label": "서비스",
-        "value": "UDP/TCP 16개",
+        "value": "Loader(UDP), HMI Protocol(TCP/UDP), MODBUS TCP Slave, MODBUS TCP Master, 사용자 프로토콜(UDP, TCP Passive/Active), PLC Link(공동), 고속 PLC Link",
         "source": "catalog"
       },
       {
@@ -3546,7 +3561,7 @@
       },
       {
         "label": "DHCP",
-        "value": "지원",
+        "value": "Yes",
         "source": "catalog"
       },
       {
@@ -3573,7 +3588,7 @@
     "specs": [
       {
         "label": "프로토콜",
-        "value": "OPC UA Server",
+        "value": "UA TCP (opc.tcp)",
         "source": "catalog"
       },
       {
@@ -3600,7 +3615,7 @@
     "specs": [
       {
         "label": "프로토콜",
-        "value": "DNP3.0 Level2",
+        "value": "DNP 3.0",
         "source": "catalog"
       },
       {
@@ -3622,12 +3637,12 @@
     "specs": [
       {
         "label": "프로토콜",
-        "value": "DNP3.0 Level2",
+        "value": "DNP 3.0",
         "source": "catalog"
       },
       {
         "label": "통신",
-        "value": "Ethernet",
+        "value": "10BASE-T",
         "source": "catalog"
       }
     ]
@@ -3644,12 +3659,17 @@
     "specs": [
       {
         "label": "프로토콜",
-        "value": "DNP3.0",
+        "value": "DNP3.0 Protocol, TCP/IP, UDP/IP",
         "source": "catalog"
       },
       {
         "label": "Host",
-        "value": "4개",
+        "value": "4 Hosts",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10BASE-T",
         "source": "catalog"
       }
     ]
@@ -3666,12 +3686,17 @@
     "specs": [
       {
         "label": "프로토콜",
-        "value": "BACnet/IP",
+        "value": "ANSI/ASHRAE 135-1995 (KS X 6909), BACnet/IP (Slave)",
         "source": "catalog"
       },
       {
         "label": "등급",
         "value": "Class 3",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10BASE-T (ISO/IEC8802-3, IEEE 802.3)",
         "source": "catalog"
       }
     ]
@@ -3688,12 +3713,17 @@
     "specs": [
       {
         "label": "무선",
-        "value": "CDMA/WCDMA(3G)",
+        "value": "CDMA (Packet, Circuit Mode 선택), WCDMA (3G, Packet Mode)",
         "source": "catalog"
       },
       {
         "label": "유선",
         "value": "RS232C, RS422/485",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM2)",
+        "value": "Ch2: RS422/485",
         "source": "catalog"
       }
     ]
@@ -3715,7 +3745,7 @@
       },
       {
         "label": "버스",
-        "value": "CAN",
+        "value": "CANbus (ISO11898)",
         "source": "catalog"
       }
     ]
@@ -3737,7 +3767,7 @@
       },
       {
         "label": "버스",
-        "value": "CAN",
+        "value": "CANbus (ISO11898)",
         "source": "catalog"
       }
     ]
@@ -3759,7 +3789,7 @@
       },
       {
         "label": "Slave",
-        "value": "최대 256개",
+        "value": "256개 지원",
         "source": "catalog"
       }
     ]
@@ -3783,6 +3813,11 @@
         "label": "기능",
         "value": "데이터 동기화",
         "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "100BASE-TX",
+        "source": "catalog"
       }
     ]
   },
@@ -3798,7 +3833,7 @@
     "specs": [
       {
         "label": "기능",
-        "value": "Primary/Secondary 설정",
+        "value": "Primary/Secondary 운전 모드 설정, Active/Backup 절체 스위치 (이중화 설정용 MMI 모듈, 시험 버튼 구비)",
         "source": "catalog"
       }
     ]
@@ -3820,7 +3855,12 @@
       },
       {
         "label": "Hub",
-        "value": "3Port",
+        "value": "3Ports 증설 Hub 내장",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10BASE-T",
         "source": "catalog"
       }
     ]
@@ -3837,7 +3877,7 @@
     "specs": [
       {
         "label": "Slot",
-        "value": "5 Slot",
+        "value": "5 슬롯",
         "source": "catalog"
       }
     ]
@@ -3854,7 +3894,7 @@
     "specs": [
       {
         "label": "Slot",
-        "value": "8 Slot",
+        "value": "8 슬롯",
         "source": "catalog"
       }
     ]
@@ -3871,7 +3911,7 @@
     "specs": [
       {
         "label": "Slot",
-        "value": "10 Slot",
+        "value": "10 슬롯",
         "source": "catalog"
       }
     ]
@@ -3922,7 +3962,7 @@
     "specs": [
       {
         "label": "용도",
-        "value": "베이스 빈 슬롯 마감용 더미 모듈",
+        "value": "베이스의 빈 슬롯 마감 용",
         "source": "catalog"
       },
       {
@@ -4157,12 +4197,12 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Sink (NPN)",
+        "value": "TR Sink",
         "source": "catalog"
       },
       {
         "label": "정격 전압",
-        "value": "DC 12/24V",
+        "value": "DC 24V",
         "source": "catalog"
       },
       {
@@ -4204,12 +4244,12 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Source (PNP)",
+        "value": "TR Source",
         "source": "catalog"
       },
       {
         "label": "정격 전압",
-        "value": "DC 12/24V",
+        "value": "DC 24V",
         "source": "catalog"
       },
       {
@@ -4261,7 +4301,7 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Sink (NPN)",
+        "value": "TR Sink",
         "source": "catalog"
       },
       {
@@ -4333,7 +4373,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block",
+        "value": "Terminal Block Type",
         "source": "catalog"
       }
     ]
@@ -4355,12 +4395,12 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Sink (NPN)",
+        "value": "TR Sink",
         "source": "catalog"
       },
       {
         "label": "정격 전압",
-        "value": "DC 12/24V",
+        "value": "DC 24V",
         "source": "catalog"
       },
       {
@@ -4380,7 +4420,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block",
+        "value": "Terminal Block Type",
         "source": "catalog"
       }
     ]
@@ -4402,12 +4442,12 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Source (PNP)",
+        "value": "TR Source",
         "source": "catalog"
       },
       {
         "label": "정격 전압",
-        "value": "DC 12/24V",
+        "value": "DC 24V",
         "source": "catalog"
       },
       {
@@ -4427,7 +4467,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block",
+        "value": "Terminal Block Type",
         "source": "catalog"
       }
     ]
@@ -4459,7 +4499,7 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Sink (NPN)",
+        "value": "TR Sink",
         "source": "catalog"
       },
       {
@@ -4484,7 +4524,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block",
+        "value": "Terminal Block Type",
         "source": "catalog"
       }
     ]
@@ -4516,7 +4556,7 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Source (PNP)",
+        "value": "TR Source",
         "source": "catalog"
       },
       {
@@ -4541,7 +4581,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block",
+        "value": "Terminal Block Type",
         "source": "catalog"
       }
     ]
@@ -4672,17 +4712,17 @@
       },
       {
         "label": "출력 형태",
-        "value": "TR Source (PNP)",
+        "value": "TR Source",
         "source": "catalog"
       },
       {
         "label": "출력 주파수",
-        "value": "1~4,000pps (DUTY 비 보장)",
+        "value": "최대 4kpps",
         "source": "catalog"
       },
       {
         "label": "최대 출력 주파수",
-        "value": "65,000pps",
+        "value": "최대 65kpps (단순 펄스 출력)",
         "source": "catalog"
       },
       {
@@ -4719,7 +4759,7 @@
       },
       {
         "label": "분해능",
-        "value": "14/16bit",
+        "value": "14 / 16bit",
         "source": "catalog"
       }
     ]
@@ -4741,7 +4781,7 @@
       },
       {
         "label": "분해능",
-        "value": "14/16bit",
+        "value": "14 / 16bit",
         "source": "catalog"
       }
     ]
@@ -4758,12 +4798,12 @@
     "specs": [
       {
         "label": "AI",
-        "value": "2ch 16bit",
+        "value": "2ch",
         "source": "catalog"
       },
       {
         "label": "AO",
-        "value": "2ch 14/16bit",
+        "value": "2ch",
         "source": "catalog"
       }
     ]
@@ -4780,12 +4820,12 @@
     "specs": [
       {
         "label": "AI",
-        "value": "2ch 12bit",
+        "value": "2ch",
         "source": "catalog"
       },
       {
         "label": "AO",
-        "value": "2ch 12bit",
+        "value": "2ch",
         "source": "catalog"
       }
     ]
@@ -4802,7 +4842,7 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4ch",
+        "value": "4채널",
         "source": "catalog"
       },
       {
@@ -4824,7 +4864,7 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4ch",
+        "value": "4채널",
         "source": "catalog"
       },
       {
@@ -4873,12 +4913,12 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4ch",
+        "value": "4채널 / 1Module",
         "source": "catalog"
       },
       {
         "label": "센서",
-        "value": "Pt100/JPt100/Pt1000/Ni1000",
+        "value": "PT100, JPT100, PT1000, NI1000 (DIN 43760), NI1000 (TCR 5000)",
         "source": "catalog"
       }
     ]
@@ -4895,12 +4935,12 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4ch",
+        "value": "4채널 / 1module",
         "source": "catalog"
       },
       {
         "label": "센서",
-        "value": "K/J/E/T/B/R/S/N",
+        "value": "열전대 Type K, J, E, T, B, R, S, N",
         "source": "catalog"
       }
     ]
@@ -4922,12 +4962,12 @@
       },
       {
         "label": "DHCP",
-        "value": "지원",
+        "value": "Yes",
         "source": "catalog"
       },
       {
         "label": "프로토콜",
-        "value": "CIMON, Modbus TCP",
+        "value": "MODBUS TCP Slave, MODBUS TCP Master, HMI Protocol, Protocol Special Program (TCP/UDP), High-Speed PLC Link",
         "source": "catalog"
       }
     ]
@@ -4944,7 +4984,7 @@
     "specs": [
       {
         "label": "프로토콜",
-        "value": "OPC UA Server",
+        "value": "UA TCP (opc.tcp)",
         "source": "catalog"
       }
     ]
@@ -4971,7 +5011,7 @@
       },
       {
         "label": "통신 속도",
-        "value": "최대 115.2kbps",
+        "value": "300 / 600 / 1200 / 2400 / 4800 / 9600 / 19200 / 38400bps",
         "source": "catalog"
       },
       {
@@ -5003,7 +5043,7 @@
       },
       {
         "label": "통신 속도",
-        "value": "최대 115.2kbps",
+        "value": "300 / 600 / 1200 / 2400 / 4800 / 9600 / 19200 / 38400bps",
         "source": "catalog"
       },
       {
@@ -5025,7 +5065,7 @@
     "specs": [
       {
         "label": "Port1",
-        "value": "RS232C CDMA",
+        "value": "RS232C (CDMA)",
         "source": "catalog"
       },
       {
@@ -5047,12 +5087,12 @@
     "specs": [
       {
         "label": "Port1",
-        "value": "RS232C CDMA",
+        "value": "RS232C (CDMA) 1ch",
         "source": "catalog"
       },
       {
         "label": "Port2",
-        "value": "RS422/485",
+        "value": "RS422/485 1ch",
         "source": "catalog"
       }
     ]
@@ -5069,12 +5109,17 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
         "label": "속도",
-        "value": "200kpps",
+        "value": "200kPPS",
+        "source": "catalog"
+      },
+      {
+        "label": "카운터 (C)",
+        "value": "Up/Down Preset 카운터 + 링 카운터",
         "source": "catalog"
       }
     ]
@@ -5091,12 +5136,17 @@
     "specs": [
       {
         "label": "ch",
-        "value": "2ch",
+        "value": "2채널",
         "source": "catalog"
       },
       {
         "label": "속도",
-        "value": "500kpps(RS422) / 250kpps(HTL)",
+        "value": "RS-422A Line Driver: 500KPPS / HTL Line Driver: 250KPPS",
+        "source": "catalog"
+      },
+      {
+        "label": "카운터 (C)",
+        "value": "Up/Down Preset 카운터 + 링 카운터",
         "source": "catalog"
       }
     ]
@@ -5118,7 +5168,7 @@
       },
       {
         "label": "방식",
-        "value": "오픈 컬렉터",
+        "value": "위치제어, 속도제어, 속도/위치제어, 위치/속도제어",
         "source": "catalog"
       }
     ]
@@ -5179,7 +5229,7 @@
     "specs": [
       {
         "label": "길이",
-        "value": "1.5m",
+        "value": "1.5M",
         "source": "catalog"
       }
     ]
@@ -5196,7 +5246,7 @@
     "specs": [
       {
         "label": "길이",
-        "value": "1.5m",
+        "value": "1.5M",
         "source": "catalog"
       }
     ]
@@ -5212,32 +5262,42 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Celeron J6412 (FANLESS)",
+        "value": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "10.4\" SVGA (800×600)",
+        "value": "10.4\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "700cd/m²",
+        "value": "700cd/m2",
         "source": "catalog"
       },
       {
         "label": "터치",
-        "value": "감압식",
+        "value": "Analog Resistive",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT Enterprise (Standard) / Windows 10 Pro / Windows 10 Enterprise / Windows 11 Pro / Windows 11 Enterprise",
         "source": "catalog"
       },
       {
         "label": "방수",
         "value": "IP65 (전면 패널)",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SATA x 1 (SSD 120 GByte)",
         "source": "catalog"
       }
     ],
@@ -5259,22 +5319,22 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Celeron J6412 (FANLESS)",
+        "value": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "12.1\" XGA (1024×768)",
+        "value": "12.1\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "600cd/m²",
+        "value": "600cd/m2",
         "source": "catalog"
       },
       {
         "label": "터치",
-        "value": "감압식",
+        "value": "Analog Resistive",
         "source": "catalog"
       },
       {
@@ -5284,7 +5344,17 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT Enterprise (Standard) / Windows 10 Pro / Windows 10 Enterprise / Windows 11 Pro / Windows 11 Enterprise",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SATA x 1 (SSD 120 GByte)",
         "source": "catalog"
       }
     ],
@@ -5306,17 +5376,17 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Celeron J6412 (FANLESS)",
+        "value": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "15\" SXGA (1280×1024)",
+        "value": "15\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "500cd/m²",
+        "value": "500cd/m2",
         "source": "catalog"
       },
       {
@@ -5326,7 +5396,22 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT Enterprise (Standard) / Windows 10 Pro / Windows 10 Enterprise / Windows 11 Pro / Windows 11 Enterprise",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SATA x 1 (SSD 120 GByte)",
         "source": "catalog"
       }
     ],
@@ -5348,17 +5433,17 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Celeron J6412 (FANLESS)",
+        "value": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "19\" SXGA (1280×1024)",
+        "value": "19\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "400cd/m²",
+        "value": "400cd/m2",
         "source": "catalog"
       },
       {
@@ -5368,7 +5453,22 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT Enterprise (Standard) / Windows 10 Pro / Windows 10 Enterprise / Windows 11 Pro / Windows 11 Enterprise",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SATA x 1 (SSD 120 GByte)",
         "source": "catalog"
       }
     ],
@@ -5390,17 +5490,17 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i3-6100U (FANLESS)",
+        "value": "Intel® Core(TM) i3-6100U",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "12.1\" XGA (1024×768)",
+        "value": "12.1\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "700cd/m²",
+        "value": "700cd/m2",
         "source": "catalog"
       },
       {
@@ -5410,7 +5510,22 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT EnterpriseValue (Standard) / Windows 10 Pro / Windows 10 Enterprise (64bit)",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 120 GByte",
         "source": "catalog"
       }
     ],
@@ -5432,17 +5547,17 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i3-6100U (FANLESS)",
+        "value": "Intel® Core(TM) i3-6100U",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "15\" XGA (1024×768)",
+        "value": "15\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "450cd/m²",
+        "value": "450cd/m2",
         "source": "catalog"
       },
       {
@@ -5452,7 +5567,22 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT EnterpriseValue (Standard) / Windows 10 Pro / Windows 10 Enterprise (64bit)",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 120 GByte",
         "source": "catalog"
       }
     ],
@@ -5474,17 +5604,17 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i5-6300U (FANLESS)",
+        "value": "Intel® Core(TM) i5-6300U",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "15\" XGA (1024×768)",
+        "value": "15\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "450cd/m²",
+        "value": "450cd/m2",
         "source": "catalog"
       },
       {
@@ -5494,7 +5624,22 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT EnterpriseValue (Standard) / Windows 10 Pro / Windows 10 Enterprise (64bit)",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 120GByte",
         "source": "catalog"
       }
     ],
@@ -5516,17 +5661,17 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i5-6300U (FANLESS)",
+        "value": "Intel® Core(TM) i5-6300U",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "19\" SXGA (1280×1024)",
+        "value": "19\" TFT LCD",
         "source": "catalog"
       },
       {
         "label": "RAID",
-        "value": "지원",
+        "value": "Supported",
         "source": "catalog"
       },
       {
@@ -5536,7 +5681,22 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT EnterpriseValue (Standard) / Windows 10 Pro / Windows 10 Enterprise (64bit)",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "Analog Resistive",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 120GByte",
         "source": "catalog"
       }
     ],
@@ -5558,32 +5718,42 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i5-1145G7E (11세대, FANLESS)",
+        "value": "Intel Core i5-1145G7E Quad Core (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "15.6\" FHD (1920×1080)",
+        "value": "15.6\"",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "450cd/m² (고휘도 1,200cd/m²)",
+        "value": "450 cd/m2 (Standard) / 1,200 cd/m2 (-H 옵션)",
         "source": "catalog"
       },
       {
         "label": "터치",
-        "value": "정전식",
+        "value": "정전식 (Capacitive)",
         "source": "catalog"
       },
       {
         "label": "방수",
-        "value": "IP68 (전면)",
+        "value": "IP68 (front)",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 11 IoT Enterprise",
+        "value": "Windows 11 IoT Enterprise (Standard) / Windows 11 Pro",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "정전식 (Capacitive)",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 500GB (M.2 / NVMe)",
         "source": "catalog"
       }
     ],
@@ -5605,32 +5775,42 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i5-1145G7E (11세대, FANLESS)",
+        "value": "Intel Core i5-1145G7E Quad Core (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "21.5\" FHD (1920×1080)",
+        "value": "21.5\"",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "400cd/m² (고휘도 1,400cd/m²)",
+        "value": "400 cd/m2 (Standard) / 1,400 cd/m2 (-H 옵션)",
         "source": "catalog"
       },
       {
         "label": "터치",
-        "value": "정전식",
+        "value": "정전식 (Capacitive)",
         "source": "catalog"
       },
       {
         "label": "방수",
-        "value": "IP66 (전면)",
+        "value": "IP66 (front)",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 11 IoT Enterprise (Standard) / Windows 11 Pro",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "정전식 (Capacitive)",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 500GB (M.2 / NVMe)",
         "source": "catalog"
       }
     ],
@@ -5652,32 +5832,42 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i7-1185G7E (11세대, FANLESS)",
+        "value": "Intel Core i7-1185G7E Quad Core (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "15.6\" FHD (1920×1080)",
+        "value": "15.6\"",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "450cd/m² (고휘도 1,200cd/m²)",
+        "value": "- : 450 cd/m2 / H : 1,200 cd/m2",
         "source": "catalog"
       },
       {
         "label": "터치",
-        "value": "정전식",
+        "value": "Capacitive",
         "source": "catalog"
       },
       {
         "label": "방수",
-        "value": "IP68 (전면)",
+        "value": "IP68 (front)",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 11 IoT Enterprise (Standard) / Windows 11 Pro",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "정전식 (Capacitive)",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 500GB (M.2 / NVMe)",
         "source": "catalog"
       }
     ],
@@ -5699,27 +5889,42 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i7-1185G7E (11세대, FANLESS)",
+        "value": "Intel Core i7-1185G7E Quad Core (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "화면",
-        "value": "21.5\" FHD (1920×1080)",
+        "value": "21.5\"",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "400cd/m² (고휘도 1,400cd/m²)",
+        "value": "- : 400 cd/m2 / H : 1,400 cd/m2",
         "source": "catalog"
       },
       {
         "label": "방수",
-        "value": "IP65 (전면 패널)",
+        "value": "IP66 (front)",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 11 IoT Enterprise (Standard) / Windows 11 Pro",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "Capacitive",
+        "source": "catalog"
+      },
+      {
+        "label": "터치 방식",
+        "value": "정전식 (Capacitive)",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 500GB (M.2 / NVMe)",
         "source": "catalog"
       }
     ],
@@ -5741,26 +5946,31 @@
     "specs": [
       {
         "label": "화면",
-        "value": "12.1\" WXGA (1280×800)",
+        "value": "12.1 inch",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "600cd/m² (고휘도 1,000cd/m²)",
+        "value": "– : 600 cd/m², H : 1,000 cd/m²",
         "source": "catalog"
       },
       {
         "label": "터치",
-        "value": "정전식",
+        "value": "USB",
         "source": "catalog"
       },
       {
         "label": "영상 입력",
-        "value": "HDMI·DP·DVI·VGA",
+        "value": "HDMI, DP, DVI, VGA",
         "source": "catalog"
       },
       {
         "label": "방수",
+        "value": "IP68",
+        "source": "catalog"
+      },
+      {
+        "label": "보호 등급",
         "value": "IP68",
         "source": "catalog"
       }
@@ -5782,17 +5992,17 @@
     "specs": [
       {
         "label": "화면",
-        "value": "15.6\" FHD (1920×1080)",
+        "value": "15.6 inch",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "450cd/m² (고휘도 1,200cd/m²)",
+        "value": "– : 450 cd/m², H : 1,200 cd/m²",
         "source": "catalog"
       },
       {
         "label": "터치",
-        "value": "정전식",
+        "value": "USB",
         "source": "catalog"
       },
       {
@@ -5802,7 +6012,12 @@
       },
       {
         "label": "영상 입력",
-        "value": "HDMI × 1, DP × 1, DVI × 1, VGA × 1",
+        "value": "HDMI, DP, DVI, VGA",
+        "source": "catalog"
+      },
+      {
+        "label": "보호 등급",
+        "value": "IP66",
         "source": "catalog"
       }
     ],
@@ -5823,17 +6038,32 @@
     "specs": [
       {
         "label": "화면",
-        "value": "21.5\" FHD (1920×1080)",
+        "value": "21.5 inch",
         "source": "catalog"
       },
       {
         "label": "밝기",
-        "value": "400cd/m² (고휘도 1,400cd/m²)",
+        "value": "– : 400 cd/m², H : 1,400 cd/m²",
         "source": "catalog"
       },
       {
         "label": "영상 입력",
-        "value": "HDMI × 1, DP × 1, DVI × 1, VGA × 1",
+        "value": "HDMI, DP, DVI, VGA",
+        "source": "catalog"
+      },
+      {
+        "label": "방수",
+        "value": "IP66",
+        "source": "catalog"
+      },
+      {
+        "label": "보호 등급",
+        "value": "IP66",
+        "source": "catalog"
+      },
+      {
+        "label": "터치",
+        "value": "USB",
         "source": "catalog"
       }
     ],
@@ -5854,22 +6084,22 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Celeron J1900 2.0GHz (FANLESS)",
+        "value": "Intel® Celeron® J1900 2.0GHz (FANLESS)",
         "source": "catalog"
       },
       {
         "label": "메모리",
-        "value": "DDR3L 4GB",
+        "value": "SSD 120 GByte",
         "source": "catalog"
       },
       {
         "label": "스토리지",
-        "value": "SSD 120GB",
+        "value": "SSD 120 GByte",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10 IoT Enterprise",
+        "value": "Windows 10 IoT Enterprise (Standard) / Windows 10 Pro / Windows 10 Enterprise (64bit)",
         "source": "catalog"
       },
       {
@@ -5896,27 +6126,27 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i5-6500 Quad 3.2GHz",
+        "value": "Intel® Core i5-6500 Quad-Core 3.2 GHz",
         "source": "catalog"
       },
       {
         "label": "메모리",
-        "value": "DDR4 8GB (Max 32GB)",
+        "value": "SSD 250 GByte",
         "source": "catalog"
       },
       {
         "label": "Hot Swap",
-        "value": "지원",
+        "value": "Supported",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10 Pro",
+        "value": "Windows 10 Pro DSP (Standard) / Windows 10 Enterprise (64bit)",
         "source": "catalog"
       },
       {
         "label": "스토리지",
-        "value": "SSD 250GB + HDD Bay (Hot Swap)",
+        "value": "SSD 250 GByte",
         "source": "catalog"
       }
     ],
@@ -5938,22 +6168,27 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i7-6700 Quad 3.4GHz",
+        "value": "Intel® Core i7-6700 Quad-Core 3.4 GHz",
         "source": "catalog"
       },
       {
         "label": "Hot Swap",
-        "value": "지원",
+        "value": "Supported",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10 Pro",
+        "value": "Windows 10 Pro DSP (Standard) / Windows 10 Enterprise (64bit)",
         "source": "catalog"
       },
       {
         "label": "스토리지",
-        "value": "SSD 250GB + HDD Bay (Hot Swap)",
+        "value": "SSD 250 GByte",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "SSD 250 GByte",
         "source": "catalog"
       }
     ],
@@ -5975,12 +6210,12 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Celeron J3455 (10W)",
+        "value": "Intel Celeron J3455 Quad Core, 1.5GHz, 2M Cache (10W)",
         "source": "catalog"
       },
       {
         "label": "스토리지",
-        "value": "SSD 256GB (M.2)",
+        "value": "1 x M.2 SATA 2242 Key SSD (Default 256GB)",
         "source": "catalog"
       },
       {
@@ -5990,12 +6225,17 @@
       },
       {
         "label": "소비전력",
-        "value": "29W (Max 43W)",
+        "value": "29W (Max : 43W)",
         "source": "catalog"
       },
       {
         "label": "중량",
         "value": "1.21kg",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "1 x M.2 SATA 2242 Key SSD (Default 256GB)",
         "source": "catalog"
       }
     ],
@@ -6017,17 +6257,22 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i5-1145G7E (11세대)",
+        "value": "11th Gen Intel® Core™ i5-1145G7E processor, Quad Core, 1.5 GHz, 8M Cache (15W)",
         "source": "catalog"
       },
       {
         "label": "스토리지",
-        "value": "SSD 250GB (NVMe)",
+        "value": "1 X M.2 2280 Key M 250GB (PCIe x4 only)",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows 10/11 IoT Enterprise",
+        "value": "Windows 10 IoT Enterprise (표준) / Windows 10 Pro / Windows 11 IoT Enterprise / Windows 11 Pro",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "1 X M.2 2280 Key M 250GB (PCIe x4 only)",
         "source": "catalog"
       }
     ],
@@ -6049,12 +6294,22 @@
     "specs": [
       {
         "label": "CPU",
-        "value": "Intel Core i7-1185G7E (11세대)",
+        "value": "11th Gen Intel® Core™ i7-1185G7E processor, Quad Core, 1.8 GHz, 12M Cache (15W)",
         "source": "catalog"
       },
       {
         "label": "스토리지",
-        "value": "SSD 250GB (NVMe)",
+        "value": "1 X M.2 2280 Key M 250GB (PCIe x4 only)",
+        "source": "catalog"
+      },
+      {
+        "label": "메모리",
+        "value": "1 X M.2 2280 Key M 250GB (PCIe x4 only)",
+        "source": "catalog"
+      },
+      {
+        "label": "OS",
+        "value": "Windows 10 IoT Enterprise (표준) / Windows 10 Pro / Windows 11 IoT Enterprise / Windows 11 Pro",
         "source": "catalog"
       }
     ],
@@ -6086,7 +6341,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 개발 및 실행용",
+        "value": "시스템 개발 및 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6155,7 +6410,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 실행용",
+        "value": "시스템 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6224,7 +6479,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 개발 및 실행용",
+        "value": "시스템 개발 및 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6293,7 +6548,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 실행용",
+        "value": "시스템 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6362,7 +6617,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 개발 및 실행용",
+        "value": "시스템 개발 및 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6431,7 +6686,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 실행용",
+        "value": "시스템 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6500,7 +6755,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 개발 및 실행용",
+        "value": "시스템 개발 및 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6569,7 +6824,7 @@
       },
       {
         "label": "용도",
-        "value": "시스템 실행용",
+        "value": "시스템 실행용 제품",
         "source": "catalog"
       },
       {
@@ -6638,7 +6893,7 @@
       },
       {
         "label": "동시접속",
-        "value": "02 User 이내",
+        "value": "2 User 이내",
         "source": "catalog"
       },
       {
@@ -6713,7 +6968,7 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "5 User 이내",
         "source": "catalog"
       },
       {
@@ -6778,7 +7033,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -6793,7 +7048,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -6853,7 +7108,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -6863,12 +7118,12 @@
       },
       {
         "label": "동시접속",
-        "value": "무한 User 이내",
+        "value": "무한 User (제한없음)",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -6928,7 +7183,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -6938,12 +7193,12 @@
       },
       {
         "label": "동시접속",
-        "value": "02 User 이내",
+        "value": "2 User 이내",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -7003,7 +7258,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -7013,12 +7268,12 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "5 User 이내",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -7078,7 +7333,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -7093,7 +7348,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -7153,7 +7408,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -7163,12 +7418,12 @@
       },
       {
         "label": "동시접속",
-        "value": "무한 User 이내",
+        "value": "무한 User (제한없음)",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -7228,7 +7483,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -7238,12 +7493,12 @@
       },
       {
         "label": "동시접속",
-        "value": "02 User 이내",
+        "value": "2 User 이내",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -7303,7 +7558,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -7313,12 +7568,12 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "5 User 이내",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -7378,7 +7633,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -7393,7 +7648,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -7453,7 +7708,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시 전용",
+        "value": "뷰 버전",
         "source": "catalog"
       },
       {
@@ -7463,12 +7718,12 @@
       },
       {
         "label": "동시접속",
-        "value": "무한 User 이내",
+        "value": "무한 User (제한없음)",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -7528,7 +7783,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -7538,7 +7793,7 @@
       },
       {
         "label": "동시접속",
-        "value": "02 User 이내",
+        "value": "동시접속 2 User 이내",
         "source": "catalog"
       },
       {
@@ -7603,7 +7858,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -7613,7 +7868,7 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "동시접속 5 User 이내",
         "source": "catalog"
       },
       {
@@ -7678,7 +7933,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -7688,7 +7943,7 @@
       },
       {
         "label": "동시접속",
-        "value": "10 User 이내",
+        "value": "동시접속 10 User 이내",
         "source": "catalog"
       },
       {
@@ -7753,7 +8008,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -7763,7 +8018,7 @@
       },
       {
         "label": "동시접속",
-        "value": "무한 User 이내",
+        "value": "동시접속 User 제한없음",
         "source": "catalog"
       },
       {
@@ -7828,7 +8083,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -7838,7 +8093,7 @@
       },
       {
         "label": "동시접속",
-        "value": "02 User 이내",
+        "value": "동시접속 2 User 이내",
         "source": "catalog"
       },
       {
@@ -7903,7 +8158,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -7913,7 +8168,7 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "동시접속 5 User 이내",
         "source": "catalog"
       },
       {
@@ -7978,7 +8233,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -7988,7 +8243,7 @@
       },
       {
         "label": "동시접속",
-        "value": "10 User 이내",
+        "value": "동시접속 10 User 이내",
         "source": "catalog"
       },
       {
@@ -8053,7 +8308,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -8063,7 +8318,7 @@
       },
       {
         "label": "동시접속",
-        "value": "무한 User 이내",
+        "value": "동시접속 User 제한없음",
         "source": "catalog"
       },
       {
@@ -8128,7 +8383,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -8138,12 +8393,12 @@
       },
       {
         "label": "동시접속",
-        "value": "02 User 이내",
+        "value": "동시접속 2 User 이내",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "Full/DS 포함",
         "source": "catalog"
       },
       {
@@ -8203,7 +8458,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -8213,12 +8468,12 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "동시접속 5 User 이내",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "Full/DS 포함",
         "source": "catalog"
       },
       {
@@ -8278,7 +8533,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전 (View Control Version)",
         "source": "catalog"
       },
       {
@@ -8293,7 +8548,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "Full/DS",
         "source": "catalog"
       },
       {
@@ -8334,6 +8589,11 @@
       {
         "label": "스크립트",
         "value": "VBScript 기반",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "무한 TAG",
         "source": "catalog"
       }
     ],
@@ -8353,7 +8613,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "전용 클라이언트(CIMON View) 감시·제어",
+        "value": "뷰 컨트롤 버전 (View Control Version)",
         "source": "catalog"
       },
       {
@@ -8363,12 +8623,12 @@
       },
       {
         "label": "동시접속",
-        "value": "무한 User 이내",
+        "value": "무한 User (User 제한없음)",
         "source": "catalog"
       },
       {
         "label": "포함 제품",
-        "value": "FULL/DS 포함",
+        "value": "Full/DS",
         "source": "catalog"
       },
       {
@@ -8409,6 +8669,11 @@
       {
         "label": "스크립트",
         "value": "VBScript 기반",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "무한 TAG",
         "source": "catalog"
       }
     ],
@@ -9318,7 +9583,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 1 User 이내",
         "source": "catalog"
       },
       {
@@ -9328,7 +9593,7 @@
       },
       {
         "label": "동시접속",
-        "value": "01 User 이내",
+        "value": "1 User 이내",
         "source": "catalog"
       },
       {
@@ -9389,6 +9654,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
         "source": "catalog"
       }
     ],
@@ -9408,7 +9678,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 3 User 이내",
         "source": "catalog"
       },
       {
@@ -9418,7 +9688,7 @@
       },
       {
         "label": "동시접속",
-        "value": "03 User 이내",
+        "value": "3 User 이내",
         "source": "catalog"
       },
       {
@@ -9479,6 +9749,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
         "source": "catalog"
       }
     ],
@@ -9498,7 +9773,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 5 User 이내",
         "source": "catalog"
       },
       {
@@ -9508,7 +9783,7 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "5 User 이내",
         "source": "catalog"
       },
       {
@@ -9569,6 +9844,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
         "source": "catalog"
       }
     ],
@@ -9588,7 +9868,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 10 User 이내",
         "source": "catalog"
       },
       {
@@ -9659,6 +9939,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
         "source": "catalog"
       }
     ],
@@ -9678,7 +9963,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 15 User 이내",
         "source": "catalog"
       },
       {
@@ -9749,6 +10034,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
         "source": "catalog"
       }
     ],
@@ -9768,7 +10058,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -9839,6 +10129,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
         "source": "catalog"
       }
     ],
@@ -9858,7 +10153,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -9929,6 +10224,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
         "source": "catalog"
       }
     ],
@@ -9948,7 +10248,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10020,6 +10320,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "150 TAG",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -10038,7 +10343,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10048,7 +10353,7 @@
       },
       {
         "label": "동시접속",
-        "value": "01 User 이내",
+        "value": "1 User 이내",
         "source": "catalog"
       },
       {
@@ -10109,6 +10414,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
         "source": "catalog"
       }
     ],
@@ -10128,7 +10438,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10138,7 +10448,7 @@
       },
       {
         "label": "동시접속",
-        "value": "03 User 이내",
+        "value": "3 User 이내",
         "source": "catalog"
       },
       {
@@ -10199,6 +10509,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
         "source": "catalog"
       }
     ],
@@ -10218,7 +10533,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10228,7 +10543,7 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "5 User 이내",
         "source": "catalog"
       },
       {
@@ -10289,6 +10604,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
         "source": "catalog"
       }
     ],
@@ -10308,7 +10628,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10379,6 +10699,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
         "source": "catalog"
       }
     ],
@@ -10398,7 +10723,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10470,6 +10795,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -10488,7 +10818,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10560,6 +10890,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -10578,7 +10913,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -10650,6 +10985,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -10668,7 +11008,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -10740,6 +11080,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "500 TAG",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -10758,7 +11103,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -10768,7 +11113,7 @@
       },
       {
         "label": "동시접속",
-        "value": "01 User 이내",
+        "value": "1 User 이내",
         "source": "catalog"
       },
       {
@@ -10829,6 +11174,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000 TAG",
         "source": "catalog"
       }
     ],
@@ -10848,7 +11198,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -10858,7 +11208,7 @@
       },
       {
         "label": "동시접속",
-        "value": "03 User 이내",
+        "value": "3 User 이내",
         "source": "catalog"
       },
       {
@@ -10919,6 +11269,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000 TAG",
         "source": "catalog"
       }
     ],
@@ -10938,7 +11293,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -10948,7 +11303,7 @@
       },
       {
         "label": "동시접속",
-        "value": "05 User 이내",
+        "value": "5 User 이내",
         "source": "catalog"
       },
       {
@@ -11010,6 +11365,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000 TAG",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11028,7 +11388,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -11100,6 +11460,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000 TAG",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11118,7 +11483,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -11190,6 +11555,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11208,7 +11578,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -11280,6 +11650,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11298,7 +11673,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -11370,6 +11745,11 @@
         "label": "이중화",
         "value": "서버 이중화 지원",
         "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000",
+        "source": "catalog"
       }
     ],
     "lineup": "WS",
@@ -11388,7 +11768,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development + Runtime + Keylock + WEB",
+        "value": "Development+Runtime+Keylock+Manual",
         "source": "catalog"
       },
       {
@@ -11459,6 +11839,11 @@
       {
         "label": "이중화",
         "value": "서버 이중화 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "태그 수",
+        "value": "10,000",
         "source": "catalog"
       }
     ],
@@ -11484,12 +11869,12 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" Color TFT",
+        "value": "7\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 480",
+        "value": "800 x 480",
         "source": "catalog"
       },
       {
@@ -11499,22 +11884,22 @@
       },
       {
         "label": "휘도",
-        "value": "550 cd/m²",
+        "value": "550 cd/㎡",
         "source": "catalog"
       },
       {
         "label": "백라이트 수명",
-        "value": "50,000시간",
+        "value": "50,000 hours",
         "source": "catalog"
       },
       {
         "label": "메모리",
-        "value": "128MB DDR2 SDRAM",
+        "value": "128MByte DDR2 SDRAM",
         "source": "catalog"
       },
       {
         "label": "저장장치",
-        "value": "128MB SLC NAND Flash",
+        "value": "128MByte SLC NAND Flash",
         "source": "catalog"
       },
       {
@@ -11524,7 +11909,7 @@
       },
       {
         "label": "이더넷",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
@@ -11539,22 +11924,22 @@
       },
       {
         "label": "시리얼 (COM3)",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
         "label": "USB Host",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "Tool Port",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
@@ -11564,12 +11949,12 @@
       },
       {
         "label": "외형 치수 (mm)",
-        "value": "185 × 127 × 54",
+        "value": "185 X 127 X 54",
         "source": "catalog"
       },
       {
         "label": "패널 컷 (mm)",
-        "value": "177 × 119",
+        "value": "177 X 119",
         "source": "catalog"
       },
       {
@@ -11584,12 +11969,12 @@
       },
       {
         "label": "오디오",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V",
+        "value": "DC24V",
         "source": "catalog"
       }
     ]
@@ -11611,12 +11996,12 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" Color TFT",
+        "value": "7\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 480",
+        "value": "800 x 480",
         "source": "catalog"
       },
       {
@@ -11626,22 +12011,22 @@
       },
       {
         "label": "휘도",
-        "value": "550 cd/m²",
+        "value": "550 cd/㎡",
         "source": "catalog"
       },
       {
         "label": "백라이트 수명",
-        "value": "50,000시간",
+        "value": "50,000 hours",
         "source": "catalog"
       },
       {
         "label": "메모리",
-        "value": "128MB DDR2 SDRAM",
+        "value": "128MByte DDR2 SDRAM",
         "source": "catalog"
       },
       {
         "label": "저장장치",
-        "value": "128MB SLC NAND Flash",
+        "value": "128MByte SLC NAND Flash",
         "source": "catalog"
       },
       {
@@ -11651,7 +12036,7 @@
       },
       {
         "label": "이더넷",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
@@ -11666,22 +12051,22 @@
       },
       {
         "label": "시리얼 (COM3)",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
         "label": "USB Host",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "Tool Port",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
@@ -11691,12 +12076,12 @@
       },
       {
         "label": "외형 치수 (mm)",
-        "value": "185 × 127 × 54",
+        "value": "185 X 127 X 54",
         "source": "catalog"
       },
       {
         "label": "패널 컷 (mm)",
-        "value": "177 × 119",
+        "value": "177 X 119",
         "source": "catalog"
       },
       {
@@ -11711,12 +12096,12 @@
       },
       {
         "label": "오디오",
-        "value": "1포트 (오디오 포트 내장)",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V",
+        "value": "DC24V",
         "source": "catalog"
       }
     ]
@@ -11738,12 +12123,12 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "10.4\" Color TFT",
+        "value": "10.4\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 600",
+        "value": "800 x 600",
         "source": "catalog"
       },
       {
@@ -11753,27 +12138,27 @@
       },
       {
         "label": "휘도",
-        "value": "400 cd/m²",
+        "value": "400 cd/㎡",
         "source": "catalog"
       },
       {
         "label": "백라이트 수명",
-        "value": "50,000시간",
+        "value": "50,000 hours",
         "source": "catalog"
       },
       {
         "label": "메모리",
-        "value": "512MB DDR2 SDRAM",
+        "value": "512MByte DDR2 SDRAM",
         "source": "catalog"
       },
       {
         "label": "저장장치",
-        "value": "128MB SLC NAND Flash",
+        "value": "128MByte SLC NAND Flash",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows Embedded Compact 7 (WEC7)",
+        "value": "Windows Embedded Compact 7",
         "source": "catalog"
       },
       {
@@ -11798,17 +12183,17 @@
       },
       {
         "label": "USB Host",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "Tool Port",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "1슬롯",
+        "value": "1 Slot",
         "source": "catalog"
       },
       {
@@ -11818,12 +12203,12 @@
       },
       {
         "label": "외형 치수 (mm)",
-        "value": "280 × 220 × 47",
+        "value": "280 X 220 X 47",
         "source": "catalog"
       },
       {
         "label": "패널 컷 (mm)",
-        "value": "267 × 207",
+        "value": "267 X 207",
         "source": "catalog"
       },
       {
@@ -11833,17 +12218,17 @@
       },
       {
         "label": "오디오",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V",
+        "value": "DC24V",
         "source": "catalog"
       },
       {
         "label": "인증",
-        "value": "FCC, UL, CE, KC",
+        "value": "FCC, UL, CE, KC, KR",
         "source": "catalog"
       }
     ]
@@ -11865,12 +12250,12 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "10.4\" Color TFT",
+        "value": "10.4\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 600",
+        "value": "800 x 600",
         "source": "catalog"
       },
       {
@@ -11880,27 +12265,27 @@
       },
       {
         "label": "휘도",
-        "value": "400 cd/m²",
+        "value": "400 cd/㎡",
         "source": "catalog"
       },
       {
         "label": "백라이트 수명",
-        "value": "50,000시간",
+        "value": "50,000 hours",
         "source": "catalog"
       },
       {
         "label": "메모리",
-        "value": "512MB DDR2 SDRAM",
+        "value": "512MByte DDR2 SDRAM",
         "source": "catalog"
       },
       {
         "label": "저장장치",
-        "value": "128MB SLC NAND Flash",
+        "value": "128MByte SLC NAND Flash",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Windows Embedded Compact 7 (WEC7)",
+        "value": "Windows Embedded Compact 7",
         "source": "catalog"
       },
       {
@@ -11925,17 +12310,17 @@
       },
       {
         "label": "USB Host",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "Tool Port",
-        "value": "1포트",
+        "value": "1 Port",
         "source": "catalog"
       },
       {
         "label": "SD Card",
-        "value": "1슬롯",
+        "value": "1 Slot",
         "source": "catalog"
       },
       {
@@ -11945,12 +12330,12 @@
       },
       {
         "label": "외형 치수 (mm)",
-        "value": "280 × 220 × 47",
+        "value": "280 X 220 X 47",
         "source": "catalog"
       },
       {
         "label": "패널 컷 (mm)",
-        "value": "267 × 207",
+        "value": "267 X 207",
         "source": "catalog"
       },
       {
@@ -11960,12 +12345,12 @@
       },
       {
         "label": "오디오",
-        "value": "없음",
+        "value": "None",
         "source": "catalog"
       },
       {
         "label": "입력 전원",
-        "value": "AC 100~240V",
+        "value": "AC100-240V",
         "source": "catalog"
       },
       {
@@ -11992,22 +12377,22 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "10.4\" (26.4 cm)",
+        "value": "10.4\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 600 (SVGA)",
+        "value": "800 x 600",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "262,144색 (18 bit)",
+        "value": "262K Colors",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "700 cd/m²",
+        "value": "700 cd/㎡",
         "source": "catalog"
       },
       {
@@ -12017,7 +12402,7 @@
       },
       {
         "label": "OS",
-        "value": "Windows Embedded Compact 7 (WEC7)",
+        "value": "Windows Embedded Compact 7",
         "source": "catalog"
       },
       {
@@ -12027,7 +12412,7 @@
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V (±15%)",
+        "value": "DC24V",
         "source": "catalog"
       },
       {
@@ -12038,6 +12423,11 @@
       {
         "label": "방수",
         "value": "IP65 (전면)",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100 BaseT",
         "source": "catalog"
       }
     ]
@@ -12059,22 +12449,22 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "10.4\" (26.4 cm)",
+        "value": "10.4\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 600 (SVGA)",
+        "value": "800 x 600",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "262,144색 (18 bit)",
+        "value": "262K Colors",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "700 cd/m²",
+        "value": "600 cd/㎡",
         "source": "catalog"
       },
       {
@@ -12084,7 +12474,7 @@
       },
       {
         "label": "OS",
-        "value": "Windows Embedded Compact 7 (WEC7)",
+        "value": "Windows Embedded Compact 7",
         "source": "catalog"
       },
       {
@@ -12094,7 +12484,7 @@
       },
       {
         "label": "입력 전원",
-        "value": "AC 100~240V",
+        "value": "AC100-240V",
         "source": "catalog"
       },
       {
@@ -12104,7 +12494,12 @@
       },
       {
         "label": "오디오",
-        "value": "오디오 포트 내장",
+        "value": "None",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100 BaseT",
         "source": "catalog"
       }
     ]
@@ -12126,22 +12521,22 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "12.1\" (30.7 cm)",
+        "value": "12.1\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "1024 × 768 (XGA)",
+        "value": "1024 x 768",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "16,777,216색 (24 bit)",
+        "value": "16.7M Colors",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "600 cd/m²",
+        "value": "500 cd/㎡",
         "source": "catalog"
       },
       {
@@ -12151,7 +12546,7 @@
       },
       {
         "label": "OS",
-        "value": "Windows Embedded Compact 7 (WEC7)",
+        "value": "Windows Embedded Compact 7",
         "source": "catalog"
       },
       {
@@ -12161,7 +12556,7 @@
       },
       {
         "label": "입력 전원",
-        "value": "AC 100~240V",
+        "value": "AC100-240V",
         "source": "catalog"
       },
       {
@@ -12171,7 +12566,12 @@
       },
       {
         "label": "오디오",
-        "value": "오디오 포트 내장",
+        "value": "None",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100 BaseT",
         "source": "catalog"
       }
     ]
@@ -12193,22 +12593,22 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "15\" (38.1 cm)",
+        "value": "15\"",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "1024 × 768 (XGA)",
+        "value": "1024 x 768",
         "source": "catalog"
       },
       {
         "label": "색상",
-        "value": "16,777,216색 (24 bit)",
+        "value": "16.7M Colors",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "500 cd/m²",
+        "value": "500 cd/㎡",
         "source": "catalog"
       },
       {
@@ -12218,7 +12618,7 @@
       },
       {
         "label": "OS",
-        "value": "Windows Embedded Compact 7 (WEC7)",
+        "value": "Windows Embedded Compact 7",
         "source": "catalog"
       },
       {
@@ -12228,7 +12628,7 @@
       },
       {
         "label": "입력 전원",
-        "value": "AC 100~240V",
+        "value": "AC100-240V",
         "source": "catalog"
       },
       {
@@ -12238,7 +12638,12 @@
       },
       {
         "label": "오디오",
-        "value": "오디오 포트 내장",
+        "value": "None",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100 BaseT",
         "source": "catalog"
       }
     ]
@@ -12260,22 +12665,22 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" (17.8 cm) Wide",
+        "value": "7 inch Wide TFT Color",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "1024 × 600 (WSVGA)",
+        "value": "1024 x 600",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "1000 cd/m²",
+        "value": "1,000 cd/㎡",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Linux",
+        "value": "Embedded Linux",
         "source": "catalog"
       },
       {
@@ -12285,12 +12690,12 @@
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V",
+        "value": "DC24V",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "-20 ~ 70°C",
+        "value": "-20°C ~ 70°C",
         "source": "catalog"
       },
       {
@@ -12300,7 +12705,12 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100/1000 2 Ports",
         "source": "catalog"
       }
     ]
@@ -12322,17 +12732,17 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" (17.8 cm) Wide",
+        "value": "7 inch Wide TFT Color",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "1024 × 600 (WSVGA)",
+        "value": "1024 x 600",
         "source": "catalog"
       },
       {
         "label": "OS",
-        "value": "Linux",
+        "value": "Embedded Linux",
         "source": "catalog"
       },
       {
@@ -12342,12 +12752,12 @@
       },
       {
         "label": "입력 전원",
-        "value": "DC 24V",
+        "value": "DC24V",
         "source": "catalog"
       },
       {
         "label": "동작 온도",
-        "value": "0 ~ 65°C",
+        "value": "0°C ~ 65°C",
         "source": "catalog"
       },
       {
@@ -12357,7 +12767,12 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100/1000 1 Port",
         "source": "catalog"
       }
     ]
@@ -12747,17 +13162,17 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" (17.8 cm)",
+        "value": "7 inch wide",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 480 (WVGA)",
+        "value": "WVGA 800 x 480",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "550 cd/m²",
+        "value": "550 cd/㎡",
         "source": "catalog"
       },
       {
@@ -12772,17 +13187,47 @@
       },
       {
         "label": "DI",
-        "value": "8점 (DC 24V)",
+        "value": "TR input 8 Ch",
         "source": "catalog"
       },
       {
         "label": "DO",
-        "value": "8점 (Relay 출력, 2A/점)",
+        "value": "Relay output 8 Ch",
         "source": "catalog"
       },
       {
         "label": "통신",
         "value": "Ethernet ×1, USB ×1, RS-232C ×2",
+        "source": "catalog"
+      },
+      {
+        "label": "백라이트 수명",
+        "value": "50,000 hours",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100 BaseT",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "0°C ~ 60°C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM1)",
+        "value": "RS-232C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM2)",
+        "value": "RS-485",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM3)",
+        "value": "RS-232C (Internal)",
         "source": "catalog"
       }
     ]
@@ -12800,17 +13245,17 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" (17.8 cm)",
+        "value": "7 inch wide",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 480 (WVGA)",
+        "value": "WVGA 800 x 480",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "550 cd/m²",
+        "value": "550 cd/㎡",
         "source": "catalog"
       },
       {
@@ -12825,17 +13270,47 @@
       },
       {
         "label": "DI",
-        "value": "4점 (DC 24V)",
+        "value": "TR input 8 Ch",
         "source": "catalog"
       },
       {
         "label": "DO",
-        "value": "7점 (TR Sink 출력, 0.5A/점)",
+        "value": "TR output (Sink) 7 Ch",
         "source": "catalog"
       },
       {
         "label": "통신",
         "value": "Ethernet ×1, USB ×1, RS-232C ×2",
+        "source": "catalog"
+      },
+      {
+        "label": "백라이트 수명",
+        "value": "50,000 hours",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100 BaseT",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "0°C ~ 60°C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM1)",
+        "value": "RS-232C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM2)",
+        "value": "RS-485",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM3)",
+        "value": "RS-232C (Internal)",
         "source": "catalog"
       }
     ]
@@ -12853,17 +13328,17 @@
     "specs": [
       {
         "label": "화면 크기",
-        "value": "7\" (17.8 cm)",
+        "value": "7 inch wide",
         "source": "catalog"
       },
       {
         "label": "해상도",
-        "value": "800 × 480 (WVGA)",
+        "value": "WVGA 800 x 480",
         "source": "catalog"
       },
       {
         "label": "휘도",
-        "value": "550 cd/m²",
+        "value": "550 cd/㎡",
         "source": "catalog"
       },
       {
@@ -12878,17 +13353,47 @@
       },
       {
         "label": "DI",
-        "value": "4점 (DC 24V)",
+        "value": "TR input 8 Ch",
         "source": "catalog"
       },
       {
         "label": "DO",
-        "value": "7점 (TR Source 출력, 0.5A/점)",
+        "value": "TR output (Source) 7 Ch",
         "source": "catalog"
       },
       {
         "label": "통신",
         "value": "Ethernet ×1, USB ×1, RS-232C ×2",
+        "source": "catalog"
+      },
+      {
+        "label": "백라이트 수명",
+        "value": "50,000 hours",
+        "source": "catalog"
+      },
+      {
+        "label": "내장 이더넷",
+        "value": "10/100 BaseT",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "0°C ~ 60°C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM1)",
+        "value": "RS-232C",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM2)",
+        "value": "RS-485",
+        "source": "catalog"
+      },
+      {
+        "label": "시리얼 (COM3)",
+        "value": "RS-232C (Internal)",
         "source": "catalog"
       }
     ]
