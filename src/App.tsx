@@ -55,7 +55,7 @@ function LangToggle() {
       <button
         onClick={() => setLang('ko')}
         title="한국어"
-        className={`text-xl leading-none transition-all ${
+        className={`w-8 h-8 flex items-center justify-center text-xl leading-none transition-all ${
           lang !== 'ko' ? 'grayscale opacity-40 hover:opacity-60' : ''
         }`}
       >
@@ -64,7 +64,7 @@ function LangToggle() {
       <button
         onClick={() => setLang('en')}
         title="English"
-        className={`text-xl leading-none transition-all ${
+        className={`w-8 h-8 flex items-center justify-center text-xl leading-none transition-all ${
           lang !== 'en' ? 'grayscale opacity-40 hover:opacity-60' : ''
         }`}
       >
