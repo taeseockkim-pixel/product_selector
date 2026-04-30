@@ -83,7 +83,7 @@ function DocButton({
       </button>
 
       {open && (
-        <div className="absolute right-0 bottom-full mb-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[420px] max-h-64 overflow-y-auto">
+        <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[420px] max-h-64 overflow-y-auto">
           {entries.map((entry) => (
             <DocRow key={entry.url} entry={entry} onClose={() => setOpen(false)} />
           ))}
@@ -124,10 +124,11 @@ export default function SpecModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        {/* 제목 헤더 — 고정 영역 */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <h2 className="text-lg font-bold text-gray-800">{product.modelName}</h2>
           <button
             onClick={onClose}
@@ -137,63 +138,63 @@ export default function SpecModal({
           </button>
         </div>
 
-        <div className="px-6 py-5 flex flex-col gap-5">
-          <div className="flex gap-5">
-            {imageSrc && !imgFailed ? (
-              <img
-                src={imageSrc}
-                alt={product.modelName}
-                className="flex-shrink-0 w-44 h-36 object-contain rounded-xl bg-gray-50 border border-gray-100"
-                onError={() => setImgFailed(true)}
-              />
-            ) : (
-              <div className="flex-shrink-0 w-44 h-36 bg-gray-100 rounded-xl flex items-center justify-center text-gray-300 text-xs select-none">
-                NO IMAGE
-              </div>
-            )}
+        {/* 이미지 + 설명 + 문서 버튼 — 고정 영역 (overflow 없음, 드롭다운 자유롭게 확장) */}
+        <div className="px-6 pt-5 pb-3 flex gap-5 flex-shrink-0">
+          {imageSrc && !imgFailed ? (
+            <img
+              src={imageSrc}
+              alt={product.modelName}
+              className="flex-shrink-0 w-44 h-36 object-contain rounded-xl bg-gray-50 border border-gray-100"
+              onError={() => setImgFailed(true)}
+            />
+          ) : (
+            <div className="flex-shrink-0 w-44 h-36 bg-gray-100 rounded-xl flex items-center justify-center text-gray-300 text-xs select-none">
+              NO IMAGE
+            </div>
+          )}
 
-            <div className="flex-1 min-w-0 flex flex-col gap-2">
-              <p className="text-sm font-semibold text-blue-600">{series}</p>
-              <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
-              <div className="mt-auto pt-1 flex flex-wrap gap-2">
-                {catalogUrl && (
-                  <DocButton
-                    label={t(UI.catalog)}
-                    entries={[{ label: lang === 'ko' ? '카탈로그 PDF' : 'Catalog PDF', url: catalogUrl }]}
-                    color="blue"
-                  />
-                )}
-                {manualEntries.length > 0 && (
-                  <DocButton label={t(UI.manual)} entries={manualEntries} color="green" />
-                )}
-                {drawingEntries.length > 0 && (
-                  <DocButton label={t(UI.drawing)} entries={drawingEntries} color="orange" />
-                )}
-              </div>
+          <div className="flex-1 min-w-0 flex flex-col gap-2">
+            <p className="text-sm font-semibold text-blue-600">{series}</p>
+            <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+            <div className="mt-auto pt-1 flex flex-wrap gap-2">
+              {catalogUrl && (
+                <DocButton
+                  label={t(UI.catalog)}
+                  entries={[{ label: lang === 'ko' ? '카탈로그 PDF' : 'Catalog PDF', url: catalogUrl }]}
+                  color="blue"
+                />
+              )}
+              {manualEntries.length > 0 && (
+                <DocButton label={t(UI.manual)} entries={manualEntries} color="green" />
+              )}
+              {drawingEntries.length > 0 && (
+                <DocButton label={t(UI.drawing)} entries={drawingEntries} color="orange" />
+              )}
             </div>
           </div>
+        </div>
 
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              {t(UI.detailSpecs)}
-            </p>
-            {verifiedSpecs.length === 0 ? (
-              <p className="text-xs text-gray-400 italic">{t(UI.noDetailSpecs)}</p>
-            ) : (
-              <table className="w-full text-sm">
-                <tbody className="divide-y divide-gray-50">
-                  {verifiedSpecs.map((s) => (
-                    <tr key={s.label}>
-                      <td className="py-2 pr-4 font-medium text-gray-500 w-44 align-top">
-                        {translateSpecLabel(s.label, lang)}
-                      </td>
-                      <td className="py-2 text-gray-800">{translateSpecValue(s.value, lang)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+        {/* 사양 목록 — 스크롤 영역 */}
+        <div className="px-6 pb-5 overflow-y-auto">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 mt-2">
+            {t(UI.detailSpecs)}
+          </p>
+          {verifiedSpecs.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">{t(UI.noDetailSpecs)}</p>
+          ) : (
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-gray-50">
+                {verifiedSpecs.map((s) => (
+                  <tr key={s.label}>
+                    <td className="py-2 pr-4 font-medium text-gray-500 w-44 align-top">
+                      {translateSpecLabel(s.label, lang)}
+                    </td>
+                    <td className="py-2 text-gray-800">{translateSpecValue(s.value, lang)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
