@@ -1,31 +1,78 @@
 import { useState, useEffect } from 'react';
 import type { Product } from '../types';
 import { resolveProductImage } from '../utils/imageResolver';
-import { getCatalogUrl, getManualUrl, getDrawingUrl } from '../config/catalogConfig';
+import { getCatalogUrl, getManualEntries, getDrawingEntries } from '../config/catalogConfig';
+import type { DocEntry } from '../config/catalogConfig';
 
 // ── 문서 버튼 (카탈로그 · 메뉴얼 · 도면 공용) ───────────────
 type DocButtonColor = 'blue' | 'green' | 'orange';
 
-function DocButton({ label, url, color = 'blue' }: { label: string; url: string; color?: DocButtonColor }) {
-  const [open, setOpen] = useState(false);
+const COLOR_CLASS: Record<DocButtonColor, string> = {
+  blue:   'bg-blue-50 text-blue-600 hover:bg-blue-100',
+  green:  'bg-green-50 text-green-600 hover:bg-green-100',
+  orange: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
+};
 
-  const colorClass: Record<DocButtonColor, string> = {
-    blue:   'bg-blue-50 text-blue-600 hover:bg-blue-100',
-    green:  'bg-green-50 text-green-600 hover:bg-green-100',
-    orange: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
-  };
+// 단일 파일 행 (새탭/다운로드)
+function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-2 px-4 py-2 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
+      <span className="text-sm text-gray-700 truncate flex-1">{entry.label}</span>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <a
+          href={entry.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onClose}
+          className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+          title="새 탭에서 열기"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+        <a
+          href={entry.url}
+          download
+          onClick={onClose}
+          className="p-1 text-gray-400 hover:text-green-500 transition-colors"
+          title="다운로드"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function DocButton({
+  label,
+  entries,
+  color = 'blue',
+}: {
+  label: string;
+  entries: DocEntry[];
+  color?: DocButtonColor;
+}) {
+  const [open, setOpen] = useState(false);
+  if (entries.length === 0) return null;
 
   return (
     <div className="relative inline-block">
       {open && <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />}
       <button
         onClick={() => setOpen((v) => !v)}
-        className={`relative z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${colorClass[color]}`}
+        className={`relative z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${COLOR_CLASS[color]}`}
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
         {label}
+        {entries.length > 1 && (
+          <span className="text-xs opacity-60">({entries.length})</span>
+        )}
         <svg
           className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
@@ -35,30 +82,10 @@ function DocButton({ label, url, color = 'blue' }: { label: string; url: string;
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[168px]">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            새 탭에서 열기
-          </a>
-          <a
-            href={url}
-            download
-            onClick={() => setOpen(false)}
-            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
-          >
-            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            파일 다운로드
-          </a>
+        <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[220px] max-w-[320px]">
+          {entries.map((entry) => (
+            <DocRow key={entry.url} entry={entry} onClose={() => setOpen(false)} />
+          ))}
         </div>
       )}
     </div>
@@ -76,6 +103,10 @@ export default function SpecModal({
   const [imgFailed, setImgFailed] = useState(false);
   const imageSrc = resolveProductImage(product.id, product.subType);
   const verifiedSpecs = product.specs.filter((s) => s.source !== 'estimated');
+
+  const catalogUrl = getCatalogUrl(product.subType);
+  const manualEntries = getManualEntries(product.subType);
+  const drawingEntries = getDrawingEntries(product.subType);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -109,7 +140,6 @@ export default function SpecModal({
         <div className="px-6 py-5 flex flex-col gap-5">
           {/* 이미지 + 기본 정보 */}
           <div className="flex gap-5">
-            {/* 제품 이미지 (확대) */}
             {imageSrc && !imgFailed ? (
               <img
                 src={imageSrc}
@@ -123,19 +153,22 @@ export default function SpecModal({
               </div>
             )}
 
-            {/* 시리즈 / 설명 / 카탈로그 */}
             <div className="flex-1 min-w-0 flex flex-col gap-2">
               <p className="text-sm font-semibold text-blue-600">{product.seriesLabel}</p>
               <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
               <div className="mt-auto pt-1 flex flex-wrap gap-2">
-                {getCatalogUrl(product.subType) && (
-                  <DocButton label="카탈로그" url={getCatalogUrl(product.subType)!} color="blue" />
+                {catalogUrl && (
+                  <DocButton
+                    label="카탈로그"
+                    entries={[{ label: '카탈로그 PDF', url: catalogUrl }]}
+                    color="blue"
+                  />
                 )}
-                {getManualUrl(product.subType) && (
-                  <DocButton label="메뉴얼" url={getManualUrl(product.subType)!} color="green" />
+                {manualEntries.length > 0 && (
+                  <DocButton label="메뉴얼" entries={manualEntries} color="green" />
                 )}
-                {getDrawingUrl(product.subType) && (
-                  <DocButton label="도면" url={getDrawingUrl(product.subType)!} color="orange" />
+                {drawingEntries.length > 0 && (
+                  <DocButton label="도면" entries={drawingEntries} color="orange" />
                 )}
               </div>
             </div>
