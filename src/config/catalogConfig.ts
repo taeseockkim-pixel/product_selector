@@ -221,7 +221,14 @@ const DRAWING_MAP: Record<string, DocEntry[]> = {
   CM3_SP_POS:      [{ label: '특수 모듈', url: `${D3}/특수-모듈.zip` }, { label: '단자대', url: `${D3}/단자대.zip` }],
   CM3_PWR:         [{ label: '특수 모듈', url: `${D3}/특수-모듈.zip` }, { label: '단자대', url: `${D3}/단자대.zip` }],
   // ── IPC ──
-  BOX: [{ label: 'BOX PC (NB5011·NB7011)', url: `${DI}/BOX PC Series_CM-CM-NB5011-D-CM-NB7011-D.zip` }],
+  BOX: [
+    { label: 'BOX PC (NB200-D)',        url: `${DI}/BOX PC Series_CM-NB200-D-1.zip` },
+    { label: 'BOX PC (NB5011·NB7011)', url: `${DI}/BOX PC Series_CM-CM-NB5011-D-CM-NB7011-D.zip` },
+  ],
+  RACK: [
+    { label: 'NU1R', url: `${DI}/NU1R.zip` },
+    { label: 'NU4R', url: `${DI}/NU4R.zip` },
+  ],
   MONITOR: [{ label: 'Touch Monitor (IM15W)', url: `${DI}/TOUCH Monitor series_CM-IM15W-D.zip` }],
   PANEL: [
     { label: 'IPC 500 (10.4인치)', url: `${DI}/IPC500Series_10.4inch-1.zip` },
