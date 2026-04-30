@@ -91,7 +91,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": true,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "UP Series",
+    "descriptionEn": "Large-scale high-speed control / 256K Step / 16,384 pts"
   },
   {
     "id": "CM1-UP2F",
@@ -180,7 +182,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": true,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "UP Series",
+    "descriptionEn": "Large-scale high-speed control / 128K Step / 8,192 pts"
   },
   {
     "id": "CM1-UP3F",
@@ -269,7 +273,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": true,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "UP Series",
+    "descriptionEn": "Mid-to-large-scale high-speed control / 64K Step / 4,096 pts"
   },
   {
     "id": "CM1-XP1F",
@@ -343,7 +349,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": true,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Series",
+    "descriptionEn": "Large-scale control / 128K Step / 8,192 pts / Built-in Ethernet"
   },
   {
     "id": "CM1-XP2F",
@@ -412,7 +420,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": true,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Series",
+    "descriptionEn": "Mid-to-large-scale control / 128K Step / 4,096 pts / Built-in Ethernet"
   },
   {
     "id": "CM1-XP3F",
@@ -476,7 +486,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": true,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Series",
+    "descriptionEn": "Mid-scale control / 128K Step / 2,048 pts / Built-in Ethernet"
   },
   {
     "id": "CM1-XP1E",
@@ -540,7 +552,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": false,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Series",
+    "descriptionEn": "Large-scale control / 128K Step / 8,192 pts / Economy"
   },
   {
     "id": "CM1-XP2E",
@@ -604,7 +618,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": false,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Series",
+    "descriptionEn": "Mid-to-large-scale control / 128K Step / 4,096 pts / Economy"
   },
   {
     "id": "CM1-XP3E",
@@ -668,7 +684,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": false,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Series",
+    "descriptionEn": "Mid-scale control / 128K Step / 2,048 pts / Economy"
   },
   {
     "id": "CM1-XP1S",
@@ -747,7 +765,9 @@
     "hasRS485": false,
     "hasRedundancy": true,
     "hasSDCard": true,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Redundancy",
+    "descriptionEn": "Large-scale redundancy / 128K Step / 8,192 pts / Ring topology extension"
   },
   {
     "id": "CM1-XP1R",
@@ -821,7 +841,9 @@
     "hasRS485": false,
     "hasRedundancy": true,
     "hasSDCard": false,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "XP Redundancy",
+    "descriptionEn": "Large-scale redundancy / 128K Step / 8,192 pts (legacy type)"
   },
   {
     "id": "CM1-CP3E",
@@ -890,7 +912,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": false,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "CP Series",
+    "descriptionEn": "Mid-scale network control / 64K Step / 1,536 pts"
   },
   {
     "id": "CM1-CP4E",
@@ -959,7 +983,9 @@
     "hasRS485": false,
     "hasRedundancy": false,
     "hasSDCard": false,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "CP Series",
+    "descriptionEn": "Small-scale control / 16K Step / 384 pts / RS-232"
   },
   {
     "id": "CM1-CP4F",
@@ -1023,7 +1049,9 @@
     "hasRS485": true,
     "hasRedundancy": false,
     "hasSDCard": false,
-    "formFactor": "MODULAR"
+    "formFactor": "MODULAR",
+    "seriesLabelEn": "CP Series",
+    "descriptionEn": "Small-scale control / 16K Step / 384 pts / RS-232 + RS-485"
   },
   {
     "id": "CM3-SP32MDTF",
@@ -1126,7 +1154,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Sink output / RS232+RS485+Ethernet"
   },
   {
     "id": "CM3-SP32MDCF",
@@ -1229,7 +1259,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Source output / RS232+RS485+Ethernet"
   },
   {
     "id": "CM3-SP16MDRF",
@@ -1327,7 +1359,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "Relay output / 8 input pts·6 output pts / RS232+RS485+Ethernet"
   },
   {
     "id": "CM3-SP32MDTV",
@@ -1430,7 +1464,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Sink output / RS232+RS485 (no Ethernet)"
   },
   {
     "id": "CM3-SP32MDCV",
@@ -1533,7 +1569,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Source output / RS232+RS485 (no Ethernet)"
   },
   {
     "id": "CM3-SP16MDRV",
@@ -1631,7 +1669,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "Relay output / 8 input pts·8 output pts / RS232+RS485 (no Ethernet)"
   },
   {
     "id": "CM3-SP32MDT",
@@ -1734,7 +1774,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": false
+    "hasRS485": false,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Sink output / RS-232C only (RS485·no Ethernet)"
   },
   {
     "id": "CM3-SP32MDTE",
@@ -1842,7 +1884,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": false
+    "hasRS485": false,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Sink output / RS232+Ethernet / SD/MMC option"
   },
   {
     "id": "CM3-SP32MDC",
@@ -1945,7 +1989,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": false
+    "hasRS485": false,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Source output / RS-232C only (RS485·no Ethernet)"
   },
   {
     "id": "CM3-SP32MDCE",
@@ -2053,7 +2099,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": false
+    "hasRS485": false,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Source output / RS232+Ethernet / SD/MMC option"
   },
   {
     "id": "CM3-SP16MDR",
@@ -2151,7 +2199,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": false
+    "hasRS485": false,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "Relay output / 8 input pts·8 output pts / RS-232C only"
   },
   {
     "id": "CM3-SP16MDRE",
@@ -2249,7 +2299,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": false
+    "hasRS485": false,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "Relay output / 8 input pts·6 output pts / RS232+Ethernet"
   },
   {
     "id": "CM3-SP16MDTV",
@@ -2352,7 +2404,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Sink output / 8pts I/O / RS232+RS485 (no Ethernet)"
   },
   {
     "id": "CM3-SP16MDTF",
@@ -2455,7 +2509,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Sink output / 8pts I/O / RS232+RS485+Ethernet"
   },
   {
     "id": "CM3-SP16MDCV",
@@ -2558,7 +2614,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Source output / 8pts I/O / RS232+RS485 (no Ethernet)"
   },
   {
     "id": "CM3-SP16MDCF",
@@ -2661,7 +2719,9 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Slim Type",
+    "descriptionEn": "TR Source output / 8pts I/O / RS232+RS485+Ethernet"
   },
   {
     "id": "CM3-SB32MDTF",
@@ -2729,7 +2789,9 @@
     "formFactor": "BRICK",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Block Type",
+    "descriptionEn": "TR Sink output / RS232+RS485+Ethernet / integrated block type"
   },
   {
     "id": "CM3-SB32MDCF",
@@ -2792,7 +2854,9 @@
     "formFactor": "BRICK",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Block Type",
+    "descriptionEn": "TR Source output / RS232+RS485+Ethernet / integrated block type"
   },
   {
     "id": "CM3-SB32MDRF",
@@ -2855,7 +2919,9 @@
     "formFactor": "BRICK",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Block Type",
+    "descriptionEn": "Relay output / RS232+RS485+Ethernet / integrated block type"
   },
   {
     "id": "CM3-SB16MDTF",
@@ -2918,7 +2984,9 @@
     "formFactor": "BRICK",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Block Type",
+    "descriptionEn": "TR Sink output / Full comm. / compact block type"
   },
   {
     "id": "CM3-SB16MDCF",
@@ -2981,7 +3049,9 @@
     "formFactor": "BRICK",
     "isHighSpeed": false,
     "hasEthernet": true,
-    "hasRS485": true
+    "hasRS485": true,
+    "seriesLabelEn": "Block Type",
+    "descriptionEn": "TR Source output / Full comm. / compact block type"
   },
   {
     "id": "CM3-SP32PDTF",
@@ -3060,7 +3130,9 @@
     "isHighSpeed": true,
     "hasEthernet": true,
     "hasRS485": true,
-    "hasSDCard": true
+    "hasSDCard": true,
+    "seriesLabelEn": "SPLUS (High-Speed)",
+    "descriptionEn": "TR Sink output / 16ns/Step high-speed / Ethernet 2Port / EtherCAT·MQTT"
   },
   {
     "id": "CM3-SP32PDCF",
@@ -3134,7 +3206,9 @@
     "isHighSpeed": true,
     "hasEthernet": true,
     "hasRS485": true,
-    "hasSDCard": true
+    "hasSDCard": true,
+    "seriesLabelEn": "SPLUS (High-Speed)",
+    "descriptionEn": "TR Source output / 16ns/Step high-speed / Ethernet 2Port"
   },
   {
     "id": "CM3-SP16PDRF",
@@ -3208,7 +3282,9 @@
     "isHighSpeed": true,
     "hasEthernet": true,
     "hasRS485": true,
-    "hasSDCard": true
+    "hasSDCard": true,
+    "seriesLabelEn": "SPLUS (High-Speed)",
+    "descriptionEn": "Relay output / 16ns/Step high-speed / Ethernet 2Port"
   },
   {
     "id": "CM1-SPC",
@@ -3235,7 +3311,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Power Module",
+    "descriptionEn": "AC 88~264V / 60W / +5V 3.5A / ±15V / +24V"
   },
   {
     "id": "CM1-SP2B",
@@ -3262,7 +3340,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Power Module",
+    "descriptionEn": "DC 19~28V / 50W / +5V 3.5A / ±15V"
   },
   {
     "id": "CM1-SPW",
@@ -3289,7 +3369,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Power Module",
+    "descriptionEn": "AC 70~130V / 60W / +5V 3.5A / ±15V / +24V"
   },
   {
     "id": "CM1-BS03A",
@@ -3306,7 +3388,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Base",
+    "descriptionEn": "3 Slot Base"
   },
   {
     "id": "CM1-BS04A",
@@ -3323,7 +3407,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Base",
+    "descriptionEn": "4 Slot Base"
   },
   {
     "id": "CM1-BS05A",
@@ -3340,7 +3426,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Base",
+    "descriptionEn": "5 Slot Base"
   },
   {
     "id": "CM1-BS08A",
@@ -3357,7 +3445,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Base",
+    "descriptionEn": "8 Slot Base"
   },
   {
     "id": "CM1-BS10A",
@@ -3374,7 +3464,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Base",
+    "descriptionEn": "10 Slot Base"
   },
   {
     "id": "CM1-BS12A",
@@ -3391,7 +3483,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Base",
+    "descriptionEn": "12 Slot Base"
   },
   {
     "id": "CM1-XD16E",
@@ -3413,7 +3507,9 @@
         "value": "On: DC 19V / Off: DC 11V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Input",
+    "descriptionEn": "16 input pts / DC 24V / Sink&Source / ON 19V, OFF 11V"
   },
   {
     "id": "CM1-XD16F",
@@ -3435,7 +3531,9 @@
         "value": "On: DC 15V / Off: DC 9V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Input",
+    "descriptionEn": "16 input pts / DC 24V / Sink&Source / ON 15V, OFF 9V"
   },
   {
     "id": "CM1-XD32E",
@@ -3457,7 +3555,9 @@
         "value": "On: DC 19V / Off: DC 11V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Input",
+    "descriptionEn": "32 input pts / DC 24V / Sink&Source / ON 19V, OFF 11V"
   },
   {
     "id": "CM1-XD32F",
@@ -3479,7 +3579,9 @@
         "value": "On: DC 15V / Off: DC 9V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Input",
+    "descriptionEn": "32 input pts / DC 24V / Sink&Source / ON 15V, OFF 9V"
   },
   {
     "id": "CM1-XD64E",
@@ -3501,7 +3603,9 @@
         "value": "On: DC 19V / Off: DC 11V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Input",
+    "descriptionEn": "64 input pts / DC 24V / Sink&Source"
   },
   {
     "id": "CM1-YR16E",
@@ -3523,7 +3627,9 @@
         "value": "Relay 2A",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "16 output pts / Relay / 2A"
   },
   {
     "id": "CM1-YT16E",
@@ -3545,7 +3651,9 @@
         "value": "TR Sink 0.5A",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "16 output pts / TR Sink / 0.5A"
   },
   {
     "id": "CM1-YT16F",
@@ -3567,7 +3675,9 @@
         "value": "16점 SRC",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "16 output pts / TR Source / 0.5A"
   },
   {
     "id": "CM1-YT32E",
@@ -3589,7 +3699,9 @@
         "value": "32점 SINK",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "32 output pts / TR Sink / 0.2A"
   },
   {
     "id": "CM1-YT32F",
@@ -3611,7 +3723,9 @@
         "value": "32점 SRC",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "32 output pts / TR Source / 0.2A"
   },
   {
     "id": "CM1-YT64E",
@@ -3633,7 +3747,9 @@
         "value": "64점 SINK",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "64 output pts / TR Sink / 0.2A"
   },
   {
     "id": "CM1-XY16E",
@@ -3655,7 +3771,9 @@
         "value": "8점 (릴레이)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Mixed I/O",
+    "descriptionEn": "8 input pts (DC 24V) + 8 output pts (Relay 2A)"
   },
   {
     "id": "CM1-AD08V",
@@ -3692,7 +3810,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AD 14bit / 8 ch / voltage input"
   },
   {
     "id": "CM1-AD08I",
@@ -3729,7 +3849,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AD 14bit / 8 ch / current input"
   },
   {
     "id": "CM1-AD08VI",
@@ -3766,7 +3888,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AD 14bit / 8 ch / voltage/current universal"
   },
   {
     "id": "CM1-AD16VI",
@@ -3803,7 +3927,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AD 14bit / 16 ch / voltage/current universal"
   },
   {
     "id": "CM1-AD04VI",
@@ -3835,7 +3961,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AD 14bit / 4 ch / voltage/current universal"
   },
   {
     "id": "CM1-AD04W",
@@ -3872,7 +4000,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AD 16bit / 4 ch / voltage/current universal / channel isolation"
   },
   {
     "id": "CM1-DA04V",
@@ -3904,7 +4034,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "DA 14bit / 4 ch / voltage output (-10~+10V)"
   },
   {
     "id": "CM1-DA04VA",
@@ -3936,7 +4068,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "DA 14bit / 4 ch / voltage output (0~+10V)"
   },
   {
     "id": "CM1-DA08V",
@@ -3968,7 +4102,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "DA 14bit / 8 ch / voltage output (-10~+10V)"
   },
   {
     "id": "CM1-DA08VA",
@@ -4000,7 +4136,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "DA 14bit / 8 ch / voltage output (0~+10V)"
   },
   {
     "id": "CM1-DA04I",
@@ -4032,7 +4170,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "DA 14bit / 4 ch / current output (4~20mA)"
   },
   {
     "id": "CM1-DA08I",
@@ -4064,7 +4204,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "DA 14bit / 8 ch / current output (4~20mA)"
   },
   {
     "id": "CM1-RD04A",
@@ -4091,7 +4233,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "RTD",
+    "descriptionEn": "RTD 4 ch (Pt100, JPt100)"
   },
   {
     "id": "CM1-RD04B",
@@ -4118,7 +4262,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "RTD",
+    "descriptionEn": "RTD 4 ch (Pt1000, Ni1000)"
   },
   {
     "id": "CM1-TC04A",
@@ -4145,7 +4291,9 @@
         "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "TC (Thermocouple)",
+    "descriptionEn": "TC 4 ch (K, J, E, T, B, R, S, N)"
   },
   {
     "id": "CM1-TH08A",
@@ -4172,7 +4320,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Thermistor",
+    "descriptionEn": "Thermistor 8 ch (NTC type)"
   },
   {
     "id": "CM1-HS02C",
@@ -4199,7 +4349,9 @@
         "value": "1상 입력 / 2상 입력",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "High-Speed Counter",
+    "descriptionEn": "2 ch / 200kpps / encoder PNP open collector (-common)"
   },
   {
     "id": "CM1-HS02E",
@@ -4226,7 +4378,9 @@
         "value": "1상 입력 / 2상 입력",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "High-Speed Counter",
+    "descriptionEn": "2 ch / 250kpps / Line Drive Encoder"
   },
   {
     "id": "CM1-HS02F",
@@ -4253,7 +4407,9 @@
         "value": "1상 입력 / 2상 입력",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "High-Speed Counter",
+    "descriptionEn": "2 ch / 200kpps / encoder NPN Open Collector (+Common)"
   },
   {
     "id": "CM1-WG02C",
@@ -4280,7 +4436,9 @@
         "value": "표준형",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Loadcell",
+    "descriptionEn": "2 ch / Straingauge / resolution 1/40000 / 2mV/V (Standard)"
   },
   {
     "id": "CM1-WG02D",
@@ -4307,7 +4465,9 @@
         "value": "등적 계량용",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Loadcell",
+    "descriptionEn": "2 ch / Straingauge / resolution 1/40000 / 3.6mV/V (dynamic weighing)"
   },
   {
     "id": "CM1-WG02E",
@@ -4334,7 +4494,9 @@
         "value": "Wide Range",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Loadcell",
+    "descriptionEn": "2 ch / Straingauge / resolution 1/40000 / 3.6mV/V (Wide Range)"
   },
   {
     "id": "CM1-LG02G",
@@ -4361,7 +4523,9 @@
         "value": "Ethernet 10/100Mbps or 1Gbps",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Data Logger",
+    "descriptionEn": "memory 4GB / Ethernet (1Gbps) / CIMON HMI Protocol"
   },
   {
     "id": "CM1-PS02A",
@@ -4388,7 +4552,9 @@
         "value": "2축 직선/원호 보간",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Positioning",
+    "descriptionEn": "2-axis / linear/circular interpolation / 1Mpps / Line Driver"
   },
   {
     "id": "CM1-PS08N",
@@ -4410,7 +4576,9 @@
         "value": "CAT.5 이상 STP 케이블, 최대 전송 거리 100m (모듈↔서보 드라이버)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Positioning",
+    "descriptionEn": "EtherCAT / 8-axis positioning"
   },
   {
     "id": "CM1-SC02A",
@@ -4447,7 +4615,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Serial Comm.",
+    "descriptionEn": "Port1: RS232C / Port2: RS422/485"
   },
   {
     "id": "CM1-SC01A",
@@ -4484,7 +4654,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Serial Comm.",
+    "descriptionEn": "Port1: RS232C / Port2: None"
   },
   {
     "id": "CM1-SC01B",
@@ -4521,7 +4693,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Serial Comm.",
+    "descriptionEn": "Port1: None / Port2: RS422/485"
   },
   {
     "id": "CM1-SC02C",
@@ -4558,7 +4732,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Serial Comm.",
+    "descriptionEn": "Port1: RS232C / Port2: RS232C (Null Modem)"
   },
   {
     "id": "CM1-EC10A",
@@ -4590,7 +4766,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Ethernet",
+    "descriptionEn": "10/100Base TX / UDP·TCP/IP 16 Service"
   },
   {
     "id": "CM1-EC10B",
@@ -4622,7 +4800,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Ethernet",
+    "descriptionEn": "100Base FX fiber optic comm. / UDP·TCP/IP 16 Service"
   },
   {
     "id": "CM1-EC10C",
@@ -4654,7 +4834,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Ethernet",
+    "descriptionEn": "10/100Base TX / DHCP supported"
   },
   {
     "id": "CM1-EC10OPC",
@@ -4681,7 +4863,9 @@
         "value": "-10~65°C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "OPC UA",
+    "descriptionEn": "OPC UA Server / 10/100Mbps / UA TCP"
   },
   {
     "id": "CM1-SC01DNP",
@@ -4703,7 +4887,9 @@
         "value": "RS232C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "DNP3.0",
+    "descriptionEn": "DNP3.0 Level2 Slave / RS232C"
   },
   {
     "id": "CM1-EC01DNP",
@@ -4725,7 +4911,9 @@
         "value": "10BASE-T",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "DNP3.0",
+    "descriptionEn": "DNP3.0 Level2 Slave / Ethernet"
   },
   {
     "id": "CM1-EC04DNP",
@@ -4752,7 +4940,9 @@
         "value": "10BASE-T",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "DNP3.0",
+    "descriptionEn": "DNP3.0 / 4Hosts / Ethernet"
   },
   {
     "id": "CM1-BN01A",
@@ -4779,7 +4969,9 @@
         "value": "10BASE-T (ISO/IEC8802-3, IEEE 802.3)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "BACnet",
+    "descriptionEn": "BACnet/IP / Class 3 Slave / 10Base T"
   },
   {
     "id": "CM1-SC02CDMA",
@@ -4806,7 +4998,9 @@
         "value": "Ch2: RS422/485",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "CDMA",
+    "descriptionEn": "CDMA/WCDMA modem / RS232C·RS422/485 wired/wireless"
   },
   {
     "id": "CM1-CN01M",
@@ -4828,7 +5022,9 @@
         "value": "CANbus (ISO11898)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "CIMON-NET RIO",
+    "descriptionEn": "CIMON-Net Master / CAN BUS / I/O 1,400Byte"
   },
   {
     "id": "CM1-CN01S",
@@ -4850,7 +5046,9 @@
         "value": "CANbus (ISO11898)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "CIMON-NET RIO",
+    "descriptionEn": "CIMON-Net Slave / CAN BUS / I/O 255Byte"
   },
   {
     "id": "CM1-ET10M",
@@ -4872,7 +5070,9 @@
         "value": "256개 지원",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "EtherCAT",
+    "descriptionEn": "EtherCAT(CoE) Master / Slave 256 ea supported"
   },
   {
     "id": "CM1-RC10A",
@@ -4899,7 +5099,9 @@
         "value": "100BASE-TX",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy Comm.",
+    "descriptionEn": "100Mbps Redundancy data sync comm. module"
   },
   {
     "id": "CM1-RM01B",
@@ -4916,7 +5118,9 @@
         "value": "Primary/Secondary 운전 모드 설정, Active/Backup 절체 스위치 (이중화 설정용 MMI 모듈, 시험 버튼 구비)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy MMI",
+    "descriptionEn": "Redundancy MMI module / Primary·Secondary operating mode setting"
   },
   {
     "id": "CM1-EP03A",
@@ -4943,7 +5147,9 @@
         "value": "10BASE-T",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy Extension",
+    "descriptionEn": "10Mbps CPU extension for redundancy / 3-port extension hub built-in"
   },
   {
     "id": "CM1-BS05S",
@@ -4960,7 +5166,9 @@
         "value": "5 슬롯",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy Base",
+    "descriptionEn": "5-slot Redundancy power base"
   },
   {
     "id": "CM1-BS08S",
@@ -4977,7 +5185,9 @@
         "value": "8 슬롯",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy Base",
+    "descriptionEn": "8-slot Redundancy power base"
   },
   {
     "id": "CM1-BS10S",
@@ -4994,7 +5204,9 @@
         "value": "10 슬롯",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy Base",
+    "descriptionEn": "10-slot Redundancy power base"
   },
   {
     "id": "CM1-SPR",
@@ -5011,7 +5223,9 @@
         "value": "AC 88~264V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy Power",
+    "descriptionEn": "AC 88~264V / Redundancy power supply module"
   },
   {
     "id": "CM1-RPW",
@@ -5028,7 +5242,9 @@
         "value": "이중화 전원 모니터링",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Redundancy Power",
+    "descriptionEn": "Redundancy power supply status monitoring module"
   },
   {
     "id": "CM0-DM",
@@ -5050,7 +5266,9 @@
         "value": "CM1 시리즈 베이스 전체",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "Dummy module (blank slot cover)"
   },
   {
     "id": "CM0-CBL15",
@@ -5067,7 +5285,9 @@
         "value": "1.5m",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "CICON comm. cable 1.5m (RJ11↔DB9)"
   },
   {
     "id": "CM0-CBL30",
@@ -5084,7 +5304,9 @@
         "value": "3.0m",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "CICON comm. cable 3.0m (RJ11↔DB9)"
   },
   {
     "id": "CM0-TB32M",
@@ -5106,7 +5328,9 @@
         "value": "Screw",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "32 pts Screw Type terminal block (for wiring)"
   },
   {
     "id": "CM0-SCB15I",
@@ -5123,7 +5347,9 @@
         "value": "1.5m",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "CM0-TB32M compatible wiring cable 1.5m"
   },
   {
     "id": "RC-XY32DT",
@@ -5145,7 +5371,9 @@
         "value": "16점 TR Sink 0.5A",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories (CIMON-NET)",
+    "descriptionEn": "Mixed I/O / DC 24V input 16 pts + TR Sink output 16 pts / 0.5A"
   },
   {
     "id": "RC-XD16A",
@@ -5167,7 +5395,9 @@
         "value": "DC 24V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories (CIMON-NET)",
+    "descriptionEn": "DC 24V input 16 pts (Sink/Source)"
   },
   {
     "id": "RC-XD32A",
@@ -5189,7 +5419,9 @@
         "value": "DC 24V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories (CIMON-NET)",
+    "descriptionEn": "DC 24V input 32 pts (Sink/Source)"
   },
   {
     "id": "RC-YR16A",
@@ -5211,7 +5443,9 @@
         "value": "Relay AC 220V 2A",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories (CIMON-NET)",
+    "descriptionEn": "Relay output 16 pts / AC 220V / 2A"
   },
   {
     "id": "CM3-SP32EDO",
@@ -5258,7 +5492,9 @@
         "value": "커넥터형",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Input",
+    "descriptionEn": "32 input pts (DC 24V)"
   },
   {
     "id": "CM3-SP32EOT",
@@ -5305,7 +5541,9 @@
         "value": "커넥터형",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "32 output pts (DC 24V, TR Sink)"
   },
   {
     "id": "CM3-SP32EOC",
@@ -5352,7 +5590,9 @@
         "value": "커넥터형",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "32 output pts (DC 24V, TR Source)"
   },
   {
     "id": "CM3-SP32EDT",
@@ -5409,7 +5649,9 @@
         "value": "커넥터형",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Mixed I/O",
+    "descriptionEn": "16 input pts (DC 24V) + 16 output pts (TR Sink)"
   },
   {
     "id": "CM3-SP32EDOP",
@@ -5456,7 +5698,9 @@
         "value": "Terminal Block Type",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Input",
+    "descriptionEn": "32 input pts (DC 24V, Terminal Block)"
   },
   {
     "id": "CM3-SP32EOTP",
@@ -5503,7 +5747,9 @@
         "value": "Terminal Block Type",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "32 output pts (TR Sink, Terminal Block)"
   },
   {
     "id": "CM3-SP32EOCP",
@@ -5550,7 +5796,9 @@
         "value": "Terminal Block Type",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "32 output pts (TR Source, Terminal Block)"
   },
   {
     "id": "CM3-SP32EDTP",
@@ -5607,7 +5855,9 @@
         "value": "Terminal Block Type",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Mixed I/O",
+    "descriptionEn": "16 input pts + 16 output pts (TR Sink, Terminal Block)"
   },
   {
     "id": "CM3-SP32EDCP",
@@ -5664,7 +5914,9 @@
         "value": "Terminal Block Type",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Mixed I/O",
+    "descriptionEn": "16 input pts + 16 output pts (TR Source, Terminal Block)"
   },
   {
     "id": "CM3-SP16EOR",
@@ -5711,7 +5963,9 @@
         "value": "커넥터형",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Output",
+    "descriptionEn": "16 output pts (Relay, AC 220V / DC 24V)"
   },
   {
     "id": "CM3-SP16EDR",
@@ -5773,7 +6027,9 @@
         "value": "커넥터형",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Digital Mixed I/O",
+    "descriptionEn": "8 input pts (DC 24V) + 8 output pts (Relay)"
   },
   {
     "id": "CM3-SP32PWM",
@@ -5820,7 +6076,9 @@
         "value": "0.2A/점, 2A/COM",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "PWM Output",
+    "descriptionEn": "32 output pts (TR Source) / PWM Max. 4kpps / simple pulse 65kpps"
   },
   {
     "id": "CM3-SP04EAO",
@@ -5842,7 +6100,9 @@
         "value": "14 / 16bit",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AI 4 ch (voltage/current, 14/16bit)"
   },
   {
     "id": "CM3-SP08EAO",
@@ -5864,7 +6124,9 @@
         "value": "14 / 16bit",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Input",
+    "descriptionEn": "AI 8 ch (voltage/current, 14/16bit)"
   },
   {
     "id": "CM3-SP04EAA",
@@ -5886,7 +6148,9 @@
         "value": "2ch",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Mixed I/O",
+    "descriptionEn": "AI 2 ch (16bit) + AO 2 ch (14/16bit)"
   },
   {
     "id": "CM3-SP04EAA-E",
@@ -5908,7 +6172,9 @@
         "value": "2ch",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Mixed I/O",
+    "descriptionEn": "AI 2 ch (12bit) + AO 2 ch (12bit)"
   },
   {
     "id": "CM3-SP04EOAI",
@@ -5930,7 +6196,9 @@
         "value": "전류 14bit",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "AO 4 ch (current, 14bit)"
   },
   {
     "id": "CM3-SP04EOAV",
@@ -5952,7 +6220,9 @@
         "value": "전압 14bit",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Analog Output",
+    "descriptionEn": "AO 4 ch (voltage, 14bit)"
   },
   {
     "id": "CM3-SP04EAM",
@@ -5979,7 +6249,9 @@
         "value": "RTD/TC 가능",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "4×1 MUX",
+    "descriptionEn": "AI 4 ch + AO 1 ch / RTD·TC compatible"
   },
   {
     "id": "CM3-SP04ERO",
@@ -6001,7 +6273,9 @@
         "value": "PT100, JPT100, PT1000, NI1000 (DIN 43760), NI1000 (TCR 5000)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "RTD",
+    "descriptionEn": "RTD 4 ch (Pt100, JPt100, Pt1000, Ni1000)"
   },
   {
     "id": "CM3-SP04ETO",
@@ -6023,7 +6297,9 @@
         "value": "열전대 Type K, J, E, T, B, R, S, N",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "TC (Thermocouple)",
+    "descriptionEn": "TC 4 ch (K, J, E, T, B, R, S, N)"
   },
   {
     "id": "CM3-SP01EET",
@@ -6050,7 +6326,9 @@
         "value": "MODBUS TCP Slave, MODBUS TCP Master, HMI Protocol, Protocol Special Program (TCP/UDP), High-Speed PLC Link",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Ethernet",
+    "descriptionEn": "10/100Base TX / UDP·TCP/IP 12 Service / DHCP"
   },
   {
     "id": "CM3-SP01OPC",
@@ -6067,7 +6345,9 @@
         "value": "UA TCP (opc.tcp)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "OPC UA",
+    "descriptionEn": "OPC UA Server / 10/100Mbps"
   },
   {
     "id": "CM3-SP02ERS",
@@ -6099,7 +6379,9 @@
         "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Serial",
+    "descriptionEn": "RS232C 1 ch + RS422/485 1 ch"
   },
   {
     "id": "CM3-SP02ERR",
@@ -6131,7 +6413,9 @@
         "value": "CIMON, Modbus RTU/ASCII, 사용자 정의",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Serial",
+    "descriptionEn": "RS232C 2 ch"
   },
   {
     "id": "CM3-SP02ERRC",
@@ -6153,7 +6437,9 @@
         "value": "RS232C",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "CDMA",
+    "descriptionEn": "RS232C(CDMA) 1 ch + RS232C 1 ch"
   },
   {
     "id": "CM3-SP02ERSC",
@@ -6175,7 +6461,9 @@
         "value": "RS422/485 1ch",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "CDMA",
+    "descriptionEn": "RS232C(CDMA) 1 ch + RS422/485 1 ch"
   },
   {
     "id": "CM3-SP02HSC",
@@ -6202,7 +6490,9 @@
         "value": "Up/Down Preset 카운터 + 링 카운터",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "High-Speed Counter",
+    "descriptionEn": "2 ch / open collector / 200kpps"
   },
   {
     "id": "CM3-SP02HSD",
@@ -6229,7 +6519,9 @@
         "value": "Up/Down Preset 카운터 + 링 카운터",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "High-Speed Counter",
+    "descriptionEn": "2 ch / line drive / RS-422A: 500kpps / HTL: 250kpps"
   },
   {
     "id": "CM3-SP02POS",
@@ -6251,7 +6543,9 @@
         "value": "위치제어, 속도제어, 속도/위치제어, 위치/속도제어",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Positioning",
+    "descriptionEn": "2-axis / position/speed control / open collector type / 3types of home return"
   },
   {
     "id": "CM3-SP24PWR",
@@ -6273,7 +6567,9 @@
         "value": "24V/0.4A",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Power Supply",
+    "descriptionEn": "input 88~264V / 9.6W / output 24V 0.4A"
   },
   {
     "id": "CM3-ACC-TB32M",
@@ -6295,7 +6591,9 @@
         "value": "CM3 시리즈 I/O 확장 모듈",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "Multi-Terminal block"
   },
   {
     "id": "CM3-ACC-SCB15M",
@@ -6312,7 +6610,9 @@
         "value": "1.5M",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "Main Block 1.5M Cable"
   },
   {
     "id": "CM3-ACC-SCB15E",
@@ -6329,7 +6629,9 @@
         "value": "1.5M",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Accessories",
+    "descriptionEn": "I/O 32 pts 1.5M Cable"
   },
   {
     "id": "iNT510",
@@ -6386,7 +6688,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "500 Series",
+    "descriptionEn": "10.4\" / Intel J6412 / 700cd/m² / resistive touch"
   },
   {
     "id": "iNT512",
@@ -6443,7 +6747,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "500 Series",
+    "descriptionEn": "12.1\" / Intel J6412 / 600cd/m² / resistive touch"
   },
   {
     "id": "iNT515",
@@ -6500,7 +6806,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "500 Series",
+    "descriptionEn": "15\" / Intel J6412 / 500cd/m² / resistive touch"
   },
   {
     "id": "iNT519",
@@ -6557,7 +6865,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "500 Series",
+    "descriptionEn": "19\" / Intel J6412 / 400cd/m² / resistive touch"
   },
   {
     "id": "NT3612",
@@ -6614,7 +6924,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "3000 Series",
+    "descriptionEn": "12.1\" / Intel i3 / 700cd/m² / resistive touch"
   },
   {
     "id": "NT3615",
@@ -6671,7 +6983,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "3000 Series",
+    "descriptionEn": "15\" / Intel i3 / 450cd/m² / resistive touch"
   },
   {
     "id": "NT5615",
@@ -6728,7 +7042,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "5000 Series",
+    "descriptionEn": "15\" / Intel i5 / 450cd/m² / resistive touch"
   },
   {
     "id": "iNT5619",
@@ -6785,7 +7101,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": false,
-    "touchType": "RESISTIVE"
+    "touchType": "RESISTIVE",
+    "seriesLabelEn": "5000 Series",
+    "descriptionEn": "19\" / Intel i5 / 250cd/m² / RAID supported"
   },
   {
     "id": "iNT51115W",
@@ -6842,7 +7160,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": true,
-    "touchType": "CAPACITIVE"
+    "touchType": "CAPACITIVE",
+    "seriesLabelEn": "50000W Series",
+    "descriptionEn": "15.6\" FHD Wide / Intel i5-11th Gen / capacitive touch / High Brightness(-H) / IP68"
   },
   {
     "id": "iNT51121W",
@@ -6899,7 +7219,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": true,
-    "touchType": "CAPACITIVE"
+    "touchType": "CAPACITIVE",
+    "seriesLabelEn": "50000W Series",
+    "descriptionEn": "21.5\" FHD Wide / Intel i5-11th Gen / capacitive touch / High Brightness(-H) / IP66"
   },
   {
     "id": "iNT71115W",
@@ -6956,7 +7278,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": true,
-    "touchType": "CAPACITIVE"
+    "touchType": "CAPACITIVE",
+    "seriesLabelEn": "70000W Series",
+    "descriptionEn": "15.6\" FHD Wide / Intel i7-11th Gen / capacitive touch / High Brightness(-H) / IP68"
   },
   {
     "id": "iNT71121W",
@@ -7013,7 +7337,9 @@
     "installType": "PANEL",
     "hasScadaPreinstalled": true,
     "hasHighBrightness": true,
-    "touchType": "CAPACITIVE"
+    "touchType": "CAPACITIVE",
+    "seriesLabelEn": "70000W Series",
+    "descriptionEn": "21.5\" FHD Wide / Intel i7-11th Gen / capacitive touch / High Brightness(-H) / IP66"
   },
   {
     "id": "CM-IM12W",
@@ -7059,7 +7385,9 @@
     "installType": "MONITOR",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": true,
-    "touchType": "CAPACITIVE"
+    "touchType": "CAPACITIVE",
+    "seriesLabelEn": "Touch Monitor",
+    "descriptionEn": "12.1\" / 1280×800 / capacitive touch / 600cd/m² (High Brightness 1,000) / IP68"
   },
   {
     "id": "CM-IM15W",
@@ -7105,7 +7433,9 @@
     "installType": "MONITOR",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": true,
-    "touchType": "CAPACITIVE"
+    "touchType": "CAPACITIVE",
+    "seriesLabelEn": "Touch Monitor",
+    "descriptionEn": "15.6\" FHD / capacitive touch / 450cd/m² (High Brightness 1,200) / IP66"
   },
   {
     "id": "CM-IM21W",
@@ -7151,7 +7481,9 @@
     "installType": "MONITOR",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": true,
-    "touchType": "CAPACITIVE"
+    "touchType": "CAPACITIVE",
+    "seriesLabelEn": "Touch Monitor",
+    "descriptionEn": "21.5\" FHD / capacitive touch / 400cd/m² (High Brightness 1,400) / IP66"
   },
   {
     "id": "NU1RB-A",
@@ -7193,7 +7525,9 @@
     "installType": "RACK",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": false,
-    "touchType": "NONE"
+    "touchType": "NONE",
+    "seriesLabelEn": "NU1R (1U)",
+    "descriptionEn": "1U Rack PC / Intel J1900 / SSD 120GB / Windows 10"
   },
   {
     "id": "NU4R56-A",
@@ -7235,7 +7569,9 @@
     "installType": "RACK",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": false,
-    "touchType": "NONE"
+    "touchType": "NONE",
+    "seriesLabelEn": "NU4R (4U)",
+    "descriptionEn": "4U Rack PC / Intel i5-6500 / Hot Swap / SSD 250GB"
   },
   {
     "id": "NU4R76-A",
@@ -7277,7 +7613,9 @@
     "installType": "RACK",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": false,
-    "touchType": "NONE"
+    "touchType": "NONE",
+    "seriesLabelEn": "NU4R (4U)",
+    "descriptionEn": "4U Rack PC / Intel i7-6700 / Hot Swap / high-performance"
   },
   {
     "id": "CM-NB200-D",
@@ -7324,7 +7662,9 @@
     "installType": "BOX",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": false,
-    "touchType": "NONE"
+    "touchType": "NONE",
+    "seriesLabelEn": "BOX PC",
+    "descriptionEn": "Compact BOX PC / Intel J3455 / 1.21kg / DC 9~24V"
   },
   {
     "id": "CM-NB5011-D",
@@ -7361,7 +7701,9 @@
     "installType": "BOX",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": false,
-    "touchType": "NONE"
+    "touchType": "NONE",
+    "seriesLabelEn": "BOX PC",
+    "descriptionEn": "High-performance BOX PC / Intel i5-11th Gen / SSD 250GB"
   },
   {
     "id": "CM-NB7011-D",
@@ -7398,7 +7740,9 @@
     "installType": "BOX",
     "hasScadaPreinstalled": false,
     "hasHighBrightness": false,
-    "touchType": "NONE"
+    "touchType": "NONE",
+    "seriesLabelEn": "BOX PC",
+    "descriptionEn": "Top-performance BOX PC / Intel i7-11th Gen / SSD 250GB"
   },
   {
     "id": "CM01-0075/DS",
@@ -7467,7 +7811,9 @@
     ],
     "lineup": "DS",
     "tag": "75",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Development + Runtime + Keylock / 75 TAG"
   },
   {
     "id": "CM01-0075/RS",
@@ -7536,7 +7882,9 @@
     ],
     "lineup": "RS",
     "tag": "75",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Runtime + Keylock / 75 TAG"
   },
   {
     "id": "CM01-0150/DS",
@@ -7605,7 +7953,9 @@
     ],
     "lineup": "DS",
     "tag": "150",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Development + Runtime + Keylock / 150 TAG"
   },
   {
     "id": "CM01-0150/RS",
@@ -7674,7 +8024,9 @@
     ],
     "lineup": "RS",
     "tag": "150",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Runtime + Keylock / 150 TAG"
   },
   {
     "id": "CM01-0500/DS",
@@ -7743,7 +8095,9 @@
     ],
     "lineup": "DS",
     "tag": "500",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Development + Runtime + Keylock / 500 TAG"
   },
   {
     "id": "CM01-0500/RS",
@@ -7812,7 +8166,9 @@
     ],
     "lineup": "RS",
     "tag": "500",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Runtime + Keylock / 500 TAG"
   },
   {
     "id": "CM01-FULL/DS",
@@ -7881,7 +8237,9 @@
     ],
     "lineup": "DS",
     "tag": "FULL",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Development + Runtime + Keylock / Unlimited TAG"
   },
   {
     "id": "CM01-FULL/RS",
@@ -7950,7 +8308,9 @@
     ],
     "lineup": "RS",
     "tag": "FULL",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "Runtime + Keylock / Unlimited TAG"
   },
   {
     "id": "CM01-0150-02/VS",
@@ -8025,7 +8385,9 @@
     "lineup": "VS",
     "tag": "150",
     "maxUsers": "02",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 150 TAG / Concurrent 02 User (150/DS incl.)"
   },
   {
     "id": "CM01-0150-05/VS",
@@ -8100,7 +8462,9 @@
     "lineup": "VS",
     "tag": "150",
     "maxUsers": "05",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 150 TAG / Concurrent 05 User (150/DS incl.)"
   },
   {
     "id": "CM01-0150-10/VS",
@@ -8175,7 +8539,9 @@
     "lineup": "VS",
     "tag": "150",
     "maxUsers": "10",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 150 TAG / Concurrent 10 User (150/DS incl.)"
   },
   {
     "id": "CM01-0150-FU/VS",
@@ -8250,7 +8616,9 @@
     "lineup": "VS",
     "tag": "150",
     "maxUsers": "FU",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 150 TAG / Concurrent Unlimited User (150/DS incl.)"
   },
   {
     "id": "CM01-0500-02/VS",
@@ -8325,7 +8693,9 @@
     "lineup": "VS",
     "tag": "500",
     "maxUsers": "02",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 500 TAG / Concurrent 02 User (500/DS incl.)"
   },
   {
     "id": "CM01-0500-05/VS",
@@ -8400,7 +8770,9 @@
     "lineup": "VS",
     "tag": "500",
     "maxUsers": "05",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 500 TAG / Concurrent 05 User (500/DS incl.)"
   },
   {
     "id": "CM01-0500-10/VS",
@@ -8475,7 +8847,9 @@
     "lineup": "VS",
     "tag": "500",
     "maxUsers": "10",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 500 TAG / Concurrent 10 User (500/DS incl.)"
   },
   {
     "id": "CM01-0500-FU/VS",
@@ -8550,7 +8924,9 @@
     "lineup": "VS",
     "tag": "500",
     "maxUsers": "FU",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / 500 TAG / Concurrent Unlimited User (500/DS incl.)"
   },
   {
     "id": "CM01-FULL-02/VS",
@@ -8625,7 +9001,9 @@
     "lineup": "VS",
     "tag": "FULL",
     "maxUsers": "02",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / Unlimited TAG / Concurrent 02 User (FULL/DS incl.)"
   },
   {
     "id": "CM01-FULL-05/VS",
@@ -8700,7 +9078,9 @@
     "lineup": "VS",
     "tag": "FULL",
     "maxUsers": "05",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / Unlimited TAG / Concurrent 05 User (FULL/DS incl.)"
   },
   {
     "id": "CM01-FULL-10/VS",
@@ -8775,7 +9155,9 @@
     "lineup": "VS",
     "tag": "FULL",
     "maxUsers": "10",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / Unlimited TAG / Concurrent 10 User (FULL/DS incl.)"
   },
   {
     "id": "CM01-FULL-FU/VS",
@@ -8850,7 +9232,9 @@
     "lineup": "VS",
     "tag": "FULL",
     "maxUsers": "FU",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View version / Unlimited TAG / Concurrent Unlimited User (FULL/DS incl.)"
   },
   {
     "id": "CM01-0150-02/CS",
@@ -8925,7 +9309,9 @@
     "lineup": "CS",
     "tag": "150",
     "maxUsers": "02",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 150 TAG / Concurrent 02 User"
   },
   {
     "id": "CM01-0150-05/CS",
@@ -9000,7 +9386,9 @@
     "lineup": "CS",
     "tag": "150",
     "maxUsers": "05",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 150 TAG / Concurrent 05 User"
   },
   {
     "id": "CM01-0150-10/CS",
@@ -9075,7 +9463,9 @@
     "lineup": "CS",
     "tag": "150",
     "maxUsers": "10",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 150 TAG / Concurrent 10 User"
   },
   {
     "id": "CM01-0150-FU/CS",
@@ -9150,7 +9540,9 @@
     "lineup": "CS",
     "tag": "150",
     "maxUsers": "FU",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 150 TAG / Concurrent Unlimited User"
   },
   {
     "id": "CM01-0500-02/CS",
@@ -9225,7 +9617,9 @@
     "lineup": "CS",
     "tag": "500",
     "maxUsers": "02",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 500 TAG / Concurrent 02 User"
   },
   {
     "id": "CM01-0500-05/CS",
@@ -9300,7 +9694,9 @@
     "lineup": "CS",
     "tag": "500",
     "maxUsers": "05",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 500 TAG / Concurrent 05 User"
   },
   {
     "id": "CM01-0500-10/CS",
@@ -9375,7 +9771,9 @@
     "lineup": "CS",
     "tag": "500",
     "maxUsers": "10",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 500 TAG / Concurrent 10 User"
   },
   {
     "id": "CM01-0500-FU/CS",
@@ -9450,7 +9848,9 @@
     "lineup": "CS",
     "tag": "500",
     "maxUsers": "FU",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / 500 TAG / Concurrent Unlimited User"
   },
   {
     "id": "CM01-FULL-02/CS",
@@ -9525,7 +9925,9 @@
     "lineup": "CS",
     "tag": "FULL",
     "maxUsers": "02",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / Unlimited TAG / Concurrent 02 User"
   },
   {
     "id": "CM01-FULL-05/CS",
@@ -9600,7 +10002,9 @@
     "lineup": "CS",
     "tag": "FULL",
     "maxUsers": "05",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / Unlimited TAG / Concurrent 05 User"
   },
   {
     "id": "CM01-FULL-10/CS",
@@ -9680,7 +10084,9 @@
     "lineup": "CS",
     "tag": "FULL",
     "maxUsers": "10",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / Unlimited TAG / Concurrent 10 User"
   },
   {
     "id": "CM01-FULL-FU/CS",
@@ -9760,7 +10166,9 @@
     "lineup": "CS",
     "tag": "FULL",
     "maxUsers": "FU",
-    "scadaEdition": "SCADA"
+    "scadaEdition": "SCADA",
+    "seriesLabelEn": "SCADA Standard",
+    "descriptionEn": "View Control version / Unlimited TAG / Concurrent Unlimited User"
   },
   {
     "id": "CM03-75/DS",
@@ -9849,7 +10257,9 @@
     ],
     "lineup": "DS",
     "tag": "75",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Development + Runtime + Keylock / 75 TAG"
   },
   {
     "id": "CM03-75/RS",
@@ -9938,7 +10348,9 @@
     ],
     "lineup": "RS",
     "tag": "75",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Runtime + Keylock / 75 TAG"
   },
   {
     "id": "CM03-150/DS",
@@ -10027,7 +10439,9 @@
     ],
     "lineup": "DS",
     "tag": "150",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Development + Runtime + Keylock / 150 TAG"
   },
   {
     "id": "CM03-150/RS",
@@ -10116,7 +10530,9 @@
     ],
     "lineup": "RS",
     "tag": "150",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Runtime + Keylock / 150 TAG"
   },
   {
     "id": "CM03-500/DS",
@@ -10205,7 +10621,9 @@
     ],
     "lineup": "DS",
     "tag": "500",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Development + Runtime + Keylock / 500 TAG"
   },
   {
     "id": "CM03-500/RS",
@@ -10294,7 +10712,9 @@
     ],
     "lineup": "RS",
     "tag": "500",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Runtime + Keylock / 500 TAG"
   },
   {
     "id": "CM03-10K/DS",
@@ -10383,7 +10803,9 @@
     ],
     "lineup": "DS",
     "tag": "10K",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Development + Runtime + Keylock / 10K TAG"
   },
   {
     "id": "CM03-10K/RS",
@@ -10472,7 +10894,9 @@
     ],
     "lineup": "RS",
     "tag": "10K",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Runtime + Keylock / 10K TAG"
   },
   {
     "id": "CM03-100K/DS",
@@ -10561,7 +10985,9 @@
     ],
     "lineup": "DS",
     "tag": "100K",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Development + Runtime + Keylock / 100K TAG"
   },
   {
     "id": "CM03-100K/RS",
@@ -10650,7 +11076,9 @@
     ],
     "lineup": "RS",
     "tag": "100K",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Runtime + Keylock / 100K TAG"
   },
   {
     "id": "CM03-150-01/WS",
@@ -10745,7 +11173,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "01",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 01 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-150-03/WS",
@@ -10840,7 +11270,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "03",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 03 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-150-05/WS",
@@ -10935,7 +11367,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "05",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 05 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-150-10/WS",
@@ -11030,7 +11464,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "10",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 10 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-150-15/WS",
@@ -11125,7 +11561,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "15",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 15 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-150-20/WS",
@@ -11220,7 +11658,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "20",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 20 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-150-25/WS",
@@ -11315,7 +11755,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "25",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 25 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-150-30/WS",
@@ -11410,7 +11852,9 @@
     "lineup": "WS",
     "tag": "150",
     "maxUsers": "30",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 150 TAG / Concurrent 30 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-01/WS",
@@ -11505,7 +11949,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "01",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 01 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-03/WS",
@@ -11600,7 +12046,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "03",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 03 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-05/WS",
@@ -11695,7 +12143,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "05",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 05 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-10/WS",
@@ -11790,7 +12240,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "10",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 10 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-15/WS",
@@ -11885,7 +12337,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "15",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 15 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-20/WS",
@@ -11980,7 +12434,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "20",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 20 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-25/WS",
@@ -12075,7 +12531,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "25",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 25 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-500-30/WS",
@@ -12170,7 +12628,9 @@
     "lineup": "WS",
     "tag": "500",
     "maxUsers": "30",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 500 TAG / Concurrent 30 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-01/WS",
@@ -12265,7 +12725,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "01",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 01 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-03/WS",
@@ -12360,7 +12822,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "03",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 03 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-05/WS",
@@ -12455,7 +12919,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "05",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 05 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-10/WS",
@@ -12550,7 +13016,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "10",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 10 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-15/WS",
@@ -12645,7 +13113,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "15",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 15 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-20/WS",
@@ -12740,7 +13210,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "20",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 20 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-25/WS",
@@ -12835,7 +13307,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "25",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 25 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "CM03-10K-30/WS",
@@ -12930,7 +13404,9 @@
     "lineup": "WS",
     "tag": "10K",
     "maxUsers": "30",
-    "scadaEdition": "SCADA_PRO"
+    "scadaEdition": "SCADA_PRO",
+    "seriesLabelEn": "SCADA PRO",
+    "descriptionEn": "Web Client / 10K TAG / Concurrent 30 User (Dev+Runtime+Keylock+WEB incl.)"
   },
   {
     "id": "XT07CD-DN",
@@ -13057,7 +13533,9 @@
         "value": "DC24V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL XT",
+    "descriptionEn": "7\", CE 6.0, DC 24V, resistive touch, CIMON-X preinstalled"
   },
   {
     "id": "XT07CD-DE",
@@ -13184,7 +13662,9 @@
         "value": "DC24V",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL XT",
+    "descriptionEn": "7\", CE 6.0, AC 100-240V, resistive touch, CIMON-X preinstalled"
   },
   {
     "id": "XT10CD-D",
@@ -13311,7 +13791,9 @@
         "value": "FCC, UL, CE, KC, KR",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL XT",
+    "descriptionEn": "10.4\", WEC7, DC 24V, resistive touch, CIMON-X preinstalled"
   },
   {
     "id": "XT10CD-A",
@@ -13438,7 +13920,9 @@
         "value": "FCC, UL, CE, KC, KR",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL XT",
+    "descriptionEn": "10.4\", WEC7, AC 100~240V, audio port, resistive touch"
   },
   {
     "id": "iXT10CD-D",
@@ -13510,7 +13994,9 @@
         "value": "10/100 BaseT",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL iXT",
+    "descriptionEn": "10.4\", WEC7, 700 cd/m² High Brightness, aluminum housing, DC 24V"
   },
   {
     "id": "iXT10CD-A",
@@ -13582,7 +14068,9 @@
         "value": "10/100 BaseT",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL iXT",
+    "descriptionEn": "10.4\", WEC7, 700 cd/m² High Brightness, aluminum housing, audio port"
   },
   {
     "id": "iXT12CD-A",
@@ -13654,7 +14142,9 @@
         "value": "10/100 BaseT",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL iXT",
+    "descriptionEn": "12.1\", WEC7, 16.7M color, 600 cd/m² High Brightness, aluminum housing, audio"
   },
   {
     "id": "iXT15CD-A",
@@ -13726,7 +14216,9 @@
         "value": "10/100 BaseT",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL iXT",
+    "descriptionEn": "15\", WEC7, 16.7M color, 500 cd/m² High Brightness, aluminum housing, audio"
   },
   {
     "id": "CM-eXT2-07-R-DF",
@@ -13793,7 +14285,9 @@
         "value": "10/100/1000 2 Ports",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "7\" Wide, Linux, 1000 cd/m² High Brightness, -20~70°C wide temp., 2port LAN"
   },
   {
     "id": "CM-eXT2-07-R-DE",
@@ -13855,7 +14349,9 @@
         "value": "10/100/1000 1 Port",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "7\" Wide, Linux, standard brightness, 0~65°C, 1port LAN, IP66"
   },
   {
     "id": "CM-eXT2-10W-C-DF",
@@ -13917,7 +14413,9 @@
         "value": "IP66 (전면)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "10.1\" Wide, Linux, 650 cd/m², 2port LAN, IP66"
   },
   {
     "id": "CM-eXT2-10W-CH-DF",
@@ -13979,7 +14477,9 @@
         "value": "IP66 (전면)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "10.1\" Wide, Linux, 1000 cd/m² High Brightness(-H), 2port LAN, IP66"
   },
   {
     "id": "CM-eXT2-12W-C-DF",
@@ -14041,7 +14541,9 @@
         "value": "IP66 (전면)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "12.1\" FHD Wide, Linux, 500 cd/m², 2port LAN, IP66"
   },
   {
     "id": "CM-eXT2-12W-CH-DF",
@@ -14103,7 +14605,9 @@
         "value": "IP66 (전면)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "12.1\" FHD Wide, Linux, 1200 cd/m² High Brightness(-H), 2port LAN, IP66"
   },
   {
     "id": "CM-eXT2-15W-C-DF",
@@ -14165,7 +14669,9 @@
         "value": "IP66 (전면)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "15.6\" FHD Wide, Linux, 450 cd/m², 2port LAN, IP66"
   },
   {
     "id": "CM-eXT2-15W-CH-DF",
@@ -14227,7 +14733,9 @@
         "value": "IP66 (전면)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "XPANEL eXT2",
+    "descriptionEn": "15.6\" FHD Wide, Linux, 1200 cd/m² High Brightness(-H), 2port LAN, IP66"
   },
   {
     "id": "CM-sHP07CD-DR",
@@ -14310,7 +14818,9 @@
         "value": "RS-232C (Internal)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Hybrid XPANEL",
+    "descriptionEn": "7\" integrated HMI+PLC, Relay output 8 ch (DI 8 / DO 8 Relay), 11W"
   },
   {
     "id": "CM-sHP07CD-DT",
@@ -14393,7 +14903,9 @@
         "value": "RS-232C (Internal)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Hybrid XPANEL",
+    "descriptionEn": "7\" integrated HMI+PLC, TR Sink output 7 ch (DI 4 / DO 7 TR Sink), 8W"
   },
   {
     "id": "CM-sHP07CD-DC",
@@ -14476,6 +14988,8 @@
         "value": "RS-232C (Internal)",
         "source": "catalog"
       }
-    ]
+    ],
+    "seriesLabelEn": "Hybrid XPANEL",
+    "descriptionEn": "7\" integrated HMI+PLC, TR Source output 7 ch (DI 4 / DO 7 TR Source), 8W"
   }
 ]

@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import type { Product } from '../types';
 import { resolveProductImage } from '../utils/imageResolver';
+import { useT, useLang } from '../context/LangContext';
+import { UI } from '../i18n/ui';
+import { translateSpecLabel } from '../i18n/specLabels';
+import { translateSpecValue } from '../i18n/specValues';
 
 function CartImage({ product: p }: { product: Product }) {
   const [failed, setFailed] = useState(false);
@@ -9,12 +13,8 @@ function CartImage({ product: p }: { product: Product }) {
     return <span className="text-gray-300 text-xs font-medium">{p.modelName.slice(0, 3)}</span>;
   }
   return (
-    <img
-      src={src}
-      alt={p.modelName}
-      className="w-full h-full object-contain"
-      onError={() => setFailed(true)}
-    />
+    <img src={src} alt={p.modelName} className="w-full h-full object-contain"
+      onError={() => setFailed(true)} />
   );
 }
 
@@ -27,14 +27,17 @@ interface Props {
 }
 
 function SpecTable({ specs }: { specs: Product['specs'] }) {
-  if (specs.length === 0) return <p className="text-xs text-gray-400 italic">사양 정보 없음</p>;
+  const { lang } = useLang();
+  if (specs.length === 0) return <p className="text-xs text-gray-400 italic">{lang === 'ko' ? '사양 정보 없음' : 'No spec data'}</p>;
   return (
     <table className="w-full text-xs mt-2 border-t border-gray-100">
       <tbody>
         {specs.map((s) => (
           <tr key={s.label} className="border-b border-gray-50">
-            <td className="py-1.5 pr-4 font-medium text-gray-500 w-36 align-top">{s.label}</td>
-            <td className="py-1.5 text-gray-800">{s.value}</td>
+            <td className="py-1.5 pr-4 font-medium text-gray-500 w-36 align-top">
+              {translateSpecLabel(s.label, lang)}
+            </td>
+            <td className="py-1.5 text-gray-800">{translateSpecValue(s.value, lang)}</td>
           </tr>
         ))}
       </tbody>
@@ -43,6 +46,8 @@ function SpecTable({ specs }: { specs: Product['specs'] }) {
 }
 
 export default function CartPage({ cartList, products, onRemove, onClear, onBack }: Props) {
+  const t = useT();
+  const { lang } = useLang();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
   const cartProducts = products.filter((p) => cartList.includes(p.id));
 
@@ -54,7 +59,6 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
 
   return (
     <div className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
-      {/* 상단 */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <button
@@ -64,47 +68,47 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            뒤로
+            {t(UI.back)}
           </button>
           <h1 className="text-lg font-bold text-gray-800">
-            담은 제품 목록
-            <span className="ml-2 text-sm font-normal text-gray-400">({cartProducts.length}개)</span>
+            {t(UI.shortlistTitle)}
+            <span className="ml-2 text-sm font-normal text-gray-400">
+              ({cartProducts.length}{lang === 'ko' ? '개' : ''})
+            </span>
           </h1>
         </div>
         {cartProducts.length > 0 && (
-          <button
-            onClick={onClear}
-            className="text-sm text-red-400 hover:text-red-600 transition-colors"
-          >
-            목록 비우기
+          <button onClick={onClear} className="text-sm text-red-400 hover:text-red-600 transition-colors">
+            {t(UI.clearList)}
           </button>
         )}
       </div>
 
       {cartProducts.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
-          <p className="text-gray-400 text-sm">담은 제품이 없습니다.</p>
+          <p className="text-gray-400 text-sm">{t(UI.emptyShortlist)}</p>
           <button onClick={onBack} className="mt-4 text-sm text-blue-500 hover:text-blue-700">
-            제품 목록으로 돌아가기
+            {t(UI.goToList)}
           </button>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {cartProducts.map((p) => {
             const expanded = expandedIds.includes(p.id);
+            const desc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
+            const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
+            const verifiedSpecs = p.specs.filter((s) => s.source !== 'estimated');
             return (
               <div key={p.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                {/* 카드 헤더 */}
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-4">
-                    {/* 모델 이미지 */}
                     <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                       <CartImage product={p} />
                     </div>
                     <div>
                       <p className="font-semibold text-gray-800">{p.modelName}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{p.seriesLabel}</p>
-                      <p className="text-sm text-gray-500 mt-0.5">{p.description}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{series}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{desc}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
@@ -112,13 +116,10 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                       onClick={() => toggleExpand(p.id)}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
                     >
-                      <span>상세 사양</span>
+                      <span>{t(UI.detailSpecs)}</span>
                       <svg
                         className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
@@ -126,17 +127,16 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                     <button
                       onClick={() => onRemove(p.id)}
                       className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors text-lg leading-none"
-                      title="목록에서 제거"
+                      title={t(UI.removeShortlist)}
                     >
                       ×
                     </button>
                   </div>
                 </div>
 
-                {/* 상세 사양 */}
                 {expanded && (
                   <div className="px-5 pb-4 border-t border-gray-100 bg-gray-50">
-                    <SpecTable specs={p.specs} />
+                    <SpecTable specs={verifiedSpecs} />
                   </div>
                 )}
               </div>

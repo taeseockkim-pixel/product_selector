@@ -9,6 +9,8 @@ import ProductTable from './components/ProductTable';
 import CartPage from './components/CartPage';
 import ComparePage from './components/ComparePage';
 import SpecModal from './components/SpecModal';
+import { LangProvider, useLang, useT } from './context/LangContext';
+import { UI } from './i18n/ui';
 
 type ViewMode = 'main' | 'cart' | 'compare';
 
@@ -46,21 +48,44 @@ function filterByConfig(
   });
 }
 
-export default function App() {
-  // ── 뷰 모드 ───────────────────────────────────────
-  const [viewMode, setViewMode] = useState<ViewMode>('main');
+function LangToggle() {
+  const { lang, setLang } = useLang();
+  return (
+    <div className="flex items-center gap-0.5 border border-gray-200 rounded-lg p-0.5">
+      <button
+        onClick={() => setLang('ko')}
+        title="한국어"
+        className={`px-1.5 py-0.5 rounded text-base leading-none transition-colors ${
+          lang === 'ko' ? 'bg-blue-600' : 'hover:bg-gray-100'
+        }`}
+      >
+        🇰🇷
+      </button>
+      <button
+        onClick={() => setLang('en')}
+        title="English"
+        className={`px-1.5 py-0.5 rounded text-base leading-none transition-colors ${
+          lang === 'en' ? 'bg-blue-600' : 'hover:bg-gray-100'
+        }`}
+      >
+        🇺🇸
+      </button>
+    </div>
+  );
+}
 
-  // ── 공통 상태 ─────────────────────────────────────
+function AppInner() {
+  const { lang } = useLang();
+
+  const [viewMode, setViewMode] = useState<ViewMode>('main');
   const [activeCategory, setActiveCategory] = useState<CategoryId>('PLC');
   const [cartList, setCartList] = useState<string[]>([]);
   const [compareList, setCompareList] = useState<string[]>([]);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
 
-  // ── PLC 전용 ──────────────────────────────────────
   const [plcSeries, setPlcSeries] = useState<PlcSeriesId>('CM1');
   const [plcSubType, setPlcSubType] = useState<string>(getDefaultSubType('CM1'));
 
-  // ── IPC / SCADA ───────────────────────────────────
   const [activeSubType, setActiveSubType] = useState<string>('');
   const [filters, setFilters] = useState<FilterValues>({});
 
@@ -90,7 +115,6 @@ export default function App() {
     );
   }
 
-  // 현재 제품 목록
   let products: typeof PRODUCTS = [];
   if (activeCategory === 'PLC') {
     products = filterPlcProducts(plcSeries, plcSubType);
@@ -103,32 +127,33 @@ export default function App() {
       const tree = PLC_TREE[plcSeries];
       for (const group of tree) {
         const leaf = group.children.find((c) => c.id === plcSubType);
-        if (leaf) return `${plcSeries === 'CM1' ? 'PLC' : 'PLC-S'} — ${group.label} > ${leaf.label}`;
+        if (leaf) {
+          const groupLabel = lang === 'en' ? (group.labelEn ?? group.label) : group.label;
+          const leafLabel  = lang === 'en' ? (leaf.labelEn  ?? leaf.label)  : leaf.label;
+          return `${plcSeries === 'CM1' ? 'PLC' : 'PLC-S'} — ${groupLabel} > ${leafLabel}`;
+        }
       }
       return 'PLC';
     }
     const config = getCategoryConfig(activeCategory);
     const st = config?.subTypes.find((s) => s.id === activeSubType);
-    return `${CATEGORY_LABELS[activeCategory]} — ${st?.label ?? ''}`;
+    const stLabel = lang === 'en' ? (st?.labelEn ?? st?.label ?? '') : (st?.label ?? '');
+    return `${CATEGORY_LABELS[activeCategory]} — ${stLabel}`;
   }
 
-  // ── 담기/비교 페이지 렌더링 ───────────────────────
+  const totalLabel = lang === 'ko' ? `총 ${products.length}개` : `Total: ${products.length}`;
+
   if (viewMode === 'cart') {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <AppHeader
-          cartCount={cartList.length}
-          compareCount={compareList.length}
-          onCartClick={() => setViewMode('cart')}
-          onCompareClick={() => setViewMode('compare')}
+          cartCount={cartList.length} compareCount={compareList.length}
+          onCartClick={() => setViewMode('cart')} onCompareClick={() => setViewMode('compare')}
           viewMode={viewMode}
         />
         <CartPage
-          cartList={cartList}
-          products={PRODUCTS}
-          onRemove={handleCartToggle}
-          onClear={() => setCartList([])}
-          onBack={() => setViewMode('main')}
+          cartList={cartList} products={PRODUCTS}
+          onRemove={handleCartToggle} onClear={() => setCartList([])} onBack={() => setViewMode('main')}
         />
       </div>
     );
@@ -138,35 +163,26 @@ export default function App() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <AppHeader
-          cartCount={cartList.length}
-          compareCount={compareList.length}
-          onCartClick={() => setViewMode('cart')}
-          onCompareClick={() => setViewMode('compare')}
+          cartCount={cartList.length} compareCount={compareList.length}
+          onCartClick={() => setViewMode('cart')} onCompareClick={() => setViewMode('compare')}
           viewMode={viewMode}
         />
         <ComparePage
-          compareList={compareList}
-          products={PRODUCTS}
-          onRemove={handleCompareToggle}
-          onClear={() => setCompareList([])}
-          onBack={() => setViewMode('main')}
+          compareList={compareList} products={PRODUCTS}
+          onRemove={handleCompareToggle} onClear={() => setCompareList([])} onBack={() => setViewMode('main')}
         />
       </div>
     );
   }
 
-  // ── 메인 뷰 ──────────────────────────────────────
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader
-        cartCount={cartList.length}
-        compareCount={compareList.length}
-        onCartClick={() => setViewMode('cart')}
-        onCompareClick={() => setViewMode('compare')}
+        cartCount={cartList.length} compareCount={compareList.length}
+        onCartClick={() => setViewMode('cart')} onCompareClick={() => setViewMode('compare')}
         viewMode={viewMode}
       />
 
-      {/* 카테고리 탭 */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-screen-xl mx-auto px-6">
           <nav className="flex gap-1">
@@ -190,7 +206,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* 본문 */}
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
         <div className="flex gap-5 items-start">
           {activeCategory === 'PLC' ? (
@@ -213,7 +228,7 @@ export default function App() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-bold text-gray-700">{getRightTitle()}</h2>
-              <span className="text-sm text-gray-400">총 {products.length}개</span>
+              <span className="text-sm text-gray-400">{totalLabel}</span>
             </div>
             <ProductTable
               products={products}
@@ -227,7 +242,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* 사양 상세 모달 */}
       {detailProduct && (
         <SpecModal product={detailProduct} onClose={() => setDetailProduct(null)} />
       )}
@@ -235,13 +249,8 @@ export default function App() {
   );
 }
 
-// ── 공통 헤더 컴포넌트 ────────────────────────────
 function AppHeader({
-  cartCount,
-  compareCount,
-  onCartClick,
-  onCompareClick,
-  viewMode,
+  cartCount, compareCount, onCartClick, onCompareClick, viewMode,
 }: {
   cartCount: number;
   compareCount: number;
@@ -249,17 +258,19 @@ function AppHeader({
   onCompareClick: () => void;
   viewMode: ViewMode;
 }) {
+  const t = useT();
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-14">
+      <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
         <div className="flex items-center gap-3">
-          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-7 w-auto object-contain" />
+          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-10 w-auto object-contain" />
           <span className="text-gray-300">|</span>
-          <span className="text-sm text-gray-500">제품 선택 가이드</span>
+          <span className="text-sm text-gray-500">{t(UI.productGuide)}</span>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* 비교 버튼 */}
+          <LangToggle />
+
           <button
             onClick={onCompareClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -273,7 +284,7 @@ function AppHeader({
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            비교
+            {t(UI.compare)}
             {compareCount > 0 && (
               <span className={`ml-0.5 rounded-full text-xs px-1.5 py-0.5 font-bold ${
                 viewMode === 'compare' ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
@@ -283,7 +294,6 @@ function AppHeader({
             )}
           </button>
 
-          {/* 담기 버튼 */}
           <button
             onClick={onCartClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -297,7 +307,7 @@ function AppHeader({
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2L19 8M10 12v4m4-4v4" />
             </svg>
-            담기
+            {t(UI.shortlist)}
             {cartCount > 0 && (
               <span className={`ml-0.5 rounded-full text-xs px-1.5 py-0.5 font-bold ${
                 viewMode === 'cart' ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'
@@ -309,5 +319,13 @@ function AppHeader({
         </div>
       </div>
     </header>
+  );
+}
+
+export default function App() {
+  return (
+    <LangProvider>
+      <AppInner />
+    </LangProvider>
   );
 }

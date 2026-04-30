@@ -1,5 +1,8 @@
 import type { CategoryId, FilterValues } from '../types';
 import { getCategoryConfig } from '../config/filterConfig';
+import { useT } from '../context/LangContext';
+import { UI } from '../i18n/ui';
+import { useLang } from '../context/LangContext';
 
 interface Props {
   categoryId: CategoryId;
@@ -10,12 +13,10 @@ interface Props {
 }
 
 export default function LeftPanel({
-  categoryId,
-  activeSubType,
-  onSubTypeChange,
-  filters,
-  onFiltersChange,
+  categoryId, activeSubType, onSubTypeChange, filters, onFiltersChange,
 }: Props) {
+  const t = useT();
+  const { lang } = useLang();
   const config = getCategoryConfig(categoryId);
   if (!config) return null;
 
@@ -25,72 +26,57 @@ export default function LeftPanel({
     const current = filters[filterId] ?? [];
     let next: string[];
     if (multi) {
-      next = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
+      next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
     } else {
       next = current.includes(value) ? [] : [value];
     }
     const newFilters = { ...filters, [filterId]: next };
-    // 필터 변경 후 disabled 상태가 된 섹션의 선택값 자동 초기화
     if (subType) {
       for (const section of subType.filters) {
-        if (section.disabledWhen?.(newFilters)) {
-          newFilters[section.id] = [];
-        }
+        if (section.disabledWhen?.(newFilters)) newFilters[section.id] = [];
       }
     }
     onFiltersChange(newFilters);
   }
 
-  function clearFilters() {
-    onFiltersChange({});
-  }
+  function clearFilters() { onFiltersChange({}); }
 
   const hasActiveFilters = Object.values(filters).some((v) => v.length > 0);
 
   return (
     <aside className="w-64 flex-shrink-0">
-      {/* Sub-type 탭 */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
         <div className="px-4 pt-4 pb-2">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-            제품 타입
+            {t(UI.productType)}
           </p>
           <div className="flex flex-col gap-1">
             {config.subTypes.map((st) => (
               <button
                 key={st.id}
-                onClick={() => {
-                  onSubTypeChange(st.id);
-                  onFiltersChange({});
-                }}
+                onClick={() => { onSubTypeChange(st.id); onFiltersChange({}); }}
                 className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeSubType === st.id
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                {st.label}
+                {lang === 'en' ? (st.labelEn ?? st.label) : st.label}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* 필터 섹션 */}
       {subType && subType.filters.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              필터
+              {t(UI.filters)}
             </p>
             {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-xs text-blue-500 hover:text-blue-700"
-              >
-                초기화
+              <button onClick={clearFilters} className="text-xs text-blue-500 hover:text-blue-700">
+                {t(UI.reset)}
               </button>
             )}
           </div>
@@ -100,18 +86,17 @@ export default function LeftPanel({
               const selected = filters[section.id] ?? [];
               const isButtons = section.type === 'buttons';
               const disabled = section.disabledWhen?.(filters) ?? false;
+              const sectionTitle = lang === 'en' ? (section.titleEn ?? section.title) : section.title;
 
               return (
                 <div key={section.id} className={disabled ? 'opacity-40 pointer-events-none select-none' : ''}>
-                  <p className="text-xs font-semibold text-gray-500 mb-2">
-                    {section.title}
-                  </p>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{sectionTitle}</p>
 
                   {isButtons ? (
-                    /* 단일 선택 pill 버튼 */
                     <div className="flex flex-wrap gap-2">
                       {section.options.map((opt) => {
                         const active = selected.includes(opt.value);
+                        const optLabel = lang === 'en' ? (opt.labelEn ?? opt.label) : opt.label;
                         return (
                           <button
                             key={opt.value}
@@ -122,16 +107,16 @@ export default function LeftPanel({
                                 : 'bg-white border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600'
                             }`}
                           >
-                            {opt.label}
+                            {optLabel}
                           </button>
                         );
                       })}
                     </div>
                   ) : (
-                    /* 다중 선택 체크박스 그리드 */
                     <div className="grid grid-cols-2 gap-1.5">
                       {section.options.map((opt) => {
                         const active = selected.includes(opt.value);
+                        const optLabel = lang === 'en' ? (opt.labelEn ?? opt.label) : opt.label;
                         return (
                           <label
                             key={opt.value}
@@ -147,7 +132,7 @@ export default function LeftPanel({
                               checked={active}
                               onChange={() => toggleValue(section.id, opt.value, true)}
                             />
-                            <span className="leading-tight">{opt.label}</span>
+                            <span className="leading-tight">{optLabel}</span>
                           </label>
                         );
                       })}

@@ -1,4 +1,8 @@
 import type { Product } from '../types';
+import { useT, useLang } from '../context/LangContext';
+import { UI } from '../i18n/ui';
+import { translateSpecLabel } from '../i18n/specLabels';
+import { translateSpecValue } from '../i18n/specValues';
 
 interface Props {
   compareList: string[];
@@ -8,38 +12,36 @@ interface Props {
   onBack: () => void;
 }
 
-function buildRows(prods: Product[]) {
+function buildRows(prods: Product[], lang: 'ko' | 'en') {
   const labelOrder: string[] = [];
   const labelSet = new Set<string>();
   prods.forEach((p) =>
     p.specs.forEach((s) => {
-      if (!labelSet.has(s.label)) {
-        labelSet.add(s.label);
-        labelOrder.push(s.label);
-      }
+      if (!labelSet.has(s.label)) { labelSet.add(s.label); labelOrder.push(s.label); }
     }),
   );
   return labelOrder.map((label) => {
     const values = prods.map((p) => p.specs.find((s) => s.label === label)?.value ?? '—');
     const unique = new Set(values.filter((v) => v !== '—'));
     const isDiff = unique.size > 1;
-    return { label, values, isDiff };
+    return {
+      label: translateSpecLabel(label, lang),
+      values: values.map((v) => v === '—' ? '—' : translateSpecValue(v, lang)),
+      isDiff,
+    };
   });
 }
 
 export default function ComparePage({
-  compareList,
-  products,
-  onRemove,
-  onClear,
-  onBack,
+  compareList, products, onRemove, onClear, onBack,
 }: Props) {
+  const t = useT();
+  const { lang } = useLang();
   const compareProducts = products.filter((p) => compareList.includes(p.id));
-  const rows = buildRows(compareProducts);
+  const rows = buildRows(compareProducts, lang);
 
   return (
     <div className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
-      {/* 상단 */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <button
@@ -49,30 +51,27 @@ export default function ComparePage({
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            뒤로
+            {t(UI.back)}
           </button>
           <h1 className="text-lg font-bold text-gray-800">
-            제품 비교
+            {t(UI.compareTitle)}
             <span className="ml-2 text-sm font-normal text-gray-400">
-              ({compareProducts.length}개 선택됨)
+              ({compareProducts.length}{lang === 'ko' ? '개 선택됨' : ' selected'})
             </span>
           </h1>
         </div>
         {compareProducts.length > 0 && (
-          <button
-            onClick={onClear}
-            className="text-sm text-red-400 hover:text-red-600 transition-colors"
-          >
-            비교 목록 비우기
+          <button onClick={onClear} className="text-sm text-red-400 hover:text-red-600 transition-colors">
+            {t(UI.clearCompare)}
           </button>
         )}
       </div>
 
       {compareProducts.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
-          <p className="text-gray-400 text-sm">비교할 제품이 없습니다.</p>
+          <p className="text-gray-400 text-sm">{t(UI.noCompare)}</p>
           <button onClick={onBack} className="mt-4 text-sm text-blue-500 hover:text-blue-700">
-            제품 목록으로 돌아가기
+            {t(UI.goToList)}
           </button>
         </div>
       ) : (
@@ -81,50 +80,45 @@ export default function ComparePage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  {/* 사양 헤더 */}
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide w-36">
-                    사양
+                    {t(UI.specCol)}
                   </th>
-                  {/* 제품별 헤더 */}
-                  {compareProducts.map((p) => (
-                    <th key={p.id} className="px-4 py-3 text-left min-w-48">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-bold text-gray-800 text-sm">{p.modelName}</p>
-                          <p className="text-xs text-gray-400 font-normal mt-0.5">{p.seriesLabel}</p>
-                          <p className="text-xs text-gray-500 font-normal mt-0.5 leading-tight">
-                            {p.description}
-                          </p>
+                  {compareProducts.map((p) => {
+                    const desc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
+                    const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
+                    return (
+                      <th key={p.id} className="px-4 py-3 text-left min-w-48">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="font-bold text-gray-800 text-sm">{p.modelName}</p>
+                            <p className="text-xs text-gray-400 font-normal mt-0.5">{series}</p>
+                            <p className="text-xs text-gray-500 font-normal mt-0.5 leading-tight">{desc}</p>
+                          </div>
+                          <button
+                            onClick={() => onRemove(p.id)}
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-red-400 flex-shrink-0 transition-colors text-base leading-none mt-0.5"
+                            title={t(UI.removeFromComp)}
+                          >
+                            ×
+                          </button>
                         </div>
-                        <button
-                          onClick={() => onRemove(p.id)}
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-red-400 flex-shrink-0 transition-colors text-base leading-none mt-0.5"
-                          title="비교에서 제거"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </th>
-                  ))}
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td
-                      colSpan={compareProducts.length + 1}
-                      className="px-4 py-8 text-center text-gray-400 text-sm"
-                    >
-                      비교할 사양 항목이 없습니다.
+                    <td colSpan={compareProducts.length + 1} className="px-4 py-8 text-center text-gray-400 text-sm">
+                      {t(UI.noCompareSpecs)}
                     </td>
                   </tr>
                 ) : (
                   rows.map((row) => (
                     <tr
                       key={row.label}
-                      className={`border-b border-gray-50 ${
-                        row.isDiff ? 'bg-amber-50' : ''
-                      }`}
+                      className={`border-b border-gray-50 ${row.isDiff ? 'bg-amber-50' : ''}`}
                     >
                       <td className="px-4 py-2.5 text-xs font-semibold text-gray-500 align-top">
                         {row.label}
@@ -149,10 +143,9 @@ export default function ComparePage({
             </table>
           </div>
 
-          {/* 범례 */}
           <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
-            <span className="text-xs text-gray-400">노란 행: 제품 간 사양 차이 있음</span>
+            <span className="text-xs text-gray-400">{t(UI.diffLegend)}</span>
           </div>
         </div>
       )}

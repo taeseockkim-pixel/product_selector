@@ -24,7 +24,9 @@ export interface Product {
   category: CategoryId;
   series: string;
   seriesLabel: string;
+  seriesLabelEn?: string;
   description: string;
+  descriptionEn?: string;
   specs: SpecItem[];
   // Sub-type 분류용
   subType: string;
@@ -59,12 +61,14 @@ export interface Product {
 
 export interface FilterOption {
   label: string;
+  labelEn?: string;
   value: string;
 }
 
 export interface FilterSection {
   id: string;
   title: string;
+  titleEn?: string;
   type: 'buttons' | 'checkboxGrid';
   options: FilterOption[];
   matcher: (product: Product, selected: string[]) => boolean;
@@ -75,6 +79,7 @@ export interface FilterSection {
 export interface SubTypeConfig {
   id: string;
   label: string;
+  labelEn?: string;
   matcher: (product: Product) => boolean;
   filters: FilterSection[];
 }
@@ -82,6 +87,7 @@ export interface SubTypeConfig {
 export interface CategoryConfig {
   id: CategoryId;
   name: string;
+  nameEn?: string;
   subTypes: SubTypeConfig[];
 }
 

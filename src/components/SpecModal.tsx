@@ -3,8 +3,11 @@ import type { Product } from '../types';
 import { resolveProductImage } from '../utils/imageResolver';
 import { getCatalogUrl, getManualEntries, getDrawingEntries } from '../config/catalogConfig';
 import type { DocEntry } from '../config/catalogConfig';
+import { useT, useLang } from '../context/LangContext';
+import { UI } from '../i18n/ui';
+import { translateSpecLabel } from '../i18n/specLabels';
+import { translateSpecValue } from '../i18n/specValues';
 
-// ── 문서 버튼 (카탈로그 · 메뉴얼 · 도면 공용) ───────────────
 type DocButtonColor = 'blue' | 'green' | 'orange';
 
 const COLOR_CLASS: Record<DocButtonColor, string> = {
@@ -13,8 +16,8 @@ const COLOR_CLASS: Record<DocButtonColor, string> = {
   orange: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
 };
 
-// 단일 파일 행 (새탭/다운로드)
 function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
+  const t = useT();
   return (
     <div className="flex items-center justify-between gap-2 px-4 py-2 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
       <span className="text-sm text-gray-700 truncate flex-1">{entry.label}</span>
@@ -25,7 +28,7 @@ function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
           rel="noopener noreferrer"
           onClick={onClose}
           className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-          title="새 탭에서 열기"
+          title={t(UI.openTab)}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -36,7 +39,7 @@ function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
           download
           onClick={onClose}
           className="p-1 text-gray-400 hover:text-green-500 transition-colors"
-          title="다운로드"
+          title={t(UI.downloadFile)}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -48,9 +51,7 @@ function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
 }
 
 function DocButton({
-  label,
-  entries,
-  color = 'blue',
+  label, entries, color = 'blue',
 }: {
   label: string;
   entries: DocEntry[];
@@ -92,14 +93,14 @@ function DocButton({
   );
 }
 
-// ── 메인 모달 ────────────────────────────────────────────────
 export default function SpecModal({
-  product,
-  onClose,
+  product, onClose,
 }: {
   product: Product;
   onClose: () => void;
 }) {
+  const t = useT();
+  const { lang } = useLang();
   const [imgFailed, setImgFailed] = useState(false);
   const imageSrc = resolveProductImage(product.id, product.subType);
   const verifiedSpecs = product.specs.filter((s) => s.source !== 'estimated');
@@ -108,10 +109,11 @@ export default function SpecModal({
   const manualEntries = getManualEntries(product.subType);
   const drawingEntries = getDrawingEntries(product.subType);
 
+  const desc = lang === 'en' ? (product.descriptionEn ?? product.description) : product.description;
+  const series = lang === 'en' ? (product.seriesLabelEn ?? product.seriesLabel) : product.seriesLabel;
+
   useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
+    function handleKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose(); }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [onClose]);
@@ -125,7 +127,6 @@ export default function SpecModal({
         className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 헤더 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-bold text-gray-800">{product.modelName}</h2>
           <button
@@ -136,9 +137,7 @@ export default function SpecModal({
           </button>
         </div>
 
-        {/* 본문 */}
         <div className="px-6 py-5 flex flex-col gap-5">
-          {/* 이미지 + 기본 정보 */}
           <div className="flex gap-5">
             {imageSrc && !imgFailed ? (
               <img
@@ -154,44 +153,41 @@ export default function SpecModal({
             )}
 
             <div className="flex-1 min-w-0 flex flex-col gap-2">
-              <p className="text-sm font-semibold text-blue-600">{product.seriesLabel}</p>
-              <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
+              <p className="text-sm font-semibold text-blue-600">{series}</p>
+              <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
               <div className="mt-auto pt-1 flex flex-wrap gap-2">
                 {catalogUrl && (
                   <DocButton
-                    label="카탈로그"
-                    entries={[{ label: '카탈로그 PDF', url: catalogUrl }]}
+                    label={t(UI.catalog)}
+                    entries={[{ label: lang === 'ko' ? '카탈로그 PDF' : 'Catalog PDF', url: catalogUrl }]}
                     color="blue"
                   />
                 )}
                 {manualEntries.length > 0 && (
-                  <DocButton label="메뉴얼" entries={manualEntries} color="green" />
+                  <DocButton label={t(UI.manual)} entries={manualEntries} color="green" />
                 )}
                 {drawingEntries.length > 0 && (
-                  <DocButton label="도면" entries={drawingEntries} color="orange" />
+                  <DocButton label={t(UI.drawing)} entries={drawingEntries} color="orange" />
                 )}
               </div>
             </div>
           </div>
 
-          {/* 사양 테이블 */}
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              상세 사양
+              {t(UI.detailSpecs)}
             </p>
             {verifiedSpecs.length === 0 ? (
-              <p className="text-xs text-gray-400 italic">
-                상세 사양 정보 없음 (카탈로그 검증 후 업데이트 예정)
-              </p>
+              <p className="text-xs text-gray-400 italic">{t(UI.noDetailSpecs)}</p>
             ) : (
               <table className="w-full text-sm">
                 <tbody className="divide-y divide-gray-50">
                   {verifiedSpecs.map((s) => (
                     <tr key={s.label}>
                       <td className="py-2 pr-4 font-medium text-gray-500 w-44 align-top">
-                        {s.label}
+                        {translateSpecLabel(s.label, lang)}
                       </td>
-                      <td className="py-2 text-gray-800">{s.value}</td>
+                      <td className="py-2 text-gray-800">{translateSpecValue(s.value, lang)}</td>
                     </tr>
                   ))}
                 </tbody>
