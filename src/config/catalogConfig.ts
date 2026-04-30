@@ -139,7 +139,20 @@ const MANUAL_MAP: Record<string, DocEntry[]> = {
   ],
   CM3_SP_POS: [{ label: '위치결정', url: `${M3}/위치결정/간소화매뉴얼(설명서)(국영)CM3 SP02POS_BCP65441_20250305.pdf` }],
   // ── IPC ──
-  MONITOR: [{ label: 'Touch Monitor', url: `${MI}/간소화매뉴얼(설명서)(국영) CM-IM-121521W-RCH-D v1.0_BIC52001.pdf` }],
+  PANEL: [
+    { label: 'iNT 500 Series',                   url: `${MI}/BTC40029_iNP_iNT 500 series(국영)_ver1.1_20250307.pdf` },
+    { label: 'NT Core 3000·5000·7000 Series',     url: `${MI}/NP_NT Core 3,5,7000 series(e)_ver1.4_BTC90151_2023.01.30.pdf` },
+    { label: 'iNT 50000W·70000W Wide Series',     url: `${MI}/iNP_iNT_50000W_70000W_series(kr_en)_ver0.4_20250725.pdf` },
+  ],
+  RACK: [
+    { label: 'NU1R',       url: `${MI}/NU1R_ver1.0 국영_2022 0720.pdf` },
+    { label: 'NU4R Core',  url: `${MI}/NU4R Core series_ver1.2 국문_2022 0819.pdf` },
+  ],
+  BOX: [
+    { label: 'CM-NB200-D',              url: `${MI}/Box PC CM-NB200-D(kr_en)ver1.3_20231127.pdf` },
+    { label: 'CM-NB3011·NB5011·NB7011', url: `${MI}/Box PC CM-NB3011_NB5011_NB7011-D(kr_en)ver1.7_20240125.pdf` },
+  ],
+  MONITOR: [{ label: 'Touch Monitor (CM-IM)', url: `${MI}/간소화매뉴얼(설명서)(국영) CM-IM-121521W-RCH-D v1.0_BIC52001.pdf` }],
   // ── XPANEL ──
   XPANEL_HMI: [
     { label: 'XT07',        url: `${MX}/CM-XT07CD-DE,DN Manual KOR ENG_BXP40097.pdf` },
@@ -218,8 +231,8 @@ const DRAWING_MAP: Record<string, DocEntry[]> = {
     { label: 'IPC 3000·5000 (12인치)', url: `${DI}/IPC_3000 & 5000 Series_12inch-2.zip` },
     { label: 'IPC 3000·5000 (15인치)', url: `${DI}/IPC_3000 & 5000 Series_15inch.zip` },
     { label: 'IPC 3000·5000 (19인치)', url: `${DI}/IPC_3000 & 5000 Series_19inch-1.zip` },
-    { label: 'IPC Wide (15인치)',   url: `${DI}/IPC_50000W & 70000W Series_15inch-Wide.zip` },
-    { label: 'IPC Wide (21.5인치)', url: `${DI}/IPC_50000W & 70000W Series_21.5inch-Wide.zip` },
+    { label: 'IPC 50000 & 70000 Wide (15인치)',   url: `${DI}/IPC_50000W & 70000W Series_15inch-Wide.zip` },
+    { label: 'IPC 50000 & 70000 Wide (21.5인치)', url: `${DI}/IPC_50000W & 70000W Series_21.5inch-Wide.zip` },
   ],
   // ── XPANEL ──
   XPANEL_HMI: [
