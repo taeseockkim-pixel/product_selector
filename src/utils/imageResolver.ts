@@ -159,7 +159,10 @@ const IPC_MAP: Record<string, string> = {
   'CM-NB200-D':  `${IPC}/CM-NB200-D.jpg`,
   'CM-NB5011-D': `${IPC}/CM-NB5000_7000 Series.jpg`,
   'CM-NB7011-D': `${IPC}/CM-NB5000_7000 Series.jpg`,
-  // RACK PC — 이미지 미준비, 추가 시 여기에 매핑
+  // RACK PC
+  'NU1RB-A':  `${IPC}/NU1R.jpg`,
+  'NU4R56-A': `${IPC}/NU4R.jpg`,
+  'NU4R76-A': `${IPC}/NU4R.jpg`,
 };
 
 // ── SCADA: subType → 이미지 ──────────────────────────────────
