@@ -51,12 +51,12 @@ function filterByConfig(
 function LangToggle() {
   const { lang, setLang } = useLang();
   return (
-    <div className="flex items-center gap-0.5 border border-gray-200 rounded-lg p-0.5">
+    <div className="flex items-center gap-1">
       <button
         onClick={() => setLang('ko')}
         title="한국어"
-        className={`px-1.5 py-0.5 rounded text-base leading-none transition-colors ${
-          lang === 'ko' ? 'bg-blue-600' : 'hover:bg-gray-100'
+        className={`text-xl leading-none transition-all ${
+          lang !== 'ko' ? 'grayscale opacity-40 hover:opacity-60' : ''
         }`}
       >
         🇰🇷
@@ -64,8 +64,8 @@ function LangToggle() {
       <button
         onClick={() => setLang('en')}
         title="English"
-        className={`px-1.5 py-0.5 rounded text-base leading-none transition-colors ${
-          lang === 'en' ? 'bg-blue-600' : 'hover:bg-gray-100'
+        className={`text-xl leading-none transition-all ${
+          lang !== 'en' ? 'grayscale opacity-40 hover:opacity-60' : ''
         }`}
       >
         🇺🇸
@@ -273,7 +273,7 @@ function AppHeader({
 
           <button
             onClick={onCompareClick}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[90px] whitespace-nowrap ${
               viewMode === 'compare'
                 ? 'bg-blue-600 text-white'
                 : compareCount > 0
@@ -296,7 +296,7 @@ function AppHeader({
 
           <button
             onClick={onCartClick}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[90px] whitespace-nowrap ${
               viewMode === 'cart'
                 ? 'bg-blue-600 text-white'
                 : cartCount > 0
