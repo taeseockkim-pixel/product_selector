@@ -253,7 +253,7 @@ function AppHeader({
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
       <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-14">
         <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-blue-700 tracking-tight">CIMON</span>
+          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-7 w-auto object-contain" />
           <span className="text-gray-300">|</span>
           <span className="text-sm text-gray-500">제품 선택 가이드</span>
         </div>
