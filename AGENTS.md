@@ -51,6 +51,14 @@ CIMON 제품 선택 가이드 — 고객이 PLC / IPC / SCADA / XPANEL 제품을
 | `"estimated"` | AI 추정 또는 미검증 값 | **숨김** |
 | 미지정 | `"catalog"` 과 동일하게 처리 (레거시 호환) | 표시됨 |
 
+### catalog source 편집 원칙 (CRITICAL)
+
+`"source": "catalog"` 로 태깅된 spec은 **반드시 PDF 카탈로그 직접 확인 후에만 수정합니다.**
+
+- PDF 카탈로그(`product_catalog/` 폴더)를 직접 읽어 수치를 확인한 후 편집
+- 직접 편집이 필요하면 `"estimated"` 로만 추가 (UI에 표시 안 됨)
+- `catalog` spec의 값이 잘못됐다고 판단되면 → 아래 "잘못된 사양이 발견되면" 절차 따르기
+
 ### AI 에이전트가 specs를 추가/수정할 때
 
 ```json
@@ -81,8 +89,8 @@ npm run validate:specs
 
 ### 잘못된 사양이 발견되면
 
-1. `products.json` 에서 해당 항목의 `source` 를 `"estimated"` 로 변경 (즉시 UI에서 숨김)
-2. 올바른 값을 카탈로그에서 확인한 후 `source: "catalog"` 로 수정
+1. `product_catalog/` 폴더의 해당 PDF 카탈로그를 열어 원본 수치 확인
+2. `products.json` 에서 해당 항목의 값을 카탈로그 기준으로 직접 수정
 3. `npm run validate:specs` 재실행으로 검증
 
 ---

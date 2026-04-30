@@ -1,9 +1,82 @@
 // 폴더별 경로 상수
 const CM1    = '/products/PLC_CM1';
+const CM3    = '/products/PLC_CM3';
 const IPC    = '/products/IPC_IAC';
 const SCADA  = '/products/SCADA';
 const XPANEL = '/products/XPANEL';
-// PLC_CM3 폴더는 이미지 준비 시 여기에 경로 추가
+
+// ── CM3: 제품 ID → 이미지 파일 직접 매핑 ────────────────────
+const CM3_MAP: Record<string, string> = {
+  // CPU SLIM (TR Sink 16pts)
+  'CM3-SP32MDT':   `${CM3}/CM3-SP32MDT.jpg`,
+  'CM3-SP32MDTV':  `${CM3}/CM3-SP32MDTV.jpg`,
+  'CM3-SP32MDTE':  `${CM3}/CM3-SP32MDTE.jpg`,
+  'CM3-SP32MDTF':  `${CM3}/CM3-SP32MDTF.jpg`,
+  // CPU SLIM (TR Source 16pts)
+  'CM3-SP32MDC':   `${CM3}/CM3-SP32MDC.jpg`,
+  'CM3-SP32MDCV':  `${CM3}/CM3-SP32MDCV.jpg`,
+  'CM3-SP32MDCE':  `${CM3}/CM3-SP32MDCE.jpg`,
+  'CM3-SP32MDCF':  `${CM3}/CM3-SP32MDCF.jpg`,
+  // CPU SLIM (Relay 8pts)
+  'CM3-SP16MDR':   `${CM3}/CM3-SP16MDR.jpg`,
+  'CM3-SP16MDRV':  `${CM3}/CM3-SP16MDRV.jpg`,
+  'CM3-SP16MDRE':  `${CM3}/CM3-SP16MDRE.jpg`,
+  'CM3-SP16MDRF':  `${CM3}/CM3-SP16MDRF.jpg`,
+  // CPU SLIM (TR Sink 8pts)
+  'CM3-SP16MDTV':  `${CM3}/CM3-SP16MDTV.jpg`,
+  'CM3-SP16MDTF':  `${CM3}/CM3-SP16MDTF.jpg`,
+  // CPU SLIM (TR Source 8pts)
+  'CM3-SP16MDCV':  `${CM3}/CM3-SP16MDCV.jpg`,
+  'CM3-SP16MDCF':  `${CM3}/CM3-SP16MDCF.jpg`,
+  // CPU BRICK
+  'CM3-SB32MDTF':  `${CM3}/CM3-SB32MDTF.jpg`,
+  'CM3-SB32MDCF':  `${CM3}/CM3-SB32MDCF.jpg`,
+  'CM3-SB32MDRF':  `${CM3}/CM3-SB32MDRF.jpg`,
+  'CM3-SB16MDTF':  `${CM3}/CM3-SB16MDTF.jpg`,
+  'CM3-SB16MDCF':  `${CM3}/CM3-SB16MDCF.jpg`,
+  // CPU SPLUS
+  'CM3-SP32PDTF':  `${CM3}/CM3-SP32PDTF.jpg`,
+  'CM3-SP32PDCF':  `${CM3}/CM3-SP32PDCF.jpg`,
+  'CM3-SP16PDRF':  `${CM3}/CM3-SP16PDRF.jpg`,
+  // 디지털 I/O 모듈
+  'CM3-SP32EDO':   `${CM3}/CM3-SP32EDO.jpg`,
+  'CM3-SP32EOT':   `${CM3}/CM3-SP32EOT.jpg`,
+  'CM3-SP32EOC':   `${CM3}/CM3-SP32EOC.jpg`,
+  'CM3-SP32EDT':   `${CM3}/CM3-SP32EDT.jpg`,
+  'CM3-SP32EDOP':  `${CM3}/CM3-SP32EDOP.jpg`,
+  'CM3-SP32EOTP':  `${CM3}/CM3-SP32EOTP.jpg`,
+  'CM3-SP32EOCP':  `${CM3}/CM3-SP32EOCP.jpg`,
+  'CM3-SP32EDTP':  `${CM3}/CM3-SP32EDTP.jpg`,
+  'CM3-SP32EDCP':  `${CM3}/CM3-SP32EDCP.jpg`,
+  'CM3-SP16EOR':   `${CM3}/CM3-SP16EOR.jpg`,
+  'CM3-SP16EDR':   `${CM3}/CM3-SP16EDR.jpg`,
+  // 특수 출력
+  'CM3-SP32PWM':   `${CM3}/CM3-SP32PWM.jpg`,
+  // 전원 모듈
+  'CM3-SP24PWR':   `${CM3}/CM3-SP24PWR.jpg`,
+  // 아날로그 모듈
+  'CM3-SP04EAO':   `${CM3}/CM3-SP04EAO.jpg`,
+  'CM3-SP08EAO':   `${CM3}/CM3-SP08EAO.jpg`,
+  'CM3-SP04EOAI':  `${CM3}/CM3-SP04EOAI.jpg`,
+  'CM3-SP04EOAV':  `${CM3}/CM3-SP04EOAV.jpg`,
+  'CM3-SP04EAA':   `${CM3}/CM3-SP04EAA.jpg`,
+  'CM3-SP04EAA-E': `${CM3}/CM3-SP04EAA-E.jpg`,
+  'CM3-SP04EAM':   `${CM3}/CM3-SP04EAM.jpg`,
+  // 온도 모듈
+  'CM3-SP04ERO':   `${CM3}/CM3-SP04ERO.jpg`,
+  'CM3-SP04ETO':   `${CM3}/CM3-SP04ETO.jpg`,
+  // 통신 모듈
+  'CM3-SP01EET':   `${CM3}/CM3-SP01EET.jpg`,
+  'CM3-SP02ERS':   `${CM3}/CM3-SP02ERS.jpg`,
+  'CM3-SP02ERR':   `${CM3}/CM3-SP02ERR.jpg`,
+  'CM3-SP02ERRC':  `${CM3}/CM3-SP02ERRC.jpg`,
+  'CM3-SP02ERSC':  `${CM3}/CM3-SP02ERSC.jpg`,
+  'CM3-SP01OPC':   `${CM3}/CM3-SP01OPC.jpg`,
+  // 특수 모듈
+  'CM3-SP02HSC':   `${CM3}/CM3-SP02HSC.jpg`,
+  'CM3-SP02HSD':   `${CM3}/CM3-SP02HSD.jpg`,
+  'CM3-SP02POS':   `${CM3}/CM3-SP02POS.jpg`,
+};
 
 // ── CM1: 파일명 정확 일치 ────────────────────────────────────
 const CM1_EXACT = new Set([
@@ -104,28 +177,31 @@ const XPANEL_PATTERNS: { regex: RegExp; file: string }[] = [
 
 // ── 메인 해석 함수 ────────────────────────────────────────────
 export function resolveProductImage(productId: string, subType: string): string | null {
-  // 1. IPC 직접 매핑
+  // 1. CM3 직접 매핑
+  if (productId in CM3_MAP) return CM3_MAP[productId];
+
+  // 2. IPC 직접 매핑
   if (productId in IPC_MAP) return IPC_MAP[productId];
 
-  // 2. SCADA subType 매핑
+  // 3. SCADA subType 매핑
   if (subType in SCADA_MAP) return SCADA_MAP[subType];
 
-  // 3. XPANEL ID 패턴 매핑
+  // 4. XPANEL ID 패턴 매핑
   for (const { regex, file } of XPANEL_PATTERNS) {
     if (regex.test(productId)) return file;
   }
 
-  // 4. CM1 정확 일치
+  // 5. CM1 정확 일치
   if (CM1_EXACT.has(productId)) return `${CM1}/${productId}.jpg`;
 
-  // 5. CM1 n 패턴 매핑
+  // 6. CM1 n 패턴 매핑
   for (const { regex, file } of CM1_PATTERNS) {
     if (regex.test(productId)) return `${CM1}/${file}.jpg`;
   }
 
-  // 6. CM1 subType 폴백
+  // 7. CM1 subType 폴백
   if (subType in CM1_SUBTYPE) return CM1_SUBTYPE[subType];
 
-  // 7. 이미지 없음 → 플레이스홀더
+  // 8. 이미지 없음
   return null;
 }

@@ -1033,7 +1033,7 @@
     "seriesLabel": "Slim Type",
     "subType": "CM3_CPU_SLIM",
     "plcSeries": "CM3",
-    "description": "TR Sink 출력 / RS232+RS485+Ethernet / SD 슬롯",
+    "description": "TR Sink 출력 / RS232+RS485+Ethernet",
     "specs": [
       {
         "label": "디지털 I/O",
@@ -1042,22 +1042,7 @@
       },
       {
         "label": "연산 속도",
-        "value": "300 ns/Step",
-        "source": "catalog"
-      },
-      {
-        "label": "RS485",
-        "value": "O",
-        "source": "catalog"
-      },
-      {
-        "label": "Ethernet",
-        "value": "O",
-        "source": "catalog"
-      },
-      {
-        "label": "SD/MMC",
-        "value": "옵션가능",
+        "value": "300 ns/Step (기본 명령)",
         "source": "catalog"
       },
       {
@@ -1066,8 +1051,53 @@
         "source": "catalog"
       },
       {
-        "label": "타이머/카운터",
-        "value": "각 512점",
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
         "source": "catalog"
       },
       {
@@ -1088,11 +1118,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "프로그램 언어",
-        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1111,7 +1136,7 @@
     "seriesLabel": "Slim Type",
     "subType": "CM3_CPU_SLIM",
     "plcSeries": "CM3",
-    "description": "TR Source 출력 / RS232+RS485+Ethernet / SD 슬롯",
+    "description": "TR Source 출력 / RS232+RS485+Ethernet",
     "specs": [
       {
         "label": "디지털 I/O",
@@ -1119,13 +1144,8 @@
         "source": "catalog"
       },
       {
-        "label": "RS485",
-        "value": "O",
-        "source": "catalog"
-      },
-      {
-        "label": "Ethernet",
-        "value": "O",
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
         "source": "catalog"
       },
       {
@@ -1134,8 +1154,53 @@
         "source": "catalog"
       },
       {
-        "label": "타이머/카운터",
-        "value": "각 512점",
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
         "source": "catalog"
       },
       {
@@ -1156,11 +1221,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "프로그램 언어",
-        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1179,21 +1239,16 @@
     "seriesLabel": "Slim Type",
     "subType": "CM3_CPU_SLIM",
     "plcSeries": "CM3",
-    "description": "Relay 출력 / RS232+RS485+Ethernet",
+    "description": "Relay 출력 / 입력 8점·출력 6점 / RS232+RS485+Ethernet",
     "specs": [
       {
         "label": "디지털 I/O",
-        "value": "입력 8점 / 출력 8점 (Relay)",
+        "value": "입력 8점 / 출력 6점 (Relay)",
         "source": "catalog"
       },
       {
-        "label": "RS485",
-        "value": "O",
-        "source": "catalog"
-      },
-      {
-        "label": "Ethernet",
-        "value": "O",
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
         "source": "catalog"
       },
       {
@@ -1202,8 +1257,48 @@
         "source": "catalog"
       },
       {
-        "label": "타이머/카운터",
-        "value": "각 512점",
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
         "source": "catalog"
       },
       {
@@ -1225,14 +1320,9 @@
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
         "source": "catalog"
-      },
-      {
-        "label": "프로그램 언어",
-        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
-        "source": "catalog"
       }
     ],
-    "ioPoints": 16,
+    "ioPoints": 14,
     "outputType": "RELAY",
     "formFactor": "SLIM",
     "isHighSpeed": false,
@@ -1255,13 +1345,8 @@
         "source": "catalog"
       },
       {
-        "label": "RS485",
-        "value": "O",
-        "source": "catalog"
-      },
-      {
-        "label": "Ethernet",
-        "value": "X",
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
         "source": "catalog"
       },
       {
@@ -1270,8 +1355,53 @@
         "source": "catalog"
       },
       {
-        "label": "타이머/카운터",
-        "value": "각 512점",
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
         "source": "catalog"
       },
       {
@@ -1292,11 +1422,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "프로그램 언어",
-        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1323,13 +1448,8 @@
         "source": "catalog"
       },
       {
-        "label": "RS485",
-        "value": "O",
-        "source": "catalog"
-      },
-      {
-        "label": "Ethernet",
-        "value": "X",
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
         "source": "catalog"
       },
       {
@@ -1338,8 +1458,53 @@
         "source": "catalog"
       },
       {
-        "label": "타이머/카운터",
-        "value": "각 512점",
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
         "source": "catalog"
       },
       {
@@ -1360,11 +1525,6 @@
       {
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
-        "source": "catalog"
-      },
-      {
-        "label": "프로그램 언어",
-        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
         "source": "catalog"
       }
     ],
@@ -1383,7 +1543,7 @@
     "seriesLabel": "Slim Type",
     "subType": "CM3_CPU_SLIM",
     "plcSeries": "CM3",
-    "description": "Relay 출력 / RS232+RS485 (Ethernet 없음)",
+    "description": "Relay 출력 / 입력 8점·출력 8점 / RS232+RS485 (Ethernet 없음)",
     "specs": [
       {
         "label": "디지털 I/O",
@@ -1391,13 +1551,8 @@
         "source": "catalog"
       },
       {
-        "label": "RS485",
-        "value": "O",
-        "source": "catalog"
-      },
-      {
-        "label": "Ethernet",
-        "value": "X",
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
         "source": "catalog"
       },
       {
@@ -1406,8 +1561,48 @@
         "source": "catalog"
       },
       {
-        "label": "타이머/카운터",
-        "value": "각 512점",
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
         "source": "catalog"
       },
       {
@@ -1429,10 +1624,525 @@
         "label": "상대 습도",
         "value": "5~95%RH (비결로)",
         "source": "catalog"
+      }
+    ],
+    "ioPoints": 16,
+    "outputType": "RELAY",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": false,
+    "hasRS485": true
+  },
+  {
+    "id": "CM3-SP32MDT",
+    "modelName": "CM3-SP32MDT",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Sink 출력 / RS232C만 (RS485·Ethernet 없음)",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 16점 / 출력 16점 (TR Sink)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
       },
       {
         "label": "프로그램 언어",
-        "value": "IL(Instruction List), LD(Ladder Diagram), SFC(Sequential Function Chart), FBD(Function Block Diagram), FBD Extension",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 32,
+    "outputType": "TR_SINK",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": false,
+    "hasRS485": false
+  },
+  {
+    "id": "CM3-SP32MDTE",
+    "modelName": "CM3-SP32MDTE",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Sink 출력 / RS232+Ethernet / SD/MMC 옵션",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 16점 / 출력 16점 (TR Sink)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "옵션 가능",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 32,
+    "outputType": "TR_SINK",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": true,
+    "hasRS485": false
+  },
+  {
+    "id": "CM3-SP32MDC",
+    "modelName": "CM3-SP32MDC",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Source 출력 / RS232C만 (RS485·Ethernet 없음)",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 16점 / 출력 16점 (TR Source)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 32,
+    "outputType": "TR_SOURCE",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": false,
+    "hasRS485": false
+  },
+  {
+    "id": "CM3-SP32MDCE",
+    "modelName": "CM3-SP32MDCE",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Source 출력 / RS232+Ethernet / SD/MMC 옵션",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 16점 / 출력 16점 (TR Source)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "옵션 가능",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 32,
+    "outputType": "TR_SOURCE",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": true,
+    "hasRS485": false
+  },
+  {
+    "id": "CM3-SP16MDR",
+    "modelName": "CM3-SP16MDR",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "Relay 출력 / 입력 8점·출력 8점 / RS232C만",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 8점 / 출력 8점 (Relay)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
         "source": "catalog"
       }
     ],
@@ -1441,6 +2151,516 @@
     "formFactor": "SLIM",
     "isHighSpeed": false,
     "hasEthernet": false,
+    "hasRS485": false
+  },
+  {
+    "id": "CM3-SP16MDRE",
+    "modelName": "CM3-SP16MDRE",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "Relay 출력 / 입력 8점·출력 6점 / RS232+Ethernet",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 8점 / 출력 6점 (Relay)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 14,
+    "outputType": "RELAY",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": true,
+    "hasRS485": false
+  },
+  {
+    "id": "CM3-SP16MDTV",
+    "modelName": "CM3-SP16MDTV",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Sink 출력 / 8pts I/O / RS232+RS485 (Ethernet 없음)",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 8점 / 출력 8점 (TR Sink)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 16,
+    "outputType": "TR_SINK",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": false,
+    "hasRS485": true
+  },
+  {
+    "id": "CM3-SP16MDTF",
+    "modelName": "CM3-SP16MDTF",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Sink 출력 / 8pts I/O / RS232+RS485+Ethernet",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 8점 / 출력 8점 (TR Sink)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 16,
+    "outputType": "TR_SINK",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": true,
+    "hasRS485": true
+  },
+  {
+    "id": "CM3-SP16MDCV",
+    "modelName": "CM3-SP16MDCV",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Source 출력 / 8pts I/O / RS232+RS485 (Ethernet 없음)",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 8점 / 출력 8점 (TR Source)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 16,
+    "outputType": "TR_SOURCE",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": false,
+    "hasRS485": true
+  },
+  {
+    "id": "CM3-SP16MDCF",
+    "modelName": "CM3-SP16MDCF",
+    "category": "PLC",
+    "series": "SLIM",
+    "seriesLabel": "Slim Type",
+    "subType": "CM3_CPU_SLIM",
+    "plcSeries": "CM3",
+    "description": "TR Source 출력 / 8pts I/O / RS232+RS485+Ethernet",
+    "specs": [
+      {
+        "label": "디지털 I/O",
+        "value": "입력 8점 / 출력 8점 (TR Source)",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "300 ns/Step (기본 명령)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 용량",
+        "value": "10kStep",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 입출력 확장",
+        "value": "1024pts",
+        "source": "catalog"
+      },
+      {
+        "label": "프로그램 언어",
+        "value": "IL, LD, SFC, FBD, FBD Extension",
+        "source": "catalog"
+      },
+      {
+        "label": "최대 확장",
+        "value": "1 CPU 블록 + 최대 11확장 블록",
+        "source": "catalog"
+      },
+      {
+        "label": "RS232C",
+        "value": "1ch (기본)",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "Ethernet",
+        "value": "O (10/100Mbps)",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "고속 카운터",
+        "value": "내장 2CH / 최대 20Kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "PID",
+        "value": "32ch / Auto-Tuning",
+        "source": "catalog"
+      },
+      {
+        "label": "RTC",
+        "value": "내장 배터리 (CR2032)",
+        "source": "catalog"
+      },
+      {
+        "label": "전원 전압",
+        "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10~65°C",
+        "source": "catalog"
+      },
+      {
+        "label": "보존 온도",
+        "value": "-25~80°C",
+        "source": "catalog"
+      },
+      {
+        "label": "상대 습도",
+        "value": "5~95%RH (비결로)",
+        "source": "catalog"
+      }
+    ],
+    "ioPoints": 16,
+    "outputType": "TR_SOURCE",
+    "formFactor": "SLIM",
+    "isHighSpeed": false,
+    "hasEthernet": true,
     "hasRS485": true
   },
   {

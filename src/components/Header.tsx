@@ -11,7 +11,7 @@ export default function Header({ onReset }: HeaderProps) {
             <img
               src="/products/CIMON_Logo.png"
               alt="CIMON"
-              className="h-8 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </div>
           <span className="text-gray-400 text-sm font-light border-l border-gray-600 pl-3">
