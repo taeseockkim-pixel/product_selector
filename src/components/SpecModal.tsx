@@ -1,27 +1,31 @@
 import { useState, useEffect } from 'react';
 import type { Product } from '../types';
 import { resolveProductImage } from '../utils/imageResolver';
-import { getCatalogUrl } from '../config/catalogConfig';
+import { getCatalogUrl, getManualUrl, getDrawingUrl } from '../config/catalogConfig';
 
-// ── 카탈로그 버튼 ────────────────────────────────────────────
-function CatalogButton({ subType }: { subType: string }) {
+// ── 문서 버튼 (카탈로그 · 메뉴얼 · 도면 공용) ───────────────
+type DocButtonColor = 'blue' | 'green' | 'orange';
+
+function DocButton({ label, url, color = 'blue' }: { label: string; url: string; color?: DocButtonColor }) {
   const [open, setOpen] = useState(false);
-  const url = getCatalogUrl(subType);
-  if (!url) return null;
+
+  const colorClass: Record<DocButtonColor, string> = {
+    blue:   'bg-blue-50 text-blue-600 hover:bg-blue-100',
+    green:  'bg-green-50 text-green-600 hover:bg-green-100',
+    orange: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
+  };
 
   return (
     <div className="relative inline-block">
-      {open && (
-        <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-      )}
+      {open && <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="relative z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-sm font-medium transition-colors"
+        className={`relative z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${colorClass[color]}`}
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
         </svg>
-        카탈로그
+        {label}
         <svg
           className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
@@ -123,8 +127,16 @@ export default function SpecModal({
             <div className="flex-1 min-w-0 flex flex-col gap-2">
               <p className="text-sm font-semibold text-blue-600">{product.seriesLabel}</p>
               <p className="text-sm text-gray-500 leading-relaxed">{product.description}</p>
-              <div className="mt-auto pt-1">
-                <CatalogButton subType={product.subType} />
+              <div className="mt-auto pt-1 flex flex-wrap gap-2">
+                {getCatalogUrl(product.subType) && (
+                  <DocButton label="카탈로그" url={getCatalogUrl(product.subType)!} color="blue" />
+                )}
+                {getManualUrl(product.subType) && (
+                  <DocButton label="메뉴얼" url={getManualUrl(product.subType)!} color="green" />
+                )}
+                {getDrawingUrl(product.subType) && (
+                  <DocButton label="도면" url={getDrawingUrl(product.subType)!} color="orange" />
+                )}
               </div>
             </div>
           </div>
