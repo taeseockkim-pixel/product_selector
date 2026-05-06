@@ -28,12 +28,12 @@ const CM3_MAP: Record<string, string> = {
   // CPU SLIM (TR Source 8pts)
   'CM3-SP16MDCV':  `${CM3}/CM3-SP16MDCV.jpg`,
   'CM3-SP16MDCF':  `${CM3}/CM3-SP16MDCF.jpg`,
-  // CPU BRICK
-  'CM3-SB32MDTF':  `${CM3}/CM3-SB32MDTF.jpg`,
-  'CM3-SB32MDCF':  `${CM3}/CM3-SB32MDCF.jpg`,
-  'CM3-SB32MDRF':  `${CM3}/CM3-SB32MDRF.jpg`,
-  'CM3-SB16MDTF':  `${CM3}/CM3-SB16MDTF.jpg`,
-  'CM3-SB16MDCF':  `${CM3}/CM3-SB16MDCF.jpg`,
+  // CPU BRICK (공통 시리즈 이미지 사용)
+  'CM3-SB32MDTF':  `${CM3}/CM3-SB32_Series.jpg`,
+  'CM3-SB32MDCF':  `${CM3}/CM3-SB32_Series.jpg`,
+  'CM3-SB32MDRF':  `${CM3}/CM3-SB32_Series.jpg`,
+  'CM3-SB16MDTF':  `${CM3}/CM3-SB16_Series.jpg`,
+  'CM3-SB16MDCF':  `${CM3}/CM3-SB16_Series.jpg`,
   // CPU SPLUS
   'CM3-SP32PDTF':  `${CM3}/CM3-SP32PDTF.jpg`,
   'CM3-SP32PDCF':  `${CM3}/CM3-SP32PDCF.jpg`,

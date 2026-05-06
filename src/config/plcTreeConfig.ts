@@ -102,7 +102,7 @@ const CM3_TREE: PlcTreeGroup[] = [
   {
     id: 'cpu', label: 'CPU', labelEn: 'CPU',
     children: [
-      { id: 'CM3_CPU_BRICK', label: 'Block Type' },
+      { id: 'CM3_CPU_BRICK', label: 'Brick Type', labelEn: 'Brick Type' },
       { id: 'CM3_CPU_SLIM',  label: 'Slim Type' },
       { id: 'CM3_CPU_SPLUS', label: '고속 CPU (SPLUS)', labelEn: 'High-Speed CPU (SPLUS)' },
     ],

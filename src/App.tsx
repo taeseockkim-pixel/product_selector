@@ -8,6 +8,7 @@ import PlcLeftPanel from './components/PlcLeftPanel';
 import ProductTable from './components/ProductTable';
 import CartPage from './components/CartPage';
 import ComparePage from './components/ComparePage';
+import 'flag-icons/css/flag-icons.min.css';
 import SpecModal from './components/SpecModal';
 import { LangProvider, useLang, useT } from './context/LangContext';
 import { UI } from './i18n/ui';
@@ -51,24 +52,30 @@ function filterByConfig(
 function LangToggle() {
   const { lang, setLang } = useLang();
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 shrink-0">
       <button
         onClick={() => setLang('ko')}
         title="한국어"
-        className={`w-8 h-8 flex items-center justify-center text-xl leading-none transition-all ${
-          lang !== 'ko' ? 'grayscale opacity-40 hover:opacity-60' : ''
+        className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all ${
+          lang === 'ko'
+            ? 'bg-blue-50 text-blue-700'
+            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
         }`}
       >
-        🇰🇷
+        <span className="fi fi-kr" style={{ width: '18px', height: '14px', backgroundSize: 'cover', borderRadius: '2px' }}></span>
+        KR
       </button>
       <button
         onClick={() => setLang('en')}
         title="English"
-        className={`w-8 h-8 flex items-center justify-center text-xl leading-none transition-all ${
-          lang !== 'en' ? 'grayscale opacity-40 hover:opacity-60' : ''
+        className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all ${
+          lang === 'en'
+            ? 'bg-blue-50 text-blue-700'
+            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
         }`}
       >
-        🇺🇸
+        <span className="fi fi-us" style={{ width: '18px', height: '14px', backgroundSize: 'cover', borderRadius: '2px' }}></span>
+        US
       </button>
     </div>
   );
@@ -269,8 +276,6 @@ function AppHeader({
         </div>
 
         <div className="flex items-center gap-2">
-          <LangToggle />
-
           <button
             onClick={onCompareClick}
             className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[90px] whitespace-nowrap ${
@@ -316,6 +321,9 @@ function AppHeader({
               </span>
             )}
           </button>
+
+          <div className="w-px h-5 bg-gray-200 mx-1" />
+          <LangToggle />
         </div>
       </div>
     </header>
