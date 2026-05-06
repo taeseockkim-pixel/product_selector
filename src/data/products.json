@@ -4878,6 +4878,40 @@
     "descriptionEn": "10/100Base TX / DHCP supported"
   },
   {
+    "id": "CM1-EC01G",
+    "modelName": "CM1-EC01G",
+    "category": "PLC",
+    "plcSeries": "CM1",
+    "series": "CM1_COMM_ETH",
+    "seriesLabel": "이더넷",
+    "subType": "CM1_COMM_ETH",
+    "description": "Gigabit Ethernet / 10/100/1000Mbps",
+    "specs": [
+      {
+        "label": "속도",
+        "value": "10/100/1000Mbps",
+        "source": "catalog"
+      },
+      {
+        "label": "서비스",
+        "value": "Loader(UDP), HMI Protocol(UDP/TCP), MODBUS TCP Slave, MODBUS TCP Master",
+        "source": "catalog"
+      },
+      {
+        "label": "동시접속",
+        "value": "UDP 10 Services / TCP 10 Services",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10°C ~ 65°C",
+        "source": "catalog"
+      }
+    ],
+    "seriesLabelEn": "Ethernet",
+    "descriptionEn": "Gigabit Ethernet / 10/100/1000Mbps"
+  },
+  {
     "id": "CM1-EC10OPC",
     "modelName": "CM1-EC10OPC",
     "category": "PLC",
@@ -4949,6 +4983,16 @@
         "label": "통신",
         "value": "10BASE-T",
         "source": "catalog"
+      },
+      {
+        "label": "동시접속",
+        "value": "Single Host",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10°C ~ 65°C",
+        "source": "catalog"
       }
     ],
     "seriesLabelEn": "DNP3.0",
@@ -4966,17 +5010,22 @@
     "specs": [
       {
         "label": "프로토콜",
-        "value": "DNP3.0 Protocol, TCP/IP, UDP/IP",
+        "value": "DNP 3.0",
         "source": "catalog"
       },
       {
-        "label": "Host",
+        "label": "통신",
+        "value": "10BASE-T",
+        "source": "catalog"
+      },
+      {
+        "label": "동시접속",
         "value": "4 Hosts",
         "source": "catalog"
       },
       {
-        "label": "내장 이더넷",
-        "value": "10BASE-T",
+        "label": "동작 온도",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],

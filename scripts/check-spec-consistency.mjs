@@ -36,6 +36,7 @@ const KO_EN_MIX_EXCEPTIONS = new Set([
   '[PLC] 시리얼 통신|Port2',           // SC01A Port2 없음(미탑재) vs 타 모델 RS422/485
   '[SCADA] SCADA Standard|라이선스',   // DS/RS(영문 Development+Runtime) vs VS/CS(한글 뷰 버전) 제품군 차이
   '[SCADA] SCADA Standard|TAG 수',     // FULL 라인 "무한 TAG"(한글 공식명) vs N TAG(숫자)
+  '[PLC] 이더넷|서비스',               // EC01G(PLC Link 미지원 → 영문만) vs EC10A/B(PLC Link 공동/고속 → 한글 포함) 기능 차이
 ]);
 
 // ── 1. 시리즈별로 그룹핑 ─────────────────────────────────────────
