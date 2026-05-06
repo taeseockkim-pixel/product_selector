@@ -1008,6 +1008,11 @@
         "source": "catalog"
       },
       {
+        "label": "연산 속도",
+        "value": "LD: 500ns/Step, MOV: 250ns/Step",
+        "source": "catalog"
+      },
+      {
         "label": "내장 시리얼",
         "value": "RS-232C (최대 38,400bps, Terminal Block), RS-485 (최대 115,200bps, RJ45)",
         "source": "catalog"
