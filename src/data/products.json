@@ -116,6 +116,11 @@
         "source": "catalog"
       },
       {
+        "label": "이중화",
+        "value": "-",
+        "source": "catalog"
+      },
+      {
         "label": "연산 속도",
         "value": "LD: 27ns/Step, MOV: 27ns/Step, 실수연산: 30ns/Step",
         "source": "catalog"
@@ -204,6 +209,11 @@
       {
         "label": "최대 I/O",
         "value": "4,096점",
+        "source": "catalog"
+      },
+      {
+        "label": "이중화",
+        "value": "-",
         "source": "catalog"
       },
       {
@@ -374,6 +384,11 @@
         "source": "catalog"
       },
       {
+        "label": "연산 속도",
+        "value": "LD: 0.028μs/Step, 실수연산: 0.4μs/명령어",
+        "source": "catalog"
+      },
+      {
         "label": "내장 이더넷",
         "value": "10/100Base-T/TX",
         "source": "catalog"
@@ -445,8 +460,18 @@
         "source": "catalog"
       },
       {
+        "label": "연산 속도",
+        "value": "LD: 0.028μs/Step, 실수연산: 0.4μs/명령어",
+        "source": "catalog"
+      },
+      {
         "label": "내장 이더넷",
         "value": "10/100Base-T/TX",
+        "source": "catalog"
+      },
+      {
+        "label": "SD Card",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -508,6 +533,11 @@
       {
         "label": "최대 I/O",
         "value": "8,192점",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "LD: 0.028μs/Step, 실수연산: 0.4μs/명령어",
         "source": "catalog"
       },
       {
@@ -577,6 +607,11 @@
         "source": "catalog"
       },
       {
+        "label": "연산 속도",
+        "value": "LD: 0.028μs/Step, 실수연산: 0.4μs/명령어",
+        "source": "catalog"
+      },
+      {
         "label": "내장 이더넷",
         "value": "증설 통신 전용: 10/100Base-T/TX",
         "source": "catalog"
@@ -640,6 +675,11 @@
       {
         "label": "최대 I/O",
         "value": "2,048점",
+        "source": "catalog"
+      },
+      {
+        "label": "연산 속도",
+        "value": "LD: 0.028μs/Step, 실수연산: 0.4μs/명령어",
         "source": "catalog"
       },
       {
@@ -797,6 +837,11 @@
       {
         "label": "베이스 증설",
         "value": "최대 16개 베이스 지원",
+        "source": "catalog"
+      },
+      {
+        "label": "SD Card",
+        "value": "-",
         "source": "catalog"
       },
       {
@@ -1119,6 +1164,11 @@
         "source": "catalog"
       },
       {
+        "label": "SD/MMC",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
         "label": "고속 카운터",
         "value": "내장 2CH / 최대 20Kpps",
         "source": "catalog"
@@ -1224,6 +1274,11 @@
         "source": "catalog"
       },
       {
+        "label": "SD/MMC",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
         "label": "고속 카운터",
         "value": "내장 2CH / 최대 20Kpps",
         "source": "catalog"
@@ -1316,6 +1371,16 @@
       {
         "label": "RS485",
         "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "X",
         "source": "catalog"
       },
       {
@@ -1429,6 +1494,11 @@
         "source": "catalog"
       },
       {
+        "label": "SD/MMC",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
         "label": "고속 카운터",
         "value": "내장 2CH / 최대 20Kpps",
         "source": "catalog"
@@ -1534,6 +1604,11 @@
         "source": "catalog"
       },
       {
+        "label": "SD/MMC",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
         "label": "고속 카운터",
         "value": "내장 2CH / 최대 20Kpps",
         "source": "catalog"
@@ -1626,6 +1701,16 @@
       {
         "label": "RS485",
         "value": "O (1ch)",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "X",
         "source": "catalog"
       },
       {
@@ -1736,6 +1821,11 @@
       {
         "label": "위치결정",
         "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "옵션 가능",
         "source": "catalog"
       },
       {
@@ -1954,6 +2044,11 @@
         "source": "catalog"
       },
       {
+        "label": "SD/MMC",
+        "value": "옵션 가능",
+        "source": "catalog"
+      },
+      {
         "label": "고속 카운터",
         "value": "내장 2CH / 최대 20Kpps",
         "source": "catalog"
@@ -2159,6 +2254,16 @@
         "source": "catalog"
       },
       {
+        "label": "위치결정",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
         "label": "Ethernet",
         "value": "X",
         "source": "catalog"
@@ -2255,6 +2360,16 @@
       },
       {
         "label": "RS485",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "위치결정",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
         "value": "X",
         "source": "catalog"
       },
@@ -2369,6 +2484,11 @@
         "source": "catalog"
       },
       {
+        "label": "SD/MMC",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
         "label": "고속 카운터",
         "value": "내장 2CH / 최대 20Kpps",
         "source": "catalog"
@@ -2471,6 +2591,11 @@
       {
         "label": "위치결정",
         "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "X",
         "source": "catalog"
       },
       {
@@ -2579,6 +2704,11 @@
         "source": "catalog"
       },
       {
+        "label": "SD/MMC",
+        "value": "X",
+        "source": "catalog"
+      },
+      {
         "label": "고속 카운터",
         "value": "내장 2CH / 최대 20Kpps",
         "source": "catalog"
@@ -2681,6 +2811,11 @@
       {
         "label": "위치결정",
         "value": "X축 100kpps / Y축 5kpps",
+        "source": "catalog"
+      },
+      {
+        "label": "SD/MMC",
+        "value": "X",
         "source": "catalog"
       },
       {
@@ -2964,6 +3099,11 @@
         "source": "catalog"
       },
       {
+        "label": "RS485",
+        "value": "O",
+        "source": "catalog"
+      },
+      {
         "label": "동작 온도",
         "value": "-10°C ~ 65°C",
         "source": "catalog"
@@ -3026,6 +3166,11 @@
       {
         "label": "전원 전압",
         "value": "DC 12V ~ 24V",
+        "source": "catalog"
+      },
+      {
+        "label": "RS485",
+        "value": "O",
         "source": "catalog"
       },
       {
@@ -3165,6 +3310,11 @@
         "source": "catalog"
       },
       {
+        "label": "프로토콜",
+        "value": "EtherCAT·MQTT·OPC-UA",
+        "source": "catalog"
+      },
+      {
         "label": "프로그램 용량",
         "value": "32K Step",
         "source": "catalog"
@@ -3238,6 +3388,11 @@
       {
         "label": "Ethernet",
         "value": "O (2Ports)",
+        "source": "catalog"
+      },
+      {
+        "label": "프로토콜",
+        "value": "EtherCAT·MQTT·OPC-UA",
         "source": "catalog"
       },
       {
@@ -4224,7 +4379,7 @@
     "description": "RTD 4ch (Pt100, JPt100)",
     "specs": [
       {
-        "label": "채널",
+        "label": "ch",
         "value": "4Ch",
         "source": "catalog"
       },
@@ -4253,7 +4408,7 @@
     "description": "RTD 4ch (Pt1000, Ni1000)",
     "specs": [
       {
-        "label": "채널",
+        "label": "ch",
         "value": "4Ch",
         "source": "catalog"
       },
@@ -4282,7 +4437,7 @@
     "description": "TC 4ch (K, J, E, T, B, R, S, N)",
     "specs": [
       {
-        "label": "채널",
+        "label": "ch",
         "value": "4채널",
         "source": "catalog"
       },
@@ -4345,6 +4500,11 @@
         "source": "catalog"
       },
       {
+        "label": "카운터 (C)",
+        "value": "Up/Down Preset 카운터 + 링 카운터",
+        "source": "catalog"
+      },
+      {
         "label": "속도",
         "value": "200kPPS",
         "source": "catalog"
@@ -4374,6 +4534,11 @@
         "source": "catalog"
       },
       {
+        "label": "카운터 (C)",
+        "value": "Up/Down Preset 카운터 + 링 카운터",
+        "source": "catalog"
+      },
+      {
         "label": "속도",
         "value": "250kPPS",
         "source": "catalog"
@@ -4400,6 +4565,11 @@
       {
         "label": "ch",
         "value": "2채널",
+        "source": "catalog"
+      },
+      {
+        "label": "카운터 (C)",
+        "value": "Up/Down Preset 카운터 + 링 카운터",
         "source": "catalog"
       },
       {
@@ -4801,6 +4971,11 @@
         "source": "catalog"
       },
       {
+        "label": "동시접속",
+        "value": "UDP 16 Services / TCP 16 Services",
+        "source": "catalog"
+      },
+      {
         "label": "프로토콜",
         "value": "CIMON, Modbus TCP, OPC DA",
         "source": "catalog"
@@ -4832,6 +5007,11 @@
       {
         "label": "서비스",
         "value": "Loader(UDP), HMI Protocol(TCP/UDP), MODBUS TCP Slave, MODBUS TCP Master, 사용자 프로토콜(UDP, TCP Passive/Active), PLC Link(공동), 고속 PLC Link",
+        "source": "catalog"
+      },
+      {
+        "label": "동시접속",
+        "value": "UDP 16 Services / TCP 16 Services",
         "source": "catalog"
       },
       {
@@ -4869,6 +5049,11 @@
         "source": "catalog"
       },
       {
+        "label": "동시접속",
+        "value": "UDP 16 Services / TCP 16 Services",
+        "source": "catalog"
+      },
+      {
         "label": "프로토콜",
         "value": "CIMON, Modbus TCP, OPC DA",
         "source": "catalog"
@@ -4900,6 +5085,11 @@
       {
         "label": "서비스",
         "value": "Loader(UDP), HMI Protocol(UDP/TCP), MODBUS TCP Slave, MODBUS TCP Master",
+        "source": "catalog"
+      },
+      {
+        "label": "프로토콜",
+        "value": "CIMON, Modbus TCP",
         "source": "catalog"
       },
       {
@@ -5315,6 +5505,11 @@
         "label": "입력",
         "value": "AC 88~264V",
         "source": "catalog"
+      },
+      {
+        "label": "기능",
+        "value": "이중화 전원 공급 모듈",
+        "source": "catalog"
       }
     ],
     "seriesLabelEn": "Redundancy Power",
@@ -5330,6 +5525,11 @@
     "subType": "CM1_RED_PWR",
     "description": "이중화 전원 공급 상태 모니터링 모듈",
     "specs": [
+      {
+        "label": "입력",
+        "value": "DC 24V",
+        "source": "catalog"
+      },
       {
         "label": "기능",
         "value": "이중화 전원 모니터링",
@@ -6358,7 +6558,7 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4채널 / 1Module",
+        "value": "4Ch",
         "source": "catalog"
       },
       {
@@ -6382,12 +6582,12 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4채널 / 1module",
+        "value": "4채널",
         "source": "catalog"
       },
       {
         "label": "센서",
-        "value": "열전대 Type K, J, E, T, B, R, S, N",
+        "value": "K, J, E, T, B, R, S, N 형 열전대",
         "source": "catalog"
       }
     ],
@@ -6436,6 +6636,16 @@
       {
         "label": "프로토콜",
         "value": "UA TCP (opc.tcp)",
+        "source": "catalog"
+      },
+      {
+        "label": "속도",
+        "value": "10/100Mbps",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -6574,6 +6784,11 @@
         "source": "catalog"
       },
       {
+        "label": "입력",
+        "value": "1상 입력 / 2상 입력",
+        "source": "catalog"
+      },
+      {
         "label": "속도",
         "value": "200kPPS",
         "source": "catalog"
@@ -6600,6 +6815,11 @@
       {
         "label": "ch",
         "value": "2채널",
+        "source": "catalog"
+      },
+      {
+        "label": "입력",
+        "value": "1상 입력 / 2상 입력",
         "source": "catalog"
       },
       {
@@ -7176,6 +7396,11 @@
       {
         "label": "화면",
         "value": "19\" TFT LCD",
+        "source": "catalog"
+      },
+      {
+        "label": "밝기",
+        "value": "250cd/m²",
         "source": "catalog"
       },
       {
@@ -7794,6 +8019,16 @@
         "source": "catalog"
       },
       {
+        "label": "소비전력",
+        "value": "36W (Max: 67W)",
+        "source": "catalog"
+      },
+      {
+        "label": "중량",
+        "value": "1.27kg",
+        "source": "catalog"
+      },
+      {
         "label": "OS",
         "value": "Windows 10 IoT Enterprise / Windows 10 Pro / Windows 11 IoT Enterprise / Windows 11 Pro",
         "source": "catalog"
@@ -7825,6 +8060,16 @@
       {
         "label": "스토리지",
         "value": "1 X M.2 2280 Key M 250GB (PCIe x4 only)",
+        "source": "catalog"
+      },
+      {
+        "label": "소비전력",
+        "value": "33W (Max: 84W)",
+        "source": "catalog"
+      },
+      {
+        "label": "중량",
+        "value": "1.27kg",
         "source": "catalog"
       },
       {
@@ -14083,7 +14328,7 @@
         "source": "catalog"
       },
       {
-        "label": "방수",
+        "label": "방수/방진",
         "value": "IP65 (전면)",
         "source": "catalog"
       },
@@ -14144,6 +14389,11 @@
       {
         "label": "하우징",
         "value": "알루미늄 다이캐스팅",
+        "source": "catalog"
+      },
+      {
+        "label": "방수/방진",
+        "value": "IP65 (전면)",
         "source": "catalog"
       },
       {
@@ -14221,6 +14471,11 @@
         "source": "catalog"
       },
       {
+        "label": "방수/방진",
+        "value": "IP65 (전면)",
+        "source": "catalog"
+      },
+      {
         "label": "입력 전원",
         "value": "AC100-240V",
         "source": "catalog"
@@ -14292,6 +14547,11 @@
       {
         "label": "하우징",
         "value": "알루미늄 다이캐스팅",
+        "source": "catalog"
+      },
+      {
+        "label": "방수/방진",
+        "value": "IP65 (전면)",
         "source": "catalog"
       },
       {

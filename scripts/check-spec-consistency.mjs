@@ -28,6 +28,7 @@ const issues = [];
 // 카탈로그 대조 완료. 아래 항목은 의도적 차이이므로 ERROR에서 제외.
 // 형식: '[카테고리] seriesLabel|라벨명'
 const KO_EN_MIX_EXCEPTIONS = new Set([
+  // ── 기존 예외 ─────────────────────────────────────────────────────
   '[PLC] XP Series|내장 이더넷',       // XP-F(전용 이더넷) vs XP-E(증설 통신 전용) 모델 구분
   '[PLC] CP Series|내장 이더넷',       // CP4(이더넷 없음 "-") vs CP3(증설 전용) 모델 차이
   '[PLC] 아날로그 입력|최대 분해능',   // 모델별 μV 실수값 vs 비트수(16384 분할) 카탈로그 혼용
@@ -37,6 +38,9 @@ const KO_EN_MIX_EXCEPTIONS = new Set([
   '[SCADA] SCADA Standard|라이선스',   // DS/RS(영문 Development+Runtime) vs VS/CS(한글 뷰 버전) 제품군 차이
   '[SCADA] SCADA Standard|TAG 수',     // FULL 라인 "무한 TAG"(한글 공식명) vs N TAG(숫자)
   '[PLC] 이더넷|서비스',               // EC01G(PLC Link 미지원 → 영문만) vs EC10A/B(PLC Link 공동/고속 → 한글 포함) 기능 차이
+  // ── 카탈로그 대조 완료 추가 예외 (2026-05-06) ─────────────────────
+  '[PLC] Slim Type|위치결정',          // TR/Source 모델: "X축 N kpps" 지원, Relay 모델: "X" 미지원 — 의도적 모델 차이
+  '[PLC] Slim Type|SD/MMC',            // Base(MDT/MDC/MDTE/MDCE): "옵션 가능", 나머지 F/V/R: "X" — 의도적 모델 차이
 ]);
 
 // ── 1. 시리즈별로 그룹핑 ─────────────────────────────────────────
