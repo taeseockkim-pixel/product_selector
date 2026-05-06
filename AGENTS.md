@@ -150,6 +150,18 @@ npm run verify
 - 새 이미지 추가 시: `npm run validate:specs` 실행 후 커밋
 - 변경 내용을 `docs/exec-plans/` 에 반영
 
+### 커밋 & 배포 전체 절차
+
+**상세 SOP** → **[docs/RELIABILITY.md](./docs/RELIABILITY.md#커밋--배포-절차-commit--deploy-sop)**
+
+단계 요약:
+1. `npm run check:spec-consistency` — ERROR 0건 (데이터 변경 시)
+2. `npm run check:i18n` — 0건 (i18n 변경 시)
+3. `npm run verify` — 전체 통과
+4. `git commit` — 메시지 형식 준수 (아래 참조)
+5. `git push origin main` — Vercel 자동 배포 트리거
+6. Vercel 대시보드에서 빌드 성공 확인
+
 ---
 
 ## i18n 번역 규칙 (CRITICAL)

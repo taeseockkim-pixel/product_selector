@@ -22,12 +22,89 @@ Vercel CDN 배포 (전 세계 엣지 노드)
 
 ---
 
-## 빌드 전 체크리스트
+## 커밋 & 배포 절차 (Commit & Deploy SOP)
+
+수정 완료 후 **반드시 이 순서대로** 실행하세요.
+
+### 1단계 — 데이터/스펙 검증 (products.json 변경 시)
 
 ```bash
-npx tsc --noEmit   # 타입 오류 0 확인
-npm run lint       # ESLint 오류 0 확인
-npm run build      # 빌드 성공 확인
+npm run validate:specs          # catalog/estimated 비율 확인
+npm run check:spec-consistency  # ERROR 0건 확인 (WARN은 허용 목록 대조)
+npm run check:i18n              # 번역 누락 0건 확인
+```
+
+> **기준**: `check:spec-consistency` ERROR 0건, `check:i18n` 0건이어야 커밋 가능.  
+> WARN은 `docs/SPEC_ENTRY_RULES.md` 섹션 8의 허용 목록과 대조 후 판단.
+
+### 2단계 — 전체 빌드 검증
+
+```bash
+npm run verify    # TypeScript + 빌드 + 파일 존재 + JSON 무결성 일괄 확인
+```
+
+> 모든 항목 통과 시에만 다음 단계 진행.
+
+### 3단계 — 커밋
+
+커밋 메시지 형식:
+
+```
+<type>(<scope>): <요약>
+
+[선택] 왜 이 변경이 필요한지 한 문장
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+```
+
+| type | 언제 |
+|---|---|
+| `feat` | 새 기능 추가 |
+| `fix` | 버그 수정, UI 오류 수정 |
+| `data` | products.json 데이터 변경 |
+| `docs` | 문서만 변경 |
+| `refactor` | 기능 변화 없는 코드 개선 |
+| `chore` | 빌드/스크립트/설정 변경 |
+
+scope: `plc` `ipc` `scada` `xpanel` `filter` `compare` `cart` `specs` `i18n` `ui`
+
+```bash
+git add <변경된 파일들>    # -A 또는 . 대신 파일명 명시 권장
+git commit -m "$(cat <<'EOF'
+data(specs): <요약>
+
+<이유 한 문장>
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+EOF
+)"
+```
+
+### 4단계 — 배포 (push)
+
+```bash
+git push origin main
+```
+
+> `main` 브랜치 push → GitHub → Vercel 자동 빌드 → CDN 배포 (~1~2분)
+
+### 5단계 — 배포 확인
+
+1. Vercel 대시보드 → Deployments → 최신 빌드 상태 확인
+2. 라이브 URL에서 변경된 카테고리 동작 확인
+3. 빌드 실패 시: 로컬 `npm run build` 로 오류 재현 → 수정 후 재푸시
+
+---
+
+## 빠른 참조 — 검증 명령어 모음
+
+```bash
+npm run validate:specs          # catalog 비율 검사
+npm run check:spec-consistency  # 시리즈 내 스펙 일관성 (ERROR 0 목표)
+npm run check:i18n              # 영문 번역 누락 (0건 목표)
+npm run verify                  # 전체 통합 검증 (커밋 전 필수)
+npm run dev                     # 로컬 개발 서버
+npm run build                   # 프로덕션 빌드 확인
 ```
 
 ---
