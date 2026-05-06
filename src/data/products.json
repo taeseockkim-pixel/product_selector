@@ -755,7 +755,7 @@
       },
       {
         "label": "상대 습도",
-        "value": "5~95% RH",
+        "value": "5~95%RH (비결로)",
         "source": "catalog"
       }
     ],
@@ -821,12 +821,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -892,12 +892,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -963,12 +963,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1029,12 +1029,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1135,12 +1135,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1240,12 +1240,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1340,12 +1340,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1445,12 +1445,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1550,12 +1550,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1650,12 +1650,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1755,12 +1755,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1865,12 +1865,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -1970,12 +1970,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2080,12 +2080,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2180,12 +2180,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2280,12 +2280,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2385,12 +2385,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2490,12 +2490,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2595,12 +2595,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2700,12 +2700,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2728,7 +2728,7 @@
     "modelName": "CM3-SB32MDTF",
     "category": "PLC",
     "series": "BRICK",
-    "seriesLabel": "Block Type",
+    "seriesLabel": "Brick Type",
     "subType": "CM3_CPU_BRICK",
     "plcSeries": "CM3",
     "description": "TR Sink 출력 / RS232+RS485+Ethernet / 블록 일체형",
@@ -2770,12 +2770,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2790,7 +2790,7 @@
     "isHighSpeed": false,
     "hasEthernet": true,
     "hasRS485": true,
-    "seriesLabelEn": "Block Type",
+    "seriesLabelEn": "Brick Type",
     "descriptionEn": "TR Sink output / RS232+RS485+Ethernet / integrated block type"
   },
   {
@@ -2798,7 +2798,7 @@
     "modelName": "CM3-SB32MDCF",
     "category": "PLC",
     "series": "BRICK",
-    "seriesLabel": "Block Type",
+    "seriesLabel": "Brick Type",
     "subType": "CM3_CPU_BRICK",
     "plcSeries": "CM3",
     "description": "TR Source 출력 / RS232+RS485+Ethernet / 블록 일체형",
@@ -2835,12 +2835,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2855,7 +2855,7 @@
     "isHighSpeed": false,
     "hasEthernet": true,
     "hasRS485": true,
-    "seriesLabelEn": "Block Type",
+    "seriesLabelEn": "Brick Type",
     "descriptionEn": "TR Source output / RS232+RS485+Ethernet / integrated block type"
   },
   {
@@ -2863,7 +2863,7 @@
     "modelName": "CM3-SB32MDRF",
     "category": "PLC",
     "series": "BRICK",
-    "seriesLabel": "Block Type",
+    "seriesLabel": "Brick Type",
     "subType": "CM3_CPU_BRICK",
     "plcSeries": "CM3",
     "description": "Relay 출력 / RS232+RS485+Ethernet / 블록 일체형",
@@ -2900,12 +2900,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2920,7 +2920,7 @@
     "isHighSpeed": false,
     "hasEthernet": true,
     "hasRS485": true,
-    "seriesLabelEn": "Block Type",
+    "seriesLabelEn": "Brick Type",
     "descriptionEn": "Relay output / RS232+RS485+Ethernet / integrated block type"
   },
   {
@@ -2928,7 +2928,7 @@
     "modelName": "CM3-SB16MDTF",
     "category": "PLC",
     "series": "BRICK",
-    "seriesLabel": "Block Type",
+    "seriesLabel": "Brick Type",
     "subType": "CM3_CPU_BRICK",
     "plcSeries": "CM3",
     "description": "TR Sink 출력 / Full 통신 / 소형 블록형",
@@ -2960,12 +2960,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -2985,7 +2985,7 @@
     "isHighSpeed": false,
     "hasEthernet": true,
     "hasRS485": true,
-    "seriesLabelEn": "Block Type",
+    "seriesLabelEn": "Brick Type",
     "descriptionEn": "TR Sink output / Full comm. / compact block type"
   },
   {
@@ -2993,7 +2993,7 @@
     "modelName": "CM3-SB16MDCF",
     "category": "PLC",
     "series": "BRICK",
-    "seriesLabel": "Block Type",
+    "seriesLabel": "Brick Type",
     "subType": "CM3_CPU_BRICK",
     "plcSeries": "CM3",
     "description": "TR Source 출력 / Full 통신 / 소형 블록형",
@@ -3025,12 +3025,12 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -3050,7 +3050,7 @@
     "isHighSpeed": false,
     "hasEthernet": true,
     "hasRS485": true,
-    "seriesLabelEn": "Block Type",
+    "seriesLabelEn": "Brick Type",
     "descriptionEn": "TR Source output / Full comm. / compact block type"
   },
   {
@@ -3105,7 +3105,7 @@
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -3181,7 +3181,7 @@
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -3257,7 +3257,7 @@
       },
       {
         "label": "보존 온도",
-        "value": "-25~80°C",
+        "value": "-25°C ~ 80°C",
         "source": "catalog"
       },
       {
@@ -3308,7 +3308,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3337,7 +3337,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3366,7 +3366,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3385,7 +3385,7 @@
     "specs": [
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3404,7 +3404,7 @@
     "specs": [
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3423,7 +3423,7 @@
     "specs": [
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3672,7 +3672,7 @@
       },
       {
         "label": "출력",
-        "value": "16점 SRC",
+        "value": "TR Source 0.5A",
         "source": "catalog"
       }
     ],
@@ -3696,7 +3696,7 @@
       },
       {
         "label": "출력",
-        "value": "32점 SINK",
+        "value": "TR Sink 0.2A",
         "source": "catalog"
       }
     ],
@@ -3720,7 +3720,7 @@
       },
       {
         "label": "출력",
-        "value": "32점 SRC",
+        "value": "TR Source 0.2A",
         "source": "catalog"
       }
     ],
@@ -3744,7 +3744,7 @@
       },
       {
         "label": "출력",
-        "value": "64점 SINK",
+        "value": "TR Sink 0.2A",
         "source": "catalog"
       }
     ],
@@ -3807,7 +3807,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3846,7 +3846,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3885,7 +3885,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3924,7 +3924,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -3958,7 +3958,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4021,7 +4021,7 @@
       },
       {
         "label": "ch",
-        "value": "4ch",
+        "value": "4점",
         "source": "catalog"
       },
       {
@@ -4317,7 +4317,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4462,7 +4462,7 @@
       },
       {
         "label": "타입",
-        "value": "등적 계량용",
+        "value": "동적 계량용",
         "source": "catalog"
       }
     ],
@@ -4612,7 +4612,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4651,7 +4651,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4690,7 +4690,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4729,7 +4729,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4763,7 +4763,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4797,7 +4797,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4831,7 +4831,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -4860,7 +4860,7 @@
       },
       {
         "label": "동작 온도",
-        "value": "-10~65°C",
+        "value": "-10°C ~ 65°C",
         "source": "catalog"
       }
     ],
@@ -5440,7 +5440,7 @@
       },
       {
         "label": "출력",
-        "value": "Relay AC 220V 2A",
+        "value": "16점 Relay AC 220V 2A",
         "source": "catalog"
       }
     ],
@@ -5695,7 +5695,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block Type",
+        "value": "단자형",
         "source": "catalog"
       }
     ],
@@ -5744,7 +5744,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block Type",
+        "value": "단자형",
         "source": "catalog"
       }
     ],
@@ -5793,7 +5793,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block Type",
+        "value": "단자형",
         "source": "catalog"
       }
     ],
@@ -5852,7 +5852,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block Type",
+        "value": "단자형",
         "source": "catalog"
       }
     ],
@@ -5911,7 +5911,7 @@
       },
       {
         "label": "단자 방식",
-        "value": "Terminal Block Type",
+        "value": "단자형",
         "source": "catalog"
       }
     ],
@@ -5955,7 +5955,7 @@
       },
       {
         "label": "절연 방식",
-        "value": "Relay",
+        "value": "릴레이",
         "source": "catalog"
       },
       {
@@ -6019,7 +6019,7 @@
       },
       {
         "label": "절연 방식",
-        "value": "입력:포토커플러 / 출력:Relay",
+        "value": "입력:포토커플러 / 출력:릴레이",
         "source": "catalog"
       },
       {
@@ -6188,12 +6188,12 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4채널",
+        "value": "4점",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "전류 14bit",
+        "value": "4~20mA",
         "source": "catalog"
       }
     ],
@@ -6212,12 +6212,12 @@
     "specs": [
       {
         "label": "ch",
-        "value": "4채널",
+        "value": "4점",
         "source": "catalog"
       },
       {
         "label": "출력",
-        "value": "전압 14bit",
+        "value": "0~10V / -10~10V",
         "source": "catalog"
       }
     ],
@@ -6607,7 +6607,7 @@
     "specs": [
       {
         "label": "길이",
-        "value": "1.5M",
+        "value": "1.5m",
         "source": "catalog"
       }
     ],
@@ -6626,7 +6626,7 @@
     "specs": [
       {
         "label": "길이",
-        "value": "1.5M",
+        "value": "1.5m",
         "source": "catalog"
       }
     ],
@@ -6650,6 +6650,11 @@
       {
         "label": "화면",
         "value": "10.4\" TFT LCD",
+        "source": "catalog"
+      },
+      {
+        "label": "해상도",
+        "value": "800 x 600",
         "source": "catalog"
       },
       {
@@ -6712,6 +6717,11 @@
         "source": "catalog"
       },
       {
+        "label": "해상도",
+        "value": "1024 x 768",
+        "source": "catalog"
+      },
+      {
         "label": "밝기",
         "value": "600cd/m2",
         "source": "catalog"
@@ -6771,6 +6781,11 @@
         "source": "catalog"
       },
       {
+        "label": "해상도",
+        "value": "1280 x 1024",
+        "source": "catalog"
+      },
+      {
         "label": "밝기",
         "value": "500cd/m2",
         "source": "catalog"
@@ -6827,6 +6842,11 @@
       {
         "label": "화면",
         "value": "19\" TFT LCD",
+        "source": "catalog"
+      },
+      {
+        "label": "해상도",
+        "value": "1280 x 1024",
         "source": "catalog"
       },
       {
@@ -7249,7 +7269,7 @@
       },
       {
         "label": "터치",
-        "value": "Capacitive",
+        "value": "정전식 (Capacitive)",
         "source": "catalog"
       },
       {
@@ -7318,7 +7338,7 @@
       },
       {
         "label": "터치",
-        "value": "Capacitive",
+        "value": "정전식 (Capacitive)",
         "source": "catalog"
       },
       {
@@ -7650,11 +7670,6 @@
         "label": "중량",
         "value": "1.21kg",
         "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "1 x M.2 SATA 2242 Key SSD (Default 256GB)",
-        "source": "catalog"
       }
     ],
     "screenSize": 0,
@@ -7687,12 +7702,7 @@
       },
       {
         "label": "OS",
-        "value": "Windows 10 IoT Enterprise (표준) / Windows 10 Pro / Windows 11 IoT Enterprise / Windows 11 Pro",
-        "source": "catalog"
-      },
-      {
-        "label": "메모리",
-        "value": "1 X M.2 2280 Key M 250GB (PCIe x4 only)",
+        "value": "Windows 10 IoT Enterprise / Windows 10 Pro / Windows 11 IoT Enterprise / Windows 11 Pro",
         "source": "catalog"
       }
     ],
@@ -7725,13 +7735,8 @@
         "source": "catalog"
       },
       {
-        "label": "메모리",
-        "value": "1 X M.2 2280 Key M 250GB (PCIe x4 only)",
-        "source": "catalog"
-      },
-      {
         "label": "OS",
-        "value": "Windows 10 IoT Enterprise (표준) / Windows 10 Pro / Windows 11 IoT Enterprise / Windows 11 Pro",
+        "value": "Windows 10 IoT Enterprise / Windows 10 Pro / Windows 11 IoT Enterprise / Windows 11 Pro",
         "source": "catalog"
       }
     ],
@@ -8338,7 +8343,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -8415,7 +8420,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -9262,7 +9267,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -9339,7 +9344,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -9416,7 +9421,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -9493,7 +9498,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "150/DS 포함",
+        "value": "CM01-0150/DS",
         "source": "catalog"
       },
       {
@@ -9570,7 +9575,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -9647,7 +9652,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -9724,7 +9729,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -9801,7 +9806,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "500/DS 포함",
+        "value": "CM01-0500/DS",
         "source": "catalog"
       },
       {
@@ -9878,7 +9883,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "Full/DS 포함",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -9955,7 +9960,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "Full/DS 포함",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -10017,7 +10022,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "뷰 컨트롤 버전 (View Control Version)",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -10032,7 +10037,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "Full/DS",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -10099,7 +10104,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "뷰 컨트롤 버전 (View Control Version)",
+        "value": "뷰 컨트롤 버전",
         "source": "catalog"
       },
       {
@@ -10114,7 +10119,7 @@
       },
       {
         "label": "포함 제품",
-        "value": "Full/DS",
+        "value": "CM01-FULL/DS",
         "source": "catalog"
       },
       {
@@ -11091,7 +11096,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 1 User 이내",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -11188,7 +11193,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 3 User 이내",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -11285,7 +11290,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 5 User 이내",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -11382,7 +11387,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 10 User 이내",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -11479,7 +11484,7 @@
     "specs": [
       {
         "label": "라이선스",
-        "value": "Development+Runtime+Keylock+Manual+WEB 동시접속 15 User 이내",
+        "value": "Development+Runtime+Keylock+Manual+WEB",
         "source": "catalog"
       },
       {
@@ -14410,7 +14415,7 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66 (Front)",
         "source": "catalog"
       }
     ],
@@ -14444,7 +14449,7 @@
       },
       {
         "label": "휘도",
-        "value": "1000 cd/m² (고휘도)",
+        "value": "1000 cd/m²",
         "source": "catalog"
       },
       {
@@ -14474,7 +14479,7 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66 (Front)",
         "source": "catalog"
       }
     ],
@@ -14538,7 +14543,7 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66 (Front)",
         "source": "catalog"
       }
     ],
@@ -14572,7 +14577,7 @@
       },
       {
         "label": "휘도",
-        "value": "1200 cd/m² (고휘도)",
+        "value": "1200 cd/m²",
         "source": "catalog"
       },
       {
@@ -14602,7 +14607,7 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66 (Front)",
         "source": "catalog"
       }
     ],
@@ -14666,7 +14671,7 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66 (Front)",
         "source": "catalog"
       }
     ],
@@ -14700,7 +14705,7 @@
       },
       {
         "label": "휘도",
-        "value": "1200 cd/m² (고휘도)",
+        "value": "1200 cd/m²",
         "source": "catalog"
       },
       {
@@ -14730,7 +14735,7 @@
       },
       {
         "label": "방수/방진",
-        "value": "IP66 (전면)",
+        "value": "IP66 (Front)",
         "source": "catalog"
       }
     ],

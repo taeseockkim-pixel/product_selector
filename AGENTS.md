@@ -59,6 +59,19 @@ CIMON 제품 선택 가이드 — 고객이 PLC / IPC / SCADA / XPANEL 제품을
 - 직접 편집이 필요하면 `"estimated"` 로만 추가 (UI에 표시 안 됨)
 - `catalog` spec의 값이 잘못됐다고 판단되면 → 아래 "잘못된 사양이 발견되면" 절차 따르기
 
+### 스펙 입력 표기 규칙
+
+**[SPEC_ENTRY_RULES.md](./docs/SPEC_ENTRY_RULES.md)** 를 반드시 참고하세요.
+
+핵심 규칙 요약:
+- 온도: `-10°C ~ 65°C` 형식 (양쪽 °C, ~ 양옆 공백)
+- 점수: `"16점"` (한글, 영문 ch/채널 금지)
+- 해상도: `"1024 x 768"` (소문자 x, 공백 포함)
+- 터치: 정전식은 `"정전식 (Capacitive)"`, 저항식은 `"Analog Resistive"`
+- 같은 시리즈 내 동일 라벨은 같은 언어 사용 (KO/EN 혼용 금지)
+
+수정 후 반드시 실행: `npm run check:spec-consistency && npm run check:i18n`
+
 ### AI 에이전트가 specs를 추가/수정할 때
 
 ```json
@@ -136,6 +149,34 @@ npm run verify
 - 브라우저에서 4개 카테고리(PLC/IPC/SCADA/XPANEL) 동작 확인
 - 새 이미지 추가 시: `npm run validate:specs` 실행 후 커밋
 - 변경 내용을 `docs/exec-plans/` 에 반영
+
+---
+
+## i18n 번역 규칙 (CRITICAL)
+
+### 번역 아키텍처
+
+- **레이블 번역**: `src/i18n/specLabels.ts` — spec 필드명(한글 key → 영문)
+- **값 번역**: `src/i18n/specValues.ts` — spec 값의 한글 어휘를 정규식으로 변환
+- **UI 텍스트**: `src/i18n/ui.ts` — 버튼/헤더 등 고정 문자열
+
+### specValues.ts 패턴 작성 규칙
+
+1. **더 구체적인 패턴을 앞에** — 예) `옵션가능` → `Optional` 패턴이 단독 `가능` 패턴보다 위에 있어야 함
+2. **복합 구문 → 단순 구문 순서** — 예) `로컬 베이스 + 최대 N 증설 베이스` 패턴이 `최대 N` 패턴보다 위에 있어야 함
+3. **SCADA 고정 문구는 원본 한글로 매칭** — 중간 변환 결과(`이중화 → Redundancy`)로 매칭하면 순서 어긋남
+
+### 번역 작업 후 필수 검증
+
+`src/i18n/specValues.ts` 또는 `src/i18n/specLabels.ts` 를 수정했다면 반드시:
+
+```bash
+npm run check:i18n
+# 출력: ✅ 번역 누수 없음 (0건)  ← 이 상태여야 커밋 가능
+```
+
+누수가 남아 있으면 패턴을 추가/재정렬한 뒤 재실행하세요.
+**"나중에 추가하겠다"는 허용되지 않습니다 — 0건 확인 후 커밋.**
 
 ---
 
