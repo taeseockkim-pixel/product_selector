@@ -4737,6 +4737,45 @@
     "descriptionEn": "Port1: RS232C / Port2: RS232C (Null Modem)"
   },
   {
+    "id": "CM1-SC02D",
+    "modelName": "CM1-SC02D",
+    "category": "PLC",
+    "plcSeries": "CM1",
+    "series": "CM1_COMM_SERIAL",
+    "seriesLabel": "시리얼 통신",
+    "subType": "CM1_COMM_SERIAL",
+    "description": "Port1: RS422/485 / Port2: RS422/485",
+    "specs": [
+      {
+        "label": "Port1",
+        "value": "RS422/485",
+        "source": "catalog"
+      },
+      {
+        "label": "Port2",
+        "value": "RS422/485",
+        "source": "catalog"
+      },
+      {
+        "label": "통신 속도",
+        "value": "300 / 600 / 1200 / 2400 / 4800 / 9600 / 19200 / 38400 / 76800 bps",
+        "source": "catalog"
+      },
+      {
+        "label": "프로토콜",
+        "value": "HMI 모드(당사 프로토콜, 1:n), MODBUS RTU Slave/Master, PLC링크, 사용자 정의(프로토콜 프로그램)",
+        "source": "catalog"
+      },
+      {
+        "label": "동작 온도",
+        "value": "-10°C ~ 65°C",
+        "source": "catalog"
+      }
+    ],
+    "seriesLabelEn": "Serial Comm.",
+    "descriptionEn": "Port1: RS422/485 / Port2: RS422/485"
+  },
+  {
     "id": "CM1-EC10A",
     "modelName": "CM1-EC10A",
     "category": "PLC",
