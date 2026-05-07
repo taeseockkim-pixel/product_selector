@@ -9,10 +9,11 @@ interface Props {
   onPlcSeriesChange: (s: PlcSeriesId) => void;
   activeSubType: string;
   onSubTypeChange: (subType: string) => void;
+  onClose?: () => void;
 }
 
 export default function PlcLeftPanel({
-  plcSeries, onPlcSeriesChange, activeSubType, onSubTypeChange,
+  plcSeries, onPlcSeriesChange, activeSubType, onSubTypeChange, onClose,
 }: Props) {
   const t = useT();
   const { lang } = useLang();
@@ -33,6 +34,12 @@ export default function PlcLeftPanel({
 
   return (
     <aside className="w-60 flex-shrink-0">
+      {onClose && (
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 mb-3 rounded-t-xl">
+          <span className="text-sm font-semibold text-gray-700">{t(UI.series)}</span>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 text-xl leading-none rounded-full hover:bg-gray-100">×</button>
+        </div>
+      )}
       <div className="bg-white rounded-xl border border-gray-200 p-3 mb-3">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
           {t(UI.series)}

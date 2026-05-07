@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { CategoryId, FilterValues, PlcSeriesId, Product } from './types';
 import { PRODUCTS } from './data/products';
 import { getCategoryConfig } from './config/filterConfig';
@@ -8,6 +8,7 @@ import PlcLeftPanel from './components/PlcLeftPanel';
 import ProductTable from './components/ProductTable';
 import CartPage from './components/CartPage';
 import ComparePage from './components/ComparePage';
+import SearchOverlay from './components/SearchOverlay';
 import 'flag-icons/css/flag-icons.min.css';
 import SpecModal from './components/SpecModal';
 import { LangProvider, useLang, useT } from './context/LangContext';
@@ -49,6 +50,17 @@ function filterByConfig(
   });
 }
 
+function parseURLState() {
+  const params = new URLSearchParams(window.location.search);
+  const cat = (params.get('cat') as CategoryId) ?? 'PLC';
+  const plcSeries = (params.get('plcSeries') as PlcSeriesId) ?? 'CM1';
+  const plcSubType = params.get('plcSub') ?? getDefaultSubType('CM1');
+  const sub = params.get('sub') ?? '';
+  let filters: FilterValues = {};
+  try { filters = JSON.parse(params.get('filters') ?? '{}'); } catch { /* noop */ }
+  return { cat, plcSeries, plcSubType, sub, filters };
+}
+
 function LangToggle() {
   const { lang, setLang } = useLang();
   return (
@@ -83,27 +95,65 @@ function LangToggle() {
 
 function AppInner() {
   const { lang } = useLang();
+  const t = useT();
+  const isInitialMount = useRef(true);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const urlState = useRef(parseURLState());
 
   const [viewMode, setViewMode] = useState<ViewMode>('main');
-  const [activeCategory, setActiveCategory] = useState<CategoryId>('PLC');
-  const [cartList, setCartList] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<CategoryId>(urlState.current.cat);
+  const [cartList, setCartList] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('cimon-cart') ?? '[]'); } catch { return []; }
+  });
   const [compareList, setCompareList] = useState<string[]>([]);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [plcSeries, setPlcSeries] = useState<PlcSeriesId>('CM1');
-  const [plcSubType, setPlcSubType] = useState<string>(getDefaultSubType('CM1'));
+  const [plcSeries, setPlcSeries] = useState<PlcSeriesId>(urlState.current.plcSeries);
+  const [plcSubType, setPlcSubType] = useState<string>(urlState.current.plcSubType);
+  const [activeSubType, setActiveSubType] = useState<string>(
+    urlState.current.cat !== 'PLC' ? urlState.current.sub : '',
+  );
+  const [filters, setFilters] = useState<FilterValues>(
+    urlState.current.cat !== 'PLC' ? urlState.current.filters : {},
+  );
 
-  const [activeSubType, setActiveSubType] = useState<string>('');
-  const [filters, setFilters] = useState<FilterValues>({});
-
+  // localStorage 카트 동기화
   useEffect(() => {
+    localStorage.setItem('cimon-cart', JSON.stringify(cartList));
+  }, [cartList]);
+
+  // 카테고리 변경 시 필터 초기화 (최초 마운트는 건너뜀 — URL 복원 상태 유지)
+  useEffect(() => {
+    if (isInitialMount.current) { isInitialMount.current = false; return; }
     if (activeCategory === 'PLC') return;
     const config = getCategoryConfig(activeCategory);
-    if (config && config.subTypes.length > 0) {
-      setActiveSubType(config.subTypes[0].id);
-    }
+    if (config?.subTypes.length) setActiveSubType(config.subTypes[0].id);
     setFilters({});
   }, [activeCategory]);
+
+  // URL 상태 동기화
+  useEffect(() => {
+    const params = new URLSearchParams();
+    params.set('cat', activeCategory);
+    if (activeCategory === 'PLC') {
+      params.set('plcSeries', plcSeries);
+      params.set('plcSub', plcSubType);
+    } else {
+      if (activeSubType) params.set('sub', activeSubType);
+      const fs = JSON.stringify(filters);
+      if (fs !== '{}') params.set('filters', fs);
+    }
+    history.replaceState({}, '', '?' + params.toString());
+  }, [activeCategory, plcSeries, plcSubType, activeSubType, filters]);
+
+  function showToast(msg: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(msg);
+    toastTimer.current = setTimeout(() => setToast(null), 2000);
+  }
 
   function handlePlcSeriesChange(s: PlcSeriesId) {
     setPlcSeries(s);
@@ -117,9 +167,20 @@ function AppInner() {
   }
 
   function handleCompareToggle(id: string) {
-    setCompareList((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+    if (compareList.includes(id)) {
+      setCompareList((prev) => prev.filter((x) => x !== id));
+    } else if (compareList.length >= 4) {
+      showToast(t(UI.compareLimit));
+    } else {
+      setCompareList((prev) => [...prev, id]);
+    }
+  }
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+    } catch { /* noop */ }
+    showToast(t(UI.linkCopied));
   }
 
   let products: typeof PRODUCTS = [];
@@ -150,18 +211,25 @@ function AppInner() {
 
   const totalLabel = lang === 'ko' ? `총 ${products.length}개` : `Total: ${products.length}`;
 
+  const headerProps = {
+    cartCount: cartList.length,
+    compareCount: compareList.length,
+    onCartClick: () => setViewMode('cart'),
+    onCompareClick: () => setViewMode('compare'),
+    onSearchClick: () => setSearchOpen(true),
+    onCopyLink: handleCopyLink,
+    viewMode,
+  };
+
   if (viewMode === 'cart') {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <AppHeader
-          cartCount={cartList.length} compareCount={compareList.length}
-          onCartClick={() => setViewMode('cart')} onCompareClick={() => setViewMode('compare')}
-          viewMode={viewMode}
-        />
+        <AppHeader {...headerProps} />
         <CartPage
           cartList={cartList} products={PRODUCTS}
           onRemove={handleCartToggle} onClear={() => setCartList([])} onBack={() => setViewMode('main')}
         />
+        {toast && <Toast msg={toast} />}
       </div>
     );
   }
@@ -169,28 +237,22 @@ function AppInner() {
   if (viewMode === 'compare') {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
-        <AppHeader
-          cartCount={cartList.length} compareCount={compareList.length}
-          onCartClick={() => setViewMode('cart')} onCompareClick={() => setViewMode('compare')}
-          viewMode={viewMode}
-        />
+        <AppHeader {...headerProps} />
         <ComparePage
           compareList={compareList} products={PRODUCTS}
           onRemove={handleCompareToggle} onClear={() => setCompareList([])} onBack={() => setViewMode('main')}
         />
+        {toast && <Toast msg={toast} />}
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <AppHeader
-        cartCount={cartList.length} compareCount={compareList.length}
-        onCartClick={() => setViewMode('cart')} onCompareClick={() => setViewMode('compare')}
-        viewMode={viewMode}
-      />
+      <AppHeader {...headerProps} />
 
-      <div className="bg-white border-b border-gray-200">
+      {/* 카테고리 탭 */}
+      <div className="bg-white border-b border-gray-200 no-print">
         <div className="max-w-screen-xl mx-auto px-6">
           <nav className="flex gap-1">
             {ALL_CATEGORY_IDS.map((catId) => {
@@ -215,26 +277,70 @@ function AppInner() {
 
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
         <div className="flex gap-5 items-start">
-          {activeCategory === 'PLC' ? (
-            <PlcLeftPanel
-              plcSeries={plcSeries}
-              onPlcSeriesChange={handlePlcSeriesChange}
-              activeSubType={plcSubType}
-              onSubTypeChange={setPlcSubType}
-            />
-          ) : (
-            <LeftPanel
-              categoryId={activeCategory}
-              activeSubType={activeSubType}
-              onSubTypeChange={(id) => { setActiveSubType(id); setFilters({}); }}
-              filters={filters}
-              onFiltersChange={setFilters}
-            />
+          {/* 데스크톱 사이드바 */}
+          <div className="hidden md:block flex-shrink-0 no-print">
+            {activeCategory === 'PLC' ? (
+              <PlcLeftPanel
+                plcSeries={plcSeries}
+                onPlcSeriesChange={handlePlcSeriesChange}
+                activeSubType={plcSubType}
+                onSubTypeChange={setPlcSubType}
+              />
+            ) : (
+              <LeftPanel
+                categoryId={activeCategory}
+                activeSubType={activeSubType}
+                onSubTypeChange={(id) => { setActiveSubType(id); setFilters({}); }}
+                filters={filters}
+                onFiltersChange={setFilters}
+              />
+            )}
+          </div>
+
+          {/* 모바일 드로어 */}
+          {mobileMenuOpen && (
+            <div className="md:hidden">
+              <div
+                className="fixed inset-0 bg-black/40 z-30"
+                onClick={() => setMobileMenuOpen(false)}
+              />
+              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-white shadow-xl">
+                {activeCategory === 'PLC' ? (
+                  <PlcLeftPanel
+                    plcSeries={plcSeries}
+                    onPlcSeriesChange={handlePlcSeriesChange}
+                    activeSubType={plcSubType}
+                    onSubTypeChange={(id) => { setPlcSubType(id); setMobileMenuOpen(false); }}
+                    onClose={() => setMobileMenuOpen(false)}
+                  />
+                ) : (
+                  <LeftPanel
+                    categoryId={activeCategory}
+                    activeSubType={activeSubType}
+                    onSubTypeChange={(id) => { setActiveSubType(id); setFilters({}); setMobileMenuOpen(false); }}
+                    filters={filters}
+                    onFiltersChange={setFilters}
+                    onClose={() => setMobileMenuOpen(false)}
+                  />
+                )}
+              </div>
+            </div>
           )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-gray-700">{getRightTitle()}</h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 no-print"
+                  onClick={() => setMobileMenuOpen(true)}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M3 8h18M3 12h18" />
+                  </svg>
+                  {t(UI.filterBtn)}
+                </button>
+                <h2 className="text-base font-bold text-gray-700">{getRightTitle()}</h2>
+              </div>
               <span className="text-sm text-gray-400">{totalLabel}</span>
             </div>
             <ProductTable
@@ -250,35 +356,90 @@ function AppInner() {
       </main>
 
       {detailProduct && (
-        <SpecModal product={detailProduct} onClose={() => setDetailProduct(null)} />
+        <SpecModal
+          product={detailProduct}
+          onClose={() => setDetailProduct(null)}
+          allProducts={PRODUCTS}
+          onViewDetail={setDetailProduct}
+        />
       )}
+
+      {searchOpen && (
+        <SearchOverlay
+          products={PRODUCTS}
+          cartList={cartList}
+          compareList={compareList}
+          onCartToggle={handleCartToggle}
+          onCompareToggle={handleCompareToggle}
+          onViewDetail={(p) => { setDetailProduct(p); setSearchOpen(false); }}
+          onClose={() => setSearchOpen(false)}
+        />
+      )}
+
+      {toast && <Toast msg={toast} />}
+    </div>
+  );
+}
+
+function Toast({ msg }: { msg: string }) {
+  return (
+    <div className="fixed bottom-4 right-4 z-[60] bg-gray-800 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg">
+      {msg}
     </div>
   );
 }
 
 function AppHeader({
-  cartCount, compareCount, onCartClick, onCompareClick, viewMode,
+  cartCount, compareCount, onCartClick, onCompareClick,
+  onSearchClick, onCopyLink, viewMode,
 }: {
   cartCount: number;
   compareCount: number;
   onCartClick: () => void;
   onCompareClick: () => void;
+  onSearchClick: () => void;
+  onCopyLink: () => void;
   viewMode: ViewMode;
 }) {
   const t = useT();
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-40 no-print">
       <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
         <div className="flex items-center gap-3">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-10 w-auto object-contain" />
           <span className="text-gray-300">|</span>
-          <span className="text-sm text-gray-500">{t(UI.productGuide)}</span>
+          <span className="text-sm text-gray-500 hidden sm:inline">{t(UI.productGuide)}</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* 검색 버튼 */}
+          <button
+            onClick={onSearchClick}
+            title={t(UI.searchBtn)}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+
+          {/* 링크 복사 버튼 */}
+          <button
+            onClick={onCopyLink}
+            title={t(UI.copyLink)}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+          </button>
+
+          <div className="w-px h-5 bg-gray-200 mx-0.5" />
+
+          {/* 비교 버튼 */}
           <button
             onClick={onCompareClick}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[90px] whitespace-nowrap ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[86px] whitespace-nowrap ${
               viewMode === 'compare'
                 ? 'bg-blue-600 text-white'
                 : compareCount > 0
@@ -299,9 +460,10 @@ function AppHeader({
             )}
           </button>
 
+          {/* 담기 버튼 */}
           <button
             onClick={onCartClick}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[90px] whitespace-nowrap ${
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[86px] whitespace-nowrap ${
               viewMode === 'cart'
                 ? 'bg-blue-600 text-white'
                 : cartCount > 0
@@ -322,7 +484,7 @@ function AppHeader({
             )}
           </button>
 
-          <div className="w-px h-5 bg-gray-200 mx-1" />
+          <div className="w-px h-5 bg-gray-200 mx-0.5" />
           <LangToggle />
         </div>
       </div>

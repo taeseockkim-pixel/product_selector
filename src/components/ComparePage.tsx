@@ -32,6 +32,24 @@ function buildRows(prods: Product[], lang: 'ko' | 'en') {
   });
 }
 
+function downloadCSV(rows: ReturnType<typeof buildRows>, prods: Product[]) {
+  const BOM = '﻿';
+  const header = ['사양', ...prods.map((p) => p.modelName)].join(',');
+  const dataRows = rows.map((row) =>
+    [row.label, ...row.values]
+      .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+      .join(','),
+  );
+  const csv = BOM + [header, ...dataRows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `CIMON_비교_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ComparePage({
   compareList, products, onRemove, onClear, onBack,
 }: Props) {
@@ -42,7 +60,16 @@ export default function ComparePage({
 
   return (
     <div className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
-      <div className="flex items-center justify-between mb-5">
+      {/* 인쇄 전용 헤더 */}
+      <div className="hidden print:block mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-8 w-auto object-contain" />
+          <span className="text-lg font-bold text-gray-800">{t(UI.compareTitle)}</span>
+        </div>
+        <p className="text-xs text-gray-400">{new Date().toLocaleDateString()}</p>
+      </div>
+
+      <div className="flex items-center justify-between mb-5 no-print">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -60,11 +87,35 @@ export default function ComparePage({
             </span>
           </h1>
         </div>
-        {compareProducts.length > 0 && (
-          <button onClick={onClear} className="text-sm text-red-400 hover:text-red-600 transition-colors">
-            {t(UI.clearCompare)}
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {compareProducts.length > 0 && (
+            <>
+              <button
+                onClick={() => window.print()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                {t(UI.printBtn)}
+              </button>
+              <button
+                onClick={() => downloadCSV(rows, compareProducts)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                {t(UI.csvExport)}
+              </button>
+            </>
+          )}
+          {compareProducts.length > 0 && (
+            <button onClick={onClear} className="text-sm text-red-400 hover:text-red-600 transition-colors">
+              {t(UI.clearCompare)}
+            </button>
+          )}
+        </div>
       </div>
 
       {compareProducts.length === 0 ? (
@@ -96,7 +147,7 @@ export default function ComparePage({
                           </div>
                           <button
                             onClick={() => onRemove(p.id)}
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-red-400 flex-shrink-0 transition-colors text-base leading-none mt-0.5"
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-red-400 flex-shrink-0 transition-colors text-base leading-none mt-0.5 no-print"
                             title={t(UI.removeFromComp)}
                           >
                             ×
@@ -143,7 +194,7 @@ export default function ComparePage({
             </table>
           </div>
 
-          <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center gap-2">
+          <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center gap-2 no-print">
             <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
             <span className="text-xs text-gray-400">{t(UI.diffLegend)}</span>
           </div>

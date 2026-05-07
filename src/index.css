@@ -23,3 +23,11 @@
     font-family: inherit;
   }
 }
+
+@media print {
+  .no-print { display: none !important; }
+  .print-show { display: block !important; }
+  body { background: white; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  header { position: static !important; }
+}

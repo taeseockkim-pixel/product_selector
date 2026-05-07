@@ -45,6 +45,17 @@ export const UI = {
   removeFromComp: t('비교에서 제거', 'Remove from comparison'),
   removeShortlist:t('목록에서 제거', 'Remove from shortlist'),
   detailSpecs2:   t('상세 사양', 'Specifications'),
+  compareLimit:   t('비교는 최대 4개까지 가능합니다', 'Up to 4 products can be compared'),
+  copyLink:       t('링크 복사', 'Copy Link'),
+  linkCopied:     t('링크가 복사되었습니다!', 'Link copied!'),
+  searchPlaceholder: t('모델명 또는 설명 검색...', 'Search model or description...'),
+  searchNoResults: t('검색 결과가 없습니다.', 'No results found.'),
+  printBtn:       t('인쇄', 'Print'),
+  inquiryBtn:     t('견적 요청', 'Request Quote'),
+  csvExport:      t('CSV 다운로드', 'Download CSV'),
+  similarProducts: t('유사 제품', 'Similar Products'),
+  filterBtn:      t('필터', 'Filters'),
+  searchBtn:      t('검색', 'Search'),
 } satisfies Record<string, T>;
 
 export function totalLabel(n: number, lang: Lang): string {

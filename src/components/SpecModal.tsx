@@ -96,16 +96,21 @@ function DocButton({
 }
 
 export default function SpecModal({
-  product, onClose,
+  product, onClose, allProducts, onViewDetail,
 }: {
   product: Product;
   onClose: () => void;
+  allProducts?: Product[];
+  onViewDetail?: (p: Product) => void;
 }) {
   const t = useT();
   const { lang } = useLang();
   const [imgFailed, setImgFailed] = useState(false);
   const imageSrc = resolveProductImage(product.id, product.subType);
   const verifiedSpecs = product.specs.filter((s) => s.source !== 'estimated');
+  const similar = allProducts
+    ? allProducts.filter((p) => p.subType === product.subType && p.id !== product.id).slice(0, 3)
+    : [];
 
   const catalogUrl = getCatalogUrl(product.subType);
   const manualEntries = getManualEntries(product.subType);
@@ -196,6 +201,29 @@ export default function SpecModal({
                 ))}
               </tbody>
             </table>
+          )}
+
+          {similar.length > 0 && onViewDetail && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                {t(UI.similarProducts)}
+              </p>
+              <div className="flex flex-col gap-2">
+                {similar.map((p) => {
+                  const pDesc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => onViewDetail(p)}
+                      className="text-left px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100"
+                    >
+                      <p className="text-sm font-semibold text-gray-800">{p.modelName}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 truncate">{pDesc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </div>
       </div>
