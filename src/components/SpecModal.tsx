@@ -18,9 +18,11 @@ const COLOR_CLASS: Record<DocButtonColor, string> = {
 
 function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
   const t = useT();
+  const { lang } = useLang();
+  const displayLabel = lang === 'en' && entry.labelEn ? entry.labelEn : entry.label;
   return (
     <div className="flex items-center justify-between gap-2 px-4 py-2 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-700 truncate flex-1">{entry.label}</span>
+      <span className="text-sm text-gray-700 truncate flex-1">{displayLabel}</span>
       <div className="flex items-center gap-1 flex-shrink-0">
         <a
           href={entry.url}
