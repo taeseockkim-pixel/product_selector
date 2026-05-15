@@ -121,12 +121,52 @@ src/
 │   └── ComparePage.tsx  ← 비교 페이지
 ├── config/
 │   ├── filterConfig.ts  ← IPC/SCADA/XPANEL 필터 정의 (로직의 핵심)
-│   └── plcTreeConfig.ts ← PLC 좌측 트리 구조 정의
+│   ├── plcTreeConfig.ts ← PLC 좌측 트리 구조 정의
+│   └── catalogConfig.ts ← 카탈로그·메뉴얼·도면 PDF 경로 매핑 (public/ 실제 파일명과 1:1 일치 필수)
 ├── data/
 │   ├── products.json    ← 유일한 제품 데이터 소스 (직접 편집 가능)
 │   └── products.ts      ← JSON import 래퍼 (타입 캐스팅)
 └── types/index.ts       ← 모든 타입 정의 (변경 시 파급 효과 큼)
 ```
+
+---
+
+## catalogConfig.ts 편집 규칙
+
+`src/config/catalogConfig.ts`의 `url` 값은 `public/` 폴더의 **실제 파일명**과 반드시 1:1 일치해야 한다.
+
+### 필수 확인 절차
+
+카탈로그·메뉴얼·도면 경로를 추가·수정할 때:
+
+```bash
+# 1. 실제 파일 목록 확인 (추가할 폴더 기준)
+ls public/manuals/IPC_IAC/
+ls public/manuals/XPANEL/
+ls public/catalogs/
+# … 해당 폴더
+
+# 2. ls 출력에서 파일명을 그대로 복사하여 url 필드에 입력
+```
+
+### 절대 금지
+
+- `ls` 출력 없이 파일명 직접 타이핑 — 오탈자·접두사 누락으로 404 발생
+- 파일이 없는 경로 추가 — 빌드는 통과하지만 런타임 다운로드 실패
+
+### 폴더-상수 대응표
+
+| 상수 | 실제 경로 |
+|------|---------|
+| `M1` | `public/manuals/CM1-PLC/` |
+| `M3` | `public/manuals/CM3-PLCS/` |
+| `MI` | `public/manuals/IPC_IAC/` |
+| `MX` | `public/manuals/XPANEL/` |
+| `C`  | `public/catalogs/` |
+| `D1` | `public/drawings/CM1-PLC/` |
+| `D3` | `public/drawings/CM3-PLCS/` |
+| `DI` | `public/drawings/IPC_IAC/` |
+| `DX` | `public/drawings/XPANEL/` |
 
 ---
 
