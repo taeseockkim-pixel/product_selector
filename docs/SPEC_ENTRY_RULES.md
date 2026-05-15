@@ -81,6 +81,15 @@ SCADA 제품:
 "– : 400 cd/m², H : 1,400 cd/m²"                ❌ (en-dash 형식 금지)
 ```
 
+### 프로그램 언어
+
+PLC 프로그램 언어는 약어 형식으로 표기한다:
+
+```
+"IL, LD, FBD, FBD Extension, SFC"  ✅ (약어 형식, 시리즈 내 통일)
+"IL (Instruction List), LD (Ladder Diagram), ..."  ❌ (전체 이름 형식 금지)
+```
+
 ---
 
 ## 3. 라벨 명명 규칙
@@ -138,7 +147,31 @@ SCADA 제품:
 
 ---
 
-## 7. 검증 명령어
+## 7. description ↔ specs 핵심 사양 정합성
+
+`description` 필드의 핵심 사양은 반드시 `specs[]`의 해당 항목과 동일한 값이어야 한다.
+
+```json
+// ❌ 잘못된 예 — description과 spec이 다른 단위/값
+{
+  "description": "대규모 제어 / 128K Step / ...",
+  "specs": [{ "label": "프로그램 용량", "value": "7MByte" }]
+}
+
+// ✅ 올바른 예 — description과 spec이 일치
+{
+  "description": "대규모 제어 / 128K Step / ...",
+  "specs": [{ "label": "프로그램 용량", "value": "128K Step" }]
+}
+```
+
+**검증 필수 항목**: 프로그램 용량, 최대 I/O
+- description에 `128K Step`이 있으면 spec도 `128K Step`
+- description에 `8,192점 (최대 12,288점)`이 있으면 spec도 동일
+
+---
+
+## 8. 검증 명령어
 
 수정 후 반드시 실행:
 
@@ -152,7 +185,7 @@ npm run verify                   # 전체 데이터 유효성 검사
 
 ---
 
-## 8. WARN 허용 목록
+## 9. WARN 허용 목록
 
 아래 항목은 카탈로그 검토 완료 후 의도적 차이로 확인되어 허용:
 

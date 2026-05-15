@@ -299,7 +299,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "7MByte",
+        "value": "128K Step",
         "source": "catalog"
       },
       {
@@ -375,7 +375,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "7MByte",
+        "value": "128K Step",
         "source": "catalog"
       },
       {
@@ -451,7 +451,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "7MByte",
+        "value": "128K Step",
         "source": "catalog"
       },
       {
@@ -527,7 +527,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "7MByte",
+        "value": "128K Step",
         "source": "catalog"
       },
       {
@@ -598,7 +598,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "7MByte",
+        "value": "128K Step",
         "source": "catalog"
       },
       {
@@ -669,7 +669,7 @@
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "7MByte",
+        "value": "128K Step",
         "source": "catalog"
       },
       {
@@ -736,16 +736,16 @@
     "seriesLabel": "XP 이중화",
     "subType": "CM1_CPU_XP_RED",
     "plcSeries": "CM1",
-    "description": "대규모 이중화 / 128K Step / 8,192점 / Ring 증설",
+    "description": "대규모 이중화 / 128K Step / 8,192점 (최대 12,288점) / Ring 증설",
     "specs": [
       {
         "label": "프로그램 용량",
-        "value": "7MByte",
+        "value": "128K Step",
         "source": "catalog"
       },
       {
         "label": "최대 I/O",
-        "value": "8,192점",
+        "value": "8,192점 (최대 12,288점)",
         "source": "catalog"
       },
       {
@@ -856,7 +856,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
@@ -932,7 +932,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
@@ -1003,7 +1003,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
@@ -1074,7 +1074,7 @@
       },
       {
         "label": "프로그램 언어",
-        "value": "IL (Instruction List), LD (Ladder Diagram), FBD (Function Block Diagram), FBD Extension, SFC (Sequential Function Chart)",
+        "value": "IL, LD, FBD, FBD Extension, SFC",
         "source": "catalog"
       },
       {
