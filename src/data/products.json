@@ -6972,7 +6972,7 @@
       },
       {
         "label": "밝기",
-        "value": "700cd/m2",
+        "value": "700 cd/m²",
         "source": "catalog"
       },
       {
@@ -7036,7 +7036,7 @@
       },
       {
         "label": "밝기",
-        "value": "600cd/m2",
+        "value": "600 cd/m²",
         "source": "catalog"
       },
       {
@@ -7100,7 +7100,7 @@
       },
       {
         "label": "밝기",
-        "value": "500cd/m2",
+        "value": "500 cd/m²",
         "source": "catalog"
       },
       {
@@ -7164,7 +7164,7 @@
       },
       {
         "label": "밝기",
-        "value": "400cd/m2",
+        "value": "400 cd/m²",
         "source": "catalog"
       },
       {
@@ -7223,7 +7223,7 @@
       },
       {
         "label": "밝기",
-        "value": "700cd/m2",
+        "value": "700 cd/m²",
         "source": "catalog"
       },
       {
@@ -7282,7 +7282,7 @@
       },
       {
         "label": "밝기",
-        "value": "450cd/m2",
+        "value": "450 cd/m²",
         "source": "catalog"
       },
       {
@@ -7341,7 +7341,7 @@
       },
       {
         "label": "밝기",
-        "value": "450cd/m2",
+        "value": "450 cd/m²",
         "source": "catalog"
       },
       {
@@ -7400,7 +7400,7 @@
       },
       {
         "label": "밝기",
-        "value": "250cd/m²",
+        "value": "250 cd/m²",
         "source": "catalog"
       },
       {
@@ -7464,7 +7464,7 @@
       },
       {
         "label": "밝기",
-        "value": "450 cd/m2 (Standard) / 1,200 cd/m2 (-H 옵션)",
+        "value": "450 cd/m² (Standard) / 1,200 cd/m² (-H 옵션)",
         "source": "catalog"
       },
       {
@@ -7523,7 +7523,7 @@
       },
       {
         "label": "밝기",
-        "value": "400 cd/m2 (Standard) / 1,400 cd/m2 (-H 옵션)",
+        "value": "400 cd/m² (Standard) / 1,400 cd/m² (-H 옵션)",
         "source": "catalog"
       },
       {
@@ -7582,7 +7582,7 @@
       },
       {
         "label": "밝기",
-        "value": "- : 450 cd/m2 / H : 1,200 cd/m2",
+        "value": "450 cd/m² (Standard) / 1,200 cd/m² (-H 옵션)",
         "source": "catalog"
       },
       {
@@ -7641,7 +7641,7 @@
       },
       {
         "label": "밝기",
-        "value": "- : 400 cd/m2 / H : 1,400 cd/m2",
+        "value": "400 cd/m² (Standard) / 1,400 cd/m² (-H 옵션)",
         "source": "catalog"
       },
       {
@@ -7695,7 +7695,7 @@
       },
       {
         "label": "밝기",
-        "value": "– : 600 cd/m², H : 1,000 cd/m²",
+        "value": "600 cd/m² (Standard) / 1,000 cd/m² (-H 옵션)",
         "source": "catalog"
       },
       {
@@ -7743,7 +7743,7 @@
       },
       {
         "label": "밝기",
-        "value": "– : 450 cd/m², H : 1,200 cd/m²",
+        "value": "450 cd/m² (Standard) / 1,200 cd/m² (-H 옵션)",
         "source": "catalog"
       },
       {
@@ -7791,7 +7791,7 @@
       },
       {
         "label": "밝기",
-        "value": "– : 400 cd/m², H : 1,400 cd/m²",
+        "value": "400 cd/m² (Standard) / 1,400 cd/m² (-H 옵션)",
         "source": "catalog"
       },
       {
