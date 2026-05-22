@@ -278,7 +278,7 @@ function AppInner() {
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
         <div className="flex gap-5 items-start">
           {/* 데스크톱 사이드바 */}
-          <div className="hidden md:block flex-shrink-0 no-print">
+          <div className="hidden md:block flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
             {activeCategory === 'PLC' ? (
               <PlcLeftPanel
                 plcSeries={plcSeries}

@@ -45,7 +45,7 @@ export default function LeftPanel({
   const hasActiveFilters = Object.values(filters).some((v) => v.length > 0);
 
   return (
-    <aside className="w-64 flex-shrink-0 sticky top-[120px] max-h-[calc(100vh-120px)] overflow-y-auto">
+    <aside className="w-64 flex-shrink-0">
       {onClose && (
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 mb-3 rounded-t-xl">
           <span className="text-sm font-semibold text-gray-700">{t(UI.filters)}</span>
