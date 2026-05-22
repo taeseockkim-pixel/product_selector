@@ -45,14 +45,14 @@ export default function LeftPanel({
   const hasActiveFilters = Object.values(filters).some((v) => v.length > 0);
 
   return (
-    <aside className="w-64 flex-shrink-0">
+    <aside className="w-64 flex-shrink-0 sticky top-[120px] max-h-[calc(100vh-120px)] overflow-y-auto">
       {onClose && (
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 mb-3 rounded-t-xl">
           <span className="text-sm font-semibold text-gray-700">{t(UI.filters)}</span>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 text-xl leading-none rounded-full hover:bg-gray-100">×</button>
         </div>
       )}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-3">
         <div className="px-4 pt-4 pb-2">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             {t(UI.productType)}
@@ -64,7 +64,7 @@ export default function LeftPanel({
                 onClick={() => { onSubTypeChange(st.id); onFiltersChange({}); }}
                 className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeSubType === st.id
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-gray-900 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
@@ -76,13 +76,13 @@ export default function LeftPanel({
       </div>
 
       {subType && subType.filters.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
               {t(UI.filters)}
             </p>
             {hasActiveFilters && (
-              <button onClick={clearFilters} className="text-xs text-blue-500 hover:text-blue-700">
+              <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-gray-700">
                 {t(UI.reset)}
               </button>
             )}
@@ -110,8 +110,8 @@ export default function LeftPanel({
                             onClick={() => toggleValue(section.id, opt.value, false)}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                               active
-                                ? 'bg-blue-600 border-blue-600 text-white'
-                                : 'bg-white border-gray-300 text-gray-600 hover:border-blue-400 hover:text-blue-600'
+                                ? 'bg-gray-900 border-gray-900 text-white'
+                                : 'bg-white border-gray-300 text-gray-600 hover:border-gray-600 hover:text-gray-800'
                             }`}
                           >
                             {optLabel}
@@ -129,13 +129,13 @@ export default function LeftPanel({
                             key={opt.value}
                             className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-xs cursor-pointer transition-colors ${
                               active
-                                ? 'bg-blue-50 border-blue-400 text-blue-700'
+                                ? 'bg-gray-100 border-gray-400 text-gray-900'
                                 : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                             }`}
                           >
                             <input
                               type="checkbox"
-                              className="accent-blue-600 w-3 h-3 flex-shrink-0"
+                              className="accent-gray-900 w-3 h-3 flex-shrink-0"
                               checked={active}
                               onChange={() => toggleValue(section.id, opt.value, true)}
                             />

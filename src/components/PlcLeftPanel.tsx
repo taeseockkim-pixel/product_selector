@@ -33,14 +33,14 @@ export default function PlcLeftPanel({
   }
 
   return (
-    <aside className="w-60 flex-shrink-0">
+    <aside className="w-60 flex-shrink-0 sticky top-[120px] max-h-[calc(100vh-120px)] overflow-y-auto">
       {onClose && (
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 mb-3 rounded-t-xl">
           <span className="text-sm font-semibold text-gray-700">{t(UI.series)}</span>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 text-xl leading-none rounded-full hover:bg-gray-100">×</button>
         </div>
       )}
-      <div className="bg-white rounded-xl border border-gray-200 p-3 mb-3">
+      <div className="bg-white rounded-2xl shadow-sm p-3 mb-3">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
           {t(UI.series)}
         </p>
@@ -51,7 +51,7 @@ export default function PlcLeftPanel({
               onClick={() => handleSeriesChange(s)}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
                 plcSeries === s
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-gray-900 text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -61,7 +61,7 @@ export default function PlcLeftPanel({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="py-1">
           {tree.map((group) => {
             const isExpanded = expandedGroups.includes(group.id);
@@ -73,7 +73,7 @@ export default function PlcLeftPanel({
                 <button
                   onClick={() => toggleGroup(group.id)}
                   className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-gray-50 ${
-                    hasActive ? 'text-blue-700' : 'text-gray-700'
+                    hasActive ? 'text-gray-900 font-bold' : 'text-gray-700'
                   }`}
                 >
                   <span className="text-sm font-semibold">{groupLabel}</span>
@@ -98,7 +98,7 @@ export default function PlcLeftPanel({
                           onClick={() => onSubTypeChange(leaf.id)}
                           className={`w-full text-left pl-7 pr-4 py-2 text-sm transition-colors ${
                             active
-                              ? 'bg-blue-50 text-blue-700 font-medium border-l-2 border-blue-500'
+                              ? 'bg-gray-100 text-gray-900 font-medium border-l-2 border-gray-900'
                               : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700 border-l-2 border-transparent'
                           }`}
                         >

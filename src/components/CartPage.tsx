@@ -118,7 +118,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
               </button>
               <button
                 onClick={() => window.open(buildMailto(cartProducts, lang))}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -136,9 +136,9 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
       </div>
 
       {cartProducts.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-2xl shadow-sm p-16 text-center">
           <p className="text-gray-400 text-sm">{t(UI.emptyShortlist)}</p>
-          <button onClick={onBack} className="mt-4 text-sm text-blue-500 hover:text-blue-700">
+          <button onClick={onBack} className="mt-4 text-sm text-gray-600 hover:text-gray-800">
             {t(UI.goToList)}
           </button>
         </div>
@@ -150,7 +150,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
             const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
             const verifiedSpecs = p.specs.filter((s) => s.source !== 'estimated');
             return (
-              <div key={p.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div key={p.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden no-print">

@@ -37,7 +37,7 @@ export default function ProductTable({
 
   if (products.length === 0) {
     return (
-      <div className="flex-1 bg-white rounded-xl border border-gray-200 p-12 text-center">
+      <div className="flex-1 bg-white rounded-2xl shadow-sm p-12 text-center">
         <p className="text-gray-400 text-sm whitespace-pre-line">{t(UI.noProducts)}</p>
       </div>
     );
@@ -45,15 +45,15 @@ export default function ProductTable({
 
   return (
     <div className="flex-1 overflow-x-auto">
-      <table className="w-full text-sm bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <table className="w-full text-sm bg-white rounded-2xl shadow-sm overflow-hidden">
         <thead>
-          <tr className="bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wide">
-            <th className="px-4 py-3 text-left w-20">{t(UI.colImage)}</th>
-            <th className="px-4 py-3 text-left w-40">{t(UI.colModelName)}</th>
-            <th className="px-4 py-3 text-left">{t(UI.colDesc)}</th>
-            <th className="px-4 py-3 text-center w-20">{t(UI.colSpecs)}</th>
-            <th className="px-4 py-3 text-center w-16">{t(UI.colAdd)}</th>
-            <th className="px-4 py-3 text-center w-16">{t(UI.colCompare)}</th>
+          <tr className="bg-gray-900 text-gray-300 text-xs font-semibold uppercase tracking-widest">
+            <th className="px-4 py-3.5 text-left w-20">{t(UI.colImage)}</th>
+            <th className="px-4 py-3.5 text-left w-40">{t(UI.colModelName)}</th>
+            <th className="px-4 py-3.5 text-left">{t(UI.colDesc)}</th>
+            <th className="px-4 py-3.5 text-center w-20">{t(UI.colSpecs)}</th>
+            <th className="px-4 py-3.5 text-center w-16">{t(UI.colAdd)}</th>
+            <th className="px-4 py-3.5 text-center w-16">{t(UI.colCompare)}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -63,7 +63,7 @@ export default function ProductTable({
             const desc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
             const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
             return (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={p.id} className="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
                 <td className="px-4 py-3">
                   <ProductImage id={p.id} subType={p.subType} />
                 </td>
@@ -86,8 +86,8 @@ export default function ProductTable({
                     title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
                     className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition-colors text-base leading-none font-bold ${
                       inCart
-                        ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-gray-900 text-white hover:bg-gray-700'
                     }`}
                   >
                     {inCart ? '✓' : '+'}
@@ -99,8 +99,8 @@ export default function ProductTable({
                     title={inCompare ? t(UI.removeCompare) : t(UI.addToCompare)}
                     className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mx-auto transition-colors text-xs font-bold ${
                       inCompare
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-500'
+                        ? 'border-gray-900 bg-gray-900 text-white'
+                        : 'border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600'
                     }`}
                   >
                     {lang === 'ko' ? '비' : 'C'}

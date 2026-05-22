@@ -119,14 +119,14 @@ export default function ComparePage({
       </div>
 
       {compareProducts.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+        <div className="bg-white rounded-2xl shadow-sm p-16 text-center">
           <p className="text-gray-400 text-sm">{t(UI.noCompare)}</p>
-          <button onClick={onBack} className="mt-4 text-sm text-blue-500 hover:text-blue-700">
+          <button onClick={onBack} className="mt-4 text-sm text-gray-600 hover:text-gray-800">
             {t(UI.goToList)}
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

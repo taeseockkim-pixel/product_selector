@@ -11,7 +11,7 @@ import { translateSpecValue } from '../i18n/specValues';
 type DocButtonColor = 'blue' | 'green' | 'orange';
 
 const COLOR_CLASS: Record<DocButtonColor, string> = {
-  blue:   'bg-blue-50 text-blue-600 hover:bg-blue-100',
+  blue:   'bg-gray-100 text-gray-700 hover:bg-gray-200',
   green:  'bg-green-50 text-green-600 hover:bg-green-100',
   orange: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
 };
@@ -29,7 +29,7 @@ function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={onClose}
-          className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-700 transition-colors"
           title={t(UI.openTab)}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -161,7 +161,7 @@ export default function SpecModal({
           )}
 
           <div className="flex-1 min-w-0 flex flex-col gap-2">
-            <p className="text-sm font-semibold text-blue-600">{series}</p>
+            <p className="text-sm font-semibold text-gray-500">{series}</p>
             <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
             <div className="mt-auto pt-1 flex flex-wrap gap-2">
               {catalogUrl && (

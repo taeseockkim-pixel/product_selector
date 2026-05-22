@@ -119,8 +119,8 @@ export default function SearchOverlay({
                           title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                             inCart
-                              ? 'bg-blue-100 text-blue-600'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                              ? 'bg-gray-100 text-gray-700'
+                              : 'bg-gray-900 text-white hover:bg-gray-700'
                           }`}
                         >
                           {inCart ? '✓' : '+'}
@@ -130,8 +130,8 @@ export default function SearchOverlay({
                           title={inCompare ? t(UI.removeCompare) : t(UI.addToCompare)}
                           className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
                             inCompare
-                              ? 'border-blue-600 bg-blue-600 text-white'
-                              : 'border-gray-300 text-gray-400 hover:border-blue-400 hover:text-blue-500'
+                              ? 'border-gray-900 bg-gray-900 text-white'
+                              : 'border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600'
                           }`}
                         >
                           {lang === 'ko' ? '비' : 'C'}
