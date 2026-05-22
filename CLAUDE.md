@@ -107,7 +107,7 @@ products.json  →(빌드 타임 import)→  PRODUCTS: Product[]
 추가 주의사항:
 - 부모 요소에 `overflow: hidden` 또는 `overflow: auto`가 있으면 sticky 무력화
 - `self-start` 없이 flex child에 sticky를 쓰면 부모가 늘어나 고정되지 않음
-- 현재 sticky top 기준: 헤더 64px + 카테고리 탭 56px = **120px**
+- 현재 sticky top 기준: 헤더 128px + 카테고리 탭 56px = **184px**
 
 ### 새 제품 카테고리 추가 시 3-파일 동시 수정
 

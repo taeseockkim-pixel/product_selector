@@ -263,7 +263,7 @@ function AppInner() {
       <AppHeader {...headerProps} />
 
       {/* 카테고리 탭 */}
-      <div className="bg-white border-b border-gray-100 no-print sticky top-16 z-30">
+      <div className="bg-white border-b border-gray-100 no-print sticky top-32 z-30">
         <div className="max-w-screen-xl mx-auto px-6">
           <nav className="flex gap-1.5 py-2.5">
             {ALL_CATEGORY_IDS.map((catId) => {
@@ -289,7 +289,7 @@ function AppInner() {
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 pb-6">
         <div className="flex gap-5 items-start">
           {/* 데스크톱 사이드바 */}
-          <div className="hidden md:block flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
+          <div className="hidden md:block flex-shrink-0 no-print sticky top-[184px] self-start max-h-[calc(100vh-184px)] overflow-y-auto">
             {activeCategory === 'PLC' ? (
               <PlcLeftPanel
                 plcSeries={plcSeries}
@@ -416,9 +416,9 @@ function AppHeader({
   const t = useT();
   return (
     <header className="bg-black/90 backdrop-blur-md sticky top-0 z-40 no-print">
-      <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
+      <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between py-2">
         <button onClick={onReset} className="flex items-center gap-3 hover:opacity-75 transition-opacity">
-          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-14 w-auto object-contain invert" />
+          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-28 w-auto object-contain invert" />
           <span className="text-gray-600">|</span>
           <span className="text-sm text-gray-400 hidden sm:inline">{t(UI.productGuide)}</span>
         </button>
