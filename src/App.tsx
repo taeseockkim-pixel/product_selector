@@ -275,7 +275,7 @@ function AppInner() {
         </div>
       </div>
 
-      <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
+      <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 pb-6">
         <div className="flex gap-5 items-start">
           {/* 데스크톱 사이드바 */}
           <div className="hidden md:block flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
@@ -327,7 +327,7 @@ function AppInner() {
             </div>
           )}
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pt-6">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <button
