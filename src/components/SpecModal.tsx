@@ -3,17 +3,19 @@ import type { Product } from '../types';
 import { resolveProductImage } from '../utils/imageResolver';
 import { getCatalogUrl, getManualEntries, getDrawingEntries } from '../config/catalogConfig';
 import type { DocEntry } from '../config/catalogConfig';
+import { getCertEntries } from '../config/certificationConfig';
 import { useT, useLang } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import { translateSpecLabel } from '../i18n/specLabels';
 import { translateSpecValue } from '../i18n/specValues';
 
-type DocButtonColor = 'blue' | 'green' | 'orange';
+type DocButtonColor = 'blue' | 'green' | 'orange' | 'purple';
 
 const COLOR_CLASS: Record<DocButtonColor, string> = {
   blue:   'bg-gray-100 text-gray-700 hover:bg-gray-200',
   green:  'bg-green-50 text-green-600 hover:bg-green-100',
   orange: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
+  purple: 'bg-purple-50 text-purple-600 hover:bg-purple-100',
 };
 
 function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
@@ -115,6 +117,7 @@ export default function SpecModal({
   const catalogUrl = getCatalogUrl(product.subType);
   const manualEntries = getManualEntries(product.subType);
   const drawingEntries = getDrawingEntries(product.subType);
+  const certEntries = getCertEntries(product.subType);
 
   const desc = lang === 'en' ? (product.descriptionEn ?? product.description) : product.description;
   const series = lang === 'en' ? (product.seriesLabelEn ?? product.seriesLabel) : product.seriesLabel;
@@ -176,6 +179,9 @@ export default function SpecModal({
               )}
               {drawingEntries.length > 0 && (
                 <DocButton label={t(UI.drawing)} entries={drawingEntries} color="orange" />
+              )}
+              {certEntries.length > 0 && (
+                <DocButton label={t(UI.certification)} entries={certEntries} color="purple" />
               )}
             </div>
           </div>

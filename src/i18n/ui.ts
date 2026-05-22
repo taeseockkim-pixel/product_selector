@@ -35,6 +35,7 @@ export const UI = {
   catalog:        t('카탈로그', 'Catalog'),
   manual:         t('메뉴얼', 'Manual'),
   drawing:        t('도면', 'Drawing'),
+  certification:  t('인증서', 'Certificate'),
   detailSpecs:    t('상세 사양', 'Specifications'),
   noDetailSpecs:  t('상세 사양 정보 없음 (카탈로그 검증 후 업데이트 예정)', 'Spec data unavailable (to be updated after catalog verification)'),
   openTab:        t('새 탭에서 열기', 'Open in new tab'),
