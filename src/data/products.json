@@ -14159,7 +14159,7 @@
     "series": "XT",
     "seriesLabel": "XPANEL XT",
     "subType": "XPANEL_HMI",
-    "description": "7인치, CE 6.0, AC 100-240V, 저항막 터치, CIMON-X 탑재",
+    "description": "7인치, CE 6.0, DC 24V, 이더넷, 저항막 터치, CIMON-X 탑재",
     "screenSize": 7,
     "xpanelOs": "CE",
     "xpanelPower": "DC24V",
@@ -14209,7 +14209,7 @@
       },
       {
         "label": "이더넷",
-        "value": "None",
+        "value": "10/100 BaseT",
         "source": "catalog"
       },
       {
@@ -14279,7 +14279,7 @@
       }
     ],
     "seriesLabelEn": "XPANEL XT",
-    "descriptionEn": "7\", CE 6.0, AC 100-240V, resistive touch, CIMON-X preinstalled"
+    "descriptionEn": "7\", CE 6.0, DC 24V, Ethernet, resistive touch, CIMON-X preinstalled"
   },
   {
     "id": "XT10CD-D",
