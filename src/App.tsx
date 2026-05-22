@@ -211,6 +211,16 @@ function AppInner() {
 
   const totalLabel = lang === 'ko' ? `총 ${products.length}개` : `Total: ${products.length}`;
 
+  function handleReset() {
+    setViewMode('main');
+    setActiveCategory('PLC');
+    setPlcSeries('CM1');
+    setPlcSubType(getDefaultSubType('CM1'));
+    setFilters({});
+    setDetailProduct(null);
+    setSearchOpen(false);
+  }
+
   const headerProps = {
     cartCount: cartList.length,
     compareCount: compareList.length,
@@ -218,6 +228,7 @@ function AppInner() {
     onCompareClick: () => setViewMode('compare'),
     onSearchClick: () => setSearchOpen(true),
     onCopyLink: handleCopyLink,
+    onReset: handleReset,
     viewMode,
   };
 
@@ -391,7 +402,7 @@ function Toast({ msg }: { msg: string }) {
 
 function AppHeader({
   cartCount, compareCount, onCartClick, onCompareClick,
-  onSearchClick, onCopyLink, viewMode,
+  onSearchClick, onCopyLink, onReset, viewMode,
 }: {
   cartCount: number;
   compareCount: number;
@@ -399,17 +410,18 @@ function AppHeader({
   onCompareClick: () => void;
   onSearchClick: () => void;
   onCopyLink: () => void;
+  onReset: () => void;
   viewMode: ViewMode;
 }) {
   const t = useT();
   return (
     <header className="bg-black/90 backdrop-blur-md sticky top-0 z-40 no-print">
       <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
-        <div className="flex items-center gap-3">
-          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-10 w-auto object-contain invert" />
+        <button onClick={onReset} className="flex items-center gap-3 hover:opacity-75 transition-opacity">
+          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-14 w-auto object-contain invert" />
           <span className="text-gray-600">|</span>
           <span className="text-sm text-gray-400 hidden sm:inline">{t(UI.productGuide)}</span>
-        </div>
+        </button>
 
         <div className="flex items-center gap-1.5">
           {/* 검색 버튼 */}
@@ -491,6 +503,7 @@ function AppHeader({
     </header>
   );
 }
+
 
 export default function App() {
   return (
