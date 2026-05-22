@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{var f=JSON.parse(d).tool_input.file_path||''}catch(e){var f=''};if(/spec(Values|Labels)\\.ts$/i.test(f)){require('child_process').execSync('npm run check:i18n',{stdio:'inherit',cwd:process.cwd()})}});\"",
+            "timeout": 30,
+            "statusMessage": "i18n 번역 누수 검사 중..."
+          }
+        ]
+      }
+    ]
+  }
+}

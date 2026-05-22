@@ -263,12 +263,10 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
             id: 'options', title: '옵션', titleEn: 'Options', type: 'checkboxGrid',
             options: [
               { label: '고휘도', labelEn: 'High Brightness', value: 'hb' },
-              { label: '광온도 (-20~70°C)', labelEn: 'Wide Temp. (-20~70°C)', value: 'wideTemp' },
             ],
             matcher: (p, sel) =>
               sel.every((s) =>
-                s === 'hb' ? p.hasHighBrightness :
-                s === 'wideTemp' ? p.wideTemp : true,
+                s === 'hb' ? p.hasHighBrightness : true,
               ),
           },
         ],
