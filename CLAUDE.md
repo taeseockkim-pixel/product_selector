@@ -85,6 +85,30 @@ products.json  →(빌드 타임 import)→  PRODUCTS: Product[]
 - `App.tsx`에 비즈니스 로직 직접 추가 — config 레이어를 통해 처리
 - 카탈로그 미확인 상태에서 `"source": "catalog"` spec 추가/수정
 
+### CSS `sticky` 적용 규칙
+
+`position: sticky`는 **자신이 속한 부모 요소의 높이 범위** 안에서만 고정된다.
+컴포넌트 내부 `<aside>`에 `sticky`를 걸면, 해당 컴포넌트를 감싸는 부모 div 범위를 벗어나지 못해 고정이 풀린다.
+
+**올바른 패턴** — `App.tsx`의 wrapper div에 적용:
+```jsx
+{/* App.tsx — 사이드바 wrapper */}
+<div className="hidden md:block flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
+  <LeftPanel ... />
+</div>
+```
+
+**잘못된 패턴** — 컴포넌트 내부 aside에 적용 (작동 안 함):
+```jsx
+{/* LeftPanel.tsx 내부 — 부모 div 범위 밖을 벗어나지 못함 */}
+<aside className="sticky top-[120px] ...">
+```
+
+추가 주의사항:
+- 부모 요소에 `overflow: hidden` 또는 `overflow: auto`가 있으면 sticky 무력화
+- `self-start` 없이 flex child에 sticky를 쓰면 부모가 늘어나 고정되지 않음
+- 현재 sticky top 기준: 헤더 64px + 카테고리 탭 56px = **120px**
+
 ### 새 제품 카테고리 추가 시 3-파일 동시 수정
 
 `src/types/index.ts` + `src/config/filterConfig.ts` + `src/data/products.json`
