@@ -415,10 +415,10 @@ function AppHeader({
 }) {
   const t = useT();
   return (
-    <header className="bg-black/90 backdrop-blur-md sticky top-0 z-40 no-print">
+    <header className="bg-black/90 backdrop-blur-md sticky top-0 z-40 no-print overflow-visible">
       <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
         <button onClick={onReset} className="flex items-center gap-3 hover:opacity-75 transition-opacity">
-          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-14 w-auto object-contain invert" />
+          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-20 w-auto object-contain invert" />
           <span className="text-gray-600">|</span>
           <span className="text-sm text-gray-400 hidden sm:inline">{t(UI.productGuide)}</span>
         </button>
