@@ -97,9 +97,11 @@ const MANUAL_MAP: Record<string, DocEntry[]> = {
   CM1_SP_DL:  [{ label: 'Data Logger', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_DataLogger_v1.0_BCP65459.pdf` }],
   CM1_SP_POS: [{ label: '위치결정', labelEn: 'Positioning', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Positioning_v1.0_BCP65469.pdf` }],
   // ── CM1 이중화 ──
-  CM1_RED_COMM: [{ label: 'Remote I/O', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_RC_RemoteIO_v1.0_BCP65471.pdf` }],
+  CM1_RED_COMM: [{ label: '이중화', labelEn: 'Redundancy', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
   CM1_RED_EXT:  [{ label: '이중화', labelEn: 'Redundancy', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
   CM1_RED_MMI:  [{ label: '이중화', labelEn: 'Redundancy', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
+  // ── CM1 증설모듈 ──
+  CM1_EXT_MOD:  [{ label: '이중화 증설', labelEn: 'Extension Module', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
 
   // ── CM3 CPU ──
   CM3_CPU_SLIM: [
@@ -198,6 +200,7 @@ const DRAWING_MAP: Record<string, DocEntry[]> = {
   CM1_RED_COMM:  [{ label: '이중화 전용', labelEn: 'Redundancy', url: `${D1}/이중화-전용.zip` }],
   CM1_RED_MMI:   [{ label: '이중화 전용', labelEn: 'Redundancy', url: `${D1}/이중화-전용.zip` }],
   CM1_RED_EXT:   [{ label: '이중화 전용', labelEn: 'Redundancy', url: `${D1}/이중화-전용.zip` }],
+  CM1_EXT_MOD:   [{ label: '이중화 전용', labelEn: 'Redundancy', url: `${D1}/이중화-전용.zip` }],
   CM1_ACC:       [{ label: '증설 모듈', labelEn: 'Extension Module', url: `${D1}/증설-모듈.zip` }, { label: '악세서리', labelEn: 'Accessory', url: `${D1}/Accessary.zip` }],
   // ── CM3 ──
   CM3_CPU_SLIM:    [{ label: 'CPU 블록', labelEn: 'CPU Block', url: `${D3}/CPU-Main-Block.zip` }, { label: '단자대', labelEn: 'Terminal Block', url: `${D3}/단자대.zip` }],

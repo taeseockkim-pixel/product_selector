@@ -5406,13 +5406,26 @@
     "descriptionEn": "Redundancy MMI module / Primary·Secondary operating mode setting"
   },
   {
+    "id": "CM1-EP02F",
+    "modelName": "CM1-EP02F",
+    "category": "PLC",
+    "plcSeries": "CM1",
+    "series": "CM1_EXT_MOD",
+    "seriesLabel": "증설모듈",
+    "subType": "CM1_EXT_MOD",
+    "description": "CM1 시리즈 증설 모듈",
+    "specs": [],
+    "seriesLabelEn": "Extension Module",
+    "descriptionEn": "CM1 series extension module"
+  },
+  {
     "id": "CM1-EP03A",
     "modelName": "CM1-EP03A",
     "category": "PLC",
     "plcSeries": "CM1",
-    "series": "CM1_RED_EXT",
-    "seriesLabel": "이중화 증설",
-    "subType": "CM1_RED_EXT",
+    "series": "CM1_EXT_MOD",
+    "seriesLabel": "증설모듈",
+    "subType": "CM1_EXT_MOD",
     "description": "10Mbps CPU 이중화용 증설 / 3Port 증설 Hub 내장",
     "specs": [
       {
@@ -5431,7 +5444,7 @@
         "source": "catalog"
       }
     ],
-    "seriesLabelEn": "Redundancy Extension",
+    "seriesLabelEn": "Extension Module",
     "descriptionEn": "10Mbps CPU extension for redundancy / 3-port extension hub built-in"
   },
   {

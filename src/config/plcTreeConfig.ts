@@ -85,9 +85,14 @@ const CM1_TREE: PlcTreeGroup[] = [
     children: [
       { id: 'CM1_RED_COMM', label: '이중화 통신', labelEn: 'Redundancy Comm.' },
       { id: 'CM1_RED_MMI',  label: '이중화 MMI', labelEn: 'Redundancy MMI' },
-      { id: 'CM1_RED_EXT',  label: '이중화 증설', labelEn: 'Redundancy Extension' },
       { id: 'CM1_RED_BASE', label: '이중화 베이스', labelEn: 'Redundancy Base' },
       { id: 'CM1_RED_PWR',  label: '이중화 전원', labelEn: 'Redundancy Power' },
+    ],
+  },
+  {
+    id: 'ext_mod', label: '증설모듈', labelEn: 'Extension Module',
+    children: [
+      { id: 'CM1_EXT_MOD', label: '증설모듈', labelEn: 'Extension Module' },
     ],
   },
   {
