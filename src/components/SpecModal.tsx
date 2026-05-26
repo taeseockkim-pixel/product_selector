@@ -55,20 +55,21 @@ function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
 }
 
 function DocButton({
-  label, entries, color = 'blue',
+  label, entries, color = 'blue', isOpen, onToggle,
 }: {
   label: string;
   entries: DocEntry[];
   color?: DocButtonColor;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   if (entries.length === 0) return null;
 
   return (
     <div className="relative inline-block">
-      {open && <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />}
+      {isOpen && <div className="fixed inset-0 z-10" onClick={onToggle} />}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={onToggle}
         className={`relative z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${COLOR_CLASS[color]}`}
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -79,17 +80,17 @@ function DocButton({
           <span className="text-xs opacity-60">({entries.length})</span>
         )}
         <svg
-          className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 transition-transform ${isOpen ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
-      {open && (
+      {isOpen && (
         <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[420px] max-h-64 overflow-y-auto">
           {entries.map((entry) => (
-            <DocRow key={entry.url} entry={entry} onClose={() => setOpen(false)} />
+            <DocRow key={entry.url} entry={entry} onClose={onToggle} />
           ))}
         </div>
       )}
@@ -108,6 +109,10 @@ export default function SpecModal({
   const t = useT();
   const { lang } = useLang();
   const [imgFailed, setImgFailed] = useState(false);
+  const [openDocType, setOpenDocType] = useState<string | null>(null);
+  function toggleDoc(type: string) {
+    setOpenDocType((v) => (v === type ? null : type));
+  }
   const imageSrc = resolveProductImage(product.id, product.subType);
   const verifiedSpecs = product.specs.filter((s) => s.source !== 'estimated');
   const similar = allProducts
@@ -172,16 +177,21 @@ export default function SpecModal({
                   label={t(UI.catalog)}
                   entries={[{ label: lang === 'ko' ? '카탈로그 PDF' : 'Catalog PDF', url: catalogUrl }]}
                   color="blue"
+                  isOpen={openDocType === 'catalog'}
+                  onToggle={() => toggleDoc('catalog')}
                 />
               )}
               {manualEntries.length > 0 && (
-                <DocButton label={t(UI.manual)} entries={manualEntries} color="green" />
+                <DocButton label={t(UI.manual)} entries={manualEntries} color="green"
+                  isOpen={openDocType === 'manual'} onToggle={() => toggleDoc('manual')} />
               )}
               {drawingEntries.length > 0 && (
-                <DocButton label={t(UI.drawing)} entries={drawingEntries} color="orange" />
+                <DocButton label={t(UI.drawing)} entries={drawingEntries} color="orange"
+                  isOpen={openDocType === 'drawing'} onToggle={() => toggleDoc('drawing')} />
               )}
               {certEntries.length > 0 && (
-                <DocButton label={t(UI.certification)} entries={certEntries} color="purple" />
+                <DocButton label={t(UI.certification)} entries={certEntries} color="purple"
+                  isOpen={openDocType === 'cert'} onToggle={() => toggleDoc('cert')} />
               )}
             </div>
           </div>
