@@ -63,8 +63,8 @@ export default function SearchOverlay({
         onClick={(e) => e.stopPropagation()}
       >
         {/* 검색 입력 */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-          <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#f0f0f0]">
+          <svg className="w-5 h-5 text-[#999999] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -73,11 +73,11 @@ export default function SearchOverlay({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t(UI.searchPlaceholder)}
-            className="flex-1 text-sm outline-none text-gray-800 placeholder-gray-400"
+            className="flex-1 text-sm outline-none text-[#191919] placeholder-[#999999]"
           />
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 text-xl leading-none rounded-full hover:bg-gray-100"
+            className="w-7 h-7 flex items-center justify-center text-[#999999] hover:text-[#191919] text-xl leading-none rounded-full hover:bg-[#f2f2f2] transition-colors"
           >
             ×
           </button>
@@ -86,19 +86,19 @@ export default function SearchOverlay({
         {/* 검색 결과 */}
         <div className="max-h-[60vh] overflow-y-auto">
           {q === '' ? (
-            <div className="p-8 text-center text-sm text-gray-400">
+            <div className="p-8 text-center text-sm text-[#999999]">
               {t(UI.searchPlaceholder)}
             </div>
           ) : matched.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-400">{t(UI.searchNoResults)}</div>
+            <div className="p-8 text-center text-sm text-[#999999]">{t(UI.searchNoResults)}</div>
           ) : (
             (Object.entries(grouped) as [CategoryId, Product[]][]).map(([cat, prods]) => (
               <div key={cat}>
-                <div className="px-4 py-2 bg-gray-50 border-y border-gray-100 flex items-center gap-2">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <div className="px-4 py-2 bg-[#f2f2f2] border-y border-[#e8e8e8] flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em]">
                     {CATEGORY_LABELS[cat]}
                   </span>
-                  <span className="text-xs text-gray-400">({prods.length})</span>
+                  <span className="text-xs text-[#999999]">({prods.length})</span>
                 </div>
                 {prods.map((p) => {
                   const desc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
@@ -107,11 +107,11 @@ export default function SearchOverlay({
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-[#f2f2f2] border-b border-[#f5f5f5] last:border-0 transition-colors"
                     >
                       <button className="flex-1 text-left min-w-0" onClick={() => onViewDetail(p)}>
-                        <p className="font-semibold text-gray-800 text-sm">{p.modelName}</p>
-                        <p className="text-xs text-gray-400 mt-0.5 truncate">{desc}</p>
+                        <p className="font-semibold text-[#191919] text-sm">{p.modelName}</p>
+                        <p className="text-xs text-[#999999] mt-0.5 truncate">{desc}</p>
                       </button>
                       <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                         <button
@@ -119,8 +119,8 @@ export default function SearchOverlay({
                           title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                             inCart
-                              ? 'bg-gray-100 text-gray-700'
-                              : 'bg-gray-900 text-white hover:bg-gray-700'
+                              ? 'bg-[#f2f2f2] text-[#333333]'
+                              : 'bg-[#191919] text-white hover:bg-[#333333]'
                           }`}
                         >
                           {inCart ? '✓' : '+'}
@@ -130,8 +130,8 @@ export default function SearchOverlay({
                           title={inCompare ? t(UI.removeCompare) : t(UI.addToCompare)}
                           className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
                             inCompare
-                              ? 'border-gray-900 bg-gray-900 text-white'
-                              : 'border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600'
+                              ? 'border-[#191919] bg-[#191919] text-white'
+                              : 'border-[#cccccc] text-[#999999] hover:border-[#333333] hover:text-[#333333]'
                           }`}
                         >
                           {lang === 'ko' ? '비' : 'C'}

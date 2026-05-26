@@ -415,7 +415,7 @@ function AppHeader({
 }) {
   const t = useT();
   return (
-    <header className="bg-[#191919] sticky top-0 z-40 no-print overflow-visible">
+    <header className="bg-[#191919] shadow-glow-white sticky top-0 z-40 no-print overflow-visible">
       <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
         <button onClick={onReset} className="flex items-center gap-3 hover:opacity-75 transition-opacity">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-20 w-auto object-contain invert" />

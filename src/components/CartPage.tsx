@@ -97,7 +97,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
             </svg>
             {t(UI.back)}
           </button>
-          <h1 className="text-lg font-bold font-headline text-[#191919]">
+          <h1 className="text-lg font-bold text-[#191919]">
             {t(UI.shortlistTitle)}
             <span className="ml-2 text-sm font-normal text-[#999999]">
               ({cartProducts.length}{lang === 'ko' ? '개' : ''})
@@ -118,7 +118,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
               </button>
               <button
                 onClick={() => window.open(buildMailto(cartProducts, lang))}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium tracking-[0.25em] hover:bg-[#333333] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />

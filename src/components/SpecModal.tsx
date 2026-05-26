@@ -199,7 +199,7 @@ export default function SpecModal({
 
         {/* 사양 목록 — 스크롤 영역 */}
         <div className="px-6 pb-5 overflow-y-auto">
-          <p className="text-xs font-semibold text-[#999999] uppercase tracking-wider mb-3 mt-2">
+          <p className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] mb-3 mt-2">
             {t(UI.detailSpecs)}
           </p>
           {verifiedSpecs.length === 0 ? (
@@ -221,7 +221,7 @@ export default function SpecModal({
 
           {similar.length > 0 && onViewDetail && (
             <div className="mt-4 pt-4 border-t border-[#f0f0f0]">
-              <p className="text-xs font-semibold text-[#999999] uppercase tracking-wider mb-3">
+              <p className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] mb-3">
                 {t(UI.similarProducts)}
               </p>
               <div className="flex flex-col gap-2">

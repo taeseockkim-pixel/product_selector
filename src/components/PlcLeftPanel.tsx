@@ -41,7 +41,7 @@ export default function PlcLeftPanel({
         </div>
       )}
       <div className="bg-white rounded-2xl shadow-sm p-3 mb-3">
-        <p className="text-xs font-semibold text-[#999999] uppercase tracking-wider mb-2 px-1">
+        <p className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] mb-2 px-1">
           {t(UI.series)}
         </p>
         <div className="flex gap-1.5">

@@ -54,7 +54,7 @@ export default function LeftPanel({
       )}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-3">
         <div className="px-4 pt-4 pb-2">
-          <p className="text-xs font-semibold text-[#999999] uppercase tracking-wider mb-2">
+          <p className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] mb-2">
             {t(UI.productType)}
           </p>
           <div className="flex flex-col gap-1">
@@ -78,7 +78,7 @@ export default function LeftPanel({
       {subType && subType.filters.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="text-xs font-semibold text-[#999999] uppercase tracking-wider">
+            <p className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em]">
               {t(UI.filters)}
             </p>
             {hasActiveFilters && (

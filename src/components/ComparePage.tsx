@@ -80,7 +80,7 @@ export default function ComparePage({
             </svg>
             {t(UI.back)}
           </button>
-          <h1 className="text-lg font-bold font-headline text-[#191919]">
+          <h1 className="text-lg font-bold text-[#191919]">
             {t(UI.compareTitle)}
             <span className="ml-2 text-sm font-normal text-[#999999]">
               ({compareProducts.length}{lang === 'ko' ? '개 선택됨' : ' selected'})
@@ -131,7 +131,7 @@ export default function ComparePage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[#f2f2f2] border-b border-[#e0e0e0]">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#999999] uppercase tracking-wide w-36">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] w-36">
                     {t(UI.specCol)}
                   </th>
                   {compareProducts.map((p) => {
