@@ -24,6 +24,14 @@
   }
 }
 
+@keyframes tab-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-tab-fade {
+  animation: tab-fade-in 0.2s ease-out both;
+}
+
 @media print {
   .no-print { display: none !important; }
   .print-show { display: block !important; }
