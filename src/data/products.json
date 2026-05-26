@@ -5413,10 +5413,19 @@
     "series": "CM1_EXT_MOD",
     "seriesLabel": "증설모듈",
     "subType": "CM1_EXT_MOD",
-    "description": "CM1 시리즈 증설 모듈",
-    "specs": [],
+    "description": "10/100Mbps 고속 증설 모듈 / 최대 31단 / 로더 포트(Mini-B USB) 내장",
+    "specs": [
+      { "label": "증설 통신 포트", "value": "2포트", "source": "catalog" },
+      { "label": "속도", "value": "10/100Mbps", "source": "catalog" },
+      { "label": "내장 이더넷", "value": "10/100 BASE-T/TX", "source": "catalog" },
+      { "label": "전송 방식", "value": "Half Duplex", "source": "catalog" },
+      { "label": "최대 통신 거리", "value": "100m (노드-노드)", "source": "catalog" },
+      { "label": "최대 증설 수", "value": "최대 31단 (CPU 사양에 따름)", "source": "catalog" },
+      { "label": "초기화 버튼", "value": "O (푸쉬버튼 타입)", "source": "catalog" },
+      { "label": "로더 포트", "value": "O (Mini-B USB, 펌웨어 업그레이드 가능)", "source": "catalog" }
+    ],
     "seriesLabelEn": "Extension Module",
-    "descriptionEn": "CM1 series extension module"
+    "descriptionEn": "10/100Mbps high-speed extension module / Max. 31 stages / Loader port (Mini-B USB)"
   },
   {
     "id": "CM1-EP03A",
