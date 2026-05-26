@@ -64,7 +64,7 @@ export default function ComparePage({
       <div className="hidden print:block mb-6">
         <div className="flex items-center gap-3 mb-2">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-8 w-auto object-contain" />
-          <span className="text-lg font-bold text-[#191919]">{t(UI.compareTitle)}</span>
+          <span className="text-lg font-bold font-headline text-[#191919]">{t(UI.compareTitle)}</span>
         </div>
         <p className="text-xs text-[#999999]">{new Date().toLocaleDateString()}</p>
       </div>
@@ -80,7 +80,7 @@ export default function ComparePage({
             </svg>
             {t(UI.back)}
           </button>
-          <h1 className="text-lg font-bold text-[#191919]">
+          <h1 className="text-lg font-bold font-headline text-[#191919]">
             {t(UI.compareTitle)}
             <span className="ml-2 text-sm font-normal text-[#999999]">
               ({compareProducts.length}{lang === 'ko' ? '개 선택됨' : ' selected'})

@@ -144,7 +144,7 @@ export default function SpecModal({
       >
         {/* 제목 헤더 — 고정 영역 */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0f0f0] flex-shrink-0">
-          <h2 className="text-lg font-bold text-[#191919]">{product.modelName}</h2>
+          <h2 className="text-lg font-bold font-headline text-[#191919]">{product.modelName}</h2>
           <button
             onClick={onClose}
             className="text-[#999999] hover:text-[#191919] text-2xl leading-none w-8 h-8 flex items-center justify-center"

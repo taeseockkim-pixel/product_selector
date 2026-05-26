@@ -17,7 +17,7 @@ export default {
       },
       fontFamily: {
         sans:     ['"Helvetica Neue"', 'Pretendard', '"Noto Sans KR"', 'system-ui', 'sans-serif'],
-        headline: ['Automati', '"Helvetica Neue"', 'system-ui', 'sans-serif'],
+        headline: ['"Exo 2"', '"Helvetica Neue"', 'system-ui', 'sans-serif'],
       },
     },
   },

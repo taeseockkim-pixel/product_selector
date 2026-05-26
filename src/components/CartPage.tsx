@@ -81,7 +81,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
       <div className="hidden print:block mb-6">
         <div className="flex items-center gap-3 mb-2">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-8 w-auto object-contain" />
-          <span className="text-lg font-bold text-[#191919]">{t(UI.shortlistTitle)}</span>
+          <span className="text-lg font-bold font-headline text-[#191919]">{t(UI.shortlistTitle)}</span>
         </div>
         <p className="text-xs text-[#999999]">{new Date().toLocaleDateString()}</p>
       </div>
@@ -97,7 +97,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
             </svg>
             {t(UI.back)}
           </button>
-          <h1 className="text-lg font-bold text-[#191919]">
+          <h1 className="text-lg font-bold font-headline text-[#191919]">
             {t(UI.shortlistTitle)}
             <span className="ml-2 text-sm font-normal text-[#999999]">
               ({cartProducts.length}{lang === 'ko' ? '개' : ''})
