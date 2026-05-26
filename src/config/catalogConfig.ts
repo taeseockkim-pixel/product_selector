@@ -58,7 +58,7 @@ const MANUAL_MAP: Record<string, DocEntry[]> = {
   CM1_CPU_XP_RED:[{ label: 'CPU 이중화', labelEn: 'CPU Redundancy', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_CPU_BCP65473.pdf` }],
   // ── CM1 전원/베이스 ──
   CM1_PWR:       [{ label: '전원 모듈', labelEn: 'Power Module', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Power_BCP65470_v1.0_20250602.pdf` }],
-  CM1_RED_PWR:   [{ label: '전원 모듈', labelEn: 'Power Module', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Power_BCP65470_v1.0_20250602.pdf` }],
+  CM1_RED_PWR:   [{ label: '이중화', labelEn: 'Redundancy', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
   CM1_BASE:      [{ label: '베이스', labelEn: 'Base', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_BASE_v1.0_BCP65457.pdf` }],
   CM1_RED_BASE:  [{ label: '베이스', labelEn: 'Base', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_BASE_v1.0_BCP65457.pdf` }],
   CM1_ACC:       [{ label: '증설 모듈', labelEn: 'Extension Module', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Expansion_v1.0_BCP65464.pdf` }],
