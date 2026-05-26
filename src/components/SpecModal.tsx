@@ -88,7 +88,7 @@ function DocButton({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[420px] max-h-64 overflow-y-auto">
+        <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[420px] max-h-64 overflow-y-auto">
           {entries.map((entry) => (
             <DocRow key={entry.url} entry={entry} onClose={onToggle} />
           ))}
