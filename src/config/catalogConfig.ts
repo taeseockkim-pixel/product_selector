@@ -101,7 +101,7 @@ const MANUAL_MAP: Record<string, DocEntry[]> = {
   CM1_RED_EXT:  [{ label: '이중화', labelEn: 'Redundancy', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
   CM1_RED_MMI:  [{ label: '이중화', labelEn: 'Redundancy', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
   // ── CM1 증설모듈 ──
-  CM1_EXT_MOD:  [{ label: '이중화 증설', labelEn: 'Extension Module', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Redundancy_v1.0_BCP65472_20250617.pdf` }],
+  CM1_EXT_MOD:  [{ label: '증설 모듈', labelEn: 'Extension Module', url: `${M1}/간소화매뉴얼(설명서)(국영)CM1_Expansion_v1.0_BCP65464.pdf` }],
 
   // ── CM3 CPU ──
   CM3_CPU_SLIM: [
