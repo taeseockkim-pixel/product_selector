@@ -149,11 +149,7 @@ const CERT_MAP: Record<string, DocEntry[]> = {
   CM1_COMM_ECAT: [
     { label: 'UL (공통)', labelEn: 'UL (common)', url: `${UL}/PLC/UL DOC_PLC_CM1 common.pdf` },
   ],
-  CM1_ACC: [
-    { label: 'CE', url: `${CE}/PLC/CM1/CE DOC_CM1-PS08N, CM1-LG02G, CM1-ET10M.pdf` },
-    { label: 'KC', url: `${KC}/PLC/KC적합등록필증[(주)싸이몬_Model No. CM1-PS08N, LG02G, ET10M, EC01G].pdf` },
-    { label: 'UL (공통)', labelEn: 'UL (common)', url: `${UL}/PLC/UL DOC_PLC_CM1 common.pdf` },
-  ],
+  // CM1_ACC: 인증서 없음
   CM1_RED_COMM: [
     { label: 'UL (공통)', labelEn: 'UL (common)', url: `${UL}/PLC/UL DOC_PLC_CM1 common.pdf` },
   ],
