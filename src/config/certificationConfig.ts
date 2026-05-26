@@ -149,7 +149,9 @@ const CERT_MAP: Record<string, DocEntry[]> = {
   CM1_COMM_ECAT: [
     { label: 'UL (공통)', labelEn: 'UL (common)', url: `${UL}/PLC/UL DOC_PLC_CM1 common.pdf` },
   ],
-  // CM1_ACC: 인증서 없음
+  CM1_ACC: [
+    { label: 'CE (TB32M·SCB)', url: `${CE}/PLC/CM1/CE DOC_CM0-TB32M, CM0-SCB15M, CM0-SCB15E, CM0-SCB15I, CM0-SCB20IE.pdf` },
+  ],
   CM1_RED_COMM: [
     { label: 'UL (공통)', labelEn: 'UL (common)', url: `${UL}/PLC/UL DOC_PLC_CM1 common.pdf` },
   ],
