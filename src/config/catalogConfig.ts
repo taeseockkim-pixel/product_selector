@@ -29,6 +29,7 @@ const CATALOG_MAP: Record<string, string> = {
   CM1_RED_COMM: `${C}/CM1-PLC.pdf`, CM1_RED_MMI: `${C}/CM1-PLC.pdf`,
   CM1_RED_EXT: `${C}/CM1-PLC.pdf`, CM1_RED_BASE: `${C}/CM1-PLC.pdf`,
   CM1_RED_PWR: `${C}/CM1-PLC.pdf`, CM1_ACC: `${C}/CM1-PLC.pdf`,
+  CM1_EXT_MOD: `${C}/CM1-PLC.pdf`,
   // CM3 PLC-S
   CM3_CPU_SLIM: `${C}/CM3-PLCS.pdf`, CM3_CPU_BRICK: `${C}/CM3-PLCS.pdf`, CM3_CPU_SPLUS: `${C}/CM3-PLCS.pdf`,
   CM3_DI: `${C}/CM3-PLCS.pdf`, CM3_DO: `${C}/CM3-PLCS.pdf`,
