@@ -28,7 +28,7 @@ function CartImage({ product: p }: { product: Product }) {
   const [failed, setFailed] = useState(false);
   const src = resolveProductImage(p.id, p.subType ?? '');
   if (!src || failed) {
-    return <span className="text-gray-300 text-xs font-medium">{p.modelName.slice(0, 3)}</span>;
+    return <span className="text-[#999999] text-xs font-medium">{p.modelName.slice(0, 3)}</span>;
   }
   return (
     <img src={src} alt={p.modelName} className="w-full h-full object-contain"
@@ -46,16 +46,16 @@ interface Props {
 
 function SpecTable({ specs }: { specs: Product['specs'] }) {
   const { lang } = useLang();
-  if (specs.length === 0) return <p className="text-xs text-gray-400 italic">{lang === 'ko' ? '사양 정보 없음' : 'No spec data'}</p>;
+  if (specs.length === 0) return <p className="text-xs text-[#999999] italic">{lang === 'ko' ? '사양 정보 없음' : 'No spec data'}</p>;
   return (
-    <table className="w-full text-xs mt-2 border-t border-gray-100">
+    <table className="w-full text-xs mt-2 border-t border-[#f0f0f0]">
       <tbody>
         {specs.map((s) => (
-          <tr key={s.label} className="border-b border-gray-50">
-            <td className="py-1.5 pr-4 font-medium text-gray-500 w-36 align-top">
+          <tr key={s.label} className="border-b border-[#f5f5f5]">
+            <td className="py-1.5 pr-4 font-medium text-[#333333] w-36 align-top">
               {translateSpecLabel(s.label, lang)}
             </td>
-            <td className="py-1.5 text-gray-800">{translateSpecValue(s.value, lang)}</td>
+            <td className="py-1.5 text-[#191919]">{translateSpecValue(s.value, lang)}</td>
           </tr>
         ))}
       </tbody>
@@ -81,25 +81,25 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
       <div className="hidden print:block mb-6">
         <div className="flex items-center gap-3 mb-2">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-8 w-auto object-contain" />
-          <span className="text-lg font-bold text-gray-800">{t(UI.shortlistTitle)}</span>
+          <span className="text-lg font-bold text-[#191919]">{t(UI.shortlistTitle)}</span>
         </div>
-        <p className="text-xs text-gray-400">{new Date().toLocaleDateString()}</p>
+        <p className="text-xs text-[#999999]">{new Date().toLocaleDateString()}</p>
       </div>
 
       <div className="flex items-center justify-between mb-5 no-print">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-[#999999] hover:text-[#191919] transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             {t(UI.back)}
           </button>
-          <h1 className="text-lg font-bold text-gray-800">
+          <h1 className="text-lg font-bold text-[#191919]">
             {t(UI.shortlistTitle)}
-            <span className="ml-2 text-sm font-normal text-gray-400">
+            <span className="ml-2 text-sm font-normal text-[#999999]">
               ({cartProducts.length}{lang === 'ko' ? '개' : ''})
             </span>
           </h1>
@@ -109,7 +109,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
             <>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -118,7 +118,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
               </button>
               <button
                 onClick={() => window.open(buildMailto(cartProducts, lang))}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -137,8 +137,8 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
 
       {cartProducts.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-16 text-center">
-          <p className="text-gray-400 text-sm">{t(UI.emptyShortlist)}</p>
-          <button onClick={onBack} className="mt-4 text-sm text-gray-600 hover:text-gray-800">
+          <p className="text-[#999999] text-sm">{t(UI.emptyShortlist)}</p>
+          <button onClick={onBack} className="mt-4 text-sm text-[#333333] hover:text-[#191919]">
             {t(UI.goToList)}
           </button>
         </div>
@@ -153,19 +153,19 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
               <div key={p.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden no-print">
+                    <div className="w-16 h-12 bg-[#f2f2f2] rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden no-print">
                       <CartImage product={p} />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-800">{p.modelName}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{series}</p>
-                      <p className="text-sm text-gray-500 mt-0.5">{desc}</p>
+                      <p className="font-semibold text-[#191919]">{p.modelName}</p>
+                      <p className="text-xs text-[#999999] mt-0.5">{series}</p>
+                      <p className="text-sm text-[#333333] mt-0.5">{desc}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0 no-print">
                     <button
                       onClick={() => toggleExpand(p.id)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-600 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-xs text-[#333333] hover:bg-[#f2f2f2] transition-colors"
                     >
                       <span>{t(UI.detailSpecs)}</span>
                       <svg
@@ -177,7 +177,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                     </button>
                     <button
                       onClick={() => onRemove(p.id)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors text-lg leading-none"
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-[#999999] hover:text-red-500 hover:bg-red-50 transition-colors text-lg leading-none"
                       title={t(UI.removeShortlist)}
                     >
                       ×
@@ -186,7 +186,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                 </div>
 
                 {/* 사양 — 화면에서는 expanded일 때, 인쇄 시에는 항상 표시 */}
-                <div className={`px-5 pb-4 border-t border-gray-100 bg-gray-50 ${expanded ? '' : 'hidden print:block'}`}>
+                <div className={`px-5 pb-4 border-t border-[#f0f0f0] bg-[#f2f2f2] ${expanded ? '' : 'hidden print:block'}`}>
                   <SpecTable specs={verifiedSpecs} />
                 </div>
               </div>

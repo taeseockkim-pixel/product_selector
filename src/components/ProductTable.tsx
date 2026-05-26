@@ -18,13 +18,13 @@ function ProductImage({ id, subType }: { id: string; subType: string }) {
   const src = resolveProductImage(id, subType);
   if (!src || failed) {
     return (
-      <div className="w-14 h-10 bg-gray-100 rounded-lg flex items-center justify-center text-gray-300 text-[10px] select-none">
+      <div className="w-14 h-10 bg-[#f2f2f2] rounded-lg flex items-center justify-center text-[#999999] text-[10px] select-none">
         NO IMG
       </div>
     );
   }
   return (
-    <img src={src} alt={id} className="w-14 h-10 object-contain rounded-lg bg-gray-50"
+    <img src={src} alt={id} className="w-14 h-10 object-contain rounded-lg bg-[#f2f2f2]"
       onError={() => setFailed(true)} />
   );
 }
@@ -38,7 +38,7 @@ export default function ProductTable({
   if (products.length === 0) {
     return (
       <div className="flex-1 bg-white rounded-2xl shadow-sm p-12 text-center">
-        <p className="text-gray-400 text-sm whitespace-pre-line">{t(UI.noProducts)}</p>
+        <p className="text-[#999999] text-sm whitespace-pre-line">{t(UI.noProducts)}</p>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export default function ProductTable({
     <div className="flex-1 overflow-x-auto">
       <table className="w-full text-sm bg-white rounded-2xl shadow-sm overflow-hidden">
         <thead>
-          <tr className="bg-gray-900 text-gray-300 text-xs font-semibold uppercase tracking-widest">
+          <tr className="bg-[#191919] text-[#999999] text-xs font-semibold uppercase tracking-widest">
             <th className="px-4 py-3.5 text-left w-20">{t(UI.colImage)}</th>
             <th className="px-4 py-3.5 text-left w-40">{t(UI.colModelName)}</th>
             <th className="px-4 py-3.5 text-left">{t(UI.colDesc)}</th>
@@ -56,26 +56,26 @@ export default function ProductTable({
             <th className="px-4 py-3.5 text-center w-16">{t(UI.colCompare)}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-[#f0f0f0]">
           {products.map((p) => {
             const inCart = cartList.includes(p.id);
             const inCompare = compareList.includes(p.id);
             const desc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
             const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
             return (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0">
+              <tr key={p.id} className="hover:bg-[#f2f2f2] transition-colors border-b border-[#f0f0f0] last:border-0">
                 <td className="px-4 py-3">
                   <ProductImage id={p.id} subType={p.subType} />
                 </td>
                 <td className="px-4 py-3">
-                  <span className="font-semibold text-gray-800">{p.modelName}</span>
-                  <span className="block text-xs text-gray-400 mt-0.5">{series}</span>
+                  <span className="font-semibold text-[#191919]">{p.modelName}</span>
+                  <span className="block text-xs text-[#999999] mt-0.5">{series}</span>
                 </td>
-                <td className="px-4 py-3 text-gray-500 text-xs leading-relaxed">{desc}</td>
+                <td className="px-4 py-3 text-[#999999] text-xs leading-relaxed">{desc}</td>
                 <td className="px-4 py-3 text-center">
                   <button
                     onClick={() => onViewDetail(p)}
-                    className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs transition-colors"
+                    className="px-2.5 py-1 rounded-lg bg-[#f2f2f2] hover:bg-[#e0e0e0] text-[#333333] text-xs transition-colors"
                   >
                     {t(UI.detailBtn)}
                   </button>
@@ -86,8 +86,8 @@ export default function ProductTable({
                     title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
                     className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition-colors text-base leading-none font-bold ${
                       inCart
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        : 'bg-gray-900 text-white hover:bg-gray-700'
+                        ? 'bg-[#f2f2f2] text-[#333333] hover:bg-[#e0e0e0]'
+                        : 'bg-[#191919] text-white hover:bg-[#333333]'
                     }`}
                   >
                     {inCart ? '✓' : '+'}
@@ -99,8 +99,8 @@ export default function ProductTable({
                     title={inCompare ? t(UI.removeCompare) : t(UI.addToCompare)}
                     className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mx-auto transition-colors text-xs font-bold ${
                       inCompare
-                        ? 'border-gray-900 bg-gray-900 text-white'
-                        : 'border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600'
+                        ? 'border-[#191919] bg-[#191919] text-white'
+                        : 'border-[#cccccc] text-[#999999] hover:border-[#333333] hover:text-[#333333]'
                     }`}
                   >
                     {lang === 'ko' ? '비' : 'C'}

@@ -70,8 +70,8 @@ function LangToggle() {
         title="한국어"
         className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all ${
           lang === 'ko'
-            ? 'bg-gray-700 text-white'
-            : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+            ? 'bg-[#333333] text-white'
+            : 'text-[#999999] hover:text-white hover:bg-[#333333]'
         }`}
       >
         <span className="fi fi-kr" style={{ width: '18px', height: '14px', backgroundSize: 'cover', borderRadius: '2px' }}></span>
@@ -82,8 +82,8 @@ function LangToggle() {
         title="English"
         className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all ${
           lang === 'en'
-            ? 'bg-gray-700 text-white'
-            : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+            ? 'bg-[#333333] text-white'
+            : 'text-[#999999] hover:text-white hover:bg-[#333333]'
         }`}
       >
         <span className="fi fi-us" style={{ width: '18px', height: '14px', backgroundSize: 'cover', borderRadius: '2px' }}></span>
@@ -234,7 +234,7 @@ function AppInner() {
 
   if (viewMode === 'cart') {
     return (
-      <div className="min-h-screen bg-[#f4f4f5] flex flex-col">
+      <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
         <AppHeader {...headerProps} />
         <CartPage
           cartList={cartList} products={PRODUCTS}
@@ -247,7 +247,7 @@ function AppInner() {
 
   if (viewMode === 'compare') {
     return (
-      <div className="min-h-screen bg-[#f4f4f5] flex flex-col">
+      <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
         <AppHeader {...headerProps} />
         <ComparePage
           compareList={compareList} products={PRODUCTS}
@@ -259,11 +259,11 @@ function AppInner() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
       <AppHeader {...headerProps} />
 
       {/* 카테고리 탭 */}
-      <div className="bg-white border-b border-gray-100 no-print sticky top-16 z-30">
+      <div className="bg-white border-b border-[#e8e8e8] no-print sticky top-16 z-30">
         <div className="max-w-screen-xl mx-auto px-6">
           <nav className="flex gap-1.5 py-2.5">
             {ALL_CATEGORY_IDS.map((catId) => {
@@ -274,8 +274,8 @@ function AppInner() {
                   onClick={() => setActiveCategory(catId)}
                   className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
                     active
-                      ? 'bg-gray-900 text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-800 hover:bg-gray-100'
+                      ? 'bg-[#191919] text-white shadow-sm'
+                      : 'text-[#999999] hover:text-[#191919] hover:bg-[#f2f2f2]'
                   }`}
                 >
                   {CATEGORY_LABELS[catId]}
@@ -342,7 +342,7 @@ function AppInner() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <button
-                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 no-print"
+                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] no-print"
                   onClick={() => setMobileMenuOpen(true)}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -350,9 +350,9 @@ function AppInner() {
                   </svg>
                   {t(UI.filterBtn)}
                 </button>
-                <h2 className="text-base font-bold text-gray-700">{getRightTitle()}</h2>
+                <h2 className="text-base font-bold text-[#191919]">{getRightTitle()}</h2>
               </div>
-              <span className="text-sm text-gray-400">{totalLabel}</span>
+              <span className="text-sm text-[#999999]">{totalLabel}</span>
             </div>
             <ProductTable
               products={products}
@@ -394,7 +394,7 @@ function AppInner() {
 
 function Toast({ msg }: { msg: string }) {
   return (
-    <div className="fixed bottom-4 right-4 z-[60] bg-gray-800 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg">
+    <div className="fixed bottom-4 right-4 z-[60] bg-[#191919] text-white text-sm px-4 py-2.5 rounded-xl shadow-lg">
       {msg}
     </div>
   );
@@ -415,12 +415,12 @@ function AppHeader({
 }) {
   const t = useT();
   return (
-    <header className="bg-black/90 backdrop-blur-md sticky top-0 z-40 no-print overflow-visible">
+    <header className="bg-[#191919] sticky top-0 z-40 no-print overflow-visible">
       <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
         <button onClick={onReset} className="flex items-center gap-3 hover:opacity-75 transition-opacity">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-20 w-auto object-contain invert" />
-          <span className="text-gray-600">|</span>
-          <span className="text-sm text-gray-400 hidden sm:inline">{t(UI.productGuide)}</span>
+          <span className="text-[#333333]">|</span>
+          <span className="text-sm text-[#999999] hidden sm:inline">{t(UI.productGuide)}</span>
         </button>
 
         <div className="flex items-center gap-1.5">
@@ -428,7 +428,7 @@ function AppHeader({
           <button
             onClick={onSearchClick}
             title={t(UI.searchBtn)}
-            className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 text-[#999999] hover:text-white hover:bg-[#333333] rounded-lg transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -439,24 +439,24 @@ function AppHeader({
           <button
             onClick={onCopyLink}
             title={t(UI.copyLink)}
-            className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 text-[#999999] hover:text-white hover:bg-[#333333] rounded-lg transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
           </button>
 
-          <div className="w-px h-5 bg-gray-700 mx-0.5" />
+          <div className="w-px h-5 bg-[#333333] mx-0.5" />
 
           {/* 비교 버튼 */}
           <button
             onClick={onCompareClick}
             className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[86px] whitespace-nowrap ${
               viewMode === 'compare'
-                ? 'bg-white text-gray-900'
+                ? 'bg-white text-[#191919]'
                 : compareCount > 0
-                ? 'bg-gray-700 text-gray-100 hover:bg-gray-600'
-                : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800'
+                ? 'bg-[#333333] text-white hover:bg-[#0d3a5e]'
+                : 'text-[#999999] hover:text-white hover:bg-[#333333]'
             }`}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -465,7 +465,7 @@ function AppHeader({
             {t(UI.compare)}
             {compareCount > 0 && (
               <span className={`ml-0.5 rounded-full text-xs px-1.5 py-0.5 font-bold ${
-                viewMode === 'compare' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
+                viewMode === 'compare' ? 'bg-[#191919] text-white' : 'bg-white text-[#191919]'
               }`}>
                 {compareCount}
               </span>
@@ -477,10 +477,10 @@ function AppHeader({
             onClick={onCartClick}
             className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[86px] whitespace-nowrap ${
               viewMode === 'cart'
-                ? 'bg-white text-gray-900'
+                ? 'bg-white text-[#191919]'
                 : cartCount > 0
-                ? 'bg-gray-700 text-gray-100 hover:bg-gray-600'
-                : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800'
+                ? 'bg-[#333333] text-white hover:bg-[#0d3a5e]'
+                : 'text-[#999999] hover:text-white hover:bg-[#333333]'
             }`}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -489,14 +489,14 @@ function AppHeader({
             {t(UI.shortlist)}
             {cartCount > 0 && (
               <span className={`ml-0.5 rounded-full text-xs px-1.5 py-0.5 font-bold ${
-                viewMode === 'cart' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
+                viewMode === 'cart' ? 'bg-[#191919] text-white' : 'bg-white text-[#191919]'
               }`}>
                 {cartCount}
               </span>
             )}
           </button>
 
-          <div className="w-px h-5 bg-gray-700 mx-0.5" />
+          <div className="w-px h-5 bg-[#333333] mx-0.5" />
           <LangToggle />
         </div>
       </div>

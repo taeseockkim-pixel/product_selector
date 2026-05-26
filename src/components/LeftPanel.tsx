@@ -47,14 +47,14 @@ export default function LeftPanel({
   return (
     <aside className="w-64 flex-shrink-0">
       {onClose && (
-        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 mb-3 rounded-t-xl">
-          <span className="text-sm font-semibold text-gray-700">{t(UI.filters)}</span>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600 text-xl leading-none rounded-full hover:bg-gray-100">×</button>
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#f0f0f0] mb-3 rounded-t-xl">
+          <span className="text-sm font-semibold text-[#191919]">{t(UI.filters)}</span>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#999999] hover:text-[#191919] text-xl leading-none rounded-full hover:bg-[#f2f2f2]">×</button>
         </div>
       )}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-3">
         <div className="px-4 pt-4 pb-2">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+          <p className="text-xs font-semibold text-[#999999] uppercase tracking-wider mb-2">
             {t(UI.productType)}
           </p>
           <div className="flex flex-col gap-1">
@@ -64,8 +64,8 @@ export default function LeftPanel({
                 onClick={() => { onSubTypeChange(st.id); onFiltersChange({}); }}
                 className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeSubType === st.id
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#191919] text-white'
+                    : 'text-[#333333] hover:bg-[#f2f2f2]'
                 }`}
               >
                 {lang === 'en' ? (st.labelEn ?? st.label) : st.label}
@@ -78,11 +78,11 @@ export default function LeftPanel({
       {subType && subType.filters.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+            <p className="text-xs font-semibold text-[#999999] uppercase tracking-wider">
               {t(UI.filters)}
             </p>
             {hasActiveFilters && (
-              <button onClick={clearFilters} className="text-xs text-gray-500 hover:text-gray-700">
+              <button onClick={clearFilters} className="text-xs text-[#999999] hover:text-[#191919]">
                 {t(UI.reset)}
               </button>
             )}
@@ -97,7 +97,7 @@ export default function LeftPanel({
 
               return (
                 <div key={section.id} className={disabled ? 'opacity-40 pointer-events-none select-none' : ''}>
-                  <p className="text-xs font-semibold text-gray-500 mb-2">{sectionTitle}</p>
+                  <p className="text-xs font-semibold text-[#333333] mb-2">{sectionTitle}</p>
 
                   {isButtons ? (
                     <div className="flex flex-wrap gap-2">
@@ -110,8 +110,8 @@ export default function LeftPanel({
                             onClick={() => toggleValue(section.id, opt.value, false)}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                               active
-                                ? 'bg-gray-900 border-gray-900 text-white'
-                                : 'bg-white border-gray-300 text-gray-600 hover:border-gray-600 hover:text-gray-800'
+                                ? 'bg-[#191919] border-[#191919] text-white'
+                                : 'bg-white border-[#cccccc] text-[#333333] hover:border-[#191919] hover:text-[#191919]'
                             }`}
                           >
                             {optLabel}
@@ -129,13 +129,13 @@ export default function LeftPanel({
                             key={opt.value}
                             className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-xs cursor-pointer transition-colors ${
                               active
-                                ? 'bg-gray-100 border-gray-400 text-gray-900'
-                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                ? 'bg-[#f2f2f2] border-[#333333] text-[#191919]'
+                                : 'bg-white border-[#e0e0e0] text-[#333333] hover:border-[#999999]'
                             }`}
                           >
                             <input
                               type="checkbox"
-                              className="accent-gray-900 w-3 h-3 flex-shrink-0"
+                              className="accent-[#191919] w-3 h-3 flex-shrink-0"
                               checked={active}
                               onChange={() => toggleValue(section.id, opt.value, true)}
                             />

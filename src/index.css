@@ -1,3 +1,13 @@
+/* Automati 헤드라인 폰트 — woff2 파일을 public/fonts/Automati.woff2 로 추가 후 주석 해제
+@font-face {
+  font-family: 'Automati';
+  src: url('/fonts/Automati.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -11,11 +21,11 @@
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
-    font-family: 'Pretendard', 'Noto Sans KR', Inter, system-ui, sans-serif;
+    font-family: 'Helvetica Neue', 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f4f4f5;
-    color: #1e293b;
+    background-color: #f2f2f2;
+    color: #191919;
   }
 
   button {

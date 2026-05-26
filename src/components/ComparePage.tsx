@@ -64,25 +64,25 @@ export default function ComparePage({
       <div className="hidden print:block mb-6">
         <div className="flex items-center gap-3 mb-2">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-8 w-auto object-contain" />
-          <span className="text-lg font-bold text-gray-800">{t(UI.compareTitle)}</span>
+          <span className="text-lg font-bold text-[#191919]">{t(UI.compareTitle)}</span>
         </div>
-        <p className="text-xs text-gray-400">{new Date().toLocaleDateString()}</p>
+        <p className="text-xs text-[#999999]">{new Date().toLocaleDateString()}</p>
       </div>
 
       <div className="flex items-center justify-between mb-5 no-print">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-[#999999] hover:text-[#191919] transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             {t(UI.back)}
           </button>
-          <h1 className="text-lg font-bold text-gray-800">
+          <h1 className="text-lg font-bold text-[#191919]">
             {t(UI.compareTitle)}
-            <span className="ml-2 text-sm font-normal text-gray-400">
+            <span className="ml-2 text-sm font-normal text-[#999999]">
               ({compareProducts.length}{lang === 'ko' ? '개 선택됨' : ' selected'})
             </span>
           </h1>
@@ -92,7 +92,7 @@ export default function ComparePage({
             <>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -101,7 +101,7 @@ export default function ComparePage({
               </button>
               <button
                 onClick={() => downloadCSV(rows, compareProducts)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -120,8 +120,8 @@ export default function ComparePage({
 
       {compareProducts.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-16 text-center">
-          <p className="text-gray-400 text-sm">{t(UI.noCompare)}</p>
-          <button onClick={onBack} className="mt-4 text-sm text-gray-600 hover:text-gray-800">
+          <p className="text-[#999999] text-sm">{t(UI.noCompare)}</p>
+          <button onClick={onBack} className="mt-4 text-sm text-[#333333] hover:text-[#191919]">
             {t(UI.goToList)}
           </button>
         </div>
@@ -130,8 +130,8 @@ export default function ComparePage({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide w-36">
+                <tr className="bg-[#f2f2f2] border-b border-[#e0e0e0]">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#999999] uppercase tracking-wide w-36">
                     {t(UI.specCol)}
                   </th>
                   {compareProducts.map((p) => {
@@ -141,13 +141,13 @@ export default function ComparePage({
                       <th key={p.id} className="px-4 py-3 text-left min-w-48">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="font-bold text-gray-800 text-sm">{p.modelName}</p>
-                            <p className="text-xs text-gray-400 font-normal mt-0.5">{series}</p>
-                            <p className="text-xs text-gray-500 font-normal mt-0.5 leading-tight">{desc}</p>
+                            <p className="font-bold text-[#191919] text-sm">{p.modelName}</p>
+                            <p className="text-xs text-[#999999] font-normal mt-0.5">{series}</p>
+                            <p className="text-xs text-[#333333] font-normal mt-0.5 leading-tight">{desc}</p>
                           </div>
                           <button
                             onClick={() => onRemove(p.id)}
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-gray-300 hover:text-red-400 flex-shrink-0 transition-colors text-base leading-none mt-0.5 no-print"
+                            className="w-5 h-5 rounded-full flex items-center justify-center text-[#999999] hover:text-red-400 flex-shrink-0 transition-colors text-base leading-none mt-0.5 no-print"
                             title={t(UI.removeFromComp)}
                           >
                             ×
@@ -161,7 +161,7 @@ export default function ComparePage({
               <tbody>
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={compareProducts.length + 1} className="px-4 py-8 text-center text-gray-400 text-sm">
+                    <td colSpan={compareProducts.length + 1} className="px-4 py-8 text-center text-[#999999] text-sm">
                       {t(UI.noCompareSpecs)}
                     </td>
                   </tr>
@@ -169,9 +169,9 @@ export default function ComparePage({
                   rows.map((row) => (
                     <tr
                       key={row.label}
-                      className={`border-b border-gray-50 ${row.isDiff ? 'bg-amber-50' : ''}`}
+                      className={`border-b border-[#f5f5f5] ${row.isDiff ? 'bg-amber-50' : ''}`}
                     >
-                      <td className="px-4 py-2.5 text-xs font-semibold text-gray-500 align-top">
+                      <td className="px-4 py-2.5 text-xs font-semibold text-[#333333] align-top">
                         {row.label}
                         {row.isDiff && (
                           <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-amber-400 align-middle" />
@@ -181,7 +181,7 @@ export default function ComparePage({
                         <td
                           key={i}
                           className={`px-4 py-2.5 text-sm align-top ${
-                            val === '—' ? 'text-gray-300' : 'text-gray-800'
+                            val === '—' ? 'text-[#999999]' : 'text-[#191919]'
                           } ${row.isDiff ? 'font-medium' : ''}`}
                         >
                           {val}
@@ -194,9 +194,9 @@ export default function ComparePage({
             </table>
           </div>
 
-          <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center gap-2 no-print">
+          <div className="px-4 py-3 border-t border-[#f0f0f0] bg-[#f2f2f2] flex items-center gap-2 no-print">
             <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
-            <span className="text-xs text-gray-400">{t(UI.diffLegend)}</span>
+            <span className="text-xs text-[#999999]">{t(UI.diffLegend)}</span>
           </div>
         </div>
       )}
