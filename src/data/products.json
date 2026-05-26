@@ -5435,26 +5435,19 @@
     "series": "CM1_EXT_MOD",
     "seriesLabel": "증설모듈",
     "subType": "CM1_EXT_MOD",
-    "description": "10Mbps CPU 이중화용 증설 / 3Port 증설 Hub 내장",
+    "description": "10Mbps 이중화 전용 증설 모듈 / 최대 16단",
     "specs": [
-      {
-        "label": "속도",
-        "value": "10Mbps",
-        "source": "catalog"
-      },
-      {
-        "label": "Hub",
-        "value": "3Ports 증설 Hub 내장",
-        "source": "catalog"
-      },
-      {
-        "label": "내장 이더넷",
-        "value": "10BASE-T",
-        "source": "catalog"
-      }
+      { "label": "증설 통신 포트", "value": "3포트", "source": "catalog" },
+      { "label": "속도", "value": "10Mbps", "source": "catalog" },
+      { "label": "내장 이더넷", "value": "10 BASE-T", "source": "catalog" },
+      { "label": "전송 방식", "value": "Half Duplex", "source": "catalog" },
+      { "label": "최대 통신 거리", "value": "100m (노드-노드)", "source": "catalog" },
+      { "label": "최대 증설 수", "value": "최대 16단", "source": "catalog" },
+      { "label": "초기화 버튼", "value": "없음", "source": "catalog" },
+      { "label": "로더 포트", "value": "없음", "source": "catalog" }
     ],
     "seriesLabelEn": "Extension Module",
-    "descriptionEn": "10Mbps CPU extension for redundancy / 3-port extension hub built-in"
+    "descriptionEn": "10Mbps redundancy extension module / Max. 16 stages"
   },
   {
     "id": "CM1-BS05S",
