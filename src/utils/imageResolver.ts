@@ -83,7 +83,7 @@ const CM1_EXACT = new Set([
   'CM0-DM', 'CM0-SCB15I', 'CM0-TB32M',
   'CM1-AD04W', 'CM1-AD16VI', 'CM1-BN01A',
   'CM1-DA08V', 'CM1-DC10A', 'CM1-EC01G', 'CM1-EC10A', 'CM1-EC10OPC',
-  'CM1-EP02F', 'CM1-HS02E', 'CM1-LG02G',
+  'CM1-EP02F', 'CM1-EP03A', 'CM1-HS02E', 'CM1-LG02G',
   'CM1-PS02A', 'CM1-PS08N', 'CM1-RC10A',
   'CM1-RD04A', 'CM1-RPW', 'CM1-SC01DNP', 'CM1-SC02A',
   'CM1-SC02D', 'CM1-SPC', 'CM1-TC04A', 'CM1-TH08A',
@@ -131,6 +131,7 @@ const CM1_SUBTYPE: Record<string, string> = {
   CM1_RED_COMM:    `${CM1}/CM1-RC10A.jpg`,
   CM1_RED_MMI:     `${CM1}/CM1-RC10A.jpg`,
   CM1_RED_EXT:     `${CM1}/CM1-RPW.jpg`,
+  CM1_EXT_MOD:     `${CM1}/CM1-EP03A.jpg`,
   CM1_ACC:         `${CM1}/CM0-TB32M.jpg`,
 };
 

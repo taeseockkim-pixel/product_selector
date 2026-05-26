@@ -55,7 +55,7 @@ export default function PlcLeftPanel({
                   : 'bg-[#f2f2f2] text-[#333333] hover:bg-[#e0e0e0]'
               }`}
             >
-              {s === 'CM1' ? 'PLC' : 'PLC-S'}
+              {s === 'CM1' ? 'PLC(CM1)' : 'PLC-S(CM3)'}
             </button>
           ))}
         </div>
