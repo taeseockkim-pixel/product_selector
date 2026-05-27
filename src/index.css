@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  /* 스크롤바 출현/소멸로 인한 레이아웃 이동 방지 (html에 적용해야 유효) */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -25,8 +30,8 @@
 }
 
 @keyframes tab-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .animate-tab-fade {
   animation: tab-fade-in 0.2s ease-out both;
