@@ -42,7 +42,7 @@ const CATALOG_MAP: Record<string, string> = {
   CM3_SP_HSC: `${C}/CM3-PLCS.pdf`, CM3_SP_POS: `${C}/CM3-PLCS.pdf`,
   CM3_PWR: `${C}/CM3-PLCS.pdf`, CM3_ACC: `${C}/CM3-PLCS.pdf`,
   // IPC
-  PANEL: `${C}/IPC.pdf`, MONITOR: `${C}/IPC.pdf`, RACK: `${C}/IPC.pdf`, BOX: `${C}/IPC.pdf`,
+  PANEL: `${C}/IPC.pdf`, MONITOR: `${C}/IPC.pdf`, BOX: `${C}/IPC.pdf`,
   // SCADA
   SCADA_STD: `${C}/SCADA.pdf`, SCADA_PRO: `${C}/SCADA-PRO.pdf`,
   // XPANEL
@@ -147,10 +147,6 @@ const MANUAL_MAP: Record<string, DocEntry[]> = {
     { label: 'iNT PC5000 Series',                  url: `${MI}/iNP_iNT PC5000 series(국영)_ver1.8_BTC30049_20251118.pdf` },
     { label: 'iNT 50000W·70000W Wide Series',     url: `${MI}/터치패널_iNP_iNT_50000W_70000W_series(kr_en)_ver0.4_20250725.pdf` },
   ],
-  RACK: [
-    { label: 'NU1R',       url: `${MI}/랙 PC_NU1R_ver1.0 국영_2022 0720.pdf` },
-    { label: 'NU4R Core',  url: `${MI}/랙 PC_NU4R Core series_ver1.2 국문_2022 0819.pdf` },
-  ],
   BOX: [
     { label: 'CM-NB200-D',              url: `${MI}/Box PC CM-NB200-D(kr_en)ver1.3_20231127.pdf` },
     { label: 'CM-NB3011·NB5011·NB7011', url: `${MI}/Box PC CM-NB3011_NB5011_NB7011-D(kr_en)ver1.7_20240125.pdf` },
@@ -228,10 +224,6 @@ const DRAWING_MAP: Record<string, DocEntry[]> = {
   BOX: [
     { label: 'BOX PC (NB200-D)',        url: `${DI}/BOX PC Series_CM-NB200-D-1.zip` },
     { label: 'BOX PC (NB5011·NB7011)', url: `${DI}/BOX PC Series_CM-CM-NB5011-D-CM-NB7011-D.zip` },
-  ],
-  RACK: [
-    { label: 'NU1R', url: `${DI}/NU1R.zip` },
-    { label: 'NU4R', url: `${DI}/NU4R.zip` },
   ],
   MONITOR: [{ label: 'Touch Monitor (IM15W)', url: `${DI}/TOUCH Monitor series_CM-IM15W-D.zip` }],
   PANEL: [

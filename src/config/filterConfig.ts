@@ -79,21 +79,6 @@ export const CATEGORY_CONFIGS: CategoryConfig[] = [
         ],
       },
       {
-        id: 'RACK', label: '랙 PC', labelEn: 'Rack PC',
-        matcher: (p: Product) => p.subType === 'RACK',
-        filters: [
-          {
-            id: 'cpu', title: 'CPU', titleEn: 'CPU', type: 'checkboxGrid',
-            options: [
-              { label: 'J 시리즈 (1U)', labelEn: 'J Series (1U)', value: 'J_SERIES' },
-              { label: 'Core i5 (4U)', value: 'I5' },
-              { label: 'Core i7 (4U)', value: 'I7' },
-            ],
-            matcher: (p, sel) => sel.length === 0 || sel.includes(p.cpuTier ?? ''),
-          },
-        ],
-      },
-      {
         id: 'BOX', label: 'BOX PC', labelEn: 'BOX PC',
         matcher: (p: Product) => p.subType === 'BOX',
         filters: [
