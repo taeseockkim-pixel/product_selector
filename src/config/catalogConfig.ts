@@ -144,7 +144,7 @@ const MANUAL_MAP: Record<string, DocEntry[]> = {
   // ── IPC ──
   PANEL: [
     { label: 'iNT 500 Series',                   url: `${MI}/터치패널_iNP_iNT 500 series(국영)_ver1.1_20250307.pdf` },
-    { label: 'NT Core 3000·5000·7000 Series',     url: `${MI}/터치패널_NP_NT Core 3,5,7000 series(e)_ver1.4_BTC90151_2023.01.30.pdf` },
+    { label: 'iNT PC5000 Series',                  url: `${MI}/iNP_iNT PC5000 series(국영)_ver1.8_BTC30049_20251118.pdf` },
     { label: 'iNT 50000W·70000W Wide Series',     url: `${MI}/터치패널_iNP_iNT_50000W_70000W_series(kr_en)_ver0.4_20250725.pdf` },
   ],
   RACK: [
