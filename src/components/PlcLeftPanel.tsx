@@ -40,24 +40,26 @@ export default function PlcLeftPanel({
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#aaaaaa] hover:text-white text-xl leading-none rounded-full hover:bg-[#565656]">×</button>
         </div>
       )}
-      <div className="bg-[#4a4a4a] rounded-lg p-3 mb-3 flex-shrink-0">
-        <p className="text-xs font-semibold text-[#aaaaaa] uppercase tracking-[0.2em] mb-2 px-1">
-          {t(UI.series)}
-        </p>
-        <div className="flex flex-col gap-1">
-          {(['CM1', 'CM3'] as PlcSeriesId[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => handleSeriesChange(s)}
-              className={`w-full py-2 px-3 rounded-lg text-sm font-semibold transition-colors text-left ${
-                plcSeries === s
-                  ? 'bg-white text-[#191919]'
-                  : 'bg-[#565656] text-[#d4d0cb] hover:bg-[#333333]'
-              }`}
-            >
-              {s === 'CM1' ? 'PLC (CM1)' : 'PLC-S (CM3)'}
-            </button>
-          ))}
+      <div className="bg-[#4a4a4a] rounded-lg overflow-hidden mb-3 flex-shrink-0">
+        <div className="px-4 pt-4 pb-2">
+          <p className="text-xs font-semibold text-[#aaaaaa] uppercase tracking-[0.2em] mb-2">
+            {t(UI.series)}
+          </p>
+          <div className="flex flex-col gap-1">
+            {(['CM1', 'CM3'] as PlcSeriesId[]).map((s) => (
+              <button
+                key={s}
+                onClick={() => handleSeriesChange(s)}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  plcSeries === s
+                    ? 'bg-white text-[#191919]'
+                    : 'bg-[#565656] text-[#d4d0cb] hover:bg-[#333333]'
+                }`}
+              >
+                {s === 'CM1' ? 'PLC (CM1)' : 'PLC-S (CM3)'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
