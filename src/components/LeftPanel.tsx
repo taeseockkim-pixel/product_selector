@@ -49,12 +49,12 @@ export default function LeftPanel({
       {onClose && (
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#4a4a4a] border-b border-[#565656] mb-3 rounded-t-xl flex-shrink-0">
           <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.filters)}</span>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#565656]">×</button>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#aaaaaa] hover:text-white text-xl leading-none rounded-full hover:bg-[#565656]">×</button>
         </div>
       )}
       <div className="bg-[#4a4a4a] rounded-lg overflow-hidden mb-3 flex-shrink-0">
         <div className="px-4 pt-4 pb-2">
-          <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] mb-2">
+          <p className="text-xs font-semibold text-[#aaaaaa] uppercase tracking-[0.2em] mb-2">
             {t(UI.productType)}
           </p>
           <div className="flex flex-col gap-1">
@@ -65,7 +65,7 @@ export default function LeftPanel({
                 className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeSubType === st.id
                     ? 'bg-white text-[#191919]'
-                    : 'text-[#c8c5c0] hover:bg-[#565656] hover:text-white'
+                    : 'text-[#d4d0cb] hover:bg-[#565656] hover:text-white'
                 }`}
               >
                 {lang === 'en' ? (st.labelEn ?? st.label) : st.label}
@@ -78,11 +78,11 @@ export default function LeftPanel({
       {subType && subType.filters.length > 0 && (
         <div className="bg-[#4a4a4a] rounded-lg overflow-y-auto no-scrollbar flex-1">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em]">
+            <p className="text-xs font-semibold text-[#aaaaaa] uppercase tracking-[0.2em]">
               {t(UI.filters)}
             </p>
             {hasActiveFilters && (
-              <button onClick={clearFilters} className="text-xs text-[#888888] hover:text-white">
+              <button onClick={clearFilters} className="text-xs text-[#aaaaaa] hover:text-white">
                 {t(UI.reset)}
               </button>
             )}
@@ -97,7 +97,7 @@ export default function LeftPanel({
 
               return (
                 <div key={section.id} className={disabled ? 'opacity-40 pointer-events-none select-none' : ''}>
-                  <p className="text-xs font-semibold text-[#c8c5c0] mb-2">{sectionTitle}</p>
+                  <p className="text-xs font-semibold text-[#d4d0cb] mb-2">{sectionTitle}</p>
 
                   {isButtons ? (
                     <div className="flex flex-wrap gap-2">
@@ -111,7 +111,7 @@ export default function LeftPanel({
                             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                               active
                                 ? 'bg-white border-white text-[#191919]'
-                                : 'bg-transparent border-[#444444] text-[#a0a0a0] hover:border-[#c8c5c0] hover:text-white'
+                                : 'bg-transparent border-[#565656] text-[#c0c0c0] hover:border-[#c8c5c0] hover:text-white'
                             }`}
                           >
                             {optLabel}
@@ -130,7 +130,7 @@ export default function LeftPanel({
                             className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-xs cursor-pointer transition-colors ${
                               active
                                 ? 'bg-[#565656] border-[#666666] text-white'
-                                : 'bg-transparent border-[#3a3a3a] text-[#a0a0a0] hover:border-[#777777]'
+                                : 'bg-transparent border-[#505050] text-[#c0c0c0] hover:border-[#777777]'
                             }`}
                           >
                             <input

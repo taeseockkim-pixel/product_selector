@@ -37,11 +37,11 @@ export default function PlcLeftPanel({
       {onClose && (
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#4a4a4a] border-b border-[#565656] mb-3 rounded-t-xl flex-shrink-0">
           <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.series)}</span>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#565656]">×</button>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#aaaaaa] hover:text-white text-xl leading-none rounded-full hover:bg-[#565656]">×</button>
         </div>
       )}
       <div className="bg-[#4a4a4a] rounded-lg p-3 mb-3 flex-shrink-0">
-        <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] mb-2 px-1">
+        <p className="text-xs font-semibold text-[#aaaaaa] uppercase tracking-[0.2em] mb-2 px-1">
           {t(UI.series)}
         </p>
         <div className="flex flex-col gap-1">
@@ -52,7 +52,7 @@ export default function PlcLeftPanel({
               className={`w-full py-2 px-3 rounded-lg text-sm font-semibold transition-colors text-left ${
                 plcSeries === s
                   ? 'bg-white text-[#191919]'
-                  : 'bg-[#565656] text-[#c8c5c0] hover:bg-[#333333]'
+                  : 'bg-[#565656] text-[#d4d0cb] hover:bg-[#333333]'
               }`}
             >
               {s === 'CM1' ? 'PLC (CM1)' : 'PLC-S (CM3)'}
@@ -73,7 +73,7 @@ export default function PlcLeftPanel({
                 <button
                   onClick={() => toggleGroup(group.id)}
                   className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-[#565656] ${
-                    hasActive ? 'text-white font-bold' : 'text-[#c8c5c0]'
+                    hasActive ? 'text-white font-bold' : 'text-[#d4d0cb]'
                   }`}
                 >
                   <span className="text-sm font-semibold">{groupLabel}</span>
@@ -99,7 +99,7 @@ export default function PlcLeftPanel({
                           className={`w-full text-left pl-7 pr-4 py-2 text-sm transition-colors ${
                             active
                               ? 'bg-[#565656] text-white font-medium border-l-2 border-white'
-                              : 'text-[#888888] hover:bg-[#565656] hover:text-[#e0e0e0] border-l-2 border-transparent'
+                              : 'text-[#aaaaaa] hover:bg-[#565656] hover:text-[#e0e0e0] border-l-2 border-transparent'
                           }`}
                         >
                           {leafLabel}

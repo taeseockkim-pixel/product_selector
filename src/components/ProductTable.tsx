@@ -38,7 +38,7 @@ export default function ProductTable({
   if (products.length === 0) {
     return (
       <div className="flex-1 bg-[#f0ede8] border border-[#ddd9d2] rounded-lg p-12 text-center">
-        <p className="text-[#999999] text-sm whitespace-pre-line">{t(UI.noProducts)}</p>
+        <p className="text-[#666666] text-sm whitespace-pre-line">{t(UI.noProducts)}</p>
       </div>
     );
   }
@@ -56,7 +56,7 @@ export default function ProductTable({
           <col className="w-[52px]" />   {/* 비교 */}
         </colgroup>
         <thead>
-          <tr className="border-b border-[#ddd9d2] text-[#999999] text-xs font-semibold uppercase tracking-wider">
+          <tr className="border-b border-[#ddd9d2] text-[#555555] text-xs font-semibold uppercase tracking-wider">
             <th className="px-3 py-2.5 text-left">{t(UI.colImage)}</th>
             <th className="px-3 py-2.5 text-left">{t(UI.colModelName)}</th>
             <th className="px-4 py-2.5 text-left">{t(UI.colDesc)}</th>
@@ -80,9 +80,9 @@ export default function ProductTable({
                 <td className="px-3 py-2.5">
                   {/* truncate: 220px 초과 모델명은 말줄임 처리 */}
                   <span className="font-semibold text-[#191919] block truncate" title={p.modelName}>{p.modelName}</span>
-                  <span className="block text-xs text-[#999999] mt-0.5 truncate">{series}</span>
+                  <span className="block text-xs text-[#666666] mt-0.5 truncate">{series}</span>
                 </td>
-                <td className="px-4 py-2.5 text-[#555555] text-sm leading-relaxed">{desc}</td>
+                <td className="px-4 py-2.5 text-[#333333] text-sm leading-relaxed">{desc}</td>
                 <td className="px-2 py-2.5 text-center">
                   <button
                     onClick={() => onViewDetail(p)}

@@ -275,7 +275,7 @@ function AppInner() {
                   className={`px-6 py-2.5 text-sm font-semibold transition-all border-b-2 -mb-px ${
                     active
                       ? 'border-[#191919] text-[#191919]'
-                      : 'border-transparent text-[#888888] hover:text-[#191919] hover:border-[#cccccc]'
+                      : 'border-transparent text-[#555555] hover:text-[#191919] hover:border-[#cccccc]'
                   }`}
                 >
                   {CATEGORY_LABELS[catId]}
@@ -355,7 +355,7 @@ function AppInner() {
                   </button>
                   <h2 className="text-base font-bold text-[#191919]">{getRightTitle()}</h2>
                 </div>
-                <span className="text-sm text-[#999999]">{totalLabel}</span>
+                <span className="text-sm text-[#555555]">{totalLabel}</span>
               </div>
               <ProductTable
                 products={products}
