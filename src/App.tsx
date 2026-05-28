@@ -102,9 +102,7 @@ function AppInner() {
 
   const [viewMode, setViewMode] = useState<ViewMode>('main');
   const [activeCategory, setActiveCategory] = useState<CategoryId>(urlState.current.cat);
-  const [cartList, setCartList] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('cimon-cart') ?? '[]'); } catch { return []; }
-  });
+  const [cartList, setCartList] = useState<string[]>([]);
   const [compareList, setCompareList] = useState<string[]>([]);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -119,11 +117,6 @@ function AppInner() {
   const [filters, setFilters] = useState<FilterValues>(
     urlState.current.cat !== 'PLC' ? urlState.current.filters : {},
   );
-
-  // localStorage 카트 동기화
-  useEffect(() => {
-    localStorage.setItem('cimon-cart', JSON.stringify(cartList));
-  }, [cartList]);
 
   // 카테고리 변경 시 필터 초기화 (최초 마운트는 건너뜀 — URL 복원 상태 유지)
   useEffect(() => {
