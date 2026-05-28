@@ -45,7 +45,7 @@ export default function LeftPanel({
   const hasActiveFilters = Object.values(filters).some((v) => v.length > 0);
 
   return (
-    <aside className="w-full flex-shrink-0 pt-9">
+    <aside className="w-full flex-shrink-0">
       {onClose && (
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#4a4a4a] border-b border-[#565656] mb-3 rounded-t-xl">
           <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.filters)}</span>
