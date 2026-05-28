@@ -47,12 +47,12 @@ export default function LeftPanel({
   return (
     <aside className="w-full flex-shrink-0">
       {onClose && (
-        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#1c1c1c] border-b border-[#2a2a2a] mb-3 rounded-t-xl">
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#2d2b28] border-b border-[#3d3a36] mb-3 rounded-t-xl">
           <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.filters)}</span>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#2a2a2a]">×</button>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#3d3a36]">×</button>
         </div>
       )}
-      <div className="bg-[#1c1c1c] rounded-lg overflow-hidden mb-3">
+      <div className="bg-[#2d2b28] rounded-lg overflow-hidden mb-3">
         <div className="px-4 pt-4 pb-2">
           <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] mb-2">
             {t(UI.productType)}
@@ -65,7 +65,7 @@ export default function LeftPanel({
                 className={`text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeSubType === st.id
                     ? 'bg-white text-[#191919]'
-                    : 'text-[#c8c5c0] hover:bg-[#2a2a2a] hover:text-white'
+                    : 'text-[#c8c5c0] hover:bg-[#3d3a36] hover:text-white'
                 }`}
               >
                 {lang === 'en' ? (st.labelEn ?? st.label) : st.label}
@@ -76,7 +76,7 @@ export default function LeftPanel({
       </div>
 
       {subType && subType.filters.length > 0 && (
-        <div className="bg-[#1c1c1c] rounded-lg overflow-hidden">
+        <div className="bg-[#2d2b28] rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-4 pt-4 pb-2">
             <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em]">
               {t(UI.filters)}
@@ -129,7 +129,7 @@ export default function LeftPanel({
                             key={opt.value}
                             className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-xs cursor-pointer transition-colors ${
                               active
-                                ? 'bg-[#2a2a2a] border-[#666666] text-white'
+                                ? 'bg-[#3d3a36] border-[#666666] text-white'
                                 : 'bg-transparent border-[#3a3a3a] text-[#a0a0a0] hover:border-[#777777]'
                             }`}
                           >

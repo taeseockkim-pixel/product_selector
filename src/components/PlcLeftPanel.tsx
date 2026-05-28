@@ -35,12 +35,12 @@ export default function PlcLeftPanel({
   return (
     <aside className="w-full flex-shrink-0">
       {onClose && (
-        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#1c1c1c] border-b border-[#2a2a2a] mb-3 rounded-t-xl">
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#2d2b28] border-b border-[#3d3a36] mb-3 rounded-t-xl">
           <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.series)}</span>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#2a2a2a]">×</button>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#3d3a36]">×</button>
         </div>
       )}
-      <div className="bg-[#1c1c1c] rounded-lg p-3 mb-3">
+      <div className="bg-[#2d2b28] rounded-lg p-3 mb-3">
         <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] mb-2 px-1">
           {t(UI.series)}
         </p>
@@ -52,7 +52,7 @@ export default function PlcLeftPanel({
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
                 plcSeries === s
                   ? 'bg-white text-[#191919]'
-                  : 'bg-[#2a2a2a] text-[#c8c5c0] hover:bg-[#333333]'
+                  : 'bg-[#3d3a36] text-[#c8c5c0] hover:bg-[#333333]'
               }`}
             >
               {s === 'CM1' ? 'PLC (CM1)' : 'PLC-S (CM3)'}
@@ -61,7 +61,7 @@ export default function PlcLeftPanel({
         </div>
       </div>
 
-      <div className="bg-[#1c1c1c] rounded-lg overflow-hidden">
+      <div className="bg-[#2d2b28] rounded-lg overflow-hidden">
         <div className="py-1">
           {tree.map((group) => {
             const isExpanded = expandedGroups.includes(group.id);
@@ -72,7 +72,7 @@ export default function PlcLeftPanel({
               <div key={group.id}>
                 <button
                   onClick={() => toggleGroup(group.id)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-[#2a2a2a] ${
+                  className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-[#3d3a36] ${
                     hasActive ? 'text-white font-bold' : 'text-[#c8c5c0]'
                   }`}
                 >
@@ -98,8 +98,8 @@ export default function PlcLeftPanel({
                           onClick={() => onSubTypeChange(leaf.id)}
                           className={`w-full text-left pl-7 pr-4 py-2 text-sm transition-colors ${
                             active
-                              ? 'bg-[#2a2a2a] text-white font-medium border-l-2 border-white'
-                              : 'text-[#888888] hover:bg-[#2a2a2a] hover:text-[#e0e0e0] border-l-2 border-transparent'
+                              ? 'bg-[#3d3a36] text-white font-medium border-l-2 border-white'
+                              : 'text-[#888888] hover:bg-[#3d3a36] hover:text-[#e0e0e0] border-l-2 border-transparent'
                           }`}
                         >
                           {leafLabel}

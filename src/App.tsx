@@ -289,7 +289,7 @@ function AppInner() {
       <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 pb-8">
         <div key={activeCategory} className="flex gap-5 items-start animate-tab-fade">
           {/* 데스크톱 사이드바 */}
-          <div className="hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
+          <div className="hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto pt-6">
             {activeCategory === 'PLC' ? (
               <PlcLeftPanel
                 plcSeries={plcSeries}
@@ -315,7 +315,7 @@ function AppInner() {
                 className="fixed inset-0 bg-black/40 z-30"
                 onClick={() => setMobileMenuOpen(false)}
               />
-              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#1c1c1c] shadow-xl">
+              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#2d2b28] shadow-xl">
                 {activeCategory === 'PLC' ? (
                   <PlcLeftPanel
                     plcSeries={plcSeries}

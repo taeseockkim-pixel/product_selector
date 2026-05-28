@@ -56,13 +56,13 @@ export default function ProductTable({
           <col className="w-[52px]" />   {/* 비교 */}
         </colgroup>
         <thead>
-          <tr className="bg-[#191919] text-[#aaaaaa] text-xs font-semibold uppercase tracking-widest border-b-2 border-[#111]">
-            <th className="px-3 py-3 text-left">{t(UI.colImage)}</th>
-            <th className="px-3 py-3 text-left">{t(UI.colModelName)}</th>
-            <th className="px-4 py-3 text-left">{t(UI.colDesc)}</th>
-            <th className="px-2 py-3 text-center">{t(UI.colSpecs)}</th>
-            <th className="px-1 py-3 text-center">{t(UI.colAdd)}</th>
-            <th className="px-1 py-3 text-center">{t(UI.colCompare)}</th>
+          <tr className="border-b border-[#ddd9d2] text-[#999999] text-xs font-semibold uppercase tracking-wider">
+            <th className="px-3 py-2.5 text-left">{t(UI.colImage)}</th>
+            <th className="px-3 py-2.5 text-left">{t(UI.colModelName)}</th>
+            <th className="px-4 py-2.5 text-left">{t(UI.colDesc)}</th>
+            <th className="px-2 py-2.5 text-center">{t(UI.colSpecs)}</th>
+            <th className="px-1 py-2.5 text-center">{t(UI.colAdd)}</th>
+            <th className="px-1 py-2.5 text-center">{t(UI.colCompare)}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-[#ddd9d2]">
