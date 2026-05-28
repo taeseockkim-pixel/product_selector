@@ -117,10 +117,10 @@ export default function SearchOverlay({
                         <button
                           onClick={() => onCartToggle(p.id)}
                           title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                          className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-colors ${
                             inCart
-                              ? 'bg-orange-500 text-white'
-                              : 'bg-[#191919] text-white hover:bg-[#333333]'
+                              ? 'border-orange-500 bg-orange-500 text-white'
+                              : 'border-[#cccccc] text-[#999999] hover:border-[#333333] hover:text-[#333333]'
                           }`}
                         >
                           {inCart ? '✓' : '+'}

@@ -95,10 +95,10 @@ export default function ProductTable({
                   <button
                     onClick={() => onCartToggle(p.id)}
                     title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
-                    className={`w-8 h-8 rounded flex items-center justify-center mx-auto transition-colors text-base leading-none font-bold ${
+                    className={`w-8 h-8 rounded border-2 flex items-center justify-center mx-auto transition-colors text-base leading-none font-bold ${
                       inCart
-                        ? 'bg-orange-500 text-white hover:bg-orange-600'
-                        : 'bg-[#191919] text-white hover:bg-[#333333]'
+                        ? 'border-orange-500 bg-orange-500 text-white hover:bg-orange-600 hover:border-orange-600'
+                        : 'border-[#cccccc] text-[#999999] hover:border-[#333333] hover:text-[#333333]'
                     }`}
                   >
                     {inCart ? '✓' : '+'}
