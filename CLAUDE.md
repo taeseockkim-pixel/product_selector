@@ -92,9 +92,9 @@ products.json  →(빌드 타임 import)→  PRODUCTS: Product[]
 
 **올바른 패턴** — `App.tsx`의 wrapper div에 적용:
 ```jsx
-{/* App.tsx — 사이드바 wrapper */}
-<div className="hidden md:block flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
-  <LeftPanel ... />
+{/* App.tsx — 사이드바 wrapper (현재 정확한 코드) */}
+<div className="hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start h-[calc(100vh-120px)] overflow-hidden pt-6">
+  <PlcLeftPanel ... />  {/* 또는 <LeftPanel ... /> */}
 </div>
 ```
 
@@ -105,9 +105,29 @@ products.json  →(빌드 타임 import)→  PRODUCTS: Product[]
 ```
 
 추가 주의사항:
-- 부모 요소에 `overflow: hidden` 또는 `overflow: auto`가 있으면 sticky 무력화
+- `max-h + overflow-y-auto` 대신 `h + overflow-hidden` 사용 — 래퍼 높이 고정으로 레이아웃 이동 방지
+- 내부 스크롤이 필요한 카드에는 `flex-1 overflow-y-auto no-scrollbar` 적용
 - `self-start` 없이 flex child에 sticky를 쓰면 부모가 늘어나 고정되지 않음
 - 현재 sticky top 기준: 헤더 64px + 카테고리 탭 56px = **120px**
+
+### 사이드바 위치 단일화 규칙 (재발 방지)
+
+**PLC / IPC / SCADA / XPANEL 사이드바의 위치(top padding)는 `App.tsx`의 wrapper div 한 곳에서만 제어한다.**
+
+- ✅ **올바름**: wrapper에 `pt-6` → 모든 패널이 동일한 element의 패딩을 공유
+- ❌ **금지**: `PlcLeftPanel.tsx` 또는 `LeftPanel.tsx` 내부 `<aside>`에 `pt-*`, `mt-*` 등 top offset 추가
+
+**이유**: padding이 각 컴포넌트에 분산되면, 한 컴포넌트 수정 시 다른 컴포넌트와 값이 달라져 위치 불일치가 반복 발생함. wrapper 단일 제어 시 물리적으로 동일한 element이므로 불일치 불가능.
+
+**현재 확정 wrapper 클래스 (변경 시 이 문서도 동시 수정)**:
+```
+hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start h-[calc(100vh-120px)] overflow-hidden pt-6
+```
+
+**패널 내부 `<aside>` 클래스 (top offset 없음)**:
+```
+w-full flex-shrink-0 flex flex-col h-full
+```
 
 ### 새 제품 카테고리 추가 시 3-파일 동시 수정
 
