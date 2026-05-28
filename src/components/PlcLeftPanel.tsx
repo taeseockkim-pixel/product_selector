@@ -33,7 +33,7 @@ export default function PlcLeftPanel({
   }
 
   return (
-    <aside className="w-full flex-shrink-0 md:pt-6 flex flex-col h-full">
+    <aside className="w-full flex-shrink-0 flex flex-col h-full">
       {onClose && (
         <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#4a4a4a] border-b border-[#565656] mb-3 rounded-t-xl flex-shrink-0">
           <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.series)}</span>
