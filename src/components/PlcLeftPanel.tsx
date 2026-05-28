@@ -49,7 +49,7 @@ export default function PlcLeftPanel({
             <button
               key={s}
               onClick={() => handleSeriesChange(s)}
-              className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${
+              className={`w-full py-2 px-3 rounded-lg text-sm font-semibold transition-colors text-left ${
                 plcSeries === s
                   ? 'bg-white text-[#191919]'
                   : 'bg-[#565656] text-[#c8c5c0] hover:bg-[#333333]'
