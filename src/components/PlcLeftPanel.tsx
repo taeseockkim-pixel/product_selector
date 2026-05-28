@@ -53,7 +53,7 @@ export default function PlcLeftPanel({
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   plcSeries === s
                     ? 'bg-white text-[#191919]'
-                    : 'bg-[#565656] text-[#d4d0cb] hover:bg-[#333333]'
+                    : 'text-[#d4d0cb] hover:bg-[#565656] hover:text-white'
                 }`}
               >
                 {s === 'CM1' ? 'PLC (CM1)' : 'PLC-S (CM3)'}

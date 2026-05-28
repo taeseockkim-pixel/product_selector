@@ -14,7 +14,7 @@ export default function Header({ onReset }: HeaderProps) {
               className="h-16 w-auto object-contain"
             />
           </div>
-          <span className="text-gray-400 text-sm font-light border-l border-gray-600 pl-3">
+          <span className="text-gray-100 text-base font-semibold border-l border-gray-500 pl-3">
             제품 선택 가이드
           </span>
         </button>
