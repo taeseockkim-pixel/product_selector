@@ -234,7 +234,7 @@ function AppInner() {
 
   if (viewMode === 'cart') {
     return (
-      <div className="min-h-screen bg-[#f0ede8] flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <AppHeader {...headerProps} />
         <CartPage
           cartList={cartList} products={PRODUCTS}
@@ -247,7 +247,7 @@ function AppInner() {
 
   if (viewMode === 'compare') {
     return (
-      <div className="min-h-screen bg-[#f0ede8] flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <AppHeader {...headerProps} />
         <ComparePage
           compareList={compareList} products={PRODUCTS}
@@ -259,7 +259,7 @@ function AppInner() {
   }
 
   return (
-    <div className="h-screen bg-[#f0ede8] flex flex-col overflow-hidden print:h-auto print:overflow-visible">
+    <div className="h-screen bg-white flex flex-col overflow-hidden print:h-auto print:overflow-visible">
       <AppHeader {...headerProps} />
 
       {/* 카테고리 탭 — sticky 제거, flex-none으로 높이 자동 결정 */}
