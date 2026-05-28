@@ -73,7 +73,7 @@ export default function ComparePage({
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-sm text-[#999999] hover:text-[#191919] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -130,7 +130,7 @@ export default function ComparePage({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#2d2b28] border-b border-[#3d3a36]">
+                <tr className="bg-[#3d5a73] border-b border-[#4a6880]">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] w-36">
                     {t(UI.specCol)}
                   </th>

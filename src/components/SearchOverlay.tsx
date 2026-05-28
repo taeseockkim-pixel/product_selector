@@ -119,7 +119,7 @@ export default function SearchOverlay({
                           title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                             inCart
-                              ? 'bg-[#ddd9d2] text-[#333333]'
+                              ? 'bg-orange-500 text-white'
                               : 'bg-[#191919] text-white hover:bg-[#333333]'
                           }`}
                         >
@@ -130,7 +130,7 @@ export default function SearchOverlay({
                           title={inCompare ? t(UI.removeCompare) : t(UI.addToCompare)}
                           className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${
                             inCompare
-                              ? 'border-[#191919] bg-[#191919] text-white'
+                              ? 'border-orange-500 bg-orange-500 text-white'
                               : 'border-[#cccccc] text-[#999999] hover:border-[#333333] hover:text-[#333333]'
                           }`}
                         >

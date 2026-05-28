@@ -315,7 +315,7 @@ function AppInner() {
                 className="fixed inset-0 bg-black/40 z-30"
                 onClick={() => setMobileMenuOpen(false)}
               />
-              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#2d2b28] shadow-xl">
+              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#3d5a73] shadow-xl">
                 {activeCategory === 'PLC' ? (
                   <PlcLeftPanel
                     plcSeries={plcSeries}
@@ -455,7 +455,7 @@ function AppHeader({
               viewMode === 'compare'
                 ? 'bg-white text-[#191919]'
                 : compareCount > 0
-                ? 'bg-[#333333] text-white hover:bg-[#0d3a5e]'
+                ? 'bg-orange-500 text-white hover:bg-orange-600'
                 : 'text-[#999999] hover:text-white hover:bg-[#333333]'
             }`}
           >
@@ -479,7 +479,7 @@ function AppHeader({
               viewMode === 'cart'
                 ? 'bg-white text-[#191919]'
                 : cartCount > 0
-                ? 'bg-[#333333] text-white hover:bg-[#0d3a5e]'
+                ? 'bg-orange-500 text-white hover:bg-orange-600'
                 : 'text-[#999999] hover:text-white hover:bg-[#333333]'
             }`}
           >

@@ -97,7 +97,7 @@ export default function ProductTable({
                     title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
                     className={`w-8 h-8 rounded flex items-center justify-center mx-auto transition-colors text-base leading-none font-bold ${
                       inCart
-                        ? 'bg-[#ddd9d2] text-[#333333] hover:bg-[#c8c4be]'
+                        ? 'bg-orange-500 text-white hover:bg-orange-600'
                         : 'bg-[#191919] text-white hover:bg-[#333333]'
                     }`}
                   >
@@ -110,7 +110,7 @@ export default function ProductTable({
                     title={inCompare ? t(UI.removeCompare) : t(UI.addToCompare)}
                     className={`w-8 h-8 rounded border-2 flex items-center justify-center mx-auto transition-colors text-xs font-bold ${
                       inCompare
-                        ? 'border-[#191919] bg-[#191919] text-white'
+                        ? 'border-orange-500 bg-orange-500 text-white'
                         : 'border-[#cccccc] text-[#999999] hover:border-[#333333] hover:text-[#333333]'
                     }`}
                   >
