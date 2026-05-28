@@ -259,11 +259,11 @@ function AppInner() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0ede8] flex flex-col">
+    <div className="h-screen bg-[#f0ede8] flex flex-col overflow-hidden print:h-auto print:overflow-visible">
       <AppHeader {...headerProps} />
 
-      {/* 카테고리 탭 */}
-      <div className="bg-[#f0ede8] border-b border-[#ddd9d2] no-print sticky top-16 z-30">
+      {/* 카테고리 탭 — sticky 제거, flex-none으로 높이 자동 결정 */}
+      <div className="bg-[#f0ede8] border-b border-[#ddd9d2] no-print flex-none">
         <div className="max-w-screen-xl mx-auto px-6">
           <nav className="flex gap-0 pt-1">
             {ALL_CATEGORY_IDS.map((catId) => {
@@ -286,10 +286,11 @@ function AppInner() {
         </div>
       </div>
 
-      <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 pb-8 min-h-screen">
-        <div key={activeCategory} className="flex gap-5 items-start animate-tab-fade min-h-[calc(100vh-120px)]">
-          {/* 데스크톱 사이드바 */}
-          <div className="hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start h-[calc(100vh-120px)] overflow-hidden pt-6">
+      {/* 컨텐츠 영역 — 남은 뷰포트 전체, 하드코딩 px 값 없음 */}
+      <div className="flex-1 overflow-hidden print:overflow-visible">
+        <div className="h-full max-w-screen-xl mx-auto w-full flex gap-5 px-6 overflow-hidden print:h-auto print:overflow-visible">
+          {/* 데스크톱 사이드바 — sticky/fixed height 불필요 */}
+          <div className="hidden md:block w-64 flex-shrink-0 no-print pt-6">
             {activeCategory === 'PLC' ? (
               <PlcLeftPanel
                 plcSeries={plcSeries}
@@ -338,33 +339,36 @@ function AppInner() {
             </div>
           )}
 
-          <div className="flex-1 min-w-0 pt-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] no-print"
-                  onClick={() => setMobileMenuOpen(true)}
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M3 8h18M3 12h18" />
-                  </svg>
-                  {t(UI.filterBtn)}
-                </button>
-                <h2 className="text-base font-bold text-[#191919]">{getRightTitle()}</h2>
+          {/* 우측 컨텐츠 — 독립 스크롤 */}
+          <div key={activeCategory} className="flex-1 min-w-0 overflow-y-auto pb-8 animate-tab-fade print:overflow-visible">
+            <div className="pt-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] no-print"
+                    onClick={() => setMobileMenuOpen(true)}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M3 8h18M3 12h18" />
+                    </svg>
+                    {t(UI.filterBtn)}
+                  </button>
+                  <h2 className="text-base font-bold text-[#191919]">{getRightTitle()}</h2>
+                </div>
+                <span className="text-sm text-[#999999]">{totalLabel}</span>
               </div>
-              <span className="text-sm text-[#999999]">{totalLabel}</span>
+              <ProductTable
+                products={products}
+                cartList={cartList}
+                compareList={compareList}
+                onCartToggle={handleCartToggle}
+                onCompareToggle={handleCompareToggle}
+                onViewDetail={setDetailProduct}
+              />
             </div>
-            <ProductTable
-              products={products}
-              cartList={cartList}
-              compareList={compareList}
-              onCartToggle={handleCartToggle}
-              onCompareToggle={handleCompareToggle}
-              onViewDetail={setDetailProduct}
-            />
           </div>
         </div>
-      </main>
+      </div>
 
       {detailProduct && (
         <SpecModal
@@ -415,7 +419,7 @@ function AppHeader({
 }) {
   const t = useT();
   return (
-    <header className="bg-[#191919] shadow-glow-white sticky top-0 z-40 no-print overflow-visible">
+    <header className="bg-[#191919] shadow-glow-white no-print overflow-visible flex-none">
       <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
         <button onClick={onReset} className="flex items-center gap-3 hover:opacity-75 transition-opacity">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-20 w-auto object-contain invert" />

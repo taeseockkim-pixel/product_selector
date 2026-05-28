@@ -85,49 +85,48 @@ products.json  →(빌드 타임 import)→  PRODUCTS: Product[]
 - `App.tsx`에 비즈니스 로직 직접 추가 — config 레이어를 통해 처리
 - 카탈로그 미확인 상태에서 `"source": "catalog"` spec 추가/수정
 
-### CSS `sticky` 적용 규칙
+### 사이드바 레이아웃 규칙 — App Shell 방식 (재발 방지)
 
-`position: sticky`는 **자신이 속한 부모 요소의 높이 범위** 안에서만 고정된다.
-컴포넌트 내부 `<aside>`에 `sticky`를 걸면, 해당 컴포넌트를 감싸는 부모 div 범위를 벗어나지 못해 고정이 풀린다.
+**사이드바 위치는 CSS 픽셀값(top-[120px], h-[calc(100vh-120px)] 등)으로 절대 계산하지 않는다.**
 
-**올바른 패턴** — `App.tsx`의 wrapper div에 적용:
+브라우저 확대/축소 시 헤더·탭의 실제 렌더링 높이가 하드코딩된 값과 달라져 위치가 틀어진다. 대신 **App Shell 구조**를 사용한다.
+
+**현재 확정 구조 (App.tsx, 변경 시 이 문서도 동시 수정)**:
 ```jsx
-{/* App.tsx — 사이드바 wrapper (현재 정확한 코드) */}
-<div className="hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start h-[calc(100vh-120px)] overflow-hidden pt-6">
-  <PlcLeftPanel ... />  {/* 또는 <LeftPanel ... /> */}
+{/* 최외곽: h-screen으로 뷰포트 전체 점유, 내부에서 독립 스크롤 */}
+<div className="h-screen bg-[#f0ede8] flex flex-col overflow-hidden print:h-auto print:overflow-visible">
+  <AppHeader />  {/* flex-none, sticky 없음 */}
+
+  {/* 탭: flex-none으로 자연 높이, sticky 없음 */}
+  <div className="bg-[#f0ede8] border-b ... flex-none">...</div>
+
+  {/* 컨텐츠 영역: flex-1이 나머지 높이를 자동으로 채움 */}
+  <div className="flex-1 overflow-hidden">
+    <div className="h-full max-w-screen-xl mx-auto w-full flex gap-5 px-6 overflow-hidden">
+
+      {/* 사이드바: 단순 블록, sticky/fixed height 없음 */}
+      <div className="hidden md:block w-64 flex-shrink-0 no-print pt-6">
+        <PlcLeftPanel /> or <LeftPanel />
+      </div>
+
+      {/* 우측: 독립 스크롤 */}
+      <div className="flex-1 min-w-0 overflow-y-auto pb-8">...</div>
+    </div>
+  </div>
 </div>
-```
-
-**잘못된 패턴** — 컴포넌트 내부 aside에 적용 (작동 안 함):
-```jsx
-{/* LeftPanel.tsx 내부 — 부모 div 범위 밖을 벗어나지 못함 */}
-<aside className="sticky top-[120px] ...">
-```
-
-추가 주의사항:
-- `max-h + overflow-y-auto` 대신 `h + overflow-hidden` 사용 — 래퍼 높이 고정으로 레이아웃 이동 방지
-- 내부 스크롤이 필요한 카드에는 `flex-1 overflow-y-auto no-scrollbar` 적용
-- `self-start` 없이 flex child에 sticky를 쓰면 부모가 늘어나 고정되지 않음
-- 현재 sticky top 기준: 헤더 64px + 카테고리 탭 56px = **120px**
-
-### 사이드바 위치 단일화 규칙 (재발 방지)
-
-**PLC / IPC / SCADA / XPANEL 사이드바의 위치(top padding)는 `App.tsx`의 wrapper div 한 곳에서만 제어한다.**
-
-- ✅ **올바름**: wrapper에 `pt-6` → 모든 패널이 동일한 element의 패딩을 공유
-- ❌ **금지**: `PlcLeftPanel.tsx` 또는 `LeftPanel.tsx` 내부 `<aside>`에 `pt-*`, `mt-*` 등 top offset 추가
-
-**이유**: padding이 각 컴포넌트에 분산되면, 한 컴포넌트 수정 시 다른 컴포넌트와 값이 달라져 위치 불일치가 반복 발생함. wrapper 단일 제어 시 물리적으로 동일한 element이므로 불일치 불가능.
-
-**현재 확정 wrapper 클래스 (변경 시 이 문서도 동시 수정)**:
-```
-hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start h-[calc(100vh-120px)] overflow-hidden pt-6
 ```
 
 **패널 내부 `<aside>` 클래스 (top offset 없음)**:
 ```
-w-full flex-shrink-0 flex flex-col h-full
+w-full flex flex-col h-full
 ```
+
+**핵심 원칙**:
+- ❌ `sticky`, `top-[Npx]`, `h-[calc(100vh-Npx)]` — 줌/폰트 변화에 깨짐
+- ❌ `PlcLeftPanel.tsx` / `LeftPanel.tsx` 내부 aside에 `pt-*`, `mt-*` 추가
+- ✅ `flex-1 overflow-hidden` 체인으로 높이를 DOM 구조가 결정하게 함
+- ✅ 사이드바 top padding은 App.tsx wrapper의 `pt-6` 한 곳에서만 제어
+- ✅ 사이드바 내부 스크롤: 시리즈/제품타입 카드 `flex-shrink-0`, 트리/필터 카드 `flex-1 overflow-y-auto no-scrollbar`
 
 ### 새 제품 카테고리 추가 시 3-파일 동시 수정
 
