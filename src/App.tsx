@@ -234,7 +234,7 @@ function AppInner() {
 
   if (viewMode === 'cart') {
     return (
-      <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
+      <div className="min-h-screen bg-[#f0ede8] flex flex-col">
         <AppHeader {...headerProps} />
         <CartPage
           cartList={cartList} products={PRODUCTS}
@@ -247,7 +247,7 @@ function AppInner() {
 
   if (viewMode === 'compare') {
     return (
-      <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
+      <div className="min-h-screen bg-[#f0ede8] flex flex-col">
         <AppHeader {...headerProps} />
         <ComparePage
           compareList={compareList} products={PRODUCTS}
@@ -259,23 +259,23 @@ function AppInner() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f2f2f2] flex flex-col">
+    <div className="min-h-screen bg-[#f0ede8] flex flex-col">
       <AppHeader {...headerProps} />
 
       {/* 카테고리 탭 */}
-      <div className="bg-white border-b border-[#e8e8e8] no-print sticky top-16 z-30">
+      <div className="bg-[#f0ede8] border-b border-[#ddd9d2] no-print sticky top-16 z-30">
         <div className="max-w-screen-xl mx-auto px-6">
-          <nav className="flex gap-1.5 py-2.5">
+          <nav className="flex gap-0 pt-1">
             {ALL_CATEGORY_IDS.map((catId) => {
               const active = activeCategory === catId;
               return (
                 <button
                   key={catId}
                   onClick={() => setActiveCategory(catId)}
-                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${
+                  className={`px-6 py-2.5 text-sm font-semibold transition-all border-b-2 -mb-px ${
                     active
-                      ? 'bg-[#191919] text-white shadow-sm'
-                      : 'text-[#999999] hover:text-[#191919] hover:bg-[#f2f2f2]'
+                      ? 'border-[#191919] text-[#191919]'
+                      : 'border-transparent text-[#888888] hover:text-[#191919] hover:border-[#cccccc]'
                   }`}
                 >
                   {CATEGORY_LABELS[catId]}
@@ -286,7 +286,7 @@ function AppInner() {
         </div>
       </div>
 
-      <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 pb-6">
+      <main className="flex-1 max-w-screen-xl mx-auto w-full px-6 pb-8">
         <div key={activeCategory} className="flex gap-5 items-start animate-tab-fade">
           {/* 데스크톱 사이드바 */}
           <div className="hidden md:block w-64 flex-shrink-0 no-print sticky top-[120px] self-start max-h-[calc(100vh-120px)] overflow-y-auto">
@@ -315,7 +315,7 @@ function AppInner() {
                 className="fixed inset-0 bg-black/40 z-30"
                 onClick={() => setMobileMenuOpen(false)}
               />
-              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-white shadow-xl">
+              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#1c1c1c] shadow-xl">
                 {activeCategory === 'PLC' ? (
                   <PlcLeftPanel
                     plcSeries={plcSeries}
@@ -342,7 +342,7 @@ function AppInner() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 flex-wrap">
                 <button
-                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] no-print"
+                  className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] no-print"
                   onClick={() => setMobileMenuOpen(true)}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

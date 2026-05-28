@@ -18,13 +18,13 @@ function ProductImage({ id, subType }: { id: string; subType: string }) {
   const src = resolveProductImage(id, subType);
   if (!src || failed) {
     return (
-      <div className="w-14 h-10 bg-[#f2f2f2] rounded-lg flex items-center justify-center text-[#999999] text-[10px] select-none">
+      <div className="w-14 h-10 bg-[#e6e2dc] rounded flex items-center justify-center text-[#a0a0a0] text-[10px] select-none border border-[#ddd9d2]">
         NO IMG
       </div>
     );
   }
   return (
-    <img src={src} alt={id} className="w-14 h-10 object-contain rounded-lg bg-[#f2f2f2]"
+    <img src={src} alt={id} className="w-14 h-10 object-contain rounded bg-[#f0ede8] border border-[#ddd9d2]"
       onError={() => setFailed(true)} />
   );
 }
@@ -37,67 +37,78 @@ export default function ProductTable({
 
   if (products.length === 0) {
     return (
-      <div className="flex-1 bg-white rounded-2xl shadow-sm p-12 text-center">
+      <div className="flex-1 bg-[#f0ede8] border border-[#ddd9d2] rounded-lg p-12 text-center">
         <p className="text-[#999999] text-sm whitespace-pre-line">{t(UI.noProducts)}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-x-auto">
-      <table className="w-full text-sm bg-white rounded-2xl shadow-sm overflow-hidden">
+    <div className="flex-1 overflow-x-auto rounded-lg border border-[#ddd9d2] overflow-hidden">
+      {/* table-fixed: 각 열 너비 정확히 고정. 모델명 220px로 줄바꿈 방지 */}
+      <table className="w-full text-sm bg-[#f0ede8] table-fixed">
+        <colgroup>
+          <col className="w-[70px]" />   {/* 이미지 */}
+          <col className="w-[220px]" />  {/* 모델명 */}
+          <col />                        {/* 설명 — 나머지 전체 */}
+          <col className="w-[82px]" />   {/* 스펙 */}
+          <col className="w-[52px]" />   {/* 담기 */}
+          <col className="w-[52px]" />   {/* 비교 */}
+        </colgroup>
         <thead>
-          <tr className="bg-[#191919] text-[#999999] text-xs font-semibold uppercase tracking-widest">
-            <th className="px-4 py-3.5 text-left w-20">{t(UI.colImage)}</th>
-            <th className="px-4 py-3.5 text-left w-40">{t(UI.colModelName)}</th>
-            <th className="px-4 py-3.5 text-left">{t(UI.colDesc)}</th>
-            <th className="px-4 py-3.5 text-center w-20">{t(UI.colSpecs)}</th>
-            <th className="px-4 py-3.5 text-center w-16">{t(UI.colAdd)}</th>
-            <th className="px-4 py-3.5 text-center w-16">{t(UI.colCompare)}</th>
+          <tr className="bg-[#191919] text-[#aaaaaa] text-xs font-semibold uppercase tracking-widest border-b-2 border-[#111]">
+            <th className="px-3 py-3 text-left">{t(UI.colImage)}</th>
+            <th className="px-3 py-3 text-left">{t(UI.colModelName)}</th>
+            <th className="px-4 py-3 text-left">{t(UI.colDesc)}</th>
+            <th className="px-2 py-3 text-center">{t(UI.colSpecs)}</th>
+            <th className="px-1 py-3 text-center">{t(UI.colAdd)}</th>
+            <th className="px-1 py-3 text-center">{t(UI.colCompare)}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#f0f0f0]">
-          {products.map((p) => {
+        <tbody className="divide-y divide-[#ddd9d2]">
+          {products.map((p, idx) => {
             const inCart = cartList.includes(p.id);
             const inCompare = compareList.includes(p.id);
             const desc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
             const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
+            const isEven = idx % 2 === 1;
             return (
-              <tr key={p.id} className="hover:bg-[#f2f2f2] transition-colors border-b border-[#f0f0f0] last:border-0">
-                <td className="px-4 py-3">
+              <tr key={p.id} className={`hover:bg-[#ddd9d2] transition-colors ${isEven ? 'bg-[#e6e2dc]' : 'bg-[#f0ede8]'}`}>
+                <td className="px-3 py-2.5">
                   <ProductImage id={p.id} subType={p.subType} />
                 </td>
-                <td className="px-4 py-3">
-                  <span className="font-semibold text-[#191919]">{p.modelName}</span>
-                  <span className="block text-xs text-[#999999] mt-0.5">{series}</span>
+                <td className="px-3 py-2.5">
+                  {/* truncate: 220px 초과 모델명은 말줄임 처리 */}
+                  <span className="font-semibold text-[#191919] block truncate" title={p.modelName}>{p.modelName}</span>
+                  <span className="block text-xs text-[#999999] mt-0.5 truncate">{series}</span>
                 </td>
-                <td className="px-4 py-3 text-[#999999] text-xs leading-relaxed">{desc}</td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-2.5 text-[#555555] text-sm leading-relaxed">{desc}</td>
+                <td className="px-2 py-2.5 text-center">
                   <button
                     onClick={() => onViewDetail(p)}
-                    className="px-2.5 py-1 rounded-lg bg-[#f2f2f2] hover:bg-[#e0e0e0] text-[#333333] text-xs transition-colors"
+                    className="px-2 py-1 rounded border border-[#c8c4be] bg-[#e6e2dc] hover:bg-[#ddd9d2] text-[#333333] text-xs transition-colors whitespace-nowrap"
                   >
                     {t(UI.detailBtn)}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-1 py-2.5 text-center">
                   <button
                     onClick={() => onCartToggle(p.id)}
                     title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center mx-auto transition-colors text-base leading-none font-bold ${
+                    className={`w-8 h-8 rounded flex items-center justify-center mx-auto transition-colors text-base leading-none font-bold ${
                       inCart
-                        ? 'bg-[#f2f2f2] text-[#333333] hover:bg-[#e0e0e0]'
+                        ? 'bg-[#ddd9d2] text-[#333333] hover:bg-[#c8c4be]'
                         : 'bg-[#191919] text-white hover:bg-[#333333]'
                     }`}
                   >
                     {inCart ? '✓' : '+'}
                   </button>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-1 py-2.5 text-center">
                   <button
                     onClick={() => onCompareToggle(p.id)}
                     title={inCompare ? t(UI.removeCompare) : t(UI.addToCompare)}
-                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center mx-auto transition-colors text-xs font-bold ${
+                    className={`w-8 h-8 rounded border-2 flex items-center justify-center mx-auto transition-colors text-xs font-bold ${
                       inCompare
                         ? 'border-[#191919] bg-[#191919] text-white'
                         : 'border-[#cccccc] text-[#999999] hover:border-[#333333] hover:text-[#333333]'

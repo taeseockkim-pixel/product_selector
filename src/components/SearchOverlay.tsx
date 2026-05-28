@@ -59,11 +59,11 @@ export default function SearchOverlay({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+        className="bg-[#f0ede8] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 검색 입력 */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#f0f0f0]">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-[#ddd9d2]">
           <svg className="w-5 h-5 text-[#999999] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -77,7 +77,7 @@ export default function SearchOverlay({
           />
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center text-[#999999] hover:text-[#191919] text-xl leading-none rounded-full hover:bg-[#f2f2f2] transition-colors"
+            className="w-7 h-7 flex items-center justify-center text-[#999999] hover:text-[#191919] text-xl leading-none rounded-full hover:bg-[#e6e2dc] transition-colors"
           >
             ×
           </button>
@@ -94,7 +94,7 @@ export default function SearchOverlay({
           ) : (
             (Object.entries(grouped) as [CategoryId, Product[]][]).map(([cat, prods]) => (
               <div key={cat}>
-                <div className="px-4 py-2 bg-[#f2f2f2] border-y border-[#e8e8e8] flex items-center gap-2">
+                <div className="px-4 py-2 bg-[#e6e2dc] border-y border-[#ddd9d2] flex items-center gap-2">
                   <span className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em]">
                     {CATEGORY_LABELS[cat]}
                   </span>
@@ -107,7 +107,7 @@ export default function SearchOverlay({
                   return (
                     <div
                       key={p.id}
-                      className="flex items-center justify-between px-4 py-3 hover:bg-[#f2f2f2] border-b border-[#f5f5f5] last:border-0 transition-colors"
+                      className="flex items-center justify-between px-4 py-3 hover:bg-[#e6e2dc] border-b border-[#ddd9d2] last:border-0 transition-colors"
                     >
                       <button className="flex-1 text-left min-w-0" onClick={() => onViewDetail(p)}>
                         <p className="font-semibold text-[#191919] text-sm">{p.modelName}</p>
@@ -119,7 +119,7 @@ export default function SearchOverlay({
                           title={inCart ? t(UI.cancelAdd) : t(UI.shortlist)}
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                             inCart
-                              ? 'bg-[#f2f2f2] text-[#333333]'
+                              ? 'bg-[#ddd9d2] text-[#333333]'
                               : 'bg-[#191919] text-white hover:bg-[#333333]'
                           }`}
                         >

@@ -35,13 +35,13 @@ export default function PlcLeftPanel({
   return (
     <aside className="w-full flex-shrink-0">
       {onClose && (
-        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#f0f0f0] mb-3 rounded-t-xl">
-          <span className="text-sm font-semibold text-[#191919]">{t(UI.series)}</span>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#999999] hover:text-[#191919] text-xl leading-none rounded-full hover:bg-[#f2f2f2]">×</button>
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#1c1c1c] border-b border-[#2a2a2a] mb-3 rounded-t-xl">
+          <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.series)}</span>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#2a2a2a]">×</button>
         </div>
       )}
-      <div className="bg-white rounded-2xl shadow-sm p-3 mb-3">
-        <p className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] mb-2 px-1">
+      <div className="bg-[#1c1c1c] rounded-lg p-3 mb-3">
+        <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] mb-2 px-1">
           {t(UI.series)}
         </p>
         <div className="flex gap-1.5">
@@ -51,8 +51,8 @@ export default function PlcLeftPanel({
               onClick={() => handleSeriesChange(s)}
               className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
                 plcSeries === s
-                  ? 'bg-[#191919] text-white'
-                  : 'bg-[#f2f2f2] text-[#333333] hover:bg-[#e0e0e0]'
+                  ? 'bg-white text-[#191919]'
+                  : 'bg-[#2a2a2a] text-[#c8c5c0] hover:bg-[#333333]'
               }`}
             >
               {s === 'CM1' ? 'PLC (CM1)' : 'PLC-S (CM3)'}
@@ -61,7 +61,7 @@ export default function PlcLeftPanel({
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-[#1c1c1c] rounded-lg overflow-hidden">
         <div className="py-1">
           {tree.map((group) => {
             const isExpanded = expandedGroups.includes(group.id);
@@ -72,13 +72,13 @@ export default function PlcLeftPanel({
               <div key={group.id}>
                 <button
                   onClick={() => toggleGroup(group.id)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-[#f2f2f2] ${
-                    hasActive ? 'text-[#191919] font-bold' : 'text-[#333333]'
+                  className={`w-full flex items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-[#2a2a2a] ${
+                    hasActive ? 'text-white font-bold' : 'text-[#c8c5c0]'
                   }`}
                 >
                   <span className="text-sm font-semibold">{groupLabel}</span>
                   <svg
-                    className={`w-3.5 h-3.5 flex-shrink-0 transition-transform text-[#999999] ${
+                    className={`w-3.5 h-3.5 flex-shrink-0 transition-transform text-[#666666] ${
                       isExpanded ? 'rotate-90' : ''
                     }`}
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
@@ -98,8 +98,8 @@ export default function PlcLeftPanel({
                           onClick={() => onSubTypeChange(leaf.id)}
                           className={`w-full text-left pl-7 pr-4 py-2 text-sm transition-colors ${
                             active
-                              ? 'bg-[#f2f2f2] text-[#191919] font-medium border-l-2 border-[#191919]'
-                              : 'text-[#999999] hover:bg-[#f2f2f2] hover:text-[#333333] border-l-2 border-transparent'
+                              ? 'bg-[#2a2a2a] text-white font-medium border-l-2 border-white'
+                              : 'text-[#888888] hover:bg-[#2a2a2a] hover:text-[#e0e0e0] border-l-2 border-transparent'
                           }`}
                         >
                           {leafLabel}

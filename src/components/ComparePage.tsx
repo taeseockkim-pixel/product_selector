@@ -92,7 +92,7 @@ export default function ComparePage({
             <>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -101,7 +101,7 @@ export default function ComparePage({
               </button>
               <button
                 onClick={() => downloadCSV(rows, compareProducts)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -119,19 +119,19 @@ export default function ComparePage({
       </div>
 
       {compareProducts.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm p-16 text-center">
+        <div className="bg-[#f0ede8] rounded-xl border border-[#ddd9d2] p-16 text-center">
           <p className="text-[#999999] text-sm">{t(UI.noCompare)}</p>
-          <button onClick={onBack} className="mt-4 text-sm text-[#333333] hover:text-[#191919]">
+          <button onClick={onBack} className="mt-4 text-sm text-[#555555] hover:text-[#191919]">
             {t(UI.goToList)}
           </button>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-[#f0ede8] rounded-xl border border-[#ddd9d2] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#f2f2f2] border-b border-[#e0e0e0]">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] w-36">
+                <tr className="bg-[#1c1c1c] border-b border-[#2a2a2a]">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] w-36">
                     {t(UI.specCol)}
                   </th>
                   {compareProducts.map((p) => {
@@ -141,9 +141,9 @@ export default function ComparePage({
                       <th key={p.id} className="px-4 py-3 text-left min-w-48">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <p className="font-bold text-[#191919] text-sm">{p.modelName}</p>
+                            <p className="font-bold text-white text-sm">{p.modelName}</p>
                             <p className="text-xs text-[#999999] font-normal mt-0.5">{series}</p>
-                            <p className="text-xs text-[#333333] font-normal mt-0.5 leading-tight">{desc}</p>
+                            <p className="text-xs text-[#c8c5c0] font-normal mt-0.5 leading-tight">{desc}</p>
                           </div>
                           <button
                             onClick={() => onRemove(p.id)}
@@ -169,7 +169,7 @@ export default function ComparePage({
                   rows.map((row) => (
                     <tr
                       key={row.label}
-                      className={`border-b border-[#f5f5f5] ${row.isDiff ? 'bg-amber-50' : ''}`}
+                      className={`border-b border-[#ddd9d2] ${row.isDiff ? 'bg-amber-50' : ''}`}
                     >
                       <td className="px-4 py-2.5 text-xs font-semibold text-[#333333] align-top">
                         {row.label}
@@ -194,7 +194,7 @@ export default function ComparePage({
             </table>
           </div>
 
-          <div className="px-4 py-3 border-t border-[#f0f0f0] bg-[#f2f2f2] flex items-center gap-2 no-print">
+          <div className="px-4 py-3 border-t border-[#ddd9d2] bg-[#e6e2dc] flex items-center gap-2 no-print">
             <span className="inline-block w-2 h-2 rounded-full bg-amber-400" />
             <span className="text-xs text-[#999999]">{t(UI.diffLegend)}</span>
           </div>

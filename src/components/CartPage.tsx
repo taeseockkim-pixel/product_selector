@@ -48,10 +48,10 @@ function SpecTable({ specs }: { specs: Product['specs'] }) {
   const { lang } = useLang();
   if (specs.length === 0) return <p className="text-xs text-[#999999] italic">{lang === 'ko' ? '사양 정보 없음' : 'No spec data'}</p>;
   return (
-    <table className="w-full text-xs mt-2 border-t border-[#f0f0f0]">
+    <table className="w-full text-xs mt-2 border-t border-[#ddd9d2]">
       <tbody>
         {specs.map((s) => (
-          <tr key={s.label} className="border-b border-[#f5f5f5]">
+          <tr key={s.label} className="border-b border-[#ddd9d2]">
             <td className="py-1.5 pr-4 font-medium text-[#333333] w-36 align-top">
               {translateSpecLabel(s.label, lang)}
             </td>
@@ -109,7 +109,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
             <>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-sm text-[#333333] hover:bg-[#f2f2f2] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -136,9 +136,9 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
       </div>
 
       {cartProducts.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm p-16 text-center">
+        <div className="bg-[#f0ede8] rounded-xl border border-[#ddd9d2] p-16 text-center">
           <p className="text-[#999999] text-sm">{t(UI.emptyShortlist)}</p>
-          <button onClick={onBack} className="mt-4 text-sm text-[#333333] hover:text-[#191919]">
+          <button onClick={onBack} className="mt-4 text-sm text-[#555555] hover:text-[#191919]">
             {t(UI.goToList)}
           </button>
         </div>
@@ -150,10 +150,10 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
             const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
             const verifiedSpecs = p.specs.filter((s) => s.source !== 'estimated');
             return (
-              <div key={p.id} className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div key={p.id} className="bg-[#f0ede8] rounded-xl border border-[#ddd9d2] overflow-hidden">
                 <div className="flex items-center justify-between px-5 py-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-12 bg-[#f2f2f2] rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden no-print">
+                    <div className="w-16 h-12 bg-[#e6e2dc] rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden no-print">
                       <CartImage product={p} />
                     </div>
                     <div>
@@ -165,7 +165,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                   <div className="flex items-center gap-3 flex-shrink-0 no-print">
                     <button
                       onClick={() => toggleExpand(p.id)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#e0e0e0] text-xs text-[#333333] hover:bg-[#f2f2f2] transition-colors"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-xs text-[#555555] hover:bg-[#e6e2dc] transition-colors"
                     >
                       <span>{t(UI.detailSpecs)}</span>
                       <svg
@@ -186,7 +186,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                 </div>
 
                 {/* 사양 — 화면에서는 expanded일 때, 인쇄 시에는 항상 표시 */}
-                <div className={`px-5 pb-4 border-t border-[#f0f0f0] bg-[#f2f2f2] ${expanded ? '' : 'hidden print:block'}`}>
+                <div className={`px-5 pb-4 border-t border-[#ddd9d2] bg-[#e6e2dc] ${expanded ? '' : 'hidden print:block'}`}>
                   <SpecTable specs={verifiedSpecs} />
                 </div>
               </div>
