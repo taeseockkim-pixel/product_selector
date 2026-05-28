@@ -130,7 +130,7 @@ export default function ComparePage({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#3d5a73] border-b border-[#4a6880]">
+                <tr className="bg-[#4a4a4a] border-b border-[#565656]">
                   <th className="px-4 py-3 text-left text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] w-36">
                     {t(UI.specCol)}
                   </th>
