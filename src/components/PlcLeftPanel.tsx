@@ -44,12 +44,12 @@ export default function PlcLeftPanel({
         <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] mb-2 px-1">
           {t(UI.series)}
         </p>
-        <div className="flex gap-1.5">
+        <div className="flex flex-col gap-1">
           {(['CM1', 'CM3'] as PlcSeriesId[]).map((s) => (
             <button
               key={s}
               onClick={() => handleSeriesChange(s)}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              className={`w-full py-2 rounded-lg text-sm font-semibold transition-colors ${
                 plcSeries === s
                   ? 'bg-white text-[#191919]'
                   : 'bg-[#565656] text-[#c8c5c0] hover:bg-[#333333]'
