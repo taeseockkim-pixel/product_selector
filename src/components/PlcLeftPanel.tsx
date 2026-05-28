@@ -33,14 +33,14 @@ export default function PlcLeftPanel({
   }
 
   return (
-    <aside className="w-full flex-shrink-0 md:pt-6">
+    <aside className="w-full flex-shrink-0 md:pt-6 flex flex-col h-full">
       {onClose && (
-        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#4a4a4a] border-b border-[#565656] mb-3 rounded-t-xl">
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-[#4a4a4a] border-b border-[#565656] mb-3 rounded-t-xl flex-shrink-0">
           <span className="text-sm font-semibold text-[#e0e0e0]">{t(UI.series)}</span>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center text-[#888888] hover:text-white text-xl leading-none rounded-full hover:bg-[#565656]">×</button>
         </div>
       )}
-      <div className="bg-[#4a4a4a] rounded-lg p-3 mb-3">
+      <div className="bg-[#4a4a4a] rounded-lg p-3 mb-3 flex-shrink-0">
         <p className="text-xs font-semibold text-[#888888] uppercase tracking-[0.2em] mb-2 px-1">
           {t(UI.series)}
         </p>
@@ -61,7 +61,7 @@ export default function PlcLeftPanel({
         </div>
       </div>
 
-      <div className="bg-[#4a4a4a] rounded-lg overflow-hidden">
+      <div className="bg-[#4a4a4a] rounded-lg overflow-y-auto no-scrollbar flex-1">
         <div className="py-1">
           {tree.map((group) => {
             const isExpanded = expandedGroups.includes(group.id);
