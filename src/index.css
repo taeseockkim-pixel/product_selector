@@ -37,6 +37,14 @@
   animation: tab-fade-in 0.2s ease-out both;
 }
 
+.no-scrollbar {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE / Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;               /* Chrome / Safari */
+}
+
 @media print {
   .no-print { display: none !important; }
   .print-show { display: block !important; }
