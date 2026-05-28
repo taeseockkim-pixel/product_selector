@@ -315,7 +315,7 @@ function AppInner() {
                 className="fixed inset-0 bg-black/40 z-30"
                 onClick={() => setMobileMenuOpen(false)}
               />
-              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#1e2d3c] shadow-xl">
+              <div className="fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#2d2b28] shadow-xl">
                 {activeCategory === 'PLC' ? (
                   <PlcLeftPanel
                     plcSeries={plcSeries}
