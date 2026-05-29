@@ -18,13 +18,13 @@ function ProductImage({ id, subType }: { id: string; subType: string }) {
   const src = resolveProductImage(id, subType);
   if (!src || failed) {
     return (
-      <div className="w-14 h-10 bg-[#e6e2dc] rounded flex items-center justify-center text-[#a0a0a0] text-[10px] select-none border border-[#ddd9d2]">
+      <div className="w-14 h-10 bg-gray-100 rounded flex items-center justify-center text-[#a0a0a0] text-[10px] select-none border border-gray-200">
         NO IMG
       </div>
     );
   }
   return (
-    <img src={src} alt={id} className="w-14 h-10 object-contain rounded bg-[#f0ede8] border border-[#ddd9d2]"
+    <img src={src} alt={id} className="w-14 h-10 object-contain rounded bg-gray-100 border border-gray-200"
       onError={() => setFailed(true)} />
   );
 }
@@ -37,16 +37,16 @@ export default function ProductTable({
 
   if (products.length === 0) {
     return (
-      <div className="flex-1 bg-[#f0ede8] border border-[#ddd9d2] rounded-lg p-12 text-center">
+      <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
         <p className="text-[#666666] text-sm whitespace-pre-line">{t(UI.noProducts)}</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-x-auto rounded-lg border border-[#ddd9d2] overflow-hidden">
+    <div className="flex-1 overflow-x-auto rounded-lg border border-gray-200 overflow-hidden">
       {/* table-fixed: 각 열 너비 정확히 고정. 모델명 220px로 줄바꿈 방지 */}
-      <table className="w-full text-sm bg-[#f0ede8] table-fixed">
+      <table className="w-full text-sm bg-white table-fixed">
         <colgroup>
           <col className="w-[70px]" />   {/* 이미지 */}
           <col className="w-[220px]" />  {/* 모델명 */}
@@ -56,7 +56,7 @@ export default function ProductTable({
           <col className="w-[52px]" />   {/* 비교 */}
         </colgroup>
         <thead>
-          <tr className="border-b border-[#ddd9d2] text-[#555555] text-xs font-semibold uppercase tracking-wider">
+          <tr className="bg-gray-50 border-b border-gray-200 text-[#555555] text-xs font-semibold uppercase tracking-wider">
             <th className="px-3 py-2.5 text-left">{t(UI.colImage)}</th>
             <th className="px-3 py-2.5 text-left">{t(UI.colModelName)}</th>
             <th className="px-4 py-2.5 text-left">{t(UI.colDesc)}</th>
@@ -65,7 +65,7 @@ export default function ProductTable({
             <th className="px-1 py-2.5 text-center">{t(UI.colCompare)}</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-[#ddd9d2]">
+        <tbody className="divide-y divide-gray-200">
           {products.map((p, idx) => {
             const inCart = cartList.includes(p.id);
             const inCompare = compareList.includes(p.id);
@@ -73,7 +73,7 @@ export default function ProductTable({
             const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
             const isEven = idx % 2 === 1;
             return (
-              <tr key={p.id} className={`hover:bg-[#ddd9d2] transition-colors ${isEven ? 'bg-[#e6e2dc]' : 'bg-[#f0ede8]'}`}>
+              <tr key={p.id} className={`hover:bg-sky-50 transition-colors ${isEven ? 'bg-gray-50' : 'bg-white'}`}>
                 <td className="px-3 py-2.5">
                   <ProductImage id={p.id} subType={p.subType} />
                 </td>
@@ -86,7 +86,7 @@ export default function ProductTable({
                 <td className="px-2 py-2.5 text-center">
                   <button
                     onClick={() => onViewDetail(p)}
-                    className="px-2 py-1 rounded border border-[#c8c4be] bg-[#e6e2dc] hover:bg-[#ddd9d2] text-[#333333] text-xs transition-colors whitespace-nowrap"
+                    className="px-2 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 text-[#333333] text-xs transition-colors whitespace-nowrap"
                   >
                     {t(UI.detailBtn)}
                   </button>

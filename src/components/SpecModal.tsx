@@ -12,7 +12,7 @@ import { translateSpecValue } from '../i18n/specValues';
 type DocButtonColor = 'blue' | 'green' | 'orange' | 'purple';
 
 const COLOR_CLASS: Record<DocButtonColor, string> = {
-  blue:   'bg-[#e6e2dc] text-[#333333] hover:bg-[#ddd9d2]',
+  blue:   'bg-gray-100 text-gray-700 hover:bg-gray-200',
   green:  'bg-green-50 text-green-600 hover:bg-green-100',
   orange: 'bg-orange-50 text-orange-600 hover:bg-orange-100',
   purple: 'bg-purple-50 text-purple-600 hover:bg-purple-100',
@@ -23,7 +23,7 @@ function DocRow({ entry, onClose }: { entry: DocEntry; onClose: () => void }) {
   const { lang } = useLang();
   const displayLabel = lang === 'en' && entry.labelEn ? entry.labelEn : entry.label;
   return (
-    <div className="flex items-center justify-between gap-2 px-4 py-2 hover:bg-[#e6e2dc] transition-colors border-b border-[#ddd9d2] last:border-0">
+    <div className="flex items-center justify-between gap-2 px-4 py-2 hover:bg-gray-50 transition-colors border-b border-gray-200 last:border-0">
       <span className="text-sm text-[#333333] truncate flex-1">{displayLabel}</span>
       <div className="flex items-center gap-1 flex-shrink-0">
         <a
@@ -88,7 +88,7 @@ function DocButton({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 z-30 bg-[#f0ede8] border border-[#ddd9d2] rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[420px] max-h-64 overflow-y-auto">
+        <div className="absolute right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[420px] max-h-64 overflow-y-auto">
           {entries.map((entry) => (
             <DocRow key={entry.url} entry={entry} onClose={onToggle} />
           ))}
@@ -139,11 +139,11 @@ export default function SpecModal({
       onClick={onClose}
     >
       <div
-        className="bg-[#f0ede8] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 제목 헤더 — 고정 영역 */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#ddd9d2] flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
           <h2 className="text-lg font-bold font-headline text-[#191919]">{product.modelName}</h2>
           <button
             onClick={onClose}
@@ -159,11 +159,11 @@ export default function SpecModal({
             <img
               src={imageSrc}
               alt={product.modelName}
-              className="flex-shrink-0 w-44 h-36 object-contain rounded-xl bg-[#e6e2dc] border border-[#ddd9d2]"
+              className="flex-shrink-0 w-44 h-36 object-contain rounded-xl bg-gray-100 border border-gray-200"
               onError={() => setImgFailed(true)}
             />
           ) : (
-            <div className="flex-shrink-0 w-44 h-36 bg-[#e6e2dc] rounded-xl flex items-center justify-center text-[#999999] text-xs select-none">
+            <div className="flex-shrink-0 w-44 h-36 bg-gray-100 rounded-xl flex items-center justify-center text-[#999999] text-xs select-none">
               NO IMAGE
             </div>
           )}
@@ -206,7 +206,7 @@ export default function SpecModal({
             <p className="text-xs text-[#999999] italic">{t(UI.noDetailSpecs)}</p>
           ) : (
             <table className="w-full text-sm">
-              <tbody className="divide-y divide-[#ddd9d2]">
+              <tbody className="divide-y divide-gray-100">
                 {verifiedSpecs.map((s) => (
                   <tr key={s.label}>
                     <td className="py-2 pr-4 font-medium text-[#333333] w-44 align-top">
@@ -220,7 +220,7 @@ export default function SpecModal({
           )}
 
           {similar.length > 0 && onViewDetail && (
-            <div className="mt-4 pt-4 border-t border-[#ddd9d2]">
+            <div className="mt-4 pt-4 border-t border-gray-200">
               <p className="text-xs font-semibold text-[#999999] uppercase tracking-[0.2em] mb-3">
                 {t(UI.similarProducts)}
               </p>
@@ -231,7 +231,7 @@ export default function SpecModal({
                     <button
                       key={p.id}
                       onClick={() => onViewDetail(p)}
-                      className="text-left px-3 py-2 rounded-lg hover:bg-[#e6e2dc] transition-colors border border-[#ddd9d2]"
+                      className="text-left px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors border border-gray-200"
                     >
                       <p className="text-sm font-semibold text-[#191919]">{p.modelName}</p>
                       <p className="text-xs text-[#999999] mt-0.5 truncate">{pDesc}</p>
