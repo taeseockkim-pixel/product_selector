@@ -447,7 +447,7 @@ function AppHeader({
         <button onClick={onReset} className="flex items-center gap-2 sm:gap-3 hover:opacity-75 transition-opacity flex-shrink-0">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-16 sm:h-20 w-auto object-contain invert" />
           <span className="text-[#444444] hidden sm:inline">|</span>
-          <span className="text-base sm:text-xl text-[#cccccc] font-bold font-headline hidden sm:inline whitespace-nowrap">{t(UI.productGuide)}</span>
+          <span className="text-[0.8rem] sm:text-base text-[#cccccc] font-bold font-headline hidden sm:inline whitespace-nowrap">{t(UI.productGuide)}</span>
         </button>
 
         <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
