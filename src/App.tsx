@@ -303,6 +303,18 @@ function AppInner() {
                 </button>
               );
             })}
+            <div className="w-px bg-[#ddd9d2] mx-2 self-stretch my-1.5" />
+            <a
+              href="https://cimon.atlassian.net/wiki/spaces"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 text-sm font-semibold transition-all border-b-2 -mb-px whitespace-nowrap border-transparent text-[#0066cc] hover:text-[#0044aa] hover:border-[#0066cc]"
+            >
+              {lang === 'ko' ? '온라인 매뉴얼' : 'Online Manual'}
+              <svg className="w-3.5 h-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
           </nav>
         </div>
       </div>
