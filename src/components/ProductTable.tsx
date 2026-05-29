@@ -73,7 +73,7 @@ export default function ProductTable({
             const series = lang === 'en' ? (p.seriesLabelEn ?? p.seriesLabel) : p.seriesLabel;
             const isEven = idx % 2 === 1;
             return (
-              <tr key={p.id} className={`hover:bg-sky-50 transition-colors ${isEven ? 'bg-gray-50' : 'bg-white'}`}>
+              <tr key={p.id} className={`hover:bg-[#f5f5f5] transition-colors ${isEven ? 'bg-gray-50' : 'bg-white'}`}>
                 <td className="px-2 sm:px-3 py-2.5">
                   <ProductImage id={p.id} subType={p.subType} />
                 </td>

@@ -99,6 +99,10 @@ function AppInner() {
   const isInitialMount = useRef(true);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const urlState = useRef(parseURLState());
+  const headerWrapRef = useRef<HTMLDivElement>(null);
+  const tabRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [stickyOffset, setStickyOffset] = useState(0);
 
   const [viewMode, setViewMode] = useState<ViewMode>('main');
   const [activeCategory, setActiveCategory] = useState<CategoryId>(urlState.current.cat);
@@ -117,6 +121,19 @@ function AppInner() {
   const [filters, setFilters] = useState<FilterValues>(
     urlState.current.cat !== 'PLC' ? urlState.current.filters : {},
   );
+
+  // 헤더+탭 높이를 동적으로 측정 → 사이드바 sticky top/height 계산
+  useEffect(() => {
+    const obs = new ResizeObserver(() => {
+      const hh = headerWrapRef.current?.offsetHeight ?? 0;
+      const th = tabRef.current?.offsetHeight ?? 0;
+      setHeaderHeight(hh);
+      setStickyOffset(hh + th);
+    });
+    if (headerWrapRef.current) obs.observe(headerWrapRef.current);
+    if (tabRef.current) obs.observe(tabRef.current);
+    return () => obs.disconnect();
+  }, []);
 
   // 카테고리 변경 시 필터 초기화 (최초 마운트는 건너뜀 — URL 복원 상태 유지)
   useEffect(() => {
@@ -252,11 +269,18 @@ function AppInner() {
   }
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden print:h-auto print:overflow-visible">
-      <AppHeader {...headerProps} />
+    <div className="min-h-screen bg-white flex flex-col print:overflow-visible">
+      {/* 헤더 — sticky top-0 */}
+      <div ref={headerWrapRef} className="sticky top-0 z-50">
+        <AppHeader {...headerProps} />
+      </div>
 
-      {/* 카테고리 탭 — sticky 제거, flex-none으로 높이 자동 결정 */}
-      <div className="bg-[#f0ede8] border-b border-[#ddd9d2] no-print flex-none overflow-x-auto no-scrollbar">
+      {/* 카테고리 탭 — sticky, top = 헤더 높이 */}
+      <div
+        ref={tabRef}
+        className="sticky z-40 bg-[#f0ede8] border-b border-[#ddd9d2] no-print overflow-x-auto no-scrollbar"
+        style={{ top: headerHeight }}
+      >
         <div className="max-w-screen-xl mx-auto px-3 sm:px-6">
           <nav className="flex gap-0 pt-1 min-w-max sm:min-w-0">
             {ALL_CATEGORY_IDS.map((catId) => {
@@ -279,27 +303,32 @@ function AppInner() {
         </div>
       </div>
 
-      {/* 컨텐츠 영역 — 남은 뷰포트 전체, 하드코딩 px 값 없음 */}
-      <div className="flex-1 overflow-hidden print:overflow-visible">
-        <div className="h-full max-w-screen-xl mx-auto w-full flex gap-5 px-3 sm:px-6 overflow-hidden print:h-auto print:overflow-visible">
-          {/* 데스크톱 사이드바 — sticky/fixed height 불필요 */}
-          <div className="hidden md:block w-64 flex-shrink-0 no-print pt-6">
-            {activeCategory === 'PLC' ? (
-              <PlcLeftPanel
-                plcSeries={plcSeries}
-                onPlcSeriesChange={handlePlcSeriesChange}
-                activeSubType={plcSubType}
-                onSubTypeChange={setPlcSubType}
-              />
-            ) : (
-              <LeftPanel
-                categoryId={activeCategory}
-                activeSubType={activeSubType}
-                onSubTypeChange={(id) => { setActiveSubType(id); setFilters({}); }}
-                filters={filters}
-                onFiltersChange={setFilters}
-              />
-            )}
+      {/* 컨텐츠 영역 — 전체 페이지 스크롤 (브라우저 끝 스크롤바) */}
+      <div className="flex-1 print:overflow-visible">
+        <div className="max-w-screen-xl mx-auto w-full flex gap-5 px-3 sm:px-6 print:overflow-visible">
+          {/* 데스크톱 사이드바 — sticky, JS로 top/height 동적 계산 */}
+          <div
+            className="hidden md:flex flex-col w-64 flex-shrink-0 no-print"
+            style={{ position: 'sticky', top: stickyOffset, height: `calc(100vh - ${stickyOffset}px)`, overflowY: 'hidden' }}
+          >
+            <div className="h-full pt-6 flex flex-col">
+              {activeCategory === 'PLC' ? (
+                <PlcLeftPanel
+                  plcSeries={plcSeries}
+                  onPlcSeriesChange={handlePlcSeriesChange}
+                  activeSubType={plcSubType}
+                  onSubTypeChange={setPlcSubType}
+                />
+              ) : (
+                <LeftPanel
+                  categoryId={activeCategory}
+                  activeSubType={activeSubType}
+                  onSubTypeChange={(id) => { setActiveSubType(id); setFilters({}); }}
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                />
+              )}
+            </div>
           </div>
 
           {/* 모바일 드로어 */}
@@ -332,8 +361,8 @@ function AppInner() {
             </div>
           )}
 
-          {/* 우측 컨텐츠 — 독립 스크롤 */}
-          <div key={activeCategory} className="flex-1 min-w-0 overflow-y-auto pb-8 animate-tab-fade print:overflow-visible">
+          {/* 우측 컨텐츠 — 전체 페이지 스크롤 */}
+          <div key={activeCategory} className="flex-1 min-w-0 pb-8 animate-tab-fade print:overflow-visible">
             <div className="pt-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -418,7 +447,7 @@ function AppHeader({
         <button onClick={onReset} className="flex items-center gap-2 sm:gap-3 hover:opacity-75 transition-opacity flex-shrink-0">
           <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-16 sm:h-20 w-auto object-contain invert" />
           <span className="text-[#444444] hidden sm:inline">|</span>
-          <span className="text-xs sm:text-sm text-[#777777] font-headline hidden sm:inline whitespace-nowrap">{t(UI.productGuide)}</span>
+          <span className="text-base sm:text-xl text-[#cccccc] font-bold font-headline hidden sm:inline whitespace-nowrap">{t(UI.productGuide)}</span>
         </button>
 
         <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
