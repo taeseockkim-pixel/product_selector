@@ -244,8 +244,10 @@ function AppInner() {
 
   if (viewMode === 'cart') {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <AppHeader {...headerProps} />
+      <div className="min-h-screen bg-white">
+        <div className="sticky top-0 z-50">
+          <AppHeader {...headerProps} />
+        </div>
         <CartPage
           cartList={cartList} products={PRODUCTS}
           onRemove={handleCartToggle} onClear={() => setCartList([])} onBack={() => setViewMode('main')}
@@ -257,8 +259,10 @@ function AppInner() {
 
   if (viewMode === 'compare') {
     return (
-      <div className="min-h-screen bg-white flex flex-col">
-        <AppHeader {...headerProps} />
+      <div className="min-h-screen bg-white">
+        <div className="sticky top-0 z-50">
+          <AppHeader {...headerProps} />
+        </div>
         <ComparePage
           compareList={compareList} products={PRODUCTS}
           onRemove={handleCompareToggle} onClear={() => setCompareList([])} onBack={() => setViewMode('main')}

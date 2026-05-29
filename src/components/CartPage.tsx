@@ -76,7 +76,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
   }
 
   return (
-    <div className="flex-1 max-w-screen-xl mx-auto w-full px-6 py-6">
+    <div className="max-w-screen-xl mx-auto w-full px-6 py-6">
       {/* 인쇄 전용 헤더 */}
       <div className="hidden print:block mb-6">
         <div className="flex items-center gap-3 mb-2">
