@@ -256,16 +256,16 @@ function AppInner() {
       <AppHeader {...headerProps} />
 
       {/* 카테고리 탭 — sticky 제거, flex-none으로 높이 자동 결정 */}
-      <div className="bg-[#f0ede8] border-b border-[#ddd9d2] no-print flex-none">
-        <div className="max-w-screen-xl mx-auto px-6">
-          <nav className="flex gap-0 pt-1">
+      <div className="bg-[#f0ede8] border-b border-[#ddd9d2] no-print flex-none overflow-x-auto no-scrollbar">
+        <div className="max-w-screen-xl mx-auto px-3 sm:px-6">
+          <nav className="flex gap-0 pt-1 min-w-max sm:min-w-0">
             {ALL_CATEGORY_IDS.map((catId) => {
               const active = activeCategory === catId;
               return (
                 <button
                   key={catId}
                   onClick={() => setActiveCategory(catId)}
-                  className={`px-6 py-2.5 text-sm font-semibold transition-all border-b-2 -mb-px ${
+                  className={`px-4 sm:px-6 py-2.5 text-sm font-semibold transition-all border-b-2 -mb-px whitespace-nowrap ${
                     active
                       ? 'border-[#191919] text-[#191919]'
                       : 'border-transparent text-[#555555] hover:text-[#191919] hover:border-[#cccccc]'
@@ -281,7 +281,7 @@ function AppInner() {
 
       {/* 컨텐츠 영역 — 남은 뷰포트 전체, 하드코딩 px 값 없음 */}
       <div className="flex-1 overflow-hidden print:overflow-visible">
-        <div className="h-full max-w-screen-xl mx-auto w-full flex gap-5 px-6 overflow-hidden print:h-auto print:overflow-visible">
+        <div className="h-full max-w-screen-xl mx-auto w-full flex gap-5 px-3 sm:px-6 overflow-hidden print:h-auto print:overflow-visible">
           {/* 데스크톱 사이드바 — sticky/fixed height 불필요 */}
           <div className="hidden md:block w-64 flex-shrink-0 no-print pt-6">
             {activeCategory === 'PLC' ? (
@@ -411,16 +411,17 @@ function AppHeader({
   viewMode: ViewMode;
 }) {
   const t = useT();
+  const { lang } = useLang();
   return (
-    <header className="bg-[#191919] shadow-glow-white no-print overflow-visible flex-none">
-      <div className="max-w-screen-xl mx-auto px-6 flex items-center justify-between h-16">
-        <button onClick={onReset} className="flex items-center gap-3 hover:opacity-75 transition-opacity">
-          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-20 w-auto object-contain invert" />
-          <span className="text-[#333333]">|</span>
-          <span className="text-sm text-[#999999] font-headline hidden sm:inline">{t(UI.productGuide)}</span>
+    <header className="bg-[#191919] shadow-glow-white no-print flex-none">
+      <div className="max-w-screen-xl mx-auto px-3 sm:px-6 flex items-center justify-between h-14 sm:h-16 gap-2 overflow-x-auto no-scrollbar">
+        <button onClick={onReset} className="flex items-center gap-2 sm:gap-3 hover:opacity-75 transition-opacity flex-shrink-0">
+          <img src="/products/CIMON_Logo.png" alt="CIMON" className="h-16 sm:h-20 w-auto object-contain invert" />
+          <span className="text-[#444444] hidden sm:inline">|</span>
+          <span className="text-xs sm:text-sm text-[#777777] font-headline hidden sm:inline whitespace-nowrap">{t(UI.productGuide)}</span>
         </button>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           {/* 검색 버튼 */}
           <button
             onClick={onSearchClick}
@@ -432,23 +433,23 @@ function AppHeader({
             </svg>
           </button>
 
-          {/* 링크 복사 버튼 */}
+          {/* 링크 복사 버튼 — 모바일 숨김 */}
           <button
             onClick={onCopyLink}
             title={t(UI.copyLink)}
-            className="p-2 text-[#999999] hover:text-white hover:bg-[#333333] rounded-lg transition-colors"
+            className="hidden sm:flex p-2 text-[#999999] hover:text-white hover:bg-[#333333] rounded-lg transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
           </button>
 
-          <div className="w-px h-5 bg-[#333333] mx-0.5" />
+          <div className="w-px h-5 bg-[#333333] mx-0.5 hidden sm:block" />
 
           {/* 비교 버튼 */}
           <button
             onClick={onCompareClick}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[86px] whitespace-nowrap ${
+            className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               viewMode === 'compare'
                 ? 'bg-white text-[#191919]'
                 : compareCount > 0
@@ -456,23 +457,18 @@ function AppHeader({
                 : 'text-[#999999] hover:text-white hover:bg-[#333333]'
             }`}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            {t(UI.compare)}
-            {compareCount > 0 && (
-              <span className={`ml-0.5 rounded-full text-xs px-1.5 py-0.5 font-bold ${
-                viewMode === 'compare' ? 'bg-[#191919] text-white' : 'bg-white text-[#191919]'
-              }`}>
-                {compareCount}
-              </span>
-            )}
+            {compareCount > 0
+              ? (lang === 'ko' ? `${compareCount}개 선택됨` : `${compareCount} selected`)
+              : t(UI.compare)}
           </button>
 
           {/* 담기 버튼 */}
           <button
             onClick={onCartClick}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors min-w-[86px] whitespace-nowrap ${
+            className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               viewMode === 'cart'
                 ? 'bg-white text-[#191919]'
                 : cartCount > 0
@@ -480,17 +476,12 @@ function AppHeader({
                 : 'text-[#999999] hover:text-white hover:bg-[#333333]'
             }`}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8l1 12a2 2 0 002 2h8a2 2 0 002-2L19 8M10 12v4m4-4v4" />
             </svg>
-            {t(UI.shortlist)}
-            {cartCount > 0 && (
-              <span className={`ml-0.5 rounded-full text-xs px-1.5 py-0.5 font-bold ${
-                viewMode === 'cart' ? 'bg-[#191919] text-white' : 'bg-white text-[#191919]'
-              }`}>
-                {cartCount}
-              </span>
-            )}
+            {cartCount > 0
+              ? (lang === 'ko' ? `${cartCount}개 선택됨` : `${cartCount} selected`)
+              : t(UI.shortlist)}
           </button>
 
           <div className="w-px h-5 bg-[#333333] mx-0.5" />

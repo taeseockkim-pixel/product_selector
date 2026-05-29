@@ -48,19 +48,19 @@ export default function ProductTable({
       {/* table-fixed: 각 열 너비 정확히 고정. 모델명 220px로 줄바꿈 방지 */}
       <table className="w-full text-sm bg-white table-fixed">
         <colgroup>
-          <col className="w-[70px]" />   {/* 이미지 */}
-          <col className="w-[220px]" />  {/* 모델명 */}
-          <col />                        {/* 설명 — 나머지 전체 */}
-          <col className="w-[82px]" />   {/* 스펙 */}
-          <col className="w-[52px]" />   {/* 담기 */}
-          <col className="w-[52px]" />   {/* 비교 */}
+          <col className="w-[50px] sm:w-[70px]" />  {/* 이미지 */}
+          <col className="w-[140px] sm:w-[220px]" /> {/* 모델명 */}
+          <col />                                     {/* 설명 — 나머지 전체 */}
+          <col className="w-[60px] sm:w-[82px]" />   {/* 스펙 */}
+          <col className="w-[44px] sm:w-[52px]" />   {/* 담기 */}
+          <col className="w-[44px] sm:w-[52px]" />   {/* 비교 */}
         </colgroup>
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200 text-[#555555] text-xs font-semibold uppercase tracking-wider">
-            <th className="px-3 py-2.5 text-left">{t(UI.colImage)}</th>
-            <th className="px-3 py-2.5 text-left">{t(UI.colModelName)}</th>
-            <th className="px-4 py-2.5 text-left">{t(UI.colDesc)}</th>
-            <th className="px-2 py-2.5 text-center">{t(UI.colSpecs)}</th>
+            <th className="px-2 sm:px-3 py-2.5 text-left">{t(UI.colImage)}</th>
+            <th className="px-2 sm:px-3 py-2.5 text-left">{t(UI.colModelName)}</th>
+            <th className="hidden sm:table-cell px-4 py-2.5 text-left">{t(UI.colDesc)}</th>
+            <th className="px-1 sm:px-2 py-2.5 text-center">{t(UI.colSpecs)}</th>
             <th className="px-1 py-2.5 text-center">{t(UI.colAdd)}</th>
             <th className="px-1 py-2.5 text-center">{t(UI.colCompare)}</th>
           </tr>
@@ -74,19 +74,20 @@ export default function ProductTable({
             const isEven = idx % 2 === 1;
             return (
               <tr key={p.id} className={`hover:bg-sky-50 transition-colors ${isEven ? 'bg-gray-50' : 'bg-white'}`}>
-                <td className="px-3 py-2.5">
+                <td className="px-2 sm:px-3 py-2.5">
                   <ProductImage id={p.id} subType={p.subType} />
                 </td>
-                <td className="px-3 py-2.5">
-                  {/* truncate: 220px 초과 모델명은 말줄임 처리 */}
-                  <span className="font-semibold text-[#191919] block truncate" title={p.modelName}>{p.modelName}</span>
+                <td className="px-2 sm:px-3 py-2.5">
+                  <span className="font-semibold text-[#191919] block truncate text-xs sm:text-sm" title={p.modelName}>{p.modelName}</span>
                   <span className="block text-xs text-[#666666] mt-0.5 truncate">{series}</span>
+                  {/* 모바일: 설명을 모델명 아래 작게 표시 */}
+                  <span className="sm:hidden block text-xs text-[#555555] mt-1 line-clamp-2 leading-snug">{desc}</span>
                 </td>
-                <td className="px-4 py-2.5 text-[#333333] text-sm leading-relaxed">{desc}</td>
-                <td className="px-2 py-2.5 text-center">
+                <td className="hidden sm:table-cell px-4 py-2.5 text-[#333333] text-sm leading-relaxed">{desc}</td>
+                <td className="px-1 sm:px-2 py-2.5 text-center">
                   <button
                     onClick={() => onViewDetail(p)}
-                    className="px-2 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 text-[#333333] text-xs transition-colors whitespace-nowrap"
+                    className="px-1.5 sm:px-2 py-1 rounded border border-gray-300 bg-white hover:bg-gray-50 text-[#333333] text-xs transition-colors whitespace-nowrap"
                   >
                     {t(UI.detailBtn)}
                   </button>
