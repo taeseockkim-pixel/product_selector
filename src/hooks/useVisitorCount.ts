@@ -5,20 +5,20 @@ export function useVisitorCount(): number | null {
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    // 세션 내 중복 카운트 방지
     const sessionKey = `visited-${today}`;
-    const alreadyCounted = sessionStorage.getItem(sessionKey);
+    const stored = sessionStorage.getItem(sessionKey);
 
-    const endpoint = alreadyCounted
-      ? `https://api.counterapi.dev/v1/cimon-selector/${today}/get`
-      : `https://api.counterapi.dev/v1/cimon-selector/${today}/up`;
+    if (stored !== null) {
+      setCount(Number(stored));
+      return;
+    }
 
-    fetch(endpoint)
+    fetch(`https://api.counterapi.dev/v1/cimon-selector/${today}/up`)
       .then((res) => res.json())
       .then((data) => {
         if (typeof data.count === 'number') {
           setCount(data.count);
-          if (!alreadyCounted) sessionStorage.setItem(sessionKey, '1');
+          sessionStorage.setItem(sessionKey, String(data.count));
         }
       })
       .catch(() => setCount(null));
