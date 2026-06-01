@@ -1,8 +1,12 @@
+import { useVisitorCount } from '../hooks/useVisitorCount';
+
 interface HeaderProps {
   onReset: () => void;
 }
 
 export default function Header({ onReset }: HeaderProps) {
+  const visitorCount = useVisitorCount();
+
   return (
     <header className="bg-[#1a2744] text-white shadow-lg">
       <div className="max-w-screen-xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -18,9 +22,17 @@ export default function Header({ onReset }: HeaderProps) {
             제품 선택 가이드
           </span>
         </button>
-        <p className="text-gray-400 text-sm hidden sm:block">
-          요구사항에 맞는 최적의 CIMON 제품을 찾아드립니다
-        </p>
+        <div className="flex flex-col items-end gap-1">
+          <p className="text-gray-400 text-sm hidden sm:block">
+            요구사항에 맞는 최적의 CIMON 제품을 찾아드립니다
+          </p>
+          {visitorCount !== null && (
+            <p className="text-sky-300 text-xs hidden sm:flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
+              오늘 방문자 {visitorCount.toLocaleString()}명
+            </p>
+          )}
+        </div>
       </div>
     </header>
   );
