@@ -10,14 +10,14 @@ export function useVisitorCount(): number | null {
     const alreadyCounted = sessionStorage.getItem(sessionKey);
 
     const endpoint = alreadyCounted
-      ? `https://counterapi.dev/api/cimon-selector/${today}/get`
-      : `https://counterapi.dev/api/cimon-selector/${today}/hit`;
+      ? `https://api.counterapi.dev/v1/cimon-selector/${today}/get`
+      : `https://api.counterapi.dev/v1/cimon-selector/${today}/up`;
 
     fetch(endpoint)
       .then((res) => res.json())
       .then((data) => {
-        if (typeof data.value === 'number') {
-          setCount(data.value);
+        if (typeof data.count === 'number') {
+          setCount(data.count);
           if (!alreadyCounted) sessionStorage.setItem(sessionKey, '1');
         }
       })
