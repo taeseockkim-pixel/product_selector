@@ -95,7 +95,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     };
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!company.trim() || !contact.trim()) {
       alert(t(UI.quoteFieldRequired));
       return;
@@ -125,7 +125,28 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       };
 
       saveQuote(quote);
-      alert(`견적서가 저장되었습니다.\n견적번호: ${quoteNumber}`);
+
+      // 로컬 서버 실행 중이면 PDF + CSV 자동 저장
+      if (window.location.hostname === 'localhost') {
+        try {
+          const res = await fetch('/api/local/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(quote),
+          });
+          const result = await res.json() as { success: boolean; folderPath?: string; files?: string[]; error?: string };
+          if (result.success) {
+            alert(`견적서가 저장되었습니다.\n견적번호: ${quoteNumber}\n\n📁 저장 위치:\n${result.folderPath}\n📄 파일: ${result.files?.join(', ')}`);
+          } else {
+            alert(`견적번호: ${quoteNumber}\n\n⚠️ 파일 저장 실패: ${result.error ?? ''}\n(견적 목록에는 저장됨)`);
+          }
+        } catch {
+          alert(`견적번호: ${quoteNumber}\n견적 목록에 저장되었습니다.`);
+        }
+      } else {
+        alert(`견적서가 저장되었습니다.\n견적번호: ${quoteNumber}`);
+      }
+
       onSuccess();
     } catch (err) {
       alert(`저장 실패: ${String(err)}`);

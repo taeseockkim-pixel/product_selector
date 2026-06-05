@@ -14,7 +14,8 @@
     "export:csv": "node scripts/export-to-csv.mjs",
     "import:csv": "node scripts/import-from-csv.mjs",
     "import:csv:dry": "node scripts/import-from-csv.mjs --dry-run",
-    "check:spec-consistency": "node scripts/check-spec-consistency.mjs"
+    "check:spec-consistency": "node scripts/check-spec-consistency.mjs",
+    "local": "npm run build && node server/index.js"
   },
   "dependencies": {
     "@vercel/blob": "^2.3.3",
@@ -30,11 +31,14 @@
     "@vercel/node": "^5.8.12",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.5.0",
+    "cors": "^2.8.6",
     "eslint": "^9.13.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
+    "express": "^5.2.1",
     "globals": "^15.11.0",
     "postcss": "^8.5.10",
+    "puppeteer": "^25.1.0",
     "tailwindcss": "^3.4.19",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.11.0",
