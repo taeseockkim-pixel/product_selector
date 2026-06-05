@@ -31,3 +31,5 @@ docs/csv-export/
 *.sw?
 
 .vercel
+.env
+.env.local

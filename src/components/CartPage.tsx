@@ -5,6 +5,7 @@ import { useT, useLang } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import { translateSpecLabel } from '../i18n/specLabels';
 import { translateSpecValue } from '../i18n/specValues';
+import QuoteModal from './QuoteModal';
 
 const INQUIRY_EMAIL = 'sales@cimon.com';
 
@@ -67,6 +68,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
   const t = useT();
   const { lang } = useLang();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const cartProducts = products.filter((p) => cartList.includes(p.id));
 
   function toggleExpand(id: string) {
@@ -76,6 +78,13 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
   }
 
   return (
+    <>
+    {showQuoteModal && (
+      <QuoteModal
+        cartProducts={cartProducts}
+        onClose={() => setShowQuoteModal(false)}
+      />
+    )}
     <div className="max-w-screen-xl mx-auto w-full px-6 py-6">
       {/* 인쇄 전용 헤더 */}
       <div className="hidden print:block mb-6">
@@ -118,12 +127,21 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
               </button>
               <button
                 onClick={() => window.open(buildMailto(cartProducts, lang))}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium tracking-[0.25em] hover:bg-[#333333] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 {t(UI.inquiryBtn)}
+              </button>
+              <button
+                onClick={() => setShowQuoteModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {t(UI.quoteRequestBtn)}
               </button>
             </>
           )}
@@ -195,5 +213,6 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
         </div>
       )}
     </div>
+    </>
   );
 }
