@@ -1,9 +1,24 @@
-/** 견적서 HTML — src/utils/quoteHtml.ts와 동일한 템플릿 */
+import type { Quote } from '../types/quote';
 
-export function generateQuoteHtml(quote) {
+function fmt(n: number | undefined | null) {
+  return Math.round(n ?? 0).toLocaleString('ko-KR');
+}
+
+function esc(s: unknown) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** 견적서 샘플.xlsx 셀 구조 기반 HTML — 인쇄/PDF 용 */
+export function generateQuoteHtml(quote: Quote): string {
   const { client, author, details, items, vatTotal, quoteNumber } = quote;
 
-  const itemRows = items.map((item, i) => `
+  const itemRows = items
+    .map(
+      (item, i) => `
     <tr>
       <td class="c">${i + 1}</td>
       <td class="l b">${esc(item.name)}</td>
@@ -11,7 +26,9 @@ export function generateQuoteHtml(quote) {
       <td class="c">${item.quantity}</td>
       <td class="r">${fmt(item.unitPrice)}</td>
       <td class="r b">${fmt(item.totalPrice)}</td>
-    </tr>`).join('');
+    </tr>`,
+    )
+    .join('');
 
   const emptyRows = Math.max(0, 10 - items.length);
   const emptyRowHtml = `<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>`.repeat(emptyRows);
@@ -127,9 +144,4 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 </div>
 </body>
 </html>`;
-}
-
-function fmt(n) { return Math.round(n ?? 0).toLocaleString('ko-KR'); }
-function esc(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
