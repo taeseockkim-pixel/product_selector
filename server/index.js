@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import { mkdirSync, writeFileSync, createWriteStream } from 'fs';
+import { mkdirSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import puppeteer from 'puppeteer';
-import { generateQuoteHtml } from './quoteHtml.js';
+import { fillQuoteTemplate } from './fillTemplate.js';
+import { excelToPdf } from './excelToPdf.js';
 import { generateQuoteCsv } from './quoteCsv.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -37,19 +37,30 @@ app.post('/api/local/save', async (req, res) => {
     // ── CSV 저장 ──
     const csvPath = join(folderPath, `${baseName}.csv`);
     writeFileSync(csvPath, '﻿' + generateQuoteCsv(quote), 'utf8');
+    console.log(`  CSV: ${csvPath}`);
 
-    // ── PDF 저장 (puppeteer) ──
+    // ── XLSX 템플릿 채우기 ──
+    const xlsxPath = join(folderPath, `${baseName}.xlsx`);
+    await fillQuoteTemplate(quote, xlsxPath);
+    console.log(`  XLSX: ${xlsxPath}`);
+
+    // ── Excel COM으로 PDF 변환 ──
     const pdfPath = join(folderPath, `${baseName}.pdf`);
-    const html = generateQuoteHtml(quote);
+    try {
+      excelToPdf(xlsxPath, pdfPath);
+      console.log(`  PDF: ${pdfPath}`);
+    } catch (pdfErr) {
+      console.warn(`  ⚠️ PDF 변환 실패 (Excel 미설치?): ${pdfErr.message}`);
+      // PDF 실패해도 XLSX + CSV는 저장됨
+    }
 
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-    await page.pdf({ path: pdfPath, format: 'A4', printBackground: true, margin: { top: '12mm', bottom: '12mm', left: '15mm', right: '15mm' } });
-    await browser.close();
+    const files = [];
+    if (existsSync(pdfPath)) files.push(`${baseName}.pdf`);
+    files.push(`${baseName}.xlsx`);
+    files.push(`${baseName}.csv`);
 
     console.log(`✅ 저장 완료: ${folderPath}`);
-    res.json({ success: true, folderPath, files: [`${baseName}.csv`, `${baseName}.pdf`] });
+    res.json({ success: true, folderPath, files });
 
   } catch (err) {
     console.error('저장 실패:', err);
@@ -57,13 +68,14 @@ app.post('/api/local/save', async (req, res) => {
   }
 });
 
-// SPA 폴백
-app.get('*', (_req, res) => {
+// SPA 폴백 — Express v5 호환 와일드카드
+app.get('/{*splat}', (_req, res) => {
   res.sendFile(join(ROOT, 'dist', 'index.html'));
 });
 
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`\n🚀 CIMON 견적 관리 시스템 (로컬)`);
-  console.log(`   http://localhost:${PORT}\n`);
+  console.log(`   http://localhost:${PORT}`);
+  console.log(`   견적 저장 경로: ${QUOTE_DIR}\n`);
 });
