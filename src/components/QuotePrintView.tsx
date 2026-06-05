@@ -15,8 +15,9 @@ export default function QuotePrintView({ quote, onClose }: Props) {
       {/* 인쇄 전용 전역 스타일 */}
       <style>{`
         @media print {
-          body > * { display: none !important; }
-          #quote-print-root { display: block !important; position: fixed; inset: 0; background: white; z-index: 99999; }
+          body { visibility: hidden; }
+          #quote-print-root { visibility: visible; position: fixed; top: 0; left: 0; width: 100%; background: white; }
+          #quote-print-root * { visibility: visible; }
           @page { size: A4 portrait; margin: 12mm 15mm; }
         }
       `}</style>
