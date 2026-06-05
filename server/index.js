@@ -1,11 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import { mkdirSync, writeFileSync, existsSync, unlinkSync } from 'fs';
+import { mkdirSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { fillQuoteTemplate } from './fillTemplate.js';
 import { excelToPdf } from './excelToPdf.js';
-import { generateQuoteCsv } from './quoteCsv.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -34,11 +33,6 @@ app.post('/api/local/save', async (req, res) => {
     const dateStr = quote.details.quoteDate.replace(/\s/g, '');
     const baseName = `${safeCo}_견적서_${dateStr}`;
 
-    // ── CSV 저장 ──
-    const csvPath = join(folderPath, `${baseName}.csv`);
-    writeFileSync(csvPath, '﻿' + generateQuoteCsv(quote), 'utf8');
-    console.log(`  CSV: ${csvPath}`);
-
     // ── XLSX 템플릿 채우기 ──
     const xlsxPath = join(folderPath, `${baseName}.xlsx`);
     await fillQuoteTemplate(quote, xlsxPath);
@@ -57,7 +51,6 @@ app.post('/api/local/save', async (req, res) => {
     const files = [];
     if (existsSync(pdfPath)) files.push(`${baseName}.pdf`);
     files.push(`${baseName}.xlsx`);
-    files.push(`${baseName}.csv`);
 
     console.log(`✅ 저장 완료: ${folderPath}`);
     res.json({ success: true, folderPath, files });
