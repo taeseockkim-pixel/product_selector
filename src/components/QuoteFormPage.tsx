@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import type { Product } from '../types';
-import type { Quote, CreateQuoteRequest, QuoteItem } from '../types/quote';
+import type { Quote, QuoteItem } from '../types/quote';
 import { useT, useLang } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import { getUnitPrice, isTieredPricing } from '../data/priceData';
+import { nextSeq, saveQuote } from '../utils/quoteStorage';
 import QuotePrintView from './QuotePrintView';
 
 const AUTHOR_DB: Record<string, { phone: string; email: string }> = {
@@ -94,33 +95,38 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     };
   }
 
-  async function handleSave() {
+  function handleSave() {
     if (!company.trim() || !contact.trim()) {
       alert(t(UI.quoteFieldRequired));
       return;
     }
     setSubmitting(true);
     try {
-      const body: CreateQuoteRequest = {
+      const yy = String(today.getFullYear()).slice(-2);
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const yymm = `${yy}${mm}`;
+      const seq = nextSeq(yymm);
+      const quoteNumber = `기술영업 ${yymm}-${String(seq).padStart(3, '0')}`;
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const quote: Quote = {
+        id,
+        quoteNumber,
+        createdAt: today.toISOString(),
+        clientCompany: company,
+        clientContact: contact,
+        vatTotal,
+        authorName: author,
         client: { company, contact, phone, email },
         author: { name: author, phone: authorInfo?.phone ?? '', email: authorInfo?.email ?? '' },
         details: { quoteDate: fmtDate(today), deliveryLocation, deliveryDeadline, paymentTerms, validityPeriod, packing, notes },
         items: buildQuoteItems(),
         subtotal,
-        vatTotal,
       };
-      const res = await fetch('/api/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const result = await res.json() as { id?: string; quoteNumber?: string; error?: string };
-      if (res.ok && result.quoteNumber) {
-        alert(`견적서가 저장되었습니다.\n견적번호: ${result.quoteNumber}`);
-        onSuccess();
-      } else {
-        alert(`저장 실패: ${result.error ?? '알 수 없는 오류'}`);
-      }
+
+      saveQuote(quote);
+      alert(`견적서가 저장되었습니다.\n견적번호: ${quoteNumber}`);
+      onSuccess();
     } catch (err) {
       alert(`저장 실패: ${String(err)}`);
     } finally {

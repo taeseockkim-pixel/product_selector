@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { QuoteSummary, Quote } from '../types/quote';
 import { useT, useLang } from '../context/LangContext';
 import { UI } from '../i18n/ui';
+import { loadSummaries, loadQuote, deleteQuote } from '../utils/quoteStorage';
 import QuotePrintView from './QuotePrintView';
 
 function formatKRW(n: number) { return Math.round(n).toLocaleString('ko-KR'); }
@@ -26,14 +27,11 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
 
   useEffect(() => { loadQuotes(); }, []);
 
-  async function loadQuotes() {
+  function loadQuotes() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/quotes');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json() as { quotes: QuoteSummary[] };
-      setQuotes(data.quotes);
+      setQuotes(loadSummaries());
     } catch (err) {
       setError(String(err));
     } finally {
@@ -41,29 +39,18 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
     }
   }
 
-  async function handleView(id: string) {
-    try {
-      const res = await fetch(`/api/quotes/${id}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const quote = await res.json() as Quote;
-      setPrintQuote(quote);
-    } catch (err) {
-      alert(`조회 실패: ${String(err)}`);
-    }
+  function handleView(id: string) {
+    const quote = loadQuote(id);
+    if (quote) setPrintQuote(quote);
+    else alert('견적 데이터를 찾을 수 없습니다.');
   }
 
-  async function handleDelete(id: string, quoteNumber: string) {
+  function handleDelete(id: string, quoteNumber: string) {
     if (!confirm(`견적번호 ${quoteNumber}를 삭제하시겠습니까?`)) return;
     setDeletingId(id);
-    try {
-      const res = await fetch(`/api/quotes/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setQuotes((prev) => prev.filter((q) => q.id !== id));
-    } catch (err) {
-      alert(`삭제 실패: ${String(err)}`);
-    } finally {
-      setDeletingId(null);
-    }
+    deleteQuote(id);
+    setQuotes((prev) => prev.filter((q) => q.id !== id));
+    setDeletingId(null);
   }
 
   return (
