@@ -8,13 +8,15 @@ import PlcLeftPanel from './components/PlcLeftPanel';
 import ProductTable from './components/ProductTable';
 import CartPage from './components/CartPage';
 import ComparePage from './components/ComparePage';
+import QuoteFormPage from './components/QuoteFormPage';
+import QuoteListPage from './components/QuoteListPage';
 import SearchOverlay from './components/SearchOverlay';
 import 'flag-icons/css/flag-icons.min.css';
 import SpecModal from './components/SpecModal';
 import { LangProvider, useLang, useT } from './context/LangContext';
 import { UI } from './i18n/ui';
 
-type ViewMode = 'main' | 'cart' | 'compare';
+type ViewMode = 'main' | 'cart' | 'compare' | 'quotecreate' | 'quotelist';
 
 const CATEGORY_LABELS: Record<CategoryId, string> = {
   PLC: 'PLC',
@@ -239,8 +241,36 @@ function AppInner() {
     onSearchClick: () => setSearchOpen(true),
     onCopyLink: handleCopyLink,
     onReset: handleReset,
+    onQuoteListClick: () => setViewMode('quotelist'),
     viewMode,
   };
+
+  if (viewMode === 'quotecreate') {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="sticky top-0 z-50"><AppHeader {...headerProps} /></div>
+        <QuoteFormPage
+          cartProducts={PRODUCTS.filter((p) => cartList.includes(p.id))}
+          onBack={() => setViewMode('cart')}
+          onSuccess={() => setViewMode('quotelist')}
+        />
+        {toast && <Toast msg={toast} />}
+      </div>
+    );
+  }
+
+  if (viewMode === 'quotelist') {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="sticky top-0 z-50"><AppHeader {...headerProps} /></div>
+        <QuoteListPage
+          onBack={() => setViewMode('main')}
+          onNewQuote={() => setViewMode('cart')}
+        />
+        {toast && <Toast msg={toast} />}
+      </div>
+    );
+  }
 
   if (viewMode === 'cart') {
     return (
@@ -250,7 +280,9 @@ function AppInner() {
         </div>
         <CartPage
           cartList={cartList} products={PRODUCTS}
-          onRemove={handleCartToggle} onClear={() => setCartList([])} onBack={() => setViewMode('main')}
+          onRemove={handleCartToggle} onClear={() => setCartList([])}
+          onBack={() => setViewMode('main')}
+          onGoToQuote={() => setViewMode('quotecreate')}
         />
         {toast && <Toast msg={toast} />}
       </div>
@@ -444,7 +476,7 @@ function Toast({ msg }: { msg: string }) {
 
 function AppHeader({
   cartCount, compareCount, onCartClick, onCompareClick,
-  onSearchClick, onCopyLink, onReset, viewMode,
+  onSearchClick, onCopyLink, onReset, onQuoteListClick, viewMode,
 }: {
   cartCount: number;
   compareCount: number;
@@ -453,6 +485,7 @@ function AppHeader({
   onSearchClick: () => void;
   onCopyLink: () => void;
   onReset: () => void;
+  onQuoteListClick: () => void;
   viewMode: ViewMode;
 }) {
   const t = useT();
@@ -527,6 +560,21 @@ function AppHeader({
             {cartCount > 0
               ? (lang === 'ko' ? `${cartCount}개 선택됨` : `${cartCount} selected`)
               : t(UI.shortlist)}
+          </button>
+
+          {/* 견적 목록 버튼 */}
+          <button
+            onClick={onQuoteListClick}
+            className={`flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+              viewMode === 'quotelist' || viewMode === 'quotecreate'
+                ? 'bg-white text-[#191919]'
+                : 'text-[#999999] hover:text-white hover:bg-[#333333]'
+            }`}
+          >
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="hidden sm:inline">{t(UI.quoteListBtn)}</span>
           </button>
 
           <div className="w-px h-5 bg-[#333333] mx-0.5" />

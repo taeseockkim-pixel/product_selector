@@ -5,7 +5,6 @@ import { useT, useLang } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import { translateSpecLabel } from '../i18n/specLabels';
 import { translateSpecValue } from '../i18n/specValues';
-import QuoteModal from './QuoteModal';
 
 const INQUIRY_EMAIL = 'sales@cimon.com';
 
@@ -43,6 +42,7 @@ interface Props {
   onRemove: (id: string) => void;
   onClear: () => void;
   onBack: () => void;
+  onGoToQuote: () => void;
 }
 
 function SpecTable({ specs }: { specs: Product['specs'] }) {
@@ -64,11 +64,10 @@ function SpecTable({ specs }: { specs: Product['specs'] }) {
   );
 }
 
-export default function CartPage({ cartList, products, onRemove, onClear, onBack }: Props) {
+export default function CartPage({ cartList, products, onRemove, onClear, onBack, onGoToQuote }: Props) {
   const t = useT();
   const { lang } = useLang();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
-  const [showQuoteModal, setShowQuoteModal] = useState(false);
   const cartProducts = products.filter((p) => cartList.includes(p.id));
 
   function toggleExpand(id: string) {
@@ -79,12 +78,6 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
 
   return (
     <>
-    {showQuoteModal && (
-      <QuoteModal
-        cartProducts={cartProducts}
-        onClose={() => setShowQuoteModal(false)}
-      />
-    )}
     <div className="max-w-screen-xl mx-auto w-full px-6 py-6">
       {/* 인쇄 전용 헤더 */}
       <div className="hidden print:block mb-6">
@@ -135,7 +128,7 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                 {t(UI.inquiryBtn)}
               </button>
               <button
-                onClick={() => setShowQuoteModal(true)}
+                onClick={onGoToQuote}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

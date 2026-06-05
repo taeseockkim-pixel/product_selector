@@ -78,6 +78,13 @@ export const UI = {
   quoteError:       t('견적서 생성에 실패했습니다.', 'Failed to generate quote.'),
   quoteFieldRequired: t('업체명과 담당자를 입력해주세요.', 'Company name and contact person are required.'),
   quoteProcessing:  t('견적서 생성 중...', 'Generating quote...'),
+  quoteListTitle:   t('견적 목록 (대장)', 'Quote List'),
+  quoteListEmpty:   t('저장된 견적이 없습니다.', 'No saved quotes.'),
+  quoteViewBtn:     t('보기', 'View'),
+  quoteDeleteBtn:   t('삭제', 'Delete'),
+  quotePrintBtn:    t('미리보기', 'Preview'),
+  quoteNewBtn:      t('새 견적 작성', 'New Quote'),
+  quoteListBtn:     t('견적 목록', 'Quotes'),
 } satisfies Record<string, T>;
 
 export function totalLabel(n: number, lang: Lang): string {
