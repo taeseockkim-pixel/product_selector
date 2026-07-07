@@ -4,7 +4,7 @@ type T = { ko: string; en: string };
 const t = (ko: string, en: string): T => ({ ko, en });
 
 export const UI = {
-  productGuide:   t('제품 선택 가이드', 'Product Selection Guide'),
+  productGuide:   t('스마트 견적관리 시스템', 'Smart Quote Management System'),
   subtitle:       t('요구사항에 맞는 최적의 CIMON 제품을 찾아드립니다', 'Find the best CIMON product for your requirements'),
   compare:        t('비교', 'Compare'),
   shortlist:      t('담기', 'Shortlist'),
