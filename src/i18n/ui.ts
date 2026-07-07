@@ -52,7 +52,6 @@ export const UI = {
   searchPlaceholder: t('모델명 또는 설명 검색...', 'Search model or description...'),
   searchNoResults: t('검색 결과가 없습니다.', 'No results found.'),
   printBtn:       t('인쇄', 'Print'),
-  inquiryBtn:     t('견적 요청', 'Request Quote'),
   csvExport:      t('CSV 다운로드', 'Download CSV'),
   similarProducts: t('유사 제품', 'Similar Products'),
   filterBtn:      t('필터', 'Filters'),

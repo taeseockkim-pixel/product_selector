@@ -6,24 +6,6 @@ import { UI } from '../i18n/ui';
 import { translateSpecLabel } from '../i18n/specLabels';
 import { translateSpecValue } from '../i18n/specValues';
 
-const INQUIRY_EMAIL = 'sales@cimon.com';
-
-function buildMailto(products: Product[], lang: 'ko' | 'en'): string {
-  const subject = lang === 'ko' ? 'CIMON 제품 견적 요청' : 'CIMON Product Inquiry';
-  const intro = lang === 'ko'
-    ? '안녕하세요,\n\n아래 제품에 대한 견적을 요청드립니다.\n\n[제품 목록]'
-    : 'Hello,\n\nI would like to request a quote for the following products.\n\n[Product List]';
-  const lines = products.map((p) => {
-    const desc = lang === 'en' ? (p.descriptionEn ?? p.description) : p.description;
-    return `- ${p.modelName}: ${desc}`;
-  });
-  const footer = lang === 'ko'
-    ? '\n\n---\n이름: \n연락처: \n회사: '
-    : '\n\n---\nName: \nContact: \nCompany: ';
-  const body = `${intro}\n${lines.join('\n')}${footer}`;
-  return `mailto:${INQUIRY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
 function CartImage({ product: p }: { product: Product }) {
   const [failed, setFailed] = useState(false);
   const src = resolveProductImage(p.id, p.subType ?? '');
@@ -117,15 +99,6 @@ export default function CartPage({ cartList, products, onRemove, onClear, onBack
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                 </svg>
                 {t(UI.printBtn)}
-              </button>
-              <button
-                onClick={() => window.open(buildMailto(cartProducts, lang))}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {t(UI.inquiryBtn)}
               </button>
               <button
                 onClick={onGoToQuote}
