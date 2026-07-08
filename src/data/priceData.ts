@@ -126,14 +126,9 @@ export const PRICE_DATA: Record<string, PriceEntry> = {
   // 케이블/악세서리
   'CM0-DM':     { tiers: fixed(6000)    },
   'CM0-CBL30':  { tiers: fixed(13000)   },
-  'CM0-CBE05':  { tiers: fixed(12000)   },
   'CM0-CBE15':  { tiers: fixed(16000)   },
-  'CM0-CBE30':  { tiers: fixed(17000)   },
   'CM0-SCB10IR':{ tiers: fixed(38000)   },
   'CM0-SCB15IR':{ tiers: fixed(45000)   },
-  'CM0-SCB20IR':{ tiers: fixed(48000)   },
-  'CM0-SCB25IR':{ tiers: fixed(53000)   },
-  'CM0-SCB30IR':{ tiers: fixed(60000)   },
 
   // ─── PLC CM3 ─────────────────────────────────────────────────────────────
   'CM3-SP16PDRF':  { tiers: fixed(426000) },
