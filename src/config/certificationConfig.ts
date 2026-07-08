@@ -314,16 +314,12 @@ const CERT_MAP: Record<string, DocEntry[]> = {
   BOX: [
     { label: 'CE (NB7011)',   url: `${CE}/PC/22110185-TECE01-CE Cer (CM-NB7011_5011_3011-D).pdf` },
     { label: 'CE (NB7111)',   url: `${CE}/PC/CE DOC_CM-NB7111-D.pdf` },
-    { label: 'CE (NB200)',    url: `${CE}/PC/CE_DOC_CM-NB200-D.pdf` },
     { label: 'KC (NB5011)',   url: `${KC}/PC/KC DOC_CM-NB5011-D_NB 3011,7011-D.pdf` },
     { label: 'KC (NB5111)',   url: `${KC}/PC/KC DOC_CM-NB5111-D.pdf` },
     { label: 'KC (NB7111)',   url: `${KC}/PC/KC DOC_CM-NB7111-D.pdf` },
-    { label: 'KC (NB200)',    url: `${KC}/PC/KC DOC_CM-NB200-D.pdf` },
     { label: 'FCC (NB7011)',  url: `${FCC}/PC/23080131-TEFV01-FCC Cer(CM-NB7011_5011_3011-D).pdf` },
     { label: 'FCC (NB7111)',  url: `${FCC}/PC/FCC DOC_CM-NB7111-D.pdf` },
-    { label: 'FCC (NB200)',   url: `${FCC}/PC/FCC DOC_CM-NB200-D.pdf` },
     { label: 'UL (NB3011~)',  url: `${UL}/PC/UL DOC_NB7011,NB5011,NB3011.pdf` },
-    { label: 'UL (NB200)',    url: `${UL}/PC/UL DOC_CM-NB200-D.pdf` },
   ],
   MONITOR: [
     { label: 'CE (IM12A)',  url: `${CE}/IM/CE DOC_CM-IM12A-D.pdf` },

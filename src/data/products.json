@@ -7653,50 +7653,6 @@
     "descriptionEn": "21.5\" FHD / capacitive touch / 400cd/m² (High Brightness 1,400) / IP66"
   },
   {
-    "id": "CM-NB200-D",
-    "modelName": "CM-NB200-D",
-    "category": "IPC",
-    "series": "BOX_PC",
-    "seriesLabel": "BOX PC",
-    "subType": "BOX",
-    "description": "초소형 BOX PC / Intel J3455 / 1.21kg / DC 9~24V",
-    "specs": [
-      {
-        "label": "CPU",
-        "value": "Intel Celeron J3455 Quad Core, 1.5GHz, 2M Cache (10W)",
-        "source": "catalog"
-      },
-      {
-        "label": "스토리지",
-        "value": "1 x M.2 SATA 2242 Key SSD (Default 256GB)",
-        "source": "catalog"
-      },
-      {
-        "label": "OS",
-        "value": "Windows 10 IoT Enterprise",
-        "source": "catalog"
-      },
-      {
-        "label": "소비전력",
-        "value": "29W (Max : 43W)",
-        "source": "catalog"
-      },
-      {
-        "label": "중량",
-        "value": "1.21kg",
-        "source": "catalog"
-      }
-    ],
-    "screenSize": 0,
-    "cpuTier": "J_SERIES",
-    "installType": "BOX",
-    "hasScadaPreinstalled": false,
-    "hasHighBrightness": false,
-    "touchType": "NONE",
-    "seriesLabelEn": "BOX PC",
-    "descriptionEn": "Compact BOX PC / Intel J3455 / 1.21kg / DC 9~24V"
-  },
-  {
     "id": "CM-NB5011-D",
     "modelName": "CM-NB5011-D",
     "category": "IPC",

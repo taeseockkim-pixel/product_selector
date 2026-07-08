@@ -311,7 +311,6 @@ export const PRICE_DATA: Record<string, PriceEntry> = {
   'iNT71121W': { tiers: fixed(5020000) },
 
   // ─── IPC BOX PC Series (NB) ──────────────────────────────────────────────
-  // CM-NB200-D: 단종, 단가 미등록
   'CM-NB5011-D': { tiers: fixed(2410000) },
   'CM-NB7011-D': { tiers: fixed(2880000) },
 

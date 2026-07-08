@@ -148,7 +148,6 @@ const MANUAL_MAP: Record<string, DocEntry[]> = {
     { label: 'iNT 50000W·70000W Wide Series',     url: `${MI}/터치패널_iNP_iNT_50000W_70000W_series(kr_en)_ver0.4_20250725.pdf` },
   ],
   BOX: [
-    { label: 'CM-NB200-D',              url: `${MI}/Box PC CM-NB200-D(kr_en)ver1.3_20231127.pdf` },
     { label: 'CM-NB3011·NB5011·NB7011', url: `${MI}/Box PC CM-NB3011_NB5011_NB7011-D(kr_en)ver1.7_20240125.pdf` },
   ],
   MONITOR: [{ label: 'Touch Monitor (CM-IM)', url: `${MI}/터치모니터 CM-IM-121521W-RCH-D v1.0_BIC52001.pdf` }],
@@ -222,7 +221,6 @@ const DRAWING_MAP: Record<string, DocEntry[]> = {
   CM3_PWR:         [{ label: '특수 모듈', labelEn: 'Special Module', url: `${D3}/특수-모듈.zip` }, { label: '단자대', labelEn: 'Terminal Block', url: `${D3}/단자대.zip` }],
   // ── IPC ──
   BOX: [
-    { label: 'BOX PC (NB200-D)',        url: `${DI}/BOX PC Series_CM-NB200-D-1.zip` },
     { label: 'BOX PC (NB5011·NB7011)', url: `${DI}/BOX PC Series_CM-CM-NB5011-D-CM-NB7011-D.zip` },
   ],
   MONITOR: [{ label: 'Touch Monitor (IM15W)', url: `${DI}/TOUCH Monitor series_CM-IM15W-D.zip` }],

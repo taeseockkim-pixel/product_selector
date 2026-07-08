@@ -157,7 +157,6 @@ const IPC_MAP: Record<string, string> = {
   'CM-IM15W':  `${IPC}/CM-IM Series.jpg`,
   'CM-IM21W':  `${IPC}/CM-IM Series.jpg`,
   // BOX PC
-  'CM-NB200-D':  `${IPC}/CM-NB200-D.jpg`,
   'CM-NB5011-D': `${IPC}/CM-NB5000_7000 Series.jpg`,
   'CM-NB7011-D': `${IPC}/CM-NB5000_7000 Series.jpg`,
   // RACK PC
