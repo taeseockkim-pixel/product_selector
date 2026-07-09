@@ -47,7 +47,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const [email, setEmail] = useState('');
   const [author, setAuthor] = useState('김태석 차장');
   const [deliveryLocation, setDeliveryLocation] = useState('고객 요청 장소로 택배 배송(로젠택배)');
-  const [deliveryDeadline, setDeliveryDeadline] = useState('');
+  const [deliveryDeadline, setDeliveryDeadline] = useState('발주 후 2주');
   const [paymentTerms, setPaymentTerms] = useState('세금계산서 발행 후 부가세 포함 현금 입금');
   const [validityPeriod, setValidityPeriod] = useState(fmtDate(validity));
   const [packing, setPacking] = useState('제조사 기준 (싸이몬)');
@@ -68,6 +68,21 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
         i === idx ? { ...item, qty, unitPrice: getUnitPrice(item.product.id, qty) } : item,
       ),
     );
+  }, []);
+
+  const updatePrice = useCallback((idx: number, rawPrice: number) => {
+    const unitPrice = Math.max(0, rawPrice || 0);
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, unitPrice } : item)));
+  }, []);
+
+  const moveItem = useCallback((idx: number, dir: -1 | 1) => {
+    setItems((prev) => {
+      const target = idx + dir;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
   }, []);
 
   const authorInfo = AUTHOR_DB[author];
@@ -108,7 +123,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   }
 
   function validateForSubmit(): boolean {
-    if (!company.trim() || !contact.trim()) {
+    if (!company.trim() || !contact.trim() || !phone.trim() || !email.trim()) {
       alert(t(UI.quoteFieldRequired));
       return false;
     }
@@ -273,8 +288,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                 {[
                   { label: t(UI.quoteCompany) + ' *', value: company, onChange: setCompany, placeholder: '업체명' },
                   { label: t(UI.quoteContact) + ' *', value: contact, onChange: setContact, placeholder: '담당자명' },
-                  { label: t(UI.quotePhone), value: phone, onChange: setPhone, placeholder: '010-0000-0000' },
-                  { label: t(UI.quoteEmail), value: email, onChange: setEmail, placeholder: 'email@company.com' },
+                  { label: t(UI.quotePhone) + ' *', value: phone, onChange: setPhone, placeholder: '010-0000-0000' },
+                  { label: t(UI.quoteEmail) + ' *', value: email, onChange: setEmail, placeholder: 'email@company.com' },
                 ].map(({ label, value, onChange, placeholder }) => (
                   <div key={label}>
                     <label className="block text-xs text-[#555555] mb-1">{label}</label>
@@ -344,6 +359,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                 <table className="w-full text-sm">
                   <thead className="bg-[#e6e2dc]">
                     <tr>
+                      <th className="w-10"></th>
                       <th className="text-left px-4 py-2.5 font-medium text-[#555555] text-xs">모델명</th>
                       <th className="text-center px-3 py-2.5 font-medium text-[#555555] text-xs w-20">{t(UI.quoteQty)}</th>
                       <th className="text-right px-4 py-2.5 font-medium text-[#555555] text-xs w-28">{t(UI.quoteUnitPrice)}</th>
@@ -356,6 +372,28 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                       const rowTotal = (item.unitPrice ?? 0) * item.qty;
                       return (
                         <tr key={item.product.id} className="border-t border-[#ddd9d2] bg-white">
+                          <td className="px-1 py-3">
+                            <div className="flex flex-col items-center gap-0.5">
+                              <button
+                                type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0}
+                                className="text-[#999999] hover:text-[#191919] disabled:opacity-30 disabled:cursor-not-allowed"
+                                aria-label="위로 이동"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                                </svg>
+                              </button>
+                              <button
+                                type="button" onClick={() => moveItem(idx, 1)} disabled={idx === items.length - 1}
+                                className="text-[#999999] hover:text-[#191919] disabled:opacity-30 disabled:cursor-not-allowed"
+                                aria-label="아래로 이동"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
                           <td className="px-4 py-3">
                             <p className="font-medium text-[#191919] text-xs">{item.product.modelName}</p>
                             <p className="text-[#999999] text-xs mt-0.5 line-clamp-2">
@@ -370,10 +408,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                               className="w-16 text-center border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#191919] bg-white"
                             />
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            {item.unitPrice != null
-                              ? <span className="text-[#191919] font-medium text-xs">{formatKRW(item.unitPrice)}</span>
-                              : <span className="text-[#999999] text-xs">{t(UI.quotePriceNone)}</span>}
+                          <td className="px-3 py-3 text-right">
+                            <input
+                              type="number" min={0} value={item.unitPrice ?? ''}
+                              onChange={(e) => updatePrice(idx, parseInt(e.target.value, 10))}
+                              placeholder={t(UI.quotePriceNone)}
+                              className="w-24 text-right border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#191919] bg-white"
+                            />
                           </td>
                           <td className="px-4 py-3 text-right">
                             {item.unitPrice != null

@@ -75,7 +75,7 @@ export const UI = {
   quoteTieredHint:  t('수량에 따라 단가가 변동됩니다', 'Unit price varies by quantity'),
   quoteSuccess:     t('견적서가 생성되었습니다. PDF를 확인하세요.', 'Quote generated. Please check the PDF.'),
   quoteError:       t('견적서 생성에 실패했습니다.', 'Failed to generate quote.'),
-  quoteFieldRequired: t('업체명과 담당자를 입력해주세요.', 'Company name and contact person are required.'),
+  quoteFieldRequired: t('업체명, 담당자, 연락처, 이메일을 모두 입력해주세요.', 'Please fill in company name, contact person, phone, and email.'),
   quoteProcessing:  t('견적서 생성 중...', 'Generating quote...'),
   quoteListTitle:   t('견적 목록 (대장)', 'Quote List'),
   quoteListEmpty:   t('저장된 견적이 없습니다.', 'No saved quotes.'),
