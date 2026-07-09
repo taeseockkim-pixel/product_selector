@@ -70,5 +70,11 @@ export async function fillQuoteTemplate(quote, outPath) {
   set('H38', quote.author.phone);
   set('H39', quote.author.email);
 
+  // 템플릿 기본값은 고정 76% 배율이라, 사용하지 않는 우측 여백 열까지 인쇄
+  // 영역에 걸리면 2페이지로 잘린다. 항상 1페이지에 맞춰 인쇄되도록 강제한다.
+  ws.pageSetup.fitToPage = true;
+  ws.pageSetup.fitToWidth = 1;
+  ws.pageSetup.fitToHeight = 1;
+
   await wb.xlsx.writeFile(outPath);
 }
