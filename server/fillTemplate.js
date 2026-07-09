@@ -16,7 +16,12 @@ const TEMPLATE_PATH = join(__dirname, '..', 'Quote_manage', '기본자료', '견
  *   B34=비고
  *   H37=작성자, H38=연락처, H39=이메일
  */
+const MAX_ITEMS = 14; // 템플릿 품목 행이 16~29행(14행)까지만 준비되어 있음 — 초과 시 총액 행(A30)을 덮어씀
+
 export async function fillQuoteTemplate(quote, outPath) {
+  if (quote.items.length > MAX_ITEMS) {
+    throw new Error(`품목은 최대 ${MAX_ITEMS}개까지 견적서에 담을 수 있습니다. (현재 ${quote.items.length}개)`);
+  }
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(TEMPLATE_PATH);
   const ws = wb.worksheets[0];

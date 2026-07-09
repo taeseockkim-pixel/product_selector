@@ -29,9 +29,8 @@ app.post('/api/local/save', async (req, res) => {
     const folderPath = join(QUOTE_DIR, year, folderName);
     mkdirSync(folderPath, { recursive: true });
 
-    // 파일명: 업체명_견적서_YYYY년MM월DD일
-    const dateStr = quote.details.quoteDate.replace(/\s/g, '');
-    const baseName = `${safeCo}_견적서_${dateStr}`;
+    // 파일명: 견적번호(공백제거)_업체명_견적서
+    const baseName = `${safeNum.replace(/\s/g, '')}_${safeCo}_견적서`;
 
     // ── XLSX 템플릿 채우기 ──
     const xlsxPath = join(folderPath, `${baseName}.xlsx`);

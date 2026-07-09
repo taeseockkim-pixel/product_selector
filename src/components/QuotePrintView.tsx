@@ -1,13 +1,18 @@
 import { useEffect, useRef } from 'react';
 import type { Quote } from '../types/quote';
 import { generateQuoteHtml } from '../utils/quoteHtml';
+import { useT } from '../context/LangContext';
+import { UI } from '../i18n/ui';
 
 interface Props {
   quote: Quote;
   onClose: () => void;
+  onGenerate?: () => void | Promise<void>;
+  generating?: boolean;
 }
 
-export default function QuotePrintView({ quote, onClose }: Props) {
+export default function QuotePrintView({ quote, onClose, onGenerate, generating }: Props) {
+  const t = useT();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const blobUrlRef = useRef<string>('');
 
@@ -31,6 +36,15 @@ export default function QuotePrintView({ quote, onClose }: Props) {
         <div className="flex items-center justify-between px-5 py-3 border-b border-[#ddd9d2] flex-none">
           <span className="text-sm font-semibold text-[#191919]">견적서 미리보기</span>
           <div className="flex gap-2">
+            {onGenerate && (
+              <button
+                onClick={onGenerate}
+                disabled={generating}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] disabled:bg-[#999999] transition-colors"
+              >
+                {generating ? t(UI.quoteProcessing) : t(UI.quoteSubmitBtn)}
+              </button>
+            )}
             <button
               onClick={handlePrint}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"

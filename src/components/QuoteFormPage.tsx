@@ -14,6 +14,8 @@ const AUTHOR_DB: Record<string, { phone: string; email: string }> = {
   '한진희 차장': { phone: '010-2847-6335', email: 'jinhee.han@cimon.com' },
 };
 
+const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
+
 function formatKRW(n: number) { return Math.round(n).toLocaleString('ko-KR'); }
 
 function fmtDate(d: Date): string {
@@ -100,6 +102,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       alert(t(UI.quoteFieldRequired));
       return;
     }
+    if (items.length > MAX_ITEMS) {
+      alert(`품목은 최대 ${MAX_ITEMS}개까지 견적서에 담을 수 있습니다. (현재 ${items.length}개)`);
+      return;
+    }
     setSubmitting(true);
     try {
       const yy = String(today.getFullYear()).slice(-2);
@@ -168,7 +174,14 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
 
   return (
     <>
-      {previewQuote && <QuotePrintView quote={previewQuote} onClose={() => setPreviewQuote(null)} />}
+      {previewQuote && (
+        <QuotePrintView
+          quote={previewQuote}
+          onClose={() => setPreviewQuote(null)}
+          onGenerate={handleSave}
+          generating={submitting}
+        />
+      )}
 
       <div className="max-w-screen-xl mx-auto w-full px-6 py-6">
         {/* 페이지 헤더 */}
@@ -195,13 +208,6 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
               {t(UI.quotePrintBtn)}
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={submitting}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] disabled:bg-[#999999] transition-colors"
-            >
-              {submitting ? t(UI.quoteProcessing) : t(UI.quoteSubmitBtn)}
             </button>
           </div>
         </div>
