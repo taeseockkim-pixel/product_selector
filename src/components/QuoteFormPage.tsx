@@ -4,7 +4,7 @@ import type { Quote, QuoteItem } from '../types/quote';
 import { useT, useLang } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import { getUnitPrice, isTieredPricing } from '../data/priceData';
-import { nextSeq, saveQuote } from '../utils/quoteStorage';
+import { getSeq, nextSeq, saveQuote } from '../utils/quoteStorage';
 import QuotePrintView from './QuotePrintView';
 
 const AUTHOR_DB: Record<string, { phone: string; email: string }> = {
@@ -54,6 +54,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(null);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const [items, setItems] = useState<ItemRow[]>(() =>
     cartProducts.map((p) => ({ product: p, qty: 1, unitPrice: getUnitPrice(p.id, 1) })),
@@ -80,10 +82,18 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     });
   }
 
+  function nextQuoteYymm() {
+    const yy = String(today.getFullYear()).slice(-2);
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    return `${yy}${mm}`;
+  }
+
   function buildDraftQuote(): Quote {
+    const yymm = nextQuoteYymm();
+    const previewSeq = getSeq(yymm) + 1;
     return {
       id: 'preview',
-      quoteNumber: '(저장 후 생성)',
+      quoteNumber: `기술영업 ${yymm}-${String(previewSeq).padStart(3, '0')}`,
       createdAt: today.toISOString(),
       clientCompany: company,
       clientContact: contact,
@@ -97,15 +107,53 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     };
   }
 
-  async function handleSave() {
+  function validateForSubmit(): boolean {
     if (!company.trim() || !contact.trim()) {
       alert(t(UI.quoteFieldRequired));
-      return;
+      return false;
     }
     if (items.length > MAX_ITEMS) {
       alert(`품목은 최대 ${MAX_ITEMS}개까지 견적서에 담을 수 있습니다. (현재 ${items.length}개)`);
-      return;
+      return false;
     }
+    return true;
+  }
+
+  function closePreview() {
+    if (previewPdfUrl) URL.revokeObjectURL(previewPdfUrl);
+    setPreviewPdfUrl(null);
+    setPreviewQuote(null);
+  }
+
+  async function openPreview() {
+    if (!validateForSubmit()) return;
+    const draft = buildDraftQuote();
+    setPreviewQuote(draft);
+    setPreviewPdfUrl(null);
+
+    if (window.location.hostname !== 'localhost') return; // Vercel 등: HTML 미리보기로 폴백
+
+    setPreviewLoading(true);
+    try {
+      const res = await fetch('/api/local/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(draft),
+      });
+      if (res.ok && res.headers.get('content-type')?.includes('application/pdf')) {
+        const blob = await res.blob();
+        setPreviewPdfUrl(URL.createObjectURL(blob));
+      }
+      // 실패 시 previewPdfUrl은 null로 남아 HTML 미리보기로 폴백
+    } catch {
+      // 네트워크 오류 등 — HTML 미리보기로 폴백
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  async function handleSave() {
+    if (!validateForSubmit()) return;
     setSubmitting(true);
     try {
       const yy = String(today.getFullYear()).slice(-2);
@@ -177,7 +225,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       {previewQuote && (
         <QuotePrintView
           quote={previewQuote}
-          onClose={() => setPreviewQuote(null)}
+          pdfUrl={previewPdfUrl ?? undefined}
+          loading={previewLoading}
+          onClose={closePreview}
           onGenerate={handleSave}
           generating={submitting}
         />
@@ -200,14 +250,15 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setPreviewQuote(buildDraftQuote())}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
+              onClick={openPreview}
+              disabled={previewLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] disabled:opacity-60 transition-colors"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
-              {t(UI.quotePrintBtn)}
+              {previewLoading ? '미리보기 생성 중...' : t(UI.quotePrintBtn)}
             </button>
           </div>
         </div>

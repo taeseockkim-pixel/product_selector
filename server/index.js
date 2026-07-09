@@ -1,10 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import { mkdirSync, existsSync } from 'fs';
+import { mkdirSync, existsSync, readFileSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { tmpdir } from 'os';
+import { randomUUID } from 'crypto';
 import { fillQuoteTemplate } from './fillTemplate.js';
 import { excelToPdf } from './excelToPdf.js';
+import { appendToLedger } from './updateLedger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -44,7 +47,16 @@ app.post('/api/local/save', async (req, res) => {
       console.log(`  PDF: ${pdfPath}`);
     } catch (pdfErr) {
       console.warn(`  ⚠️ PDF 변환 실패 (Excel 미설치?): ${pdfErr.message}`);
-      // PDF 실패해도 XLSX + CSV는 저장됨
+      // PDF 실패해도 XLSX는 저장됨
+    }
+
+    // ── 견적관리대장에 한 행 추가 ──
+    try {
+      const ledgerPath = join(QUOTE_DIR, year, `${year}_견적관리대장.xlsx`);
+      await appendToLedger(quote, ledgerPath, xlsxPath);
+      console.log(`  대장: ${ledgerPath}`);
+    } catch (ledgerErr) {
+      console.warn(`  ⚠️ 견적관리대장 갱신 실패: ${ledgerErr.message}`);
     }
 
     const files = [];
@@ -57,6 +69,27 @@ app.post('/api/local/save', async (req, res) => {
   } catch (err) {
     console.error('저장 실패:', err);
     res.status(500).json({ success: false, error: String(err) });
+  }
+});
+
+/** 실제 양식으로 채운 미리보기 PDF — Quote_manage에는 아무 흔적도 남기지 않음 */
+app.post('/api/local/preview', async (req, res) => {
+  const quote = req.body;
+  const tmpBase = join(tmpdir(), `cimon-quote-preview-${randomUUID()}`);
+  const tmpXlsx = `${tmpBase}.xlsx`;
+  const tmpPdf = `${tmpBase}.pdf`;
+  try {
+    await fillQuoteTemplate(quote, tmpXlsx);
+    excelToPdf(tmpXlsx, tmpPdf);
+    const pdfBuffer = readFileSync(tmpPdf);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('미리보기 생성 실패:', err);
+    res.status(500).json({ success: false, error: String(err) });
+  } finally {
+    if (existsSync(tmpXlsx)) unlinkSync(tmpXlsx);
+    if (existsSync(tmpPdf)) unlinkSync(tmpPdf);
   }
 });
 
