@@ -77,6 +77,71 @@ interface Props {
   onSuccess: () => void;
 }
 
+interface AppsScriptPayload {
+  details: {
+    clientName: string;
+    clientContactPerson: string;
+    clientPhone: string;
+    clientEmail: string;
+    quoteNumber: string;
+    quoteDate: string;
+    deliveryLocation: string;
+    deliveryDeadline: string;
+    paymentTerms: string;
+    validityPeriod: string;
+    packing: string;
+    notes: string;
+    authorName: string;
+    authorPhone: string;
+    authorEmail: string;
+  };
+  items: Array<{
+    type: string;
+    name: string;
+    spec: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }>;
+  createDraft: boolean;
+  customSubject: string;
+  customBody: string;
+}
+
+interface QuoteProcessResult {
+  success: boolean;
+  message?: string;
+  newQuoteNumber?: string;
+  folderUrl?: string;
+  pdfUrl?: string;
+  sheetUrl?: string;
+  url?: string;
+}
+
+interface AppsScriptBridgeResponse {
+  source?: string;
+  type?: string;
+  requestId?: string;
+  result?: QuoteProcessResult;
+  error?: string;
+}
+
+declare global {
+  interface Window {
+    google?: {
+      script?: {
+        run?: {
+          withSuccessHandler: (handler: (result: QuoteProcessResult) => void) => {
+            withFailureHandler: (handler: (error: unknown) => void) => {
+              processQuoteFromReact: (payload: AppsScriptPayload) => void;
+            };
+          };
+        };
+      };
+    };
+  }
+}
+
 function createKey(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -154,6 +219,103 @@ async function readJsonResponse<T>(res: Response): Promise<T> {
       `서버가 JSON 대신 다른 응답을 반환했습니다. /api/google/quote Apps Script 프록시와 APPS_SCRIPT_WEB_APP_URL 설정을 확인해 주세요. 응답: ${preview || '(empty)'}`,
     );
   }
+}
+
+function quoteToAppsScriptPayload(quote: Quote, createDraft: boolean, subject = '', body = ''): AppsScriptPayload {
+  return {
+    details: {
+      clientName: quote.client.company,
+      clientContactPerson: quote.client.contact,
+      clientPhone: quote.client.phone,
+      clientEmail: quote.client.email,
+      quoteNumber: quote.quoteNumber,
+      quoteDate: quote.details.quoteDate,
+      deliveryLocation: quote.details.deliveryLocation,
+      deliveryDeadline: quote.details.deliveryDeadline,
+      paymentTerms: quote.details.paymentTerms,
+      validityPeriod: quote.details.validityPeriod,
+      packing: quote.details.packing,
+      notes: quote.details.notes,
+      authorName: quote.author.name,
+      authorPhone: quote.author.phone,
+      authorEmail: quote.author.email,
+    },
+    items: quote.items.map((item) => ({
+      type: item.type,
+      name: item.name,
+      spec: item.spec,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      totalPrice: item.totalPrice,
+    })),
+    createDraft,
+    customSubject: subject,
+    customBody: body,
+  };
+}
+
+function processQuoteViaParentBridge(payload: AppsScriptPayload): Promise<QuoteProcessResult> {
+  return new Promise((resolve, reject) => {
+    const requestId = `quote-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const timer = window.setTimeout(() => {
+      window.removeEventListener('message', handleMessage);
+      reject(new Error('Apps Script 응답 시간이 초과되었습니다.'));
+    }, 180000);
+
+    function handleMessage(event: MessageEvent<AppsScriptBridgeResponse>) {
+      const data = event.data;
+      if (data?.source !== 'cimon-appscript-bridge' || data.type !== 'PROCESS_QUOTE_RESULT' || data.requestId !== requestId) {
+        return;
+      }
+      window.clearTimeout(timer);
+      window.removeEventListener('message', handleMessage);
+      if (data.error) reject(new Error(data.error));
+      else resolve(data.result ?? { success: false, message: 'Apps Script 응답이 비어 있습니다.' });
+    }
+
+    window.addEventListener('message', handleMessage);
+    window.parent.postMessage(
+      { source: 'cimon-quote-app', type: 'PROCESS_QUOTE', requestId, payload },
+      '*',
+    );
+  });
+}
+
+function processQuoteViaGoogleScript(payload: AppsScriptPayload): Promise<QuoteProcessResult> {
+  return new Promise((resolve, reject) => {
+    const runner = window.google?.script?.run;
+    if (!runner) {
+      reject(new Error('google.script.run을 사용할 수 없습니다.'));
+      return;
+    }
+    runner
+      .withSuccessHandler(resolve)
+      .withFailureHandler((error) => reject(new Error(String(error))))
+      .processQuoteFromReact(payload);
+  });
+}
+
+async function processQuoteRequest(quote: Quote, createDraft: boolean, subject = '', body = ''): Promise<QuoteProcessResult> {
+  const appsScriptPayload = quoteToAppsScriptPayload(quote, createDraft, subject, body);
+
+  if (window.parent && window.parent !== window) {
+    return processQuoteViaParentBridge(appsScriptPayload);
+  }
+
+  if (window.google?.script?.run) {
+    return processQuoteViaGoogleScript(appsScriptPayload);
+  }
+
+  const res = await fetch('/api/google/quote', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quote, createDraft, subject, body }),
+  });
+  const result = await readJsonResponse<QuoteProcessResult>(res);
+  if (!res.ok) {
+    throw new Error(result.message ?? '견적 저장 요청에 실패했습니다.');
+  }
+  return result;
 }
 
 function findProductForItem(item: ItemRow): Product | null {
@@ -418,20 +580,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     else setSubmitting(true);
     try {
       const quote = previewQuote ?? buildDraftQuote();
-      const res = await fetch('/api/google/quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quote, createDraft, subject, body }),
-      });
-      const result = await readJsonResponse<{
-        success: boolean;
-        message?: string;
-        newQuoteNumber?: string;
-        folderUrl?: string;
-        pdfUrl?: string;
-        sheetUrl?: string;
-      }>(res);
-      if (!res.ok || !result.success) {
+      const result = await processQuoteRequest(quote, createDraft, subject, body);
+      if (!result.success) {
         throw new Error(result.message ?? t(UI.quoteGoogleConfigMissing));
       }
 
@@ -443,7 +593,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       setPreviewQuote(finalQuote);
 
       alert(result.message ?? `${t(UI.quoteSaved)}\n${t(UI.quoteNumber)}: ${finalQuote.quoteNumber}`);
-      const openUrl = result.pdfUrl ?? result.folderUrl ?? result.sheetUrl;
+      const openUrl = result.pdfUrl ?? result.url ?? result.folderUrl ?? result.sheetUrl;
       if (openUrl) window.open(openUrl, '_blank', 'noopener,noreferrer');
       if (createDraft) window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
 

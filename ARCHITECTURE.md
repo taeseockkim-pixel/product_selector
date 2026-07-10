@@ -179,13 +179,14 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
 ```
 
 **제약**:
-- Google Workspace 처리는 Apps Script Web App으로 위임한다. `/api/google/quote`는 `APPS_SCRIPT_WEB_APP_URL`로 요청을 프록시하므로 서비스 계정 JSON 키와 Domain-wide delegation 설정이 필요 없다.
+- Google Workspace 처리는 Apps Script wrapper로 위임한다. 사용자는 Apps Script Web App에 로그인한 상태로 접속하고, wrapper가 Vercel 앱 iframe의 저장 요청을 `google.script.run`으로 받아 기존 `processQuote`를 실행한다. 서비스 계정 JSON 키와 Domain-wide delegation 설정이 필요 없다.
 - `excelToPdf.js`는 Windows Excel COM 객체에 의존 → **Vercel 프로덕션에서는 동작 불가**, 로컬
   개발(`npm run local`) 전용 기능이다.
-- Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략되며, `/api/google/quote`가 Apps Script Web App으로 저장 요청을 전달한다.
+- Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략된다. Apps Script wrapper 안에서 실행되는 Vercel 앱은 `postMessage` 브릿지로 저장 요청을 전달하고, wrapper 밖에서 직접 실행될 때만 `/api/google/quote` fallback을 사용한다.
 
-필수 환경변수:
-- `APPS_SCRIPT_WEB_APP_URL`
+Apps Script 반영 파일:
+- `appscript/Index.wrapper.html`
+- `appscript/wrapper-code.patch.gs`
 - `api/quotes/*`는 이름과 달리 실질적인 서버 측 CRUD를 수행하지 않는 스텁 상태다.
 
 ---

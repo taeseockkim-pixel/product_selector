@@ -20,7 +20,7 @@ Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 서버리스 함
 **배포 소요 시간**: ~1~2분 (정적 SPA 빌드)  
 **배포 실패 시**: 이전 배포 자동 유지 (Vercel 롤백)
 
-**참고**: 견적 저장/메일 초안 생성은 `api/google/quote`가 Apps Script Web App으로 프록시하고, 기존 Apps Script의 `processQuote`가 Drive/Sheets/Gmail 처리를 담당한다.
+**참고**: 운영 접속은 Apps Script wrapper URL을 사용한다. wrapper는 Vercel 앱을 iframe으로 표시하고, 견적 저장/메일 초안 생성은 `google.script.run`으로 기존 Apps Script `processQuote`에 위임한다. `/api/google/quote`는 wrapper 밖에서 직접 Vercel 앱을 열었을 때의 fallback이다.
 `server/` 폴더의 `/api/local/*`(Express, XLSX/PDF 생성)는 Vercel 배포 대상이 아니다 — `npm run local`로 로컬에서만 구동된다. 자세한 구조는
 [ARCHITECTURE.md](../ARCHITECTURE.md#견적서-기능-아키텍처) 참조.
 
@@ -156,11 +156,12 @@ npm run build                   # 프로덕션 빌드 확인
 
 ## 환경 변수
 
-제품 카탈로그는 정적 데이터이므로 환경 변수 불필요. 견적서의 Google Workspace 저장/메일 기능은
-Vercel 및 로컬 실행 환경에 아래 환경변수가 필요하다.
+제품 카탈로그는 정적 데이터이므로 환경 변수 불필요. 운영 흐름은 Apps Script wrapper를 통해 실행되므로 서비스 계정 키가 필요 없다.
 
-| 변수 | 용도 |
+| 항목 | 용도 |
 |---|---|
-| `APPS_SCRIPT_WEB_APP_URL` | 기존 Apps Script 프로젝트를 Web App으로 배포한 `/exec` URL. 견적 저장, PDF 생성, Gmail 초안 생성을 처리한다. |
+| `appscript/Index.wrapper.html` | Apps Script `Index.html`에 반영할 wrapper 화면 |
+| `appscript/wrapper-code.patch.gs` | Apps Script `Code.gs`에 반영할 `doGet` 및 브릿지 함수 |
+| `APPS_SCRIPT_WEB_APP_URL` | 선택. Vercel 앱을 wrapper 밖에서 직접 열어 `/api/google/quote` fallback을 사용할 때만 필요 |
 
-Apps Script 프로젝트의 기존 `doPost`가 이메일 초안 옵션을 받지 못하면 `appscript/doPost.patch.gs`의 내용으로 `doPost` 함수만 교체한 뒤 새 버전으로 배포한다. Web App은 Vercel 서버에서 호출하므로 접근 권한은 Vercel에서 접근 가능한 범위로 설정해야 한다.
+Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배포할 수 있다. 사용자가 Apps Script URL로 접속하면 CIMON 로그인 세션 안에서 `google.script.run`이 실행되므로 Vercel 서버가 Apps Script를 직접 호출하지 않는다.

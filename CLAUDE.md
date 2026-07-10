@@ -104,20 +104,20 @@ quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록
                  └── excelToPdf.js  → PDF 변환 (Windows Excel COM 필요)
 ```
 
-- **저장 주체**: `POST /api/google/quote`가 Apps Script Web App으로 요청을 프록시한다. Drive/Sheets/Gmail 처리는 기존 Apps Script의 `processQuote`가 담당하고, `src/utils/quoteStorage.ts`는 최근 작성 목록 캐시 역할만 한다.
+- **저장 주체**: 회사 정책상 Apps Script를 `CIMON의 모든 사용자`로만 배포할 수 있으므로, 사용자는 Apps Script wrapper URL로 접속한다. wrapper는 Vercel 앱을 iframe으로 띄우고, 견적 저장/메일 요청은 `postMessage` → `google.script.run.processQuoteFromReact()` → 기존 `processQuote()` 흐름으로 처리한다. `src/utils/quoteStorage.ts`는 최근 작성 목록 캐시 역할만 한다.
 - **견적 품목 추가**: `Quote_manage/기본자료/Product_Prise.xlsx`를
   `npm run generate:quote-products`로 변환한 `src/data/quoteProductCatalog.ts`를 사용한다. 사용자는
   견적 작성 화면에서 가격표 시트와 품명을 선택해 품목을 추가/삭제할 수 있다.
 - **가격 계산**: 가격표 기반 추가 품목은 `quoteProductCatalog.ts`, 기존 카트 품목의 fallback은
   `src/data/priceData.ts`의 `getUnitPrice()`가 수량 구간별 단가를 조회한다.
 - **인쇄**: `QuotePrintView.tsx` → `src/utils/quoteHtml.ts`로 HTML 생성 → iframe → 브라우저 인쇄.
-- **Google Workspace 연동**: Apps Script Web App을 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Vercel/로컬 서버에는 Apps Script Web App URL만 설정한다.
+- **Google Workspace 연동**: Apps Script wrapper를 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Apps Script 접근 권한은 `CIMON의 모든 사용자`로 유지할 수 있다.
 - **로컬 전용 XLSX/PDF 자동 생성**: `server/` 폴더의 Express 서버는 `npm run local`로만 구동되며,
   Windows Excel COM 객체를 사용하므로 **Vercel 프로덕션 환경에서는 동작하지 않는다.** Vercel
   배포 시에는 이 로컬 저장 단계 자체가 생략된다.
 - **api/quotes/**: Vercel 서버리스 함수지만 견적번호(`기술영업 YYMM-NNN`) 발급 외 실질적인
   저장/조회 로직은 없는 스텁 상태.
-- **필수 환경변수**: `APPS_SCRIPT_WEB_APP_URL`. 기존 Apps Script 프로젝트에는 `appscript/doPost.patch.gs`의 `doPost` 내용을 반영한 뒤 새 버전으로 Web App을 배포해야 한다.
+- **Apps Script 반영 파일**: `appscript/Index.wrapper.html` 내용을 Apps Script의 `Index.html`에 반영하고, `appscript/wrapper-code.patch.gs`의 `doGet`/`processQuoteFromReact`를 `Code.gs`에 반영한 뒤 새 버전으로 Web App을 배포한다. Vercel API fallback을 직접 쓸 때만 `APPS_SCRIPT_WEB_APP_URL`이 필요하다.
 
 ---
 
