@@ -8,11 +8,7 @@
 
 | ID | 우선순위 | 제목 | 위치 | 등록일 |
 |---|---|---|---|---|
-| TD-001 | 🟡 | 제품 이미지 없음 (IMG placeholder) | ProductTable.tsx:52 | 2026-04-27 |
-| TD-002 | 🟡 | 비교 최대 개수 제한 미구현 | App.tsx handleCompareToggle | 2026-04-27 |
-| TD-003 | 🟢 | SpecModal App.tsx 내부 인라인 — 별도 파일 분리 필요 | App.tsx:49–91 | 2026-04-27 |
 | TD-004 | 🟢 | AppHeader App.tsx 내부 인라인 — 별도 파일 분리 필요 | App.tsx:282–357 | 2026-04-27 |
-| TD-005 | 🟢 | products.json 일부 스펙값 추정치 — 카탈로그 재검증 필요 | products.json | 2026-04-27 |
 | TD-006 | 🔴 | 모바일(< 768px) 레이아웃 미대응 | index.css, 모든 컴포넌트 | 2026-04-27 |
 
 ---
@@ -22,31 +18,23 @@
 | ID | 제목 | 해결일 | 커밋 |
 |---|---|---|---|
 | TD-000 | TypeScript 데이터 파일 → JSON으로 분리 | 2026-02-01 | `869db0b` |
+| TD-001 | 제품 이미지 없음 (IMG placeholder) | 2026-07-10 | 미커밋 |
+| TD-002 | 비교 최대 개수 제한 미구현 | 2026-07-10 | 미커밋 |
+| TD-003 | SpecModal App.tsx 내부 인라인 | 2026-07-10 | 미커밋 |
+| TD-005 | products.json 일부 스펙값 추정치 | 2026-07-10 | 미커밋 |
 
 ---
 
 ## TD-001: 제품 이미지 없음
 
-**현황**: `ProductTable.tsx` 52~56번 줄에 회색 "IMG" 박스 표시.  
-**영향**: 고객 제안 시 시각적 신뢰도 저하.  
-**해결 계획**: [active/2026-04-product-images.md](./active/2026-04-product-images.md) 참조.
+**현황**: 완료. `public/products/` 이미지와 `imageResolver.ts` 매핑으로 제품 이미지를 표시한다.
+**참조**: [completed/2026-04-product-images.md](./completed/2026-04-product-images.md)
 
 ---
 
 ## TD-002: 비교 최대 개수 미제한
 
-**현황**: 비교에 무제한 제품 추가 가능. 4개 초과 시 비교 테이블 레이아웃 깨짐.  
-**수정 방법**:
-```typescript
-// App.tsx handleCompareToggle
-function handleCompareToggle(id: string) {
-  setCompareList(prev => {
-    if (prev.includes(id)) return prev.filter(x => x !== id);
-    if (prev.length >= 4) return prev; // ← 이 줄 추가
-    return [...prev, id];
-  });
-}
-```
+**현황**: 완료. `App.tsx handleCompareToggle`에서 4개 초과 추가를 막는다.
 
 ---
 

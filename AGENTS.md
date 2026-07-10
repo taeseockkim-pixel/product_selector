@@ -7,7 +7,7 @@
 
 ## 프로젝트 한 줄 요약
 
-CIMON 제품 선택 가이드 — 고객이 PLC / IPC / SCADA / XPANEL 제품을 필터링·비교·담기 할 수 있는 정적 SPA.
+CIMON 제품 선택 가이드 — 고객이 PLC / IPC / SCADA / XPANEL 제품을 필터링·비교·담기·견적서 작성 할 수 있는 SPA. 제품 카탈로그는 정적 번들이지만, 견적서 기능은 `localStorage` + 로컬 전용 Express 서버(`server/`) + Vercel 서버리스 스텁(`api/quotes/`)으로 구성된 하이브리드 구조다. 자세한 내용은 [CLAUDE.md](./CLAUDE.md#견적서quote-기능), [ARCHITECTURE.md](./ARCHITECTURE.md) 참조.
 
 ---
 
@@ -125,8 +125,22 @@ src/
 │   └── catalogConfig.ts ← 카탈로그·메뉴얼·도면 PDF 경로 매핑 (public/ 실제 파일명과 1:1 일치 필수)
 ├── data/
 │   ├── products.json    ← 유일한 제품 데이터 소스 (직접 편집 가능)
-│   └── products.ts      ← JSON import 래퍼 (타입 캐스팅)
+│   ├── products.ts      ← JSON import 래퍼 (타입 캐스팅)
+│   └── priceData.ts     ← 견적서용 수량 구간별 단가 테이블
+├── utils/
+│   ├── quoteStorage.ts  ← 견적서 CRUD (localStorage 전담, 서버 DB 없음)
+│   └── quoteHtml.ts     ← 견적서 인쇄용 HTML 생성
+├── components/
+│   ├── QuoteFormPage.tsx  ← 견적서 작성 폼
+│   ├── QuoteListPage.tsx  ← 저장된 견적서 목록
+│   └── QuotePrintView.tsx ← 견적서 인쇄 미리보기
 └── types/index.ts       ← 모든 타입 정의 (변경 시 파급 효과 큼)
+
+api/quotes/               ← Vercel 서버리스 함수 (견적번호 발급 스텁, 실질 CRUD 없음)
+server/                   ← 로컬 전용 Express 서버 (npm run local)
+├── index.js              ← /api/local/save — XLSX/PDF 생성 오케스트레이션
+├── fillTemplate.js       ← ExcelJS로 XLSX 채우기
+└── excelToPdf.js         ← Windows Excel COM으로 PDF 변환 (Vercel에서 미동작)
 ```
 
 ---
@@ -241,6 +255,7 @@ npm run check:i18n
 | 필터 로직 변경 | `docs/design-docs/` 에 결정 기록 |
 | 배포 설정 변경 | `docs/RELIABILITY.md` |
 | 새 기능 완성 | `docs/exec-plans/completed/` 로 이동 |
+| 견적서 기능 변경 | `CLAUDE.md`, `ARCHITECTURE.md`, `docs/RELIABILITY.md` |
 
 ---
 

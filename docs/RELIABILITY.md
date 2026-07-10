@@ -14,11 +14,15 @@ GitHub (taeseockkim-pixel/product_selector)
 Vercel 빌드 (npm run build)
   │  빌드 성공 시
   ▼
-Vercel CDN 배포 (전 세계 엣지 노드)
+Vercel CDN 배포 (전 세계 엣지 노드) + api/quotes/* 서버리스 함수 배포
 ```
 
 **배포 소요 시간**: ~1~2분 (정적 SPA 빌드)  
 **배포 실패 시**: 이전 배포 자동 유지 (Vercel 롤백)
+
+**참고**: `api/quotes/*`는 견적번호 발급만 담당하는 스텁이며, `server/` 폴더(Express, XLSX/PDF
+생성)는 Vercel 배포 대상이 아니다 — `npm run local`로 로컬에서만 구동된다. 자세한 구조는
+[ARCHITECTURE.md](../ARCHITECTURE.md#견적서-기능-아키텍처) 참조.
 
 ---
 
@@ -145,5 +149,6 @@ npm run build                   # 프로덕션 빌드 확인
 
 ## 환경 변수
 
-현재 환경 변수 없음. 정적 앱이므로 불필요.  
-향후 API 연동 시 Vercel 환경 변수 사용: `VITE_API_BASE_URL`
+제품 카탈로그는 정적 데이터이므로 환경 변수 불필요. `api/quotes/*` 서버리스 함수도 현재는
+견적번호 발급 스텁이라 별도 환경 변수를 사용하지 않는다. API를 실제 CRUD로 확장할 경우
+Vercel 환경 변수(`VITE_API_BASE_URL` 등) 도입을 검토한다.

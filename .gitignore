@@ -33,3 +33,7 @@ docs/csv-export/
 .vercel
 .env
 .env.local
+.env*.local
+
+# Local quote server outputs and private quote working files
+Quote_manage/

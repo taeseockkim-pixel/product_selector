@@ -2,7 +2,9 @@
 
 ## 개요
 
-순수 정적 SPA (Single Page Application). 백엔드 없음. 모든 데이터는 빌드 시 번들에 포함.
+제품 카탈로그(PLC/IPC/SCADA/XPANEL)는 순수 정적 SPA — 모든 데이터가 빌드 시 번들에 포함된다.
+다만 견적서(Quote) 기능은 `localStorage` 저장 + 로컬 전용 Express 서버(PDF/Excel 생성) +
+Vercel 서버리스 스텁으로 구성된 하이브리드 구조다. 자세한 내용은 하단 "견적서 기능 아키텍처" 참조.
 
 ```
 사용자 브라우저
@@ -14,8 +16,12 @@
 └─────────────────────────────────┘
      │  빌드 산출물 (dist/)
      ▼
-  Vercel CDN (정적 호스팅)
+  Vercel CDN (정적 호스팅) + api/quotes/* (서버리스 함수, 견적번호 발급 스텁)
   GitHub main 브랜치 push → 자동 배포
+
+  (로컬 개발 전용, npm run local)
+  Express 서버(server/index.js) → XLSX/PDF 생성 → Quote_manage/ 폴더 저장
+  ※ Windows Excel COM 의존 — Vercel에는 배포되지 않음
 ```
 
 ---
@@ -79,6 +85,9 @@ ProductTable.tsx  (렌더링 전용)
 | `CartPage.tsx` | 담기 목록 표시 | ❌ (props only) |
 | `ComparePage.tsx` | 비교 표 표시 | ❌ (props only) |
 | `SpecModal` (App 내) | 상세 사양 모달 | ❌ (props only) |
+| `QuoteFormPage.tsx` | 견적서 작성 폼, 단가 계산 호출 | ✅ (폼 입력 상태) |
+| `QuoteListPage.tsx` | 저장된 견적서 목록 표시 | ❌ (localStorage 조회만) |
+| `QuotePrintView.tsx` | 견적서 인쇄 미리보기 | ❌ (props only) |
 
 **규칙:** `Table`, `Panel` 컴포넌트는 순수 렌더링만 담당. 필터/정렬 로직은 `App.tsx` 또는 `config/` 에서 처리.
 
@@ -136,15 +145,50 @@ Product {
 
 ---
 
+## 견적서 기능 아키텍처
+
+제품 필터링 흐름과 완전히 분리된 별도 하위 시스템. 제품 카탈로그와 달리 **서버 저장소가 없고
+브라우저 `localStorage`가 유일한 영구 저장소**다.
+
+```
+QuoteFormPage.tsx
+    │  priceData.ts (getUnitPrice) 로 단가/합계 계산
+    ▼
+quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")
+    │
+    ├── api/quotes/index.ts, [id].ts  (Vercel 서버리스)
+    │     └── 견적번호(기술영업 YYMM-NNN) 발급만 담당하는 스텁. 실제 CRUD 없음.
+    │
+    └── (localhost 개발 환경일 때만) POST /api/local/save
+          └── server/index.js (Express, npm run local)
+                ├── fillTemplate.js → ExcelJS로 XLSX 생성
+                └── excelToPdf.js  → Windows Excel COM으로 PDF 변환
+    │
+    ▼
+QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 인쇄
+```
+
+**제약**:
+- `excelToPdf.js`는 Windows Excel COM 객체에 의존 → **Vercel 프로덕션에서는 동작 불가**, 로컬
+  개발(`npm run local`) 전용 기능이다.
+- Vercel 배포 환경에서는 로컬 서버 저장 단계가 완전히 생략되며, 견적서 저장은 localStorage만으로
+  이뤄지고 인쇄는 브라우저 인쇄 기능(iframe + `window.print()`)으로 대체된다.
+- `api/quotes/*`는 이름과 달리 실질적인 서버 측 CRUD를 수행하지 않는 스텁 상태다.
+
+---
+
 ## 빌드 & 배포
 
 ```
 npm run dev      → Vite dev server (HMR)
 npm run build    → tsc + vite build → dist/
 npm run preview  → dist/ 로컬 미리보기
+npm run local    → build + server/index.js 구동 (견적서 XLSX/PDF 생성, 로컬 전용)
 ```
 
-**배포**: GitHub `main` 브랜치 push → Vercel 자동 빌드 & CDN 배포.
+**배포**: GitHub `main` 브랜치 push → Vercel이 `dist/`를 CDN에 정적 배포하는 동시에
+`api/quotes/*`를 서버리스 함수로 함께 배포. `server/` 폴더는 Vercel 배포 대상이 아니며
+로컬(`npm run local`)에서만 실행된다.
 
 ---
 

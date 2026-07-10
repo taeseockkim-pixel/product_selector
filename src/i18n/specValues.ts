@@ -41,6 +41,7 @@ const TOKENS: [RegExp, string][] = [
   [/포함/g,                                 'included'],
   [/사용자 정의/g,                          'user-defined'],
   [/당사 프로토콜/g,                        'proprietary protocol'],
+  [/CPU 사양에 따름/g,                      'depends on CPU spec'],
   [/분할/g,                                 'div.'],
   [/명령어/g,                               'instruction'],
 
@@ -58,6 +59,8 @@ const TOKENS: [RegExp, string][] = [
   [/(\d+)개/g,                              '$1 ea'],
   [/(\d+)축/g,                              '$1-axis'],
   [/(\d+)채널/g,                            '$1 ch'],
+  [/(\d+)포트/g,                            '$1 ports'],
+  [/(\d+)단/g,                              '$1 stages'],
   [/(\d+) 슬롯/g,                           '$1 slots'],
 
   // ── 최대/이상/이하 ─────────────────────────────────────────────
@@ -139,6 +142,7 @@ const TOKENS: [RegExp, string][] = [
   // ── 연결/케이블 ───────────────────────────────────────────────
   [/케이블/g,                               'cable'],
   [/전송 거리/g,                            'transmission distance'],
+  [/노드-노드/g,                            'node-to-node'],
   [/널모뎀 전용/g,                          'null-modem only'],
 
   // ── 기타 부품/구조 ────────────────────────────────────────────
@@ -182,6 +186,8 @@ const TOKENS: [RegExp, string][] = [
   [/디지털/g,                               'digital'],
   [/옵션가능/g,                             'Optional'],
   [/옵션 가능/g,                            'Optional'],
+  [/푸쉬버튼 타입/g,                        'pushbutton type'],
+  [/펌웨어 업그레이드/g,                    'firmware upgrade'],
   [/가능/g,                                 'available'],
   [/지원/g,                                 'Supported'],
   [/내장 배터리/g,                          'Built-in battery'],
