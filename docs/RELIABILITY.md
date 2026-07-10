@@ -20,7 +20,7 @@ Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 서버리스 함
 **배포 소요 시간**: ~1~2분 (정적 SPA 빌드)  
 **배포 실패 시**: 이전 배포 자동 유지 (Vercel 롤백)
 
-**참고**: 견적 저장/메일 초안 생성은 `api/google/quote`가 Google Workspace API를 직접 호출한다.
+**참고**: 견적 저장/메일 초안 생성은 `api/google/quote`가 Apps Script Web App으로 프록시하고, 기존 Apps Script의 `processQuote`가 Drive/Sheets/Gmail 처리를 담당한다.
 `server/` 폴더의 `/api/local/*`(Express, XLSX/PDF 생성)는 Vercel 배포 대상이 아니다 — `npm run local`로 로컬에서만 구동된다. 자세한 구조는
 [ARCHITECTURE.md](../ARCHITECTURE.md#견적서-기능-아키텍처) 참조.
 
@@ -161,12 +161,6 @@ Vercel 및 로컬 실행 환경에 아래 환경변수가 필요하다.
 
 | 변수 | 용도 |
 |---|---|
-| `GOOGLE_CLIENT_EMAIL` | Google Cloud 서비스 계정 이메일 |
-| `GOOGLE_PRIVATE_KEY` | 서비스 계정 private key (`\n` 이스케이프 허용) |
-| `GOOGLE_DRIVE_ROOT_FOLDER_ID` | 연도별 견적 폴더를 만들 Google Drive 상위 폴더 ID. 미설정 시 기존 Apps Script의 `ROOT_FOLDER_ID` 기본값 사용 |
-| `GOOGLE_QUOTE_TEMPLATE_ID` | 복사해서 채울 견적서 Google Sheets 템플릿 파일 ID. 미설정 시 기존 Apps Script의 `TEMPLATE_ID` 기본값 사용 |
-| `GOOGLE_IMPERSONATE_EMAIL` | 선택. Drive/Sheets 기본 위임 계정 또는 Gmail fallback 계정 |
+| `APPS_SCRIPT_WEB_APP_URL` | 기존 Apps Script 프로젝트를 Web App으로 배포한 `/exec` URL. 견적 저장, PDF 생성, Gmail 초안 생성을 처리한다. |
 
-Gmail 초안 생성까지 사용하려면 Google Workspace 관리자 콘솔에서 서비스 계정에
-Domain-wide delegation을 허용하고 최소 범위로 `drive`, `spreadsheets`, `gmail.compose` 권한을
-부여해야 한다. Drive/Sheets만 사용할 경우 Gmail 초안 버튼은 권한 오류가 날 수 있다.
+Apps Script 프로젝트의 기존 `doPost`가 이메일 초안 옵션을 받지 못하면 `appscript/doPost.patch.gs`의 내용으로 `doPost` 함수만 교체한 뒤 새 버전으로 배포한다. Web App은 Vercel 서버에서 호출하므로 접근 권한은 Vercel에서 접근 가능한 범위로 설정해야 한다.

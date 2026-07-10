@@ -151,7 +151,7 @@ async function readJsonResponse<T>(res: Response): Promise<T> {
   } catch {
     const preview = text.trim().slice(0, 160);
     throw new Error(
-      `서버가 JSON 대신 다른 응답을 반환했습니다. /api/google/quote 라우트와 로컬 서버 재시작 여부를 확인해 주세요. 응답: ${preview || '(empty)'}`,
+      `서버가 JSON 대신 다른 응답을 반환했습니다. /api/google/quote Apps Script 프록시와 APPS_SCRIPT_WEB_APP_URL 설정을 확인해 주세요. 응답: ${preview || '(empty)'}`,
     );
   }
 }

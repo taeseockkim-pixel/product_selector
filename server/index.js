@@ -8,7 +8,7 @@ import { randomUUID } from 'crypto';
 import { fillQuoteTemplate } from './fillTemplate.js';
 import { excelToPdf } from './excelToPdf.js';
 import { appendToLedger } from './updateLedger.js';
-import { processGoogleWorkspaceQuote } from './googleWorkspace.js';
+import { processAppsScriptQuote } from './appsScriptQuote.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -101,12 +101,12 @@ app.post('/api/local/preview', async (req, res) => {
   }
 });
 
-/** Google Workspace API 연동: Drive 저장 + Sheet 대장 기록 + 선택 시 Gmail 초안 */
+/** Apps Script 연동: Drive 저장 + Sheet 대장 기록 + 선택 시 Gmail 초안 */
 app.post('/api/google/quote', async (req, res) => {
   try {
     const { quote, createDraft = false, subject = '', body = '' } = req.body ?? {};
     if (!quote) return res.status(400).json({ success: false, message: 'quote payload is required' });
-    const result = await processGoogleWorkspaceQuote(quote, { createDraft, subject, body });
+    const result = await processAppsScriptQuote(quote, { createDraft, subject, body });
     res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, message: String(err) });
