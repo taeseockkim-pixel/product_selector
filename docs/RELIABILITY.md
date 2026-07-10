@@ -163,8 +163,8 @@ Vercel 및 로컬 실행 환경에 아래 환경변수가 필요하다.
 |---|---|
 | `GOOGLE_CLIENT_EMAIL` | Google Cloud 서비스 계정 이메일 |
 | `GOOGLE_PRIVATE_KEY` | 서비스 계정 private key (`\n` 이스케이프 허용) |
-| `GOOGLE_DRIVE_ROOT_FOLDER_ID` | 연도별 견적 폴더를 만들 Google Drive 상위 폴더 ID |
-| `GOOGLE_QUOTE_TEMPLATE_ID` | 복사해서 채울 견적서 Google Sheets 템플릿 파일 ID |
+| `GOOGLE_DRIVE_ROOT_FOLDER_ID` | 연도별 견적 폴더를 만들 Google Drive 상위 폴더 ID. 미설정 시 기존 Apps Script의 `ROOT_FOLDER_ID` 기본값 사용 |
+| `GOOGLE_QUOTE_TEMPLATE_ID` | 복사해서 채울 견적서 Google Sheets 템플릿 파일 ID. 미설정 시 기존 Apps Script의 `TEMPLATE_ID` 기본값 사용 |
 | `GOOGLE_IMPERSONATE_EMAIL` | 선택. Drive/Sheets 기본 위임 계정 또는 Gmail fallback 계정 |
 
 Gmail 초안 생성까지 사용하려면 Google Workspace 관리자 콘솔에서 서비스 계정에

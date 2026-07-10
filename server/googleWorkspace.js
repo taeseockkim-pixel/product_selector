@@ -6,6 +6,8 @@ const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
 const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.compose';
 const FOLDER_MIME = 'application/vnd.google-apps.folder';
 const SHEET_MIME = 'application/vnd.google-apps.spreadsheet';
+const DEFAULT_DRIVE_ROOT_FOLDER_ID = '1NOwf4QXey_4W51pfd6_TQ2JYcXnpdbX3';
+const DEFAULT_QUOTE_TEMPLATE_ID = '1uYNTzJrmEgePXT7RhnTpmz8Xd4atHCCNQPpW3-UmaAM';
 
 const LEDGER_HEADERS = ['NO', '년도', '월', '견적번호', '업체명', '고객명', '연락처', '이메일', '제품 항목', '제품명', '견적 금액', '비고', '파일링크'];
 
@@ -281,8 +283,8 @@ async function createGmailDraft(quote, subject, body, pdfFileName, pdfBuffer) {
 }
 
 export async function processGoogleWorkspaceQuote(inputQuote, options = {}) {
-  const rootFolderId = requiredEnv('GOOGLE_DRIVE_ROOT_FOLDER_ID');
-  const templateId = requiredEnv('GOOGLE_QUOTE_TEMPLATE_ID');
+  const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID || DEFAULT_DRIVE_ROOT_FOLDER_ID;
+  const templateId = process.env.GOOGLE_QUOTE_TEMPLATE_ID || DEFAULT_QUOTE_TEMPLATE_ID;
   const auth = googleAuth([DRIVE_SCOPE, SHEETS_SCOPE], process.env.GOOGLE_IMPERSONATE_EMAIL);
   const drive = google.drive({ version: 'v3', auth });
   const sheets = google.sheets({ version: 'v4', auth });
