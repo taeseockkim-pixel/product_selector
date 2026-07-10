@@ -3,8 +3,9 @@
 ## 개요
 
 제품 카탈로그(PLC/IPC/SCADA/XPANEL)는 순수 정적 SPA — 모든 데이터가 빌드 시 번들에 포함된다.
-다만 견적서(Quote) 기능은 `localStorage` 저장 + 로컬 전용 Express 서버(PDF/Excel 생성) +
-Vercel 서버리스 스텁으로 구성된 하이브리드 구조다. 자세한 내용은 하단 "견적서 기능 아키텍처" 참조.
+다만 견적서(Quote) 기능은 `localStorage` 목록 캐시 + Google Workspace API(Drive/Sheets/Gmail) +
+로컬 전용 Express 서버(PDF/Excel 생성 보조)로 구성된 하이브리드 구조다. 자세한 내용은 하단
+"견적서 기능 아키텍처" 참조.
 
 ```
 사용자 브라우저
@@ -16,12 +17,12 @@ Vercel 서버리스 스텁으로 구성된 하이브리드 구조다. 자세한 
 └─────────────────────────────────┘
      │  빌드 산출물 (dist/)
      ▼
-  Vercel CDN (정적 호스팅) + api/quotes/* (서버리스 함수, 견적번호 발급 스텁)
+  Vercel CDN (정적 호스팅) + api/google/quote (Google Workspace API)
   GitHub main 브랜치 push → 자동 배포
 
   (로컬 개발 전용, npm run local)
-  Express 서버(server/index.js) → XLSX/PDF 생성 → Quote_manage/ 폴더 저장
-  ※ Windows Excel COM 의존 — Vercel에는 배포되지 않음
+  Express 서버(server/index.js) → /api/google/quote + /api/local/*
+  ※ /api/local/* 는 Windows Excel COM 의존 — Vercel에는 배포되지 않음
 ```
 
 ---
@@ -85,7 +86,7 @@ ProductTable.tsx  (렌더링 전용)
 | `CartPage.tsx` | 담기 목록 표시 | ❌ (props only) |
 | `ComparePage.tsx` | 비교 표 표시 | ❌ (props only) |
 | `SpecModal` (App 내) | 상세 사양 모달 | ❌ (props only) |
-| `QuoteFormPage.tsx` | 견적서 작성 폼, 단가 계산 호출 | ✅ (폼 입력 상태) |
+| `QuoteFormPage.tsx` | 견적서 작성 폼, 가격표 기반 품목 추가/삭제, 단가 계산 호출 | ✅ (폼 입력/품목 상태) |
 | `QuoteListPage.tsx` | 저장된 견적서 목록 표시 | ❌ (localStorage 조회만) |
 | `QuotePrintView.tsx` | 견적서 인쇄 미리보기 | ❌ (props only) |
 
@@ -147,17 +148,28 @@ Product {
 
 ## 견적서 기능 아키텍처
 
-제품 필터링 흐름과 완전히 분리된 별도 하위 시스템. 제품 카탈로그와 달리 **서버 저장소가 없고
-브라우저 `localStorage`가 유일한 영구 저장소**다.
+제품 필터링 흐름과 완전히 분리된 별도 하위 시스템. 제품 카탈로그와 달리 **Google Workspace API를
+통해 Drive/Sheets/Gmail에 결과물을 남기고, 브라우저 `localStorage`는 목록 캐시로만 사용**한다.
 
 ```
+Product_Prise.xlsx
+    │  npm run generate:quote-products
+    ▼
+quoteProductCatalog.ts
+    │
 QuoteFormPage.tsx
-    │  priceData.ts (getUnitPrice) 로 단가/합계 계산
+    │  quoteProductCatalog.ts / priceData.ts (fallback) 로 단가/합계 계산
     ▼
 quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")
     │
-    ├── api/quotes/index.ts, [id].ts  (Vercel 서버리스)
-    │     └── 견적번호(기술영업 YYMM-NNN) 발급만 담당하는 스텁. 실제 CRUD 없음.
+    ├── POST /api/google/quote  (Vercel 서버리스 + 로컬 Express 동일 경로)
+    │     └── server/googleWorkspace.js
+    │           ├── Google Drive: 연도 폴더/견적 폴더/견적 Sheet/PDF 파일
+    │           ├── Google Sheets: 견적관리대장 append
+    │           └── Gmail: 선택 시 PDF 첨부 초안 생성
+    │
+    ├── api/quotes/index.ts, [id].ts
+    │     └── 레거시 스텁. 신규 저장 흐름에서는 사용하지 않음.
     │
     └── (localhost 개발 환경일 때만) POST /api/local/save
           └── server/index.js (Express, npm run local)
@@ -169,10 +181,18 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
 ```
 
 **제약**:
+- Google Workspace API 연동은 Apps Script를 사용하지 않는다. `googleapis`와 서비스 계정 인증을 사용한다.
+- Gmail 초안 생성은 작성자 계정으로 위임 실행해야 하므로 Google Workspace Domain-wide delegation 설정이 필요하다.
 - `excelToPdf.js`는 Windows Excel COM 객체에 의존 → **Vercel 프로덕션에서는 동작 불가**, 로컬
   개발(`npm run local`) 전용 기능이다.
-- Vercel 배포 환경에서는 로컬 서버 저장 단계가 완전히 생략되며, 견적서 저장은 localStorage만으로
-  이뤄지고 인쇄는 브라우저 인쇄 기능(iframe + `window.print()`)으로 대체된다.
+- Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략되며, `/api/google/quote`가 Drive/Sheets/Gmail 저장을 담당한다.
+
+필수 환경변수:
+- `GOOGLE_CLIENT_EMAIL`
+- `GOOGLE_PRIVATE_KEY`
+- `GOOGLE_DRIVE_ROOT_FOLDER_ID`
+- `GOOGLE_QUOTE_TEMPLATE_ID`
+- `GOOGLE_IMPERSONATE_EMAIL` (선택, Drive/Sheets 기본 위임 또는 Gmail fallback 계정)
 - `api/quotes/*`는 이름과 달리 실질적인 서버 측 CRUD를 수행하지 않는 스텁 상태다.
 
 ---

@@ -265,7 +265,7 @@ function AppInner() {
         <div className="sticky top-0 z-50"><AppHeader {...headerProps} /></div>
         <QuoteListPage
           onBack={() => setViewMode('main')}
-          onNewQuote={() => setViewMode('cart')}
+          onNewQuote={() => setViewMode('quotecreate')}
         />
         {toast && <Toast msg={toast} />}
       </div>

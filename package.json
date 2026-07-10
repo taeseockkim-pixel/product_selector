@@ -11,6 +11,7 @@
     "validate:specs": "node scripts/validate-specs.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
     "verify": "node scripts/verify.mjs",
+    "generate:quote-products": "node scripts/generate-quote-product-catalog.mjs",
     "export:csv": "node scripts/export-to-csv.mjs",
     "import:csv": "node scripts/import-from-csv.mjs",
     "import:csv:dry": "node scripts/import-from-csv.mjs --dry-run",
@@ -21,6 +22,7 @@
     "@vercel/blob": "^2.3.3",
     "exceljs": "^4.4.0",
     "flag-icons": "^7.5.0",
+    "googleapis": "^173.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

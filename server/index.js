@@ -8,6 +8,7 @@ import { randomUUID } from 'crypto';
 import { fillQuoteTemplate } from './fillTemplate.js';
 import { excelToPdf } from './excelToPdf.js';
 import { appendToLedger } from './updateLedger.js';
+import { processGoogleWorkspaceQuote } from './googleWorkspace.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -16,6 +17,13 @@ const QUOTE_DIR = join(ROOT, 'Quote_manage');
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
+app.use((err, _req, res, next) => {
+  if (!err) return next();
+  if (err instanceof SyntaxError && 'body' in err) {
+    return res.status(400).json({ success: false, message: `요청 JSON을 해석할 수 없습니다: ${err.message}` });
+  }
+  return next(err);
+});
 app.use(express.static(join(ROOT, 'dist')));
 
 /** 견적서 로컬 저장 API */
@@ -90,6 +98,18 @@ app.post('/api/local/preview', async (req, res) => {
   } finally {
     if (existsSync(tmpXlsx)) unlinkSync(tmpXlsx);
     if (existsSync(tmpPdf)) unlinkSync(tmpPdf);
+  }
+});
+
+/** Google Workspace API 연동: Drive 저장 + Sheet 대장 기록 + 선택 시 Gmail 초안 */
+app.post('/api/google/quote', async (req, res) => {
+  try {
+    const { quote, createDraft = false, subject = '', body = '' } = req.body ?? {};
+    if (!quote) return res.status(400).json({ success: false, message: 'quote payload is required' });
+    const result = await processGoogleWorkspaceQuote(quote, { createDraft, subject, body });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, message: String(err) });
   }
 });
 

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-CIMON 제품 선택 가이드 — PLC / IPC / SCADA / XPANEL 4개 카테고리, 260개 제품을 필터링·비교·담기할 수 있는 SPA. 제품 카탈로그는 빌드 타임에 모든 데이터가 번들에 포함되는 순수 정적 구조이지만, 견적서(Quote) 생성 기능은 `localStorage` 저장 + 로컬 전용 Express 서버(PDF/Excel 생성) + Vercel 서버리스 스텁으로 구성된 하이브리드 구조다. 자세한 내용은 아래 "견적서(Quote) 기능" 절 참조.
+CIMON 제품 선택 가이드 — PLC / IPC / SCADA / XPANEL 4개 카테고리, 260개 제품을 필터링·비교·담기할 수 있는 SPA. 제품 카탈로그는 빌드 타임에 모든 데이터가 번들에 포함되는 순수 정적 구조이지만, 견적서(Quote) 생성 기능은 `localStorage` 목록 + Google Workspace API(Drive/Sheets/Gmail) + 로컬 전용 Express 서버(PDF/Excel 생성 보조)로 구성된 하이브리드 구조다. 자세한 내용은 아래 "견적서(Quote) 기능" 절 참조.
 
 ---
 
@@ -21,6 +21,7 @@ npm run verify                 # 커밋 전 전체 검증 (타입 체크 + 빌�
 npm run validate:specs         # catalog/estimated 비율 검사
 npm run check:i18n             # 영문 번역 누수 0건 검사
 npm run check:spec-consistency # 같은 시리즈 내 스펙 라벨 일관성 검사
+npm run generate:quote-products # Product_Prise.xlsx → 견적 추가용 카탈로그 생성
 
 npm run export:csv             # products.json → CSV 내보내기 (데이터 편집용)
 npm run import:csv             # CSV → products.json 반영
@@ -82,16 +83,22 @@ products.json  →(빌드 타임 import)→  PRODUCTS: Product[]
 ## 견적서(Quote) 기능
 
 카트에 담은 제품으로 견적서를 작성·저장·인쇄하는 기능. 제품 카탈로그와 달리 **정적 번들이 아니라
-브라우저 저장소 + 로컬 전용 서버를 사용하는 하이브리드 구조**다.
+브라우저 저장소 + Google Workspace API + 로컬 전용 서버를 사용하는 하이브리드 구조**다.
 
 ```
-QuoteFormPage.tsx (입력 + priceData.ts로 단가/합계 계산)
+QuoteFormPage.tsx (입력 + quoteProductCatalog.ts/priceData.ts로 단가/합계 계산)
      │
      ▼
-quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 실제 저장소
+quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록 캐시
      │
      ├── (프로덕션/Vercel) api/quotes/index.ts, [id].ts
      │     └── 견적번호 발급만 담당하는 스텁. 실제 CRUD 없음.
+     │
+     ├── POST /api/google/quote
+     │     └── Google Workspace API 직접 호출
+     │           ├── Drive: 연도/견적 폴더 생성, 템플릿 Google Sheet 복사, PDF 업로드
+     │           ├── Sheets: 견적 템플릿 셀 입력, 견적관리대장 append
+     │           └── Gmail: 선택 시 작성자 계정으로 초안 생성
      │
      └── (localhost 개발 환경일 때만) fetch('/api/local/save')
            └── server/index.js (Express, npm run local로 구동)
@@ -99,14 +106,21 @@ quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 실제
                  └── excelToPdf.js  → PDF 변환 (Windows Excel COM 필요)
 ```
 
-- **저장 주체**: `src/utils/quoteStorage.ts`가 `localStorage`에 전적으로 의존. 서버 DB 없음.
-- **가격 계산**: `src/data/priceData.ts`의 `getUnitPrice()`가 수량 구간별 단가 조회.
+- **저장 주체**: `POST /api/google/quote`가 Google Drive/Sheets/Gmail API를 직접 호출한다. `src/utils/quoteStorage.ts`는 최근 작성 목록 캐시 역할만 한다.
+- **견적 품목 추가**: `Quote_manage/기본자료/Product_Prise.xlsx`를
+  `npm run generate:quote-products`로 변환한 `src/data/quoteProductCatalog.ts`를 사용한다. 사용자는
+  견적 작성 화면에서 가격표 시트와 품명을 선택해 품목을 추가/삭제할 수 있다.
+- **가격 계산**: 가격표 기반 추가 품목은 `quoteProductCatalog.ts`, 기존 카트 품목의 fallback은
+  `src/data/priceData.ts`의 `getUnitPrice()`가 수량 구간별 단가를 조회한다.
 - **인쇄**: `QuotePrintView.tsx` → `src/utils/quoteHtml.ts`로 HTML 생성 → iframe → 브라우저 인쇄.
+- **Google Workspace 연동**: Apps Script를 사용하지 않는다. `googleapis` 기반 Node API가 서비스 계정으로 Drive/Sheets/Gmail API를 호출한다. Gmail 초안 생성은 Google Workspace 관리자 콘솔의 Domain-wide delegation 구성이 필요하다.
 - **로컬 전용 XLSX/PDF 자동 생성**: `server/` 폴더의 Express 서버는 `npm run local`로만 구동되며,
   Windows Excel COM 객체를 사용하므로 **Vercel 프로덕션 환경에서는 동작하지 않는다.** Vercel
-  배포 시에는 이 저장 단계 자체가 생략되고 localStorage 저장 + 브라우저 인쇄만 동작한다.
+  배포 시에는 이 로컬 저장 단계 자체가 생략된다.
 - **api/quotes/**: Vercel 서버리스 함수지만 견적번호(`기술영업 YYMM-NNN`) 발급 외 실질적인
   저장/조회 로직은 없는 스텁 상태.
+- **필수 환경변수**: `GOOGLE_CLIENT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_DRIVE_ROOT_FOLDER_ID`,
+  `GOOGLE_QUOTE_TEMPLATE_ID`. Gmail 초안의 기본 위임 계정이 필요하면 `GOOGLE_IMPERSONATE_EMAIL`도 사용한다.
 
 ---
 

@@ -1,4 +1,5 @@
 import type { Quote } from '../types/quote';
+import type { Lang } from '../context/LangContext';
 
 function fmt(n: number | undefined | null) {
   return Math.round(n ?? 0).toLocaleString('ko-KR');
@@ -13,8 +14,37 @@ function esc(s: unknown) {
 }
 
 /** 견적서 샘플.xlsx 셀 구조 기반 HTML — 인쇄/PDF 용 */
-export function generateQuoteHtml(quote: Quote): string {
+export function generateQuoteHtml(quote: Quote, lang: Lang = 'ko'): string {
   const { client, author, details, items, vatTotal, quoteNumber } = quote;
+  const label = {
+    title: lang === 'en' ? 'QUOTATION' : '견 적 서',
+    company: lang === 'en' ? 'Company' : '업체명',
+    phone: lang === 'en' ? 'Phone' : '연락처',
+    quoteNo: lang === 'en' ? 'Quote No.' : '견적번호',
+    contact: lang === 'en' ? 'Contact' : '담당자',
+    email: lang === 'en' ? 'Email' : '이메일',
+    quoteDate: lang === 'en' ? 'Quote Date' : '견적일자',
+    greeting: lang === 'en'
+      ? 'We are pleased to submit this quotation under the following trade terms.'
+      : '아래의 거래 조건과 같이 견적서를 송부하오니 업무에 참조하시기 바랍니다.',
+    deliveryLocation: lang === 'en' ? '1. Delivery Location' : '1. 납품장소',
+    deliveryDeadline: lang === 'en' ? '2. Delivery Deadline' : '2. 납품기한',
+    paymentTerms: lang === 'en' ? '3. Payment Terms' : '3. 결제조건',
+    validityPeriod: lang === 'en' ? '4. Validity Period' : '4. 유효기간',
+    packing: lang === 'en' ? '5. Packing' : '5. 포장',
+    unit: lang === 'en' ? '(Unit: KRW, VAT excluded)' : '(단위 : 원, 부가세 별도)',
+    product: lang === 'en' ? 'Product' : '제품명',
+    spec: lang === 'en' ? 'Specification' : '규격',
+    qty: lang === 'en' ? 'Qty' : '수량',
+    unitPrice: lang === 'en' ? 'Unit Price' : '단가',
+    amount: lang === 'en' ? 'Amount' : '금액',
+    total: lang === 'en' ? 'Total Quotation Amount (VAT incl.)' : '총 견적 금액(VAT포함)',
+    currency: lang === 'en' ? 'KRW' : '원',
+    notes: lang === 'en' ? 'Notes' : '비고',
+    cimon: lang === 'en' ? 'CIMON Co., Ltd.' : '(주) 싸이몬',
+    address: lang === 'en' ? '42, Changeop-ro, Sujeong-gu, Seongnam-si, Gyeonggi-do, Korea' : '경기도 성남시 수정구 창업로 42 (시흥동)',
+    author: lang === 'en' ? 'Author' : '작성자',
+  };
 
   const itemRows = items
     .map(
@@ -34,7 +64,7 @@ export function generateQuoteHtml(quote: Quote): string {
   const emptyRowHtml = `<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>`.repeat(emptyRows);
 
   return `<!DOCTYPE html>
-<html lang="ko">
+<html lang="${lang}">
 <head>
 <meta charset="UTF-8">
 <style>
@@ -80,44 +110,44 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 <body>
 <div class="wrap">
   <div class="title-row">
-    <div class="title">견 적 서</div>
+    <div class="title">${label.title}</div>
     <div class="logo">CIMON</div>
   </div>
 
   <table class="tbl">
     <tr>
-      <td class="lbl" style="width:14%">업체명</td>
+      <td class="lbl" style="width:14%">${label.company}</td>
       <td style="width:20%">${esc(client.company)}</td>
-      <td class="lbl" style="width:12%">연락처</td>
+      <td class="lbl" style="width:12%">${label.phone}</td>
       <td style="width:18%">${esc(client.phone)}</td>
-      <td class="lbl" style="width:12%">견적번호</td>
+      <td class="lbl" style="width:12%">${label.quoteNo}</td>
       <td class="qnum">${esc(quoteNumber)}</td>
     </tr>
     <tr>
-      <td class="lbl">담당자</td>
+      <td class="lbl">${label.contact}</td>
       <td>${esc(client.contact)}</td>
-      <td class="lbl">이메일</td>
+      <td class="lbl">${label.email}</td>
       <td>${esc(client.email)}</td>
-      <td class="lbl">견적일자</td>
+      <td class="lbl">${label.quoteDate}</td>
       <td>${esc(details.quoteDate)}</td>
     </tr>
   </table>
 
-  <p class="greeting">아래의 거래 조건과 같이 견적서를 송부하오니 업무에 참조하시기 바랍니다.</p>
+  <p class="greeting">${label.greeting}</p>
 
   <table class="tbl cond">
-    <tr><td class="lbl">1. 납품장소</td><td>${esc(details.deliveryLocation)}</td></tr>
-    <tr><td class="lbl">2. 납품기한</td><td>${esc(details.deliveryDeadline)}</td></tr>
-    <tr><td class="lbl">3. 결제조건</td><td>${esc(details.paymentTerms)}</td></tr>
-    <tr><td class="lbl">4. 유효기간</td><td>${esc(details.validityPeriod)}</td></tr>
-    <tr><td class="lbl">5. 포장</td><td>${esc(details.packing)}</td></tr>
+    <tr><td class="lbl">${label.deliveryLocation}</td><td>${esc(details.deliveryLocation)}</td></tr>
+    <tr><td class="lbl">${label.deliveryDeadline}</td><td>${esc(details.deliveryDeadline)}</td></tr>
+    <tr><td class="lbl">${label.paymentTerms}</td><td>${esc(details.paymentTerms)}</td></tr>
+    <tr><td class="lbl">${label.validityPeriod}</td><td>${esc(details.validityPeriod)}</td></tr>
+    <tr><td class="lbl">${label.packing}</td><td>${esc(details.packing)}</td></tr>
   </table>
 
-  <p class="unit">(단위 : 원, 부가세 별도)</p>
+  <p class="unit">${label.unit}</p>
 
   <table class="itbl">
     <thead>
-      <tr><th>NO.</th><th>제품명</th><th>규격</th><th>수량</th><th>단가</th><th>금액</th></tr>
+      <tr><th>NO.</th><th>${label.product}</th><th>${label.spec}</th><th>${label.qty}</th><th>${label.unitPrice}</th><th>${label.amount}</th></tr>
     </thead>
     <tbody>
       ${itemRows}
@@ -125,20 +155,20 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
     </tbody>
   </table>
 
-  <div class="total">총 견적 금액(VAT포함) : ${fmt(vatTotal)} 원</div>
+  <div class="total">${label.total} : ${fmt(vatTotal)} ${label.currency}</div>
 
-  <div class="note"><strong>비고:</strong> ${esc(details.notes ?? '')}</div>
+  <div class="note"><strong>${label.notes}:</strong> ${esc(details.notes ?? '')}</div>
 
   <div class="footer">
     <div class="co">
-      <div class="co-name">(주) 싸이몬</div>
-      <div>경기도 성남시 수정구 창업로 42 (시흥동)</div>
+      <div class="co-name">${label.cimon}</div>
+      <div>${label.address}</div>
       <div>TEL: 031-739-0600 / FAX: 031-739-0699</div>
     </div>
     <table class="atbl">
-      <tr><td class="lbl">작성자</td><td>${esc(author.name)}</td></tr>
-      <tr><td class="lbl">연락처</td><td>${esc(author.phone)}</td></tr>
-      <tr><td class="lbl">이메일</td><td>${esc(author.email)}</td></tr>
+      <tr><td class="lbl">${label.author}</td><td>${esc(author.name)}</td></tr>
+      <tr><td class="lbl">${label.phone}</td><td>${esc(author.phone)}</td></tr>
+      <tr><td class="lbl">${label.email}</td><td>${esc(author.email)}</td></tr>
     </table>
   </div>
 </div>

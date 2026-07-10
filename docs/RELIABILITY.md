@@ -14,14 +14,14 @@ GitHub (taeseockkim-pixel/product_selector)
 Vercel 빌드 (npm run build)
   │  빌드 성공 시
   ▼
-Vercel CDN 배포 (전 세계 엣지 노드) + api/quotes/* 서버리스 함수 배포
+Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 서버리스 함수 배포
 ```
 
 **배포 소요 시간**: ~1~2분 (정적 SPA 빌드)  
 **배포 실패 시**: 이전 배포 자동 유지 (Vercel 롤백)
 
-**참고**: `api/quotes/*`는 견적번호 발급만 담당하는 스텁이며, `server/` 폴더(Express, XLSX/PDF
-생성)는 Vercel 배포 대상이 아니다 — `npm run local`로 로컬에서만 구동된다. 자세한 구조는
+**참고**: 견적 저장/메일 초안 생성은 `api/google/quote`가 Google Workspace API를 직접 호출한다.
+`server/` 폴더의 `/api/local/*`(Express, XLSX/PDF 생성)는 Vercel 배포 대상이 아니다 — `npm run local`로 로컬에서만 구동된다. 자세한 구조는
 [ARCHITECTURE.md](../ARCHITECTURE.md#견적서-기능-아키텍처) 참조.
 
 ---
@@ -106,6 +106,7 @@ git push origin main
 npm run validate:specs          # catalog 비율 검사
 npm run check:spec-consistency  # 시리즈 내 스펙 일관성 (ERROR 0 목표)
 npm run check:i18n              # 영문 번역 누락 (0건 목표)
+npm run generate:quote-products # Product_Prise.xlsx 변경 시 견적 추가용 카탈로그 재생성
 npm run verify                  # 전체 통합 검증 (커밋 전 필수)
 npm run dev                     # 로컬 개발 서버
 npm run build                   # 프로덕션 빌드 확인
@@ -132,6 +133,12 @@ npm run build                   # 프로덕션 빌드 확인
 3. 브라우저 테스트: `npm run dev` → 전체 카테고리 클릭
 4. 커밋 & 푸시: Vercel 자동 배포
 
+`Quote_manage/기본자료/Product_Prise.xlsx` 기준 견적 품목/단가를 갱신할 때:
+
+1. `npm run generate:quote-products` 실행
+2. `src/data/quoteProductCatalog.ts` 변경 확인
+3. `npm run verify` 실행
+
 ---
 
 ## 장애 대응
@@ -149,6 +156,17 @@ npm run build                   # 프로덕션 빌드 확인
 
 ## 환경 변수
 
-제품 카탈로그는 정적 데이터이므로 환경 변수 불필요. `api/quotes/*` 서버리스 함수도 현재는
-견적번호 발급 스텁이라 별도 환경 변수를 사용하지 않는다. API를 실제 CRUD로 확장할 경우
-Vercel 환경 변수(`VITE_API_BASE_URL` 등) 도입을 검토한다.
+제품 카탈로그는 정적 데이터이므로 환경 변수 불필요. 견적서의 Google Workspace 저장/메일 기능은
+Vercel 및 로컬 실행 환경에 아래 환경변수가 필요하다.
+
+| 변수 | 용도 |
+|---|---|
+| `GOOGLE_CLIENT_EMAIL` | Google Cloud 서비스 계정 이메일 |
+| `GOOGLE_PRIVATE_KEY` | 서비스 계정 private key (`\n` 이스케이프 허용) |
+| `GOOGLE_DRIVE_ROOT_FOLDER_ID` | 연도별 견적 폴더를 만들 Google Drive 상위 폴더 ID |
+| `GOOGLE_QUOTE_TEMPLATE_ID` | 복사해서 채울 견적서 Google Sheets 템플릿 파일 ID |
+| `GOOGLE_IMPERSONATE_EMAIL` | 선택. Drive/Sheets 기본 위임 계정 또는 Gmail fallback 계정 |
+
+Gmail 초안 생성까지 사용하려면 Google Workspace 관리자 콘솔에서 서비스 계정에
+Domain-wide delegation을 허용하고 최소 범위로 `drive`, `spreadsheets`, `gmail.compose` 권한을
+부여해야 한다. Drive/Sheets만 사용할 경우 Gmail 초안 버튼은 권한 오류가 날 수 있다.

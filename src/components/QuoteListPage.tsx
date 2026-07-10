@@ -6,9 +6,28 @@ import { loadSummaries, loadQuote, deleteQuote } from '../utils/quoteStorage';
 import QuotePrintView from './QuotePrintView';
 
 function formatKRW(n: number) { return Math.round(n).toLocaleString('ko-KR'); }
+function formatMoney(n: number, lang: 'ko' | 'en') {
+  return lang === 'ko' ? `${formatKRW(n)} 원` : `${formatKRW(n)} KRW`;
+}
 function formatDate(iso: string) {
   const d = new Date(iso);
   return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+function uiText(entry: { ko: string; en: string }, lang: 'ko' | 'en', values: Record<string, string | number> = {}) {
+  let text = entry[lang];
+  for (const [key, value] of Object.entries(values)) {
+    text = text.split(`{${key}}`).join(String(value));
+  }
+  return text;
+}
+const AUTHOR_LABELS: Record<string, string> = {
+  '조규광 이사': 'Kyukwang Jo, Director',
+  '김태석 차장': 'Taeseock Kim, Deputy General Manager',
+  '정성택 차장': 'Seongtaek Jeong, Deputy General Manager',
+  '한진희 차장': 'Jinhee Han, Deputy General Manager',
+};
+function authorLabel(name: string, lang: 'ko' | 'en') {
+  return lang === 'en' ? (AUTHOR_LABELS[name] ?? name) : name;
 }
 
 interface Props {
@@ -42,11 +61,11 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
   function handleView(id: string) {
     const quote = loadQuote(id);
     if (quote) setPrintQuote(quote);
-    else alert('견적 데이터를 찾을 수 없습니다.');
+    else alert(t(UI.quoteDataMissing));
   }
 
   function handleDelete(id: string, quoteNumber: string) {
-    if (!confirm(`견적번호 ${quoteNumber}를 삭제하시겠습니까?`)) return;
+    if (!confirm(uiText(UI.quoteDeleteConfirm, lang, { quoteNumber }))) return;
     setDeletingId(id);
     deleteQuote(id);
     setQuotes((prev) => prev.filter((q) => q.id !== id));
@@ -73,7 +92,7 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
           </div>
           <div className="flex gap-2">
             <button onClick={loadQuotes} className="px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors">
-              새로고침
+              {t(UI.quoteRefresh)}
             </button>
             <button
               onClick={onNewQuote}
@@ -89,15 +108,15 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
 
         {loading && (
           <div className="bg-[#f0ede8] rounded-xl border border-[#ddd9d2] p-16 text-center">
-            <p className="text-[#999999] text-sm">견적 목록을 불러오는 중...</p>
+            <p className="text-[#999999] text-sm">{t(UI.quoteListLoading)}</p>
           </div>
         )}
 
         {error && (
           <div className="bg-red-50 rounded-xl border border-red-200 p-8 text-center">
-            <p className="text-red-600 text-sm font-medium mb-2">데이터를 불러올 수 없습니다</p>
+            <p className="text-red-600 text-sm font-medium mb-2">{t(UI.quoteLoadErrorTitle)}</p>
             <p className="text-red-400 text-xs">{error}</p>
-            <p className="text-[#999999] text-xs mt-3">Vercel Blob 스토어가 설정되지 않았을 수 있습니다. BLOB_READ_WRITE_TOKEN 환경변수를 확인하세요.</p>
+            <p className="text-[#999999] text-xs mt-3">{t(UI.quoteLoadErrorHelp)}</p>
           </div>
         )}
 
@@ -115,15 +134,15 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
             <table className="w-full text-sm">
               <thead className="bg-[#f0ede8]">
                 <tr>
-                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs">견적번호</th>
-                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs w-24">날짜</th>
-                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs">업체명</th>
-                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs w-24">담당자</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs">{t(UI.quoteNumber)}</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs w-24">{t(UI.quoteDate)}</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs">{t(UI.quoteCompany)}</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs w-24">{t(UI.quoteContact)}</th>
                   <th className="text-right px-4 py-3 font-semibold text-[#555555] text-xs w-32">
-                    {lang === 'ko' ? '견적금액(VAT포함)' : 'Total (VAT)'}
+                    {t(UI.quoteListAmount)}
                   </th>
-                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs w-24">작성자</th>
-                  <th className="text-center px-4 py-3 font-semibold text-[#555555] text-xs w-28">액션</th>
+                  <th className="text-left px-4 py-3 font-semibold text-[#555555] text-xs w-24">{t(UI.quoteAuthor)}</th>
+                  <th className="text-center px-4 py-3 font-semibold text-[#555555] text-xs w-28">{t(UI.quoteAction)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -133,8 +152,8 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
                     <td className="px-4 py-3 text-[#555555] text-xs">{formatDate(q.createdAt)}</td>
                     <td className="px-4 py-3 font-medium text-[#191919]">{q.clientCompany}</td>
                     <td className="px-4 py-3 text-[#555555]">{q.clientContact}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-[#191919]">{formatKRW(q.vatTotal)} 원</td>
-                    <td className="px-4 py-3 text-[#555555] text-xs">{q.authorName}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-[#191919]">{formatMoney(q.vatTotal, lang)}</td>
+                    <td className="px-4 py-3 text-[#555555] text-xs">{authorLabel(q.authorName, lang)}</td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <button

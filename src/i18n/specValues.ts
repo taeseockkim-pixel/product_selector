@@ -22,6 +22,9 @@ const TOKENS: [RegExp, string][] = [
   [/최대 (\d+)개 베이스 지원/g,              'Max. $1 bases'],
   [/증설 통신 전용 : /g,                     'Ext. comm. only: '],
   [/증설 통신 전용: /g,                      'Ext. comm. only: '],
+  [/이중화 증설지원/g,                       'Redundancy extension supported'],
+  [/증설가능/g,                              'extension available'],
+  [/증설지원/g,                              'extension supported'],
   [/증설/g,                                  'ext.'],
 
   // ── XPANEL / IPC 블록·축 구조 ───────────────────────────────
@@ -34,6 +37,7 @@ const TOKENS: [RegExp, string][] = [
   [/1상 입력/g,                             'single-phase input'],
   [/2상 입력/g,                             '2-phase input'],
   [/Up\/Down Preset 카운터/g,               'Up/Down Preset counter'],
+  [/링구조/g,                                'Ring topology'],
   [/링 카운터/g,                            'ring counter'],
   [/릴레이/g,                               'relay'],
   [/겸용/g,                                 'compatible'],
@@ -124,6 +128,21 @@ const TOKENS: [RegExp, string][] = [
   [/프로토콜 프로그램/g,                    'protocol program'],
   [/데이터 동기화/g,                        'data synchronization'],
   [/전원 모니터링/g,                        'power monitoring'],
+
+  // ── 견적 카탈로그 구분/모듈명 ────────────────────────────────
+  [/I\/O Digital 모듈/g,                    'Digital I/O Module'],
+  [/I\/O Analog 모듈/g,                     'Analog I/O Module'],
+  [/CPU 모듈/g,                             'CPU Module'],
+  [/전원 모듈/g,                             'Power Module'],
+  [/베이스 모듈/g,                           'Base Module'],
+  [/증설 모듈/g,                             'Extension Module'],
+  [/특수 모듈/g,                             'Special Module'],
+  [/통신 모듈/g,                             'Communication Module'],
+  [/베이스의 빈 슬롯 마감 용/g,             'for blank slot cover on base'],
+  [/시리즈 베이스 전체/g,                   'series all bases'],
+  [/전원/g,                                 'power'],
+  [/베이스/g,                               'base'],
+  [/리모트/g,                               'remote'],
 
   // ── 전압/전류 ─────────────────────────────────────────────────
   [/전압:/g,                                'Voltage:'],
