@@ -1,5 +1,9 @@
 # ARCHITECTURE.md — 시스템 구조
 
+> 견적 목록은 Apps Script의 `getQuoteLedgerFromReact()`를 통해 현재 연도 Google Sheet
+> `견적관리대장`의 표시값, 열 순서, 파일 링크를 그대로 조회하는 읽기 전용 화면이다.
+> 브라우저 `localStorage`는 견적 목록의 원천으로 사용하지 않는다.
+
 ## 개요
 
 제품 카탈로그(PLC/IPC/SCADA/XPANEL)는 순수 정적 SPA — 모든 데이터가 빌드 시 번들에 포함된다.

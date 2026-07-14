@@ -1,5 +1,8 @@
 # FRONTEND.md — 프론트엔드 개발 가이드
 
+> `QuoteListPage.tsx`는 Apps Script wrapper에 `LOAD_QUOTE_LEDGER` 메시지를 보내고,
+> Google Sheet의 헤더·행·파일 링크를 동적으로 표시한다. 고정 열이나 보기/삭제 액션을 두지 않는다.
+
 ## 스택
 
 | 기술 | 버전 | 용도 |

@@ -53,7 +53,31 @@
       if (event.origin !== appOrigin) return;
 
       const message = event.data || {};
-      if (message.source !== 'cimon-quote-app' || message.type !== 'PROCESS_QUOTE') return;
+      if (message.source !== 'cimon-quote-app') return;
+
+      if (message.type === 'LOAD_QUOTE_LEDGER') {
+        google.script.run
+          .withSuccessHandler((result) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'LOAD_QUOTE_LEDGER_RESULT',
+              requestId: message.requestId,
+              result,
+            }, appOrigin);
+          })
+          .withFailureHandler((error) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'LOAD_QUOTE_LEDGER_RESULT',
+              requestId: message.requestId,
+              error: String(error),
+            }, appOrigin);
+          })
+          .getQuoteLedgerFromReact();
+        return;
+      }
+
+      if (message.type !== 'PROCESS_QUOTE') return;
 
       google.script.run
         .withSuccessHandler((result) => {
@@ -77,4 +101,3 @@
   </script>
 </body>
 </html>
-

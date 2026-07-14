@@ -24,3 +24,27 @@ function processQuoteFromReact(payload) {
   );
 }
 
+function getQuoteLedgerFromReact() {
+  const system = getYearSystem(new Date().getFullYear());
+  const sheet = system.ledgerSheet;
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+
+  if (lastRow < 1 || lastColumn < 1) {
+    return { success: true, headers: [], rows: [] };
+  }
+
+  const range = sheet.getRange(1, 1, lastRow, lastColumn);
+  const displayValues = range.getDisplayValues();
+  const richTextValues = range.getRichTextValues();
+  const headers = displayValues[0];
+  const rows = displayValues.slice(1).map((values, rowIndex) => ({
+    values: values,
+    links: values.map((_, columnIndex) => {
+      const richText = richTextValues[rowIndex + 1][columnIndex];
+      return richText ? richText.getLinkUrl() : null;
+    })
+  }));
+
+  return { success: true, headers: headers, rows: rows };
+}
