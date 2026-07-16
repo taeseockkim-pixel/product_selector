@@ -118,6 +118,7 @@ quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록
 - **api/quotes/**: Vercel 서버리스 함수지만 견적번호(`기술영업 YYMM-NNN`) 발급 외 실질적인
   저장/조회 로직은 없는 스텁 상태.
 - **Apps Script 반영 파일**: `appscript/Index.wrapper.html` 내용을 Apps Script의 `Index.html`에 반영하고, `appscript/wrapper-code.patch.gs`의 `doGet`/`processQuoteFromReact`를 `Code.gs`에 반영한 뒤 새 버전으로 Web App을 배포한다. Vercel API fallback을 직접 쓸 때만 `APPS_SCRIPT_WEB_APP_URL`이 필요하다.
+- **견적관리대장 기록**: 날짜는 `연도 / 월 / 일`로 나누어 저장한다. 제품 항목은 전체 견적 품목을 기준으로 제품군을 정규화하며, 여러 제품군은 `PLC, TOUCH`처럼 쉼표로 함께 기록하고 NET/RIO는 PLC에 포함한다.
 
 ---
 

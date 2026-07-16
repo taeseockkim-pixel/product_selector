@@ -4958,6 +4958,24 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       }
     ]
+  },
+  {
+    "sheet": "TOUCH MONITOR",
+    "items": [
+      {
+        "id": "TOUCH MONITOR:CM-IM15W-D#1",
+        "sheet": "TOUCH MONITOR",
+        "categoryLabel": "TOUCH MONITOR - TOUCH Monitor",
+        "name": "CM-IM15W-D",
+        "spec": "TOUCH MONITOR",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 575000
+          }
+        ]
+      }
+    ]
   }
 ];
 
@@ -4978,7 +4996,7 @@ export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined
 
 export const QUOTE_PRODUCT_CATALOG_META = {
   source: 'Quote_manage/기본자료/Product_Prise.xlsx',
-  generatedAt: '2026-07-10T02:54:14.322Z',
-  groupCount: 14,
-  itemCount: 340,
+  generatedAt: '2026-07-16T00:34:47.423Z',
+  groupCount: 15,
+  itemCount: 341,
 } as const;

@@ -6,6 +6,21 @@ export function generateQuoteCsv(quote) {
   const d = new Date(createdAt);
   const year = d.getFullYear();
   const month = d.getMonth() + 1;
+  const dateNumbers = String(details.quoteDate ?? '').match(/\d+/g)?.map(Number) ?? [];
+  const day = dateNumbers.length >= 3 ? dateNumbers[2] : d.getDate();
+
+  const categoryRules = [
+    ['SCADA PRO', /SCADA\s*PRO/i], ['SCADA', /SCADA/i],
+    ['TOUCH MONITOR', /TOUCH\s*MONITOR/i], ['BOX PC', /BOX\s*PC|\bNB\d/i],
+    ['Hybird', /HYBRID|HYBIRD/i], ['Accessory', /ACCESSORY|ACCESSARY|액세서리/i],
+    ['eXT', /\beXT\d*\b/i], ['XPANEL', /XPANEL/i],
+    ['PLC', /\bPLC\b|\bCM[013]\b|NET\/RIO|CIMON-NET|REMOTE\s*IO|\bRIO\b/i],
+    ['TOUCH', /TOUCH|50000_70000|5000SERIES|500SERIES|\biN[TP]\d/i],
+  ];
+  const productCategories = [...new Set(items.map((item) => {
+    const source = `${item.type ?? ''} ${item.name ?? ''}`;
+    return categoryRules.find(([, pattern]) => pattern.test(source))?.[0];
+  }).filter(Boolean))].join(', ');
 
   const productSummary = items.length > 1
     ? `${items[0].name} 외 ${items.length - 1}건`
@@ -18,6 +33,7 @@ export function generateQuoteCsv(quote) {
   rows.push(['견적번호', quoteNumber]);
   rows.push(['년도', year]);
   rows.push(['월', month]);
+  rows.push(['일', day]);
   rows.push(['견적일자', details.quoteDate]);
   rows.push([]);
   rows.push(['[고객 정보]']);
@@ -58,8 +74,8 @@ export function generateQuoteCsv(quote) {
 
   // ── 견적관리대장 형식 (하단) ──
   rows.push(['[견적관리대장]']);
-  rows.push(['NO', '년도', '월', '견적번호', '업체명', '고객명', '연락처', '이메일', '제품항목', '제품명', '견적금액', '비고']);
-  rows.push([1, year, month, quoteNumber, client.company, client.contact, client.phone, client.email, items[0]?.type ?? '', productSummary, vatTotal, details.notes ?? '']);
+  rows.push(['NO', '년도', '월', '일', '견적번호', '업체명', '고객명', '연락처', '이메일', '제품항목', '제품명', '견적금액', '비고']);
+  rows.push([1, year, month, day, quoteNumber, client.company, client.contact, client.phone, client.email, productCategories, productSummary, vatTotal, details.notes ?? '']);
 
   return rows.map(row => row.map(cell => csvCell(cell)).join(',')).join('\r\n');
 }

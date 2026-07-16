@@ -189,6 +189,8 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
 - Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략된다. Apps Script wrapper 안에서 실행되는 Vercel 앱은 `postMessage` 브릿지로 저장 요청을 전달하고, wrapper 밖에서 직접 실행될 때만 `/api/google/quote` fallback을 사용한다.
 
 Apps Script 반영 파일:
+
+견적관리대장의 날짜 열은 `연도`, `월`, `일` 순서이며 제품 항목 열은 전체 품목의 제품군을 중복 없이 쉼표로 결합한다. NET/RIO는 `PLC`로 정규화한다. 로컬 `server/updateLedger.js`와 CSV 내보내기도 같은 규칙을 사용한다.
 - `appscript/Index.wrapper.html`
 - `appscript/wrapper-code.patch.gs`
 - `api/quotes/*`는 이름과 달리 실질적인 서버 측 CRUD를 수행하지 않는 스텁 상태다.

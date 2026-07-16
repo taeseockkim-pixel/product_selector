@@ -162,6 +162,9 @@ npm run build                   # 프로덕션 빌드 확인
 |---|---|
 | `appscript/Index.wrapper.html` | Apps Script `Index.html`에 반영할 wrapper 화면 |
 | `appscript/wrapper-code.patch.gs` | Apps Script `Code.gs`에 반영할 `doGet` 및 브릿지 함수 |
+| `APPS_SCRIPT_Code_gs_전체교체코드.txt` | 견적관리대장 `일` 열 및 제품군 정규화가 포함된 운영용 `Code.gs` 전체 코드 |
 | `APPS_SCRIPT_WEB_APP_URL` | 선택. Vercel 앱을 wrapper 밖에서 직접 열어 `/api/google/quote` fallback을 사용할 때만 필요 |
 
 Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배포할 수 있다. 사용자가 Apps Script URL로 접속하면 CIMON 로그인 세션 안에서 `google.script.run`이 실행되므로 Vercel 서버가 Apps Script를 직접 호출하지 않는다.
+
+견적관리대장 열을 변경할 때는 `getNextQuoteNumber()`의 견적번호 열 인덱스와 `saveToLedgerSheet()`의 행 배열을 함께 수정한다. 현재 열 순서는 `NO, 연도, 월, 일, 견적번호, ...`이며 견적번호는 5열이다.

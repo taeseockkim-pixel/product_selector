@@ -97,7 +97,7 @@ function normalizeSectionLabel(sheetName, sectionLabel) {
   return `${prefix} - ${section}`;
 }
 
-function findHeader(row, columnCount) {
+function findHeader(row, columnCount, sheetName) {
   let nameCol = 0;
   let qtyCol = 0;
   const specCols = [];
@@ -106,9 +106,9 @@ function findHeader(row, columnCount) {
 
   for (let c = 1; c <= columnCount; c++) {
     const text = cellText(row.getCell(c));
-    if (!nameCol && NAME_HEADERS.has(text)) nameCol = c;
+    if (!nameCol && (NAME_HEADERS.has(text) || (sheetName === 'TOUCH MONITOR' && text === '제품명'))) nameCol = c;
     if (text === '주문수량') qtyCol = c;
-    if (SPEC_HEADERS.has(text) && !specCols.includes(c)) specCols.push(c);
+    if ((SPEC_HEADERS.has(text) || (sheetName === 'TOUCH MONITOR' && text === 'Size')) && !specCols.includes(c)) specCols.push(c);
     if (text === '단가') unitPriceCols.push({ col: c, minQty: 1 });
     const tier = text.match(/^단가-\s*(\d+)대$/);
     if (tier) unitPriceCols.push({ col: c, minQty: Number(tier[1]) });
@@ -136,7 +136,7 @@ function buildTieredItems(workbook) {
         continue;
       }
 
-      const nextHeader = findHeader(row, sheet.columnCount);
+      const nextHeader = findHeader(row, sheet.columnCount, sheet.name.trim());
       if (nextHeader) {
         header = nextHeader;
         continue;
