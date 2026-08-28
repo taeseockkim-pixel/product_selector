@@ -80,6 +80,7 @@ export const UI = {
   quoteAuthorRequired: t('선택한 작성자의 작성자명, 연락처, 이메일을 입력해주세요.', 'Please enter the author name, phone, and email.'),
   quoteAuthorsLoading: t('작성자 목록 불러오는 중...', 'Loading author list...'),
   quoteAuthorsLoadFailed: t('작성자 목록을 불러오지 못했습니다. 아래에 작성자 정보를 직접 입력해 주세요.', 'Failed to load the author list. Please enter the author information below.'),
+  quoteAccessDenied: t('견적 관리 기능에 접근 권한이 없습니다.\n사용 중인 Google 계정이 작성자 목록에 등록되어 있지 않습니다.\n페이지 관리자에게 권한을 요청해 주세요.', 'You do not have access to the quote management features.\nThe current Google account is not registered in the author list.\nPlease request access from the page administrator.'),
   quoteProcessing:  t('견적서 생성 중...', 'Generating quote...'),
   quoteListTitle:   t('견적 목록 (대장)', 'Quote List'),
   quoteListEmpty:   t('저장된 견적이 없습니다.', 'No saved quotes.'),

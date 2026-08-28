@@ -16,6 +16,13 @@ export interface QuoteClient {
   email: string;
 }
 
+export interface AuthorInfo {
+  name: string;
+  phone: string;
+  email: string;
+  department: string;
+}
+
 export interface QuoteAuthor {
   name: string;
   phone: string;

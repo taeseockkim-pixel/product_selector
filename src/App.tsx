@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { CategoryId, FilterValues, PlcSeriesId, Product } from './types';
+import type { AuthorInfo } from './types/quote';
 import { PRODUCTS } from './data/products';
 import { getCategoryConfig } from './config/filterConfig';
 import { PLC_TREE, getDefaultSubType } from './config/plcTreeConfig';
@@ -11,6 +12,7 @@ import ComparePage from './components/ComparePage';
 import QuoteFormPage from './components/QuoteFormPage';
 import QuoteListPage from './components/QuoteListPage';
 import SearchOverlay from './components/SearchOverlay';
+import { checkQuoteAccess } from './utils/appsScriptBridge';
 import 'flag-icons/css/flag-icons.min.css';
 import SpecModal from './components/SpecModal';
 import { LangProvider, useLang, useT } from './context/LangContext';
@@ -123,6 +125,51 @@ function AppInner() {
   const [filters, setFilters] = useState<FilterValues>(
     urlState.current.cat !== 'PLC' ? urlState.current.filters : {},
   );
+
+  // ── 견적 기능 접근 권한 (작성자 DB 시트 등록 계정만 사용 가능) ──
+  const [authAuthor, setAuthAuthor] = useState<AuthorInfo | null>(null);
+  const authEmailRef = useRef('');
+  const accessCheckRef = useRef<Promise<'authorized' | 'denied'> | null>(null);
+
+  function requestQuoteAccessCheck(): Promise<'authorized' | 'denied'> {
+    if (!accessCheckRef.current) {
+      accessCheckRef.current = checkQuoteAccess()
+        .then((result) => {
+          if (result.success && result.authorized && result.author) {
+            setAuthAuthor(result.author);
+            return 'authorized' as const;
+          }
+          authEmailRef.current = result.email ?? '';
+          return 'denied' as const;
+        })
+        .catch((err) => {
+          console.warn('견적 권한 확인 실패:', err);
+          return 'denied' as const;
+        });
+    }
+    return accessCheckRef.current;
+  }
+
+  useEffect(() => { void requestQuoteAccessCheck(); }, []);
+
+  /** 견적 페이지 진입 전 권한 확인. 미등록 계정이면 팝업을 띄우고 false를 반환한다. */
+  async function ensureQuoteAccess(): Promise<boolean> {
+    const status = await requestQuoteAccessCheck();
+    if (status === 'authorized') return true;
+    const emailLine = authEmailRef.current
+      ? (lang === 'ko' ? `\n\n계정: ${authEmailRef.current}` : `\n\nAccount: ${authEmailRef.current}`)
+      : '';
+    alert(t(UI.quoteAccessDenied) + emailLine);
+    return false;
+  }
+
+  async function handleQuoteListClick() {
+    if (await ensureQuoteAccess()) setViewMode('quotelist');
+  }
+
+  async function handleGoToQuoteCreate() {
+    if (await ensureQuoteAccess()) setViewMode('quotecreate');
+  }
 
   // 헤더+탭 높이를 동적으로 측정 → 사이드바 sticky top/height 계산
   useEffect(() => {
@@ -241,7 +288,7 @@ function AppInner() {
     onSearchClick: () => setSearchOpen(true),
     onCopyLink: handleCopyLink,
     onReset: handleReset,
-    onQuoteListClick: () => setViewMode('quotelist'),
+    onQuoteListClick: () => { void handleQuoteListClick(); },
     viewMode,
   };
 
@@ -253,6 +300,7 @@ function AppInner() {
           cartProducts={PRODUCTS.filter((p) => cartList.includes(p.id))}
           onBack={() => setViewMode('cart')}
           onSuccess={() => setViewMode('quotelist')}
+          defaultAuthorName={authAuthor?.name}
         />
         {toast && <Toast msg={toast} />}
       </div>
@@ -265,7 +313,7 @@ function AppInner() {
         <div className="sticky top-0 z-50"><AppHeader {...headerProps} /></div>
         <QuoteListPage
           onBack={() => setViewMode('main')}
-          onNewQuote={() => setViewMode('quotecreate')}
+          onNewQuote={handleGoToQuoteCreate}
         />
         {toast && <Toast msg={toast} />}
       </div>
@@ -282,7 +330,7 @@ function AppInner() {
           cartList={cartList} products={PRODUCTS}
           onRemove={handleCartToggle} onClear={() => setCartList([])}
           onBack={() => setViewMode('main')}
-          onGoToQuote={() => setViewMode('quotecreate')}
+          onGoToQuote={handleGoToQuoteCreate}
         />
         {toast && <Toast msg={toast} />}
       </div>

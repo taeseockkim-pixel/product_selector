@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, type DragEvent } from 'react';
 import type { Product } from '../types';
-import type { Quote, QuoteItem } from '../types/quote';
+import type { Quote, QuoteItem, AuthorInfo } from '../types/quote';
 import { useT, useLang, type Lang } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import { translateSpecValue } from '../i18n/specValues';
@@ -13,15 +13,13 @@ import {
   type QuoteCatalogItem,
 } from '../data/quoteProductCatalog';
 import { getSeq, saveQuote } from '../utils/quoteStorage';
+import {
+  fetchAuthors,
+  type QuoteProcessResult,
+  type AppsScriptBridgeResponse,
+} from '../utils/appsScriptBridge';
 import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
-
-export interface AuthorInfo {
-  name: string;
-  phone: string;
-  email: string;
-  department: string;
-}
 
 const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
 const AUTHOR_LABELS: Record<string, string> = {
@@ -86,6 +84,8 @@ interface Props {
   cartProducts: Product[];
   onBack: () => void;
   onSuccess: () => void;
+  /** 접속 계정과 매칭된 작성자 이름 — 권한 확인(App.tsx) 결과로 전달되면 자동 선택된다 */
+  defaultAuthorName?: string;
 }
 
 interface AppsScriptPayload {
@@ -119,59 +119,6 @@ interface AppsScriptPayload {
   createDraft: boolean;
   customSubject: string;
   customBody: string;
-}
-
-interface QuoteProcessResult {
-  success: boolean;
-  message?: string;
-  newQuoteNumber?: string;
-  folderUrl?: string;
-  pdfUrl?: string;
-  sheetUrl?: string;
-  url?: string;
-}
-
-interface AuthorListResult {
-  success: boolean;
-  authors?: AuthorInfo[];
-  message?: string;
-}
-
-interface AppsScriptBridgeResponse {
-  source?: string;
-  type?: string;
-  requestId?: string;
-  result?: QuoteProcessResult;
-  error?: string;
-}
-
-interface AuthorBridgeResponse {
-  source?: string;
-  type?: string;
-  requestId?: string;
-  result?: AuthorListResult;
-  error?: string;
-}
-
-declare global {
-  interface Window {
-    google?: {
-      script?: {
-        run?: {
-          withSuccessHandler(handler: (result: QuoteProcessResult) => void): {
-            withFailureHandler: (handler: (error: unknown) => void) => {
-              processQuoteFromReact: (payload: AppsScriptPayload) => void;
-            };
-          };
-          withSuccessHandler(handler: (result: AuthorListResult) => void): {
-            withFailureHandler: (handler: (error: unknown) => void) => {
-              getAuthorsFromReact: () => void;
-            };
-          };
-        };
-      };
-    };
-  }
 }
 
 function createKey(prefix: string) {
@@ -331,57 +278,11 @@ function processQuoteViaGoogleScript(payload: AppsScriptPayload): Promise<QuoteP
   });
 }
 
-function loadAuthorsViaParentBridge(): Promise<AuthorListResult> {
-  return new Promise((resolve, reject) => {
-    const requestId = `authors-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const timer = window.setTimeout(() => {
-      window.removeEventListener('message', handleMessage);
-      reject(new Error('작성자 목록 응답 시간이 초과되었습니다.'));
-    }, 15000);
-
-    function handleMessage(event: MessageEvent<AuthorBridgeResponse>) {
-      const data = event.data;
-      if (data?.source !== 'cimon-appscript-bridge' || data.type !== 'LOAD_AUTHORS_RESULT' || data.requestId !== requestId) {
-        return;
-      }
-      window.clearTimeout(timer);
-      window.removeEventListener('message', handleMessage);
-      if (data.error) reject(new Error(data.error));
-      else resolve(data.result ?? { success: false, message: '작성자 목록 응답이 비어 있습니다.' });
-    }
-
-    window.addEventListener('message', handleMessage);
-    window.parent.postMessage(
-      { source: 'cimon-quote-app', type: 'LOAD_AUTHORS', requestId },
-      '*',
-    );
-  });
-}
-
-function loadAuthorsViaGoogleScript(): Promise<AuthorListResult> {
-  return new Promise((resolve, reject) => {
-    const runner = window.google?.script?.run;
-    if (!runner) {
-      reject(new Error('google.script.run을 사용할 수 없습니다.'));
-      return;
-    }
-    runner
-      .withSuccessHandler(resolve)
-      .withFailureHandler((error) => reject(new Error(String(error))))
-      .getAuthorsFromReact();
-  });
-}
-
 /** 작성자 DB 시트에서 작성자 목록을 읽어온다. 실패 시 빈 배열을 반환한다. */
 async function loadAuthors(): Promise<AuthorInfo[]> {
   try {
-    let result: AuthorListResult | null = null;
-    if (window.parent && window.parent !== window) {
-      result = await loadAuthorsViaParentBridge();
-    } else if (window.google?.script?.run) {
-      result = await loadAuthorsViaGoogleScript();
-    }
-    if (result?.success && result.authors?.length) return result.authors;
+    const result = await fetchAuthors();
+    if (result.success && result.authors?.length) return result.authors;
   } catch (err) {
     console.warn('작성자 목록 조회 실패:', err);
   }
@@ -431,7 +332,7 @@ function findProductForItem(item: ItemRow): Product | null {
   return null;
 }
 
-export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props) {
+export default function QuoteFormPage({ cartProducts, onBack, onSuccess, defaultAuthorName }: Props) {
   const t = useT();
   const { lang } = useLang();
 
@@ -444,7 +345,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const [contact, setContact] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [author, setAuthor] = useState('');
+  const [author, setAuthor] = useState(defaultAuthorName ?? '');
   const [authors, setAuthors] = useState<AuthorInfo[]>([]);
   const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customAuthorName, setCustomAuthorName] = useState('');
@@ -493,10 +394,14 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       if (cancelled) return;
       setAuthors(list);
       setAuthorsLoading(false);
-      setAuthor((current) => (list.some((a) => a.name === current) ? current : (list[0]?.name ?? '')));
+      setAuthor((current) => {
+        if (current && list.some((a) => a.name === current)) return current;
+        if (defaultAuthorName && list.some((a) => a.name === defaultAuthorName)) return defaultAuthorName;
+        return list[0]?.name ?? '';
+      });
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [defaultAuthorName]);
   const selectedGroup = QUOTE_PRODUCT_CATALOG.find((group) => group.sheet === selectedSheet) ?? firstCatalogGroup;
   const selectedCatalogItem =
     selectedGroup?.items.find((item) => item.id === selectedProductId) ?? selectedGroup?.items[0] ?? null;
