@@ -16,13 +16,13 @@ import { getSeq, saveQuote } from '../utils/quoteStorage';
 import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
 
-const OTHER_AUTHOR = '기타';
+const PROJECT_AUTHOR = '프로젝트사업실';
 const AUTHOR_DB: Record<string, { phone: string; email: string }> = {
   '조규광 이사': { phone: '010-8884-2760', email: 'kyukwang.jo@cimon.com' },
   '김태석 차장': { phone: '010-5522-1403', email: 'taeseock.kim@cimon.com' },
   '정성택 차장': { phone: '010-3293-3351', email: 'seongtaek.jeong@cimon.com' },
   '한진희 차장': { phone: '010-2847-6335', email: 'jinhee.han@cimon.com' },
-  [OTHER_AUTHOR]: { phone: '', email: '' },
+  [PROJECT_AUTHOR]: { phone: '', email: '' },
 };
 
 const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
@@ -31,7 +31,7 @@ const AUTHOR_LABELS: Record<string, string> = {
   '김태석 차장': 'Taeseock Kim, Deputy General Manager',
   '정성택 차장': 'Seongtaek Jeong, Deputy General Manager',
   '한진희 차장': 'Jinhee Han, Deputy General Manager',
-  [OTHER_AUTHOR]: 'Other',
+  [PROJECT_AUTHOR]: 'Project Business Division',
 };
 
 function authorLabel(name: string, lang: Lang) {
@@ -107,6 +107,7 @@ interface AppsScriptPayload {
     authorName: string;
     authorPhone: string;
     authorEmail: string;
+    authorTeam: string;
   };
   items: Array<{
     type: string;
@@ -255,6 +256,7 @@ function quoteToAppsScriptPayload(quote: Quote, createDraft: boolean, subject = 
       authorName: quote.author.name,
       authorPhone: quote.author.phone,
       authorEmail: quote.author.email,
+      authorTeam: quote.author.authorTeam ?? '',
     },
     items: quote.items.map((item) => ({
       type: item.type,
@@ -517,10 +519,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   }
 
   const authorInfo = AUTHOR_DB[author];
-  const isOtherAuthor = author === OTHER_AUTHOR;
-  const resolvedAuthorName = isOtherAuthor ? customAuthorName.trim() : authorLabel(author, lang);
-  const resolvedAuthorPhone = isOtherAuthor ? customAuthorPhone.trim() : (authorInfo?.phone ?? '');
-  const resolvedAuthorEmail = isOtherAuthor ? customAuthorEmail.trim() : (authorInfo?.email ?? '');
+  const isProjectAuthor = author === PROJECT_AUTHOR;
+  const resolvedAuthorName = isProjectAuthor ? customAuthorName.trim() : authorLabel(author, lang);
+  const resolvedAuthorPhone = isProjectAuthor ? customAuthorPhone.trim() : (authorInfo?.phone ?? '');
+  const resolvedAuthorEmail = isProjectAuthor ? customAuthorEmail.trim() : (authorInfo?.email ?? '');
   const subtotal = items.reduce((sum, it) => sum + itemTotal(it.unitPrice, it.multiplier, it.qty), 0);
   const vatTotal = Math.round(subtotal * 1.1);
 
@@ -558,7 +560,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       vatTotal,
       authorName: resolvedAuthorName,
       client: { company, contact, phone, email },
-      author: { name: resolvedAuthorName, phone: resolvedAuthorPhone, email: resolvedAuthorEmail },
+      author: { name: resolvedAuthorName, phone: resolvedAuthorPhone, email: resolvedAuthorEmail, authorTeam: isProjectAuthor ? PROJECT_AUTHOR : undefined },
       details: { quoteDate: fmtDate(today, lang), deliveryLocation, deliveryDeadline, paymentTerms, validityPeriod, packing, notes },
       items: buildQuoteItems(),
       subtotal,
@@ -570,7 +572,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       alert(t(UI.quoteFieldRequired));
       return false;
     }
-    if (isOtherAuthor && (!customAuthorName.trim() || !customAuthorPhone.trim() || !customAuthorEmail.trim())) {
+    if (isProjectAuthor && (!customAuthorName.trim() || !customAuthorPhone.trim() || !customAuthorEmail.trim())) {
       alert(t(UI.quoteAuthorRequired));
       return false;
     }
@@ -818,7 +820,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                     {Object.keys(AUTHOR_DB).map((name) => <option key={name} value={name}>{authorLabel(name, lang)}</option>)}
                   </select>
                 </div>
-                {isOtherAuthor && (
+                {isProjectAuthor && (
                   <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
                     <div>
                       <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)} *</label>

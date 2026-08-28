@@ -20,6 +20,8 @@ export interface QuoteAuthor {
   name: string;
   phone: string;
   email: string;
+  /** 특정 팀(예: 프로젝트사업실) 소속 견적일 때만 설정. Apps Script가 이 값으로 Drive 저장 경로를 분기한다. */
+  authorTeam?: string;
 }
 
 export interface QuoteDetails {
