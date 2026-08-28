@@ -26,7 +26,7 @@ function toAppsScriptPayload(quote, options = {}) {
       authorName: quote.author?.name ?? quote.authorName ?? '',
       authorPhone: quote.author?.phone ?? '',
       authorEmail: quote.author?.email ?? '',
-      authorTeam: quote.author?.authorTeam ?? '',
+      authorDepartment: quote.author?.department ?? '',
     },
     items: (quote.items ?? []).map((item) => {
       const quantity = Number(item.quantity ?? 0);

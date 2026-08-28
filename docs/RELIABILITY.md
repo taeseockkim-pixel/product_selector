@@ -176,17 +176,17 @@ Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배�
 
 | 키 | 가리키는 대상 | 비고 |
 |---|---|---|
-| `ROOT_FOLDER_ID` | "견적서" 공유 드라이브 루트 | 공유 드라이브 ID는 `0A`로 시작 (일반 폴더 ID와 형식이 다름) |
-| `TEMPLATE_ID` | "견적서 샘플" 시트 (`CONFIG.ROOT_FOLDER_ID` 바로 아래) | 새 견적서 생성 시 `makeCopy()`로 복사 |
-| `LEDGER_TEMPLATE_ID` | "견적관리대장 샘플" 시트 (`CONFIG.ROOT_FOLDER_ID` 바로 아래) | 새 연도 폴더가 생성될 때만 `makeCopy()`로 복사, 탭 이름이 `LEDGER_SHEET_NAME`(`견적관리대장`)과 정확히 일치해야 함 |
-| `PROJECT_ROOT_FOLDER_ID` | "프로젝트사업실_견적관리" 공유 드라이브 루트 | 작성자가 `프로젝트사업실`일 때만 사용. 연도 폴더/대장/견적번호 시퀀스가 `ROOT_FOLDER_ID`와 완전히 독립적으로 관리됨 |
+| `DEPARTMENT_ROOTS` | 부서별 견적 저장 루트 폴더 (`기술영업`/`영업`/`프로젝트`) | 부서가 없거나 목록에 없으면 `DEFAULT_DEPARTMENT`(기술영업) 폴더 사용. 각 폴더 아래에 연도 폴더·대장·견적번호 시퀀스가 독립적으로 관리됨 |
+| `AUTHOR_DB_SHEET_ID` | 작성자 DB 스프레드시트 (`시트1`) | 열 구성: 작성자(또는 이름) / 연락처 / 이메일 / 부서. 프론트엔드 작성자 드롭다운이 이 시트에서 실시간으로 목록을 읽어옴 |
+| `TEMPLATE_ID` | "견적서 샘플" 시트 | 새 견적서 생성 시 `makeCopy()`로 복사 |
+| `LEDGER_TEMPLATE_ID` | "견적관리대장 샘플" 시트 | 새 연도 폴더가 생성될 때만 `makeCopy()`로 복사, 탭 이름이 `LEDGER_SHEET_NAME`(`견적관리대장`)과 정확히 일치해야 함 |
 
 이 값들이 실제 Drive 항목과 어긋나면 "입력한 ID에 해당하는 항목이 없습니다" 예외가 발생하며, 저장하기와 견적 목록 조회가 동시에 실패한다(`getYearSystem()`을 공통으로 거치기 때문). Code.gs를 전체 교체할 때는 이 ID들이 실제 Drive 구조와 일치하는지 반드시 재확인한다.
 
 견적관리대장 열을 변경할 때는 `getNextQuoteNumber()`의 견적번호 열 인덱스와 `saveToLedgerSheet()`의 행 배열을 함께 수정한다. 현재 열 순서는 `NO, 연도, 월, 일, 견적번호, ...`이며 견적번호는 5열이다.
 
-### 작성자별 Drive 경로 분기 (`resolveRootFolderId`)
+### 작성자 부서별 Drive 경로 분기 (`resolveRootFolderId`)
 
-프론트엔드에서 작성자를 `프로젝트사업실`로 선택하면 `QuoteAuthor.authorTeam` 필드에 `'프로젝트사업실'`이 실려 Apps Script로 전달된다. `Code.gs`의 `resolveRootFolderId(details)`가 이 값을 보고 `ROOT_FOLDER_ID` 대신 `PROJECT_ROOT_FOLDER_ID`를 반환하며, `processQuote()`는 이 값을 `getNextQuoteNumber()`/`getYearSystem()`에 그대로 넘긴다. 그 결과 폴더·대장·견적번호 시퀀스가 기존 담당자들과 완전히 분리된다(같은 "기술영업 YYMM-NNN" 형식이지만 각자 자기 대장 안에서만 카운트되므로, 두 시스템에 동일한 번호가 동시에 존재할 수 있다 — 의도된 동작).
+프론트엔드는 작성자 DB 시트에서 읽어온 목록으로 드롭다운을 채우고, 선택된 작성자의 부서를 `QuoteAuthor.department`에 담아 Apps Script로 보낸다. `Code.gs`의 `resolveRootFolderId(details)`가 이 값을 보고 `CONFIG.DEPARTMENT_ROOTS[부서]`를 반환하며, `processQuote()`는 이 값을 `getNextQuoteNumber()`/`getYearSystem()`에 그대로 넘긴다. 그 결과 부서별로 폴더·대장·견적번호 시퀀스가 완전히 분리된다(같은 "기술영업 YYMM-NNN" 형식이지만 각자 자기 대장 안에서만 카운트되므로, 부서 간 동일한 번호가 존재할 수 있다 — 의도된 동작).
 
-**알려진 제한**: `getQuoteLedgerFromReact()`(견적 목록 화면)는 아직 `ROOT_FOLDER_ID` 대장만 조회한다. 프로젝트사업실 견적은 목록 화면에 표시되지 않고 `PROJECT_ROOT_FOLDER_ID` 쪽 대장에서만 확인 가능하다.
+**알려진 제한**: `getQuoteLedgerFromReact()`(견적 목록 화면)는 기본 부서(`DEFAULT_DEPARTMENT`) 대장만 조회한다. 다른 부서의 견적은 목록 화면에 표시되지 않고 각 부서 폴더의 대장에서만 확인 가능하다.

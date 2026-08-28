@@ -81,6 +81,28 @@
         return;
       }
 
+      if (message.type === 'LOAD_AUTHORS') {
+        google.script.run
+          .withSuccessHandler((result) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'LOAD_AUTHORS_RESULT',
+              requestId: message.requestId,
+              result,
+            }, appOrigin);
+          })
+          .withFailureHandler((error) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'LOAD_AUTHORS_RESULT',
+              requestId: message.requestId,
+              error: String(error),
+            }, appOrigin);
+          })
+          .getAuthorsFromReact();
+        return;
+      }
+
       if (message.type !== 'PROCESS_QUOTE') return;
 
       google.script.run

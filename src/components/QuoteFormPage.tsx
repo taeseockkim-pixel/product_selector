@@ -16,14 +16,22 @@ import { getSeq, saveQuote } from '../utils/quoteStorage';
 import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
 
-const PROJECT_AUTHOR = '프로젝트사업실';
-const AUTHOR_DB: Record<string, { phone: string; email: string }> = {
-  '조규광 이사': { phone: '010-8884-2760', email: 'kyukwang.jo@cimon.com' },
-  '김태석 차장': { phone: '010-5522-1403', email: 'taeseock.kim@cimon.com' },
-  '정성택 차장': { phone: '010-3293-3351', email: 'seongtaek.jeong@cimon.com' },
-  '한진희 차장': { phone: '010-2847-6335', email: 'jinhee.han@cimon.com' },
-  [PROJECT_AUTHOR]: { phone: '', email: '' },
-};
+export interface AuthorInfo {
+  name: string;
+  phone: string;
+  email: string;
+  department: string;
+}
+
+// 작성자 DB 시트(Google Sheets) 연동 실패 시 사용하는 기본 목록.
+// 실제 운영에서는 Apps Script가 시트에서 목록을 읽어와 이 배열을 대체한다.
+const FALLBACK_AUTHORS: AuthorInfo[] = [
+  { name: '조규광 이사', phone: '010-8884-2760', email: 'kyukwang.jo@cimon.com', department: '기술영업' },
+  { name: '김태석 차장', phone: '010-5522-1403', email: 'taeseock.kim@cimon.com', department: '기술영업' },
+  { name: '정성택 차장', phone: '010-3293-3351', email: 'seongtaek.jeong@cimon.com', department: '기술영업' },
+  { name: '한진희 차장', phone: '010-2847-6335', email: 'jinhee.han@cimon.com', department: '기술영업' },
+  { name: '프로젝트사업실', phone: '', email: '', department: '프로젝트' },
+];
 
 const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
 const AUTHOR_LABELS: Record<string, string> = {
@@ -31,7 +39,7 @@ const AUTHOR_LABELS: Record<string, string> = {
   '김태석 차장': 'Taeseock Kim, Deputy General Manager',
   '정성택 차장': 'Seongtaek Jeong, Deputy General Manager',
   '한진희 차장': 'Jinhee Han, Deputy General Manager',
-  [PROJECT_AUTHOR]: 'Project Business Division',
+  '프로젝트사업실': 'Project Business Division',
 };
 
 function authorLabel(name: string, lang: Lang) {
@@ -107,7 +115,7 @@ interface AppsScriptPayload {
     authorName: string;
     authorPhone: string;
     authorEmail: string;
-    authorTeam: string;
+    authorDepartment: string;
   };
   items: Array<{
     type: string;
@@ -133,6 +141,12 @@ interface QuoteProcessResult {
   url?: string;
 }
 
+interface AuthorListResult {
+  success: boolean;
+  authors?: AuthorInfo[];
+  message?: string;
+}
+
 interface AppsScriptBridgeResponse {
   source?: string;
   type?: string;
@@ -141,14 +155,27 @@ interface AppsScriptBridgeResponse {
   error?: string;
 }
 
+interface AuthorBridgeResponse {
+  source?: string;
+  type?: string;
+  requestId?: string;
+  result?: AuthorListResult;
+  error?: string;
+}
+
 declare global {
   interface Window {
     google?: {
       script?: {
         run?: {
-          withSuccessHandler: (handler: (result: QuoteProcessResult) => void) => {
+          withSuccessHandler(handler: (result: QuoteProcessResult) => void): {
             withFailureHandler: (handler: (error: unknown) => void) => {
               processQuoteFromReact: (payload: AppsScriptPayload) => void;
+            };
+          };
+          withSuccessHandler(handler: (result: AuthorListResult) => void): {
+            withFailureHandler: (handler: (error: unknown) => void) => {
+              getAuthorsFromReact: () => void;
             };
           };
         };
@@ -256,7 +283,7 @@ function quoteToAppsScriptPayload(quote: Quote, createDraft: boolean, subject = 
       authorName: quote.author.name,
       authorPhone: quote.author.phone,
       authorEmail: quote.author.email,
-      authorTeam: quote.author.authorTeam ?? '',
+      authorDepartment: quote.author.department ?? '',
     },
     items: quote.items.map((item) => ({
       type: item.type,
@@ -312,6 +339,63 @@ function processQuoteViaGoogleScript(payload: AppsScriptPayload): Promise<QuoteP
       .withFailureHandler((error) => reject(new Error(String(error))))
       .processQuoteFromReact(payload);
   });
+}
+
+function loadAuthorsViaParentBridge(): Promise<AuthorListResult> {
+  return new Promise((resolve, reject) => {
+    const requestId = `authors-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const timer = window.setTimeout(() => {
+      window.removeEventListener('message', handleMessage);
+      reject(new Error('작성자 목록 응답 시간이 초과되었습니다.'));
+    }, 30000);
+
+    function handleMessage(event: MessageEvent<AuthorBridgeResponse>) {
+      const data = event.data;
+      if (data?.source !== 'cimon-appscript-bridge' || data.type !== 'LOAD_AUTHORS_RESULT' || data.requestId !== requestId) {
+        return;
+      }
+      window.clearTimeout(timer);
+      window.removeEventListener('message', handleMessage);
+      if (data.error) reject(new Error(data.error));
+      else resolve(data.result ?? { success: false, message: '작성자 목록 응답이 비어 있습니다.' });
+    }
+
+    window.addEventListener('message', handleMessage);
+    window.parent.postMessage(
+      { source: 'cimon-quote-app', type: 'LOAD_AUTHORS', requestId },
+      '*',
+    );
+  });
+}
+
+function loadAuthorsViaGoogleScript(): Promise<AuthorListResult> {
+  return new Promise((resolve, reject) => {
+    const runner = window.google?.script?.run;
+    if (!runner) {
+      reject(new Error('google.script.run을 사용할 수 없습니다.'));
+      return;
+    }
+    runner
+      .withSuccessHandler(resolve)
+      .withFailureHandler((error) => reject(new Error(String(error))))
+      .getAuthorsFromReact();
+  });
+}
+
+/** 작성자 DB 시트에서 작성자 목록을 읽어온다. 실패 시 FALLBACK_AUTHORS로 대체한다. */
+async function loadAuthors(): Promise<AuthorInfo[]> {
+  try {
+    let result: AuthorListResult | null = null;
+    if (window.parent && window.parent !== window) {
+      result = await loadAuthorsViaParentBridge();
+    } else if (window.google?.script?.run) {
+      result = await loadAuthorsViaGoogleScript();
+    }
+    if (result?.success && result.authors?.length) return result.authors;
+  } catch (err) {
+    console.warn('작성자 목록 조회 실패, 기본 목록 사용:', err);
+  }
+  return FALLBACK_AUTHORS;
 }
 
 async function processQuoteRequest(quote: Quote, createDraft: boolean, subject = '', body = ''): Promise<QuoteProcessResult> {
@@ -371,6 +455,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [author, setAuthor] = useState('김태석 차장');
+  const [authors, setAuthors] = useState<AuthorInfo[]>(FALLBACK_AUTHORS);
   const [customAuthorName, setCustomAuthorName] = useState('');
   const [customAuthorPhone, setCustomAuthorPhone] = useState('');
   const [customAuthorEmail, setCustomAuthorEmail] = useState('');
@@ -409,6 +494,15 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     setValidityPeriod((value) => (value === previous.validityPeriod ? next.validityPeriod : value));
     setPacking((value) => (value === previous.packing ? next.packing : value));
   }, [lang]);
+
+  // 마운트 시 작성자 DB 시트에서 작성자 목록을 읽어온다 (실패 시 FALLBACK_AUTHORS 유지)
+  useEffect(() => {
+    let cancelled = false;
+    loadAuthors().then((list) => {
+      if (!cancelled) setAuthors(list);
+    });
+    return () => { cancelled = true; };
+  }, []);
   const selectedGroup = QUOTE_PRODUCT_CATALOG.find((group) => group.sheet === selectedSheet) ?? firstCatalogGroup;
   const selectedCatalogItem =
     selectedGroup?.items.find((item) => item.id === selectedProductId) ?? selectedGroup?.items[0] ?? null;
@@ -518,11 +612,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     setItems((prev) => [...prev, itemFromCatalog(selectedCatalogItem, qty)]);
   }
 
-  const authorInfo = AUTHOR_DB[author];
-  const isProjectAuthor = author === PROJECT_AUTHOR;
-  const resolvedAuthorName = isProjectAuthor ? customAuthorName.trim() : authorLabel(author, lang);
-  const resolvedAuthorPhone = isProjectAuthor ? customAuthorPhone.trim() : (authorInfo?.phone ?? '');
-  const resolvedAuthorEmail = isProjectAuthor ? customAuthorEmail.trim() : (authorInfo?.email ?? '');
+  const selectedAuthor = authors.find((a) => a.name === author) ?? null;
+  // 시트에 연락처/이메일이 비어 있는 작성자는 수기 입력 필드를 표시한다.
+  const needsManualAuthor = !selectedAuthor || !selectedAuthor.phone.trim() || !selectedAuthor.email.trim();
+  const resolvedAuthorName = needsManualAuthor && customAuthorName.trim() ? customAuthorName.trim() : authorLabel(author, lang);
+  const resolvedAuthorPhone = needsManualAuthor ? customAuthorPhone.trim() : (selectedAuthor?.phone ?? '');
+  const resolvedAuthorEmail = needsManualAuthor ? customAuthorEmail.trim() : (selectedAuthor?.email ?? '');
+  const authorDepartment = selectedAuthor?.department ?? '';
   const subtotal = items.reduce((sum, it) => sum + itemTotal(it.unitPrice, it.multiplier, it.qty), 0);
   const vatTotal = Math.round(subtotal * 1.1);
 
@@ -560,7 +656,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       vatTotal,
       authorName: resolvedAuthorName,
       client: { company, contact, phone, email },
-      author: { name: resolvedAuthorName, phone: resolvedAuthorPhone, email: resolvedAuthorEmail, authorTeam: isProjectAuthor ? PROJECT_AUTHOR : undefined },
+      author: { name: resolvedAuthorName, phone: resolvedAuthorPhone, email: resolvedAuthorEmail, department: authorDepartment || undefined },
       details: { quoteDate: fmtDate(today, lang), deliveryLocation, deliveryDeadline, paymentTerms, validityPeriod, packing, notes },
       items: buildQuoteItems(),
       subtotal,
@@ -572,7 +668,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       alert(t(UI.quoteFieldRequired));
       return false;
     }
-    if (isProjectAuthor && (!customAuthorName.trim() || !customAuthorPhone.trim() || !customAuthorEmail.trim())) {
+    if (needsManualAuthor && (!customAuthorPhone.trim() || !customAuthorEmail.trim())) {
       alert(t(UI.quoteAuthorRequired));
       return false;
     }
@@ -817,17 +913,17 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                 <div>
                   <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)}</label>
                   <select value={author} onChange={(e) => setAuthor(e.target.value)} className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]">
-                    {Object.keys(AUTHOR_DB).map((name) => <option key={name} value={name}>{authorLabel(name, lang)}</option>)}
+                    {authors.map((a) => <option key={a.name} value={a.name}>{authorLabel(a.name, lang)}</option>)}
                   </select>
                 </div>
-                {isProjectAuthor && (
+                {needsManualAuthor && (
                   <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
                     <div>
-                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)} *</label>
+                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)}</label>
                       <input
                         value={customAuthorName}
                         onChange={(e) => setCustomAuthorName(e.target.value)}
-                        placeholder={t(UI.quoteAuthor)}
+                        placeholder={author}
                         className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
                       />
                     </div>

@@ -112,11 +112,13 @@ quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록
   `src/data/priceData.ts`의 `getUnitPrice()`가 수량 구간별 단가를 조회한다. 최종 품목 금액은
   `단가 × 배율 × 수량`으로 계산되며 배율 기본값은 `1`이다. 배율은 화면·미리보기에는 표시되지만
   Excel/PDF/CSV 등 고객용 출력물에는 열로 노출하지 않고 `단가 × 배율`을 유효 단가로만 기록한다.
-- **작성자 선택**: 고정 작성자 4명 외 `프로젝트사업실` 옵션이 있으며, 선택 시 작성자·연락처·이메일을
-  직접 입력한다. `QuoteAuthor.authorTeam`에 `'프로젝트사업실'`이 실려 Apps Script로 전달되면
-  `resolveRootFolderId()`가 `CONFIG.PROJECT_ROOT_FOLDER_ID`(별도 공유 드라이브)로 저장 경로를
-  분기한다 — 폴더·대장·견적번호 시퀀스가 기존 담당자들과 완전히 독립적이다. 견적 목록 화면은 아직
-  기존 `ROOT_FOLDER_ID` 대장만 조회하므로 프로젝트사업실 견적은 표시되지 않는다.
+- **작성자 선택**: 작성자 목록은 Apps Script가 작성자 DB 시트(`CONFIG.AUTHOR_DB_SHEET_ID`의
+  `시트1`, 열 구성: 작성자/연락처/이메일/부서)에서 실시간으로 읽어와 드롭다운에 표시한다.
+  이름 선택 시 연락처·이메일이 자동 매칭되며, 시트에 연락처/이메일이 비어 있는 작성자만 수기 입력
+  필드가 표시된다. `QuoteAuthor.department`에 부서가 실려 Apps Script로 전달되면
+  `resolveRootFolderId()`가 `CONFIG.DEPARTMENT_ROOTS[부서]` 폴더로 저장 경로를 분기한다 —
+  부서별로 연도 폴더·견적관리대장·견적번호 시퀀스가 완전히 독립적으로 관리된다. 견적 목록 화면은
+  기본 부서(`CONFIG.DEFAULT_DEPARTMENT`, 기술영업) 대장만 조회한다.
 - **인쇄**: `QuotePrintView.tsx` → `src/utils/quoteHtml.ts`로 HTML 생성 → iframe → 브라우저 인쇄.
 - **Google Workspace 연동**: Apps Script wrapper를 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Apps Script 접근 권한은 `CIMON의 모든 사용자`로 유지할 수 있다.
 - **로컬 전용 XLSX/PDF 자동 생성**: `server/` 폴더의 Express 서버는 `npm run local`로만 구동되며,

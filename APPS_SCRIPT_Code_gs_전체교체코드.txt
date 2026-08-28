@@ -9,9 +9,16 @@
 const CONFIG = {
   TEMPLATE_ID: '108TCen8xKlP__sBXtrjD1_TxVuA7_cp_Sq3B8wn1tPI',
   LEDGER_TEMPLATE_ID: '1owRRx6myeHtsbT2Xt6pxW4xS2THFYgLUDNAow9J6gjc',
-  ROOT_FOLDER_ID: '0AE8q_xkESwZgUk9PVA',
-  PROJECT_ROOT_FOLDER_ID: '0AH_yEcvtkkl4Uk9PVA',
-  PROJECT_AUTHOR_TEAM: '프로젝트사업실',
+  // 작성자 DB: 시트1에 작성자/연락처/이메일/부서 목록이 있는 스프레드시트
+  AUTHOR_DB_SHEET_ID: '1-5089CU1_wjmjVAJxDTxQ-7qCTvB0zuONbBuC9D0pRA',
+  AUTHOR_DB_SHEET_NAME: '시트1',
+  // 부서별 견적 저장 루트 폴더. 부서가 없거나 목록에 없으면 DEFAULT_DEPARTMENT 폴더를 사용한다.
+  DEFAULT_DEPARTMENT: '기술영업',
+  DEPARTMENT_ROOTS: {
+    '기술영업': '1fO6k7oi4tw7kZ0VzdJeGwDH8rUzpFA_4',
+    '영업': '1_504mOVwtNrx29TDEL-SolVT5qVwB0rn',
+    '프로젝트': '1_GTIZ94fvjP8N_uThxfcG-q4RyTtCfGw'
+  },
   LEDGER_SHEET_NAME: '견적관리대장',
   GEMINI_API_KEY: 'AIzaSyBFshNCRc924FBF1Web1_oPxoARGyT50zs',
   GEMINI_URL_BASE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='
@@ -64,8 +71,8 @@ function processQuoteFromReact(payload) {
 }
 
 function getQuoteLedgerFromReact() {
-  // 견적 목록 화면은 아직 기본(ROOT_FOLDER_ID) 대장만 보여준다.
-  // 프로젝트사업실 대장은 PROJECT_ROOT_FOLDER_ID 쪽에 별도로 쌓이며, 이 화면에는 표시되지 않는다.
+  // 견적 목록 화면은 기본 부서(DEFAULT_DEPARTMENT) 대장만 보여준다.
+  // 다른 부서의 대장은 각 부서 폴더에 별도로 쌓이며, 이 화면에는 표시되지 않는다.
   const system = getYearSystem(new Date().getFullYear());
   const sheet = system.ledgerSheet;
   const lastRow = sheet.getLastRow();
@@ -106,14 +113,69 @@ function doPost(e) {
   }
 }
 
+// 작성자 DB 시트(시트1)에서 작성자 목록을 읽는다.
+// 기대하는 열 구성: 작성자(또는 이름/성명) | 연락처 | 이메일 | 부서
+// 1행 헤더의 키워드로 열 위치를 찾고, 헤더가 없으면 A~D열 고정 순서로 해석한다.
+function getAuthorsFromReact() {
+  try {
+    const spreadsheet = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+    const sheet = spreadsheet.getSheetByName(CONFIG.AUTHOR_DB_SHEET_NAME) || spreadsheet.getSheets()[0];
+    const lastRow = sheet.getLastRow();
+    const lastColumn = sheet.getLastColumn();
+    if (lastRow < 1 || lastColumn < 1) {
+      return { success: true, authors: [] };
+    }
+
+    const values = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
+    const headers = values[0].map(function(v) { return String(v || '').trim(); });
+
+    function findColumn(keywords) {
+      for (let c = 0; c < headers.length; c++) {
+        for (const keyword of keywords) {
+          if (headers[c].indexOf(keyword) !== -1) return c;
+        }
+      }
+      return -1;
+    }
+
+    let nameCol = findColumn(['작성자', '이름', '성명']);
+    let phoneCol = findColumn(['연락처', '전화', '휴대폰']);
+    let emailCol = findColumn(['이메일', '메일']);
+    let deptCol = findColumn(['부서', '소속', '팀']);
+
+    const headerMatched = nameCol !== -1;
+    if (!headerMatched) {
+      nameCol = 0;
+      phoneCol = 1;
+      emailCol = 2;
+      deptCol = 3;
+    }
+
+    const authors = [];
+    for (let r = headerMatched ? 1 : 0; r < values.length; r++) {
+      const name = String(values[r][nameCol] || '').trim();
+      if (!name) continue;
+      authors.push({
+        name: name,
+        phone: phoneCol >= 0 ? String(values[r][phoneCol] || '').trim() : '',
+        email: emailCol >= 0 ? String(values[r][emailCol] || '').trim() : '',
+        department: deptCol >= 0 ? String(values[r][deptCol] || '').trim() : ''
+      });
+    }
+
+    return { success: true, authors: authors };
+  } catch (err) {
+    return { success: false, message: '작성자 목록을 불러오지 못했습니다: ' + err.toString(), authors: [] };
+  }
+}
+
 function resolveRootFolderId(details) {
-  return (details && details.authorTeam === CONFIG.PROJECT_AUTHOR_TEAM)
-    ? CONFIG.PROJECT_ROOT_FOLDER_ID
-    : CONFIG.ROOT_FOLDER_ID;
+  const department = String((details && details.authorDepartment) || '').trim();
+  return CONFIG.DEPARTMENT_ROOTS[department] || CONFIG.DEPARTMENT_ROOTS[CONFIG.DEFAULT_DEPARTMENT];
 }
 
 function getYearSystem(year, rootFolderId) {
-  const targetRootId = rootFolderId || CONFIG.ROOT_FOLDER_ID;
+  const targetRootId = rootFolderId || CONFIG.DEPARTMENT_ROOTS[CONFIG.DEFAULT_DEPARTMENT];
   const rootFolder = DriveApp.getFolderById(targetRootId);
   const yearStr = year.toString();
 
@@ -417,23 +479,13 @@ function setValueIfRangeExists(sheet, a1Notation, value) {
 function diagnoseDriveConfig() {
   Logger.log('=== 실행 계정: ' + Session.getActiveUser().getEmail() + ' ===');
 
-  try {
-    const root = DriveApp.getFolderById(CONFIG.ROOT_FOLDER_ID);
-    Logger.log('OK ROOT_FOLDER_ID 열기 성공: ' + root.getName());
-
+  for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
     try {
-      const iter = root.getFoldersByName('2026');
-      if (iter.hasNext()) {
-        const f = iter.next();
-        Logger.log('OK 2026 폴더 검색 성공: ' + f.getName() + ' (id=' + f.getId() + ')');
-      } else {
-        Logger.log('WARN 2026 폴더를 찾지 못함');
-      }
-    } catch (e2) {
-      Logger.log('FAIL getFoldersByName 실패: ' + e2);
+      const folder = DriveApp.getFolderById(CONFIG.DEPARTMENT_ROOTS[dept]);
+      Logger.log('OK 부서 폴더 [' + dept + '] 열기 성공: ' + folder.getName());
+    } catch (e) {
+      Logger.log('FAIL 부서 폴더 [' + dept + '] 열기 실패: ' + e);
     }
-  } catch (e1) {
-    Logger.log('FAIL ROOT_FOLDER_ID 열기 실패: ' + e1);
   }
 
   try {
@@ -451,15 +503,16 @@ function diagnoseDriveConfig() {
   }
 
   try {
-    const pr = DriveApp.getFolderById(CONFIG.PROJECT_ROOT_FOLDER_ID);
-    Logger.log('OK PROJECT_ROOT_FOLDER_ID 열기 성공: ' + pr.getName());
+    const authorSS = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+    const authorSheet = authorSS.getSheetByName(CONFIG.AUTHOR_DB_SHEET_NAME) || authorSS.getSheets()[0];
+    Logger.log('OK 작성자 DB 시트 열기 성공: ' + authorSS.getName() + ' / 탭: ' + authorSheet.getName() + ' / 행 수: ' + authorSheet.getLastRow());
   } catch (e5) {
-    Logger.log('FAIL PROJECT_ROOT_FOLDER_ID 열기 실패: ' + e5);
+    Logger.log('FAIL 작성자 DB 시트 열기 실패: ' + e5);
   }
 
   Logger.log('=== 현재 CONFIG 값 ===');
-  Logger.log('ROOT_FOLDER_ID = ' + CONFIG.ROOT_FOLDER_ID);
+  Logger.log('DEPARTMENT_ROOTS = ' + JSON.stringify(CONFIG.DEPARTMENT_ROOTS));
   Logger.log('TEMPLATE_ID = ' + CONFIG.TEMPLATE_ID);
   Logger.log('LEDGER_TEMPLATE_ID = ' + CONFIG.LEDGER_TEMPLATE_ID);
-  Logger.log('PROJECT_ROOT_FOLDER_ID = ' + CONFIG.PROJECT_ROOT_FOLDER_ID);
+  Logger.log('AUTHOR_DB_SHEET_ID = ' + CONFIG.AUTHOR_DB_SHEET_ID);
 }

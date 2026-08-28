@@ -77,7 +77,7 @@ export const UI = {
   quoteSuccess:     t('견적서가 생성되었습니다. PDF를 확인하세요.', 'Quote generated. Please check the PDF.'),
   quoteError:       t('견적서 생성에 실패했습니다.', 'Failed to generate quote.'),
   quoteFieldRequired: t('업체명, 담당자, 연락처, 이메일을 모두 입력해주세요.', 'Please fill in company name, contact person, phone, and email.'),
-  quoteAuthorRequired: t('프로젝트사업실 작성자, 연락처, 이메일을 모두 입력해주세요.', "Please fill in the Project Business Division author's name, phone, and email."),
+  quoteAuthorRequired: t('선택한 작성자의 연락처와 이메일을 입력해주세요.', 'Please enter the selected author\'s phone and email.'),
   quoteProcessing:  t('견적서 생성 중...', 'Generating quote...'),
   quoteListTitle:   t('견적 목록 (대장)', 'Quote List'),
   quoteListEmpty:   t('저장된 견적이 없습니다.', 'No saved quotes.'),
