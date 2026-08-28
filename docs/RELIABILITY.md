@@ -167,9 +167,19 @@ npm run build                   # 프로덕션 빌드 확인
 |---|---|
 | `appscript/Index.wrapper.html` | Apps Script `Index.html`에 반영할 wrapper 화면 |
 | `appscript/wrapper-code.patch.gs` | Apps Script `Code.gs`에 반영할 `doGet` 및 브릿지 함수 |
-| `APPS_SCRIPT_Code_gs_전체교체코드.txt` | 견적관리대장 `일` 열 및 제품군 정규화가 포함된 운영용 `Code.gs` 전체 코드 |
+| `APPS_SCRIPT_Code_gs_전체교체코드.txt` | 견적관리대장 `일` 열, 제품군 정규화, 품목 배율 계산이 포함된 운영용 `Code.gs` 전체 코드 |
 | `APPS_SCRIPT_WEB_APP_URL` | 선택. Vercel 앱을 wrapper 밖에서 직접 열어 `/api/google/quote` fallback을 사용할 때만 필요 |
 
 Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배포할 수 있다. 사용자가 Apps Script URL로 접속하면 CIMON 로그인 세션 안에서 `google.script.run`이 실행되므로 Vercel 서버가 Apps Script를 직접 호출하지 않는다.
+
+### Apps Script `CONFIG`의 Drive ID (Code.gs 상단)
+
+| 키 | 가리키는 대상 | 비고 |
+|---|---|---|
+| `ROOT_FOLDER_ID` | "견적서" 공유 드라이브 루트 | 공유 드라이브 ID는 `0A`로 시작 (일반 폴더 ID와 형식이 다름) |
+| `TEMPLATE_ID` | "견적서 샘플" 시트 (`CONFIG.ROOT_FOLDER_ID` 바로 아래) | 새 견적서 생성 시 `makeCopy()`로 복사 |
+| `LEDGER_TEMPLATE_ID` | "견적관리대장 샘플" 시트 (`CONFIG.ROOT_FOLDER_ID` 바로 아래) | 새 연도 폴더가 생성될 때만 `makeCopy()`로 복사, 탭 이름이 `LEDGER_SHEET_NAME`(`견적관리대장`)과 정확히 일치해야 함 |
+
+이 세 값이 실제 Drive 항목과 어긋나면 "입력한 ID에 해당하는 항목이 없습니다" 예외가 발생하며, 저장하기와 견적 목록 조회가 동시에 실패한다(`getYearSystem()`을 공통으로 거치기 때문). Code.gs를 전체 교체할 때는 이 세 ID가 실제 Drive 구조와 일치하는지 반드시 재확인한다.
 
 견적관리대장 열을 변경할 때는 `getNextQuoteNumber()`의 견적번호 열 인덱스와 `saveToLedgerSheet()`의 행 배열을 함께 수정한다. 현재 열 순서는 `NO, 연도, 월, 일, 견적번호, ...`이며 견적번호는 5열이다.

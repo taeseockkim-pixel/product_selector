@@ -7,8 +7,9 @@
 // 5. 저장 후 새 버전으로 웹 앱 배포 업데이트합니다.
 
 const CONFIG = {
-  TEMPLATE_ID: '1uYNTzJrmEgePXT7RhnTpmz8Xd4atHCCNQPpW3-UmaAM',
-  ROOT_FOLDER_ID: '1NOwf4QXey_4W51pfd6_TQ2JYcXnpdbX3',
+  TEMPLATE_ID: '108TCen8xKlP__sBXtrjD1_TxVuA7_cp_Sq3B8wn1tPI',
+  LEDGER_TEMPLATE_ID: '1owRRx6myeHtsbT2Xt6pxW4xS2THFYgLUDNAow9J6gjc',
+  ROOT_FOLDER_ID: '0AE8q_xkESwZgUk9PVA',
   LEDGER_SHEET_NAME: '견적관리대장',
   GEMINI_API_KEY: 'AIzaSyBFshNCRc924FBF1Web1_oPxoARGyT50zs',
   GEMINI_URL_BASE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='
@@ -119,29 +120,10 @@ function getYearSystem(year) {
   if (fileIter.hasNext()) {
     ledgerSS = SpreadsheetApp.open(fileIter.next());
   } else {
-    ledgerSS = SpreadsheetApp.create(ledgerName);
-    const file = DriveApp.getFileById(ledgerSS.getId());
-    file.moveTo(yearFolder);
-
-    const sheet = ledgerSS.getSheets()[0];
-    sheet.setName(CONFIG.LEDGER_SHEET_NAME);
-    sheet.appendRow([
-      'NO',
-      '연도',
-      '월',
-      '일',
-      '견적번호',
-      '업체명',
-      '고객명',
-      '연락처',
-      '이메일',
-      '제품 항목',
-      '제품명',
-      '견적 금액',
-      '비고',
-      '파일링크'
-    ]);
-    sheet.getRange(1, 1, 1, 14).setFontWeight('bold').setBackground('#f3f4f6');
+    // 새 연도가 시작되면 "견적관리대장 샘플" 템플릿을 복사해 해당 연도 폴더에 만든다.
+    const ledgerTemplate = DriveApp.getFileById(CONFIG.LEDGER_TEMPLATE_ID);
+    const newLedgerFile = ledgerTemplate.makeCopy(ledgerName, yearFolder);
+    ledgerSS = SpreadsheetApp.open(newLedgerFile);
   }
 
   const ledgerSheet = ledgerSS.getSheetByName(CONFIG.LEDGER_SHEET_NAME) || ledgerSS.getSheets()[0];
