@@ -347,7 +347,7 @@ function loadAuthorsViaParentBridge(): Promise<AuthorListResult> {
     const timer = window.setTimeout(() => {
       window.removeEventListener('message', handleMessage);
       reject(new Error('작성자 목록 응답 시간이 초과되었습니다.'));
-    }, 30000);
+    }, 15000);
 
     function handleMessage(event: MessageEvent<AuthorBridgeResponse>) {
       const data = event.data;
@@ -383,7 +383,7 @@ function loadAuthorsViaGoogleScript(): Promise<AuthorListResult> {
 }
 
 /** 작성자 DB 시트에서 작성자 목록을 읽어온다. 실패 시 FALLBACK_AUTHORS로 대체한다. */
-async function loadAuthors(): Promise<AuthorInfo[]> {
+async function loadAuthors(): Promise<{ list: AuthorInfo[]; fromFallback: boolean }> {
   try {
     let result: AuthorListResult | null = null;
     if (window.parent && window.parent !== window) {
@@ -391,11 +391,11 @@ async function loadAuthors(): Promise<AuthorInfo[]> {
     } else if (window.google?.script?.run) {
       result = await loadAuthorsViaGoogleScript();
     }
-    if (result?.success && result.authors?.length) return result.authors;
+    if (result?.success && result.authors?.length) return { list: result.authors, fromFallback: false };
   } catch (err) {
     console.warn('작성자 목록 조회 실패, 기본 목록 사용:', err);
   }
-  return FALLBACK_AUTHORS;
+  return { list: FALLBACK_AUTHORS, fromFallback: true };
 }
 
 async function processQuoteRequest(quote: Quote, createDraft: boolean, subject = '', body = ''): Promise<QuoteProcessResult> {
@@ -456,6 +456,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const [email, setEmail] = useState('');
   const [author, setAuthor] = useState('김태석 차장');
   const [authors, setAuthors] = useState<AuthorInfo[]>(FALLBACK_AUTHORS);
+  const [authorsFromFallback, setAuthorsFromFallback] = useState(true);
   const [customAuthorName, setCustomAuthorName] = useState('');
   const [customAuthorPhone, setCustomAuthorPhone] = useState('');
   const [customAuthorEmail, setCustomAuthorEmail] = useState('');
@@ -498,8 +499,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   // 마운트 시 작성자 DB 시트에서 작성자 목록을 읽어온다 (실패 시 FALLBACK_AUTHORS 유지)
   useEffect(() => {
     let cancelled = false;
-    loadAuthors().then((list) => {
-      if (!cancelled) setAuthors(list);
+    loadAuthors().then(({ list, fromFallback }) => {
+      if (cancelled) return;
+      setAuthors(list);
+      setAuthorsFromFallback(fromFallback);
     });
     return () => { cancelled = true; };
   }, []);
@@ -915,6 +918,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                   <select value={author} onChange={(e) => setAuthor(e.target.value)} className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]">
                     {authors.map((a) => <option key={a.name} value={a.name}>{authorLabel(a.name, lang)}</option>)}
                   </select>
+                  {authorsFromFallback && (
+                    <p className="text-[11px] text-amber-600 mt-1">{t(UI.quoteAuthorsFallbackNotice)}</p>
+                  )}
                 </div>
                 {needsManualAuthor && (
                   <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50 p-3">

@@ -78,6 +78,7 @@ export const UI = {
   quoteError:       t('견적서 생성에 실패했습니다.', 'Failed to generate quote.'),
   quoteFieldRequired: t('업체명, 담당자, 연락처, 이메일을 모두 입력해주세요.', 'Please fill in company name, contact person, phone, and email.'),
   quoteAuthorRequired: t('선택한 작성자의 연락처와 이메일을 입력해주세요.', 'Please enter the selected author\'s phone and email.'),
+  quoteAuthorsFallbackNotice: t('작성자 DB 시트에서 목록을 불러오지 못해 기본 목록을 표시 중입니다. Apps Script 배포 상태를 확인해 주세요.', 'Showing the default list because the author sheet could not be loaded. Check the Apps Script deployment.'),
   quoteProcessing:  t('견적서 생성 중...', 'Generating quote...'),
   quoteListTitle:   t('견적 목록 (대장)', 'Quote List'),
   quoteListEmpty:   t('저장된 견적이 없습니다.', 'No saved quotes.'),
