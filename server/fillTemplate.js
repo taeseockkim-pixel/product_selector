@@ -11,7 +11,7 @@ const TEMPLATE_PATH = join(__dirname, '..', 'Quote_manage', '기본자료', '견
  *   C3=업체명, F3=연락처, I3=견적번호
  *   C4=담당자, F4=이메일,  I4=견적일자
  *   C9=납품장소, C10=납품기한, C11=결제조건, C12=유효기간, C13=포장
- *   A16~: NO/제품명/규격/수량/단가/금액 (행 반복)
+ *   A16~: NO/제품명/규격/수량/유효 단가/금액 (행 반복, 유효 단가 = 단가 × 배율)
  *   A30=총 견적 금액 문자열
  *   B34=비고
  *   H37=작성자, H38=연락처, H39=이메일
@@ -53,9 +53,16 @@ export async function fillQuoteTemplate(quote, outPath) {
     set(`A${row}`, i + 1);
     set(`B${row}`, item.name);
     set(`D${row}`, item.spec ?? '');
-    set(`G${row}`, item.quantity);
-    set(`H${row}`, item.unitPrice);
-    set(`I${row}`, item.totalPrice);
+    const quantity = Number(item.quantity ?? 0);
+    const unitPrice = Number(item.unitPrice ?? 0);
+    const multiplierValue = Number(item.multiplier ?? 1);
+    const multiplier = Number.isFinite(multiplierValue) && multiplierValue > 0 ? multiplierValue : 1;
+    const effectiveUnitPrice = unitPrice * multiplier;
+    const totalPrice = Math.round(effectiveUnitPrice * quantity);
+    set(`G${row}`, quantity);
+    // 템플릿에는 배율 열이 없으므로 단가 칸에 배율을 반영한 유효 단가를 기록한다.
+    set(`H${row}`, effectiveUnitPrice);
+    set(`I${row}`, totalPrice);
   });
 
   // 총 견적 금액 (A30)

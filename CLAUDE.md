@@ -86,7 +86,7 @@ products.json  →(빌드 타임 import)→  PRODUCTS: Product[]
 브라우저 저장소 + Apps Script Web App + 로컬 전용 서버를 사용하는 하이브리드 구조**다.
 
 ```
-QuoteFormPage.tsx (입력 + quoteProductCatalog.ts/priceData.ts로 단가/합계 계산)
+QuoteFormPage.tsx (입력 + quoteProductCatalog.ts/priceData.ts로 단가 계산, 배율×수량으로 합계 계산)
      │
      ▼
 quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록 캐시
@@ -109,7 +109,9 @@ quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록
   `npm run generate:quote-products`로 변환한 `src/data/quoteProductCatalog.ts`를 사용한다. 사용자는
   견적 작성 화면에서 가격표 시트와 품명을 선택해 품목을 추가/삭제할 수 있다.
 - **가격 계산**: 가격표 기반 추가 품목은 `quoteProductCatalog.ts`, 기존 카트 품목의 fallback은
-  `src/data/priceData.ts`의 `getUnitPrice()`가 수량 구간별 단가를 조회한다.
+  `src/data/priceData.ts`의 `getUnitPrice()`가 수량 구간별 단가를 조회한다. 최종 품목 금액은
+  `단가 × 배율 × 수량`으로 계산되며 배율 기본값은 `1`이다. 작성자 선택에는 `기타`가 포함되며,
+  선택 시 작성자·연락처·이메일을 직접 입력한다.
 - **인쇄**: `QuotePrintView.tsx` → `src/utils/quoteHtml.ts`로 HTML 생성 → iframe → 브라우저 인쇄.
 - **Google Workspace 연동**: Apps Script wrapper를 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Apps Script 접근 권한은 `CIMON의 모든 사용자`로 유지할 수 있다.
 - **로컬 전용 XLSX/PDF 자동 생성**: `server/` 폴더의 Express 서버는 `npm run local`로만 구동되며,

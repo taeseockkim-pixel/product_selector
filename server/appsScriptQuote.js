@@ -27,14 +27,21 @@ function toAppsScriptPayload(quote, options = {}) {
       authorPhone: quote.author?.phone ?? '',
       authorEmail: quote.author?.email ?? '',
     },
-    items: (quote.items ?? []).map((item) => ({
-      type: item.type ?? '',
-      name: item.name ?? '',
-      spec: item.spec ?? '',
-      quantity: Number(item.quantity ?? 0),
-      unitPrice: Number(item.unitPrice ?? 0),
-      totalPrice: Number(item.totalPrice ?? 0),
-    })),
+    items: (quote.items ?? []).map((item) => {
+      const quantity = Number(item.quantity ?? 0);
+      const unitPrice = Number(item.unitPrice ?? 0);
+      const multiplierValue = Number(item.multiplier ?? 1);
+      const multiplier = Number.isFinite(multiplierValue) && multiplierValue > 0 ? multiplierValue : 1;
+      return {
+        type: item.type ?? '',
+        name: item.name ?? '',
+        spec: item.spec ?? '',
+        quantity,
+        unitPrice,
+        multiplier,
+        totalPrice: Math.round(quantity * unitPrice * multiplier),
+      };
+    }),
     createDraft: Boolean(options.createDraft),
     customSubject: options.subject ?? '',
     customBody: options.body ?? '',

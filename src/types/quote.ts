@@ -5,6 +5,7 @@ export interface QuoteItem {
   spec: string;
   quantity: number;
   unitPrice: number;
+  multiplier?: number;
   totalPrice: number;
 }
 

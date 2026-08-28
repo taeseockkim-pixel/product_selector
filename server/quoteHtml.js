@@ -10,11 +10,12 @@ export function generateQuoteHtml(quote) {
       <td class="l sm">${esc(item.spec ?? '')}</td>
       <td class="c">${item.quantity}</td>
       <td class="r">${fmt(item.unitPrice)}</td>
+      <td class="r">${fmtMultiplier(item.multiplier)}</td>
       <td class="r b">${fmt(item.totalPrice)}</td>
     </tr>`).join('');
 
   const emptyRows = Math.max(0, 10 - items.length);
-  const emptyRowHtml = `<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>`.repeat(emptyRows);
+  const emptyRowHtml = `<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`.repeat(emptyRows);
 
   return `<!DOCTYPE html>
 <html lang="ko">
@@ -41,10 +42,11 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 .itbl td { border: 1px solid #bbb; padding: 3px 4px; vertical-align: middle; }
 .itbl th:nth-child(1), .itbl td:nth-child(1) { width: 5%; }
 .itbl th:nth-child(2), .itbl td:nth-child(2) { width: 18%; }
-.itbl th:nth-child(3), .itbl td:nth-child(3) { width: 42%; }
+.itbl th:nth-child(3), .itbl td:nth-child(3) { width: 39%; }
 .itbl th:nth-child(4), .itbl td:nth-child(4) { width: 7%; }
 .itbl th:nth-child(5), .itbl td:nth-child(5) { width: 14%; }
-.itbl th:nth-child(6), .itbl td:nth-child(6) { width: 14%; }
+.itbl th:nth-child(6), .itbl td:nth-child(6) { width: 7%; }
+.itbl th:nth-child(7), .itbl td:nth-child(7) { width: 10%; }
 .c { text-align: center; }
 .r { text-align: right; }
 .l { text-align: left; }
@@ -100,7 +102,7 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 
   <table class="itbl">
     <thead>
-      <tr><th>NO.</th><th>제품명</th><th>규격</th><th>수량</th><th>단가</th><th>금액</th></tr>
+      <tr><th>NO.</th><th>제품명</th><th>규격</th><th>수량</th><th>단가</th><th>배율</th><th>금액</th></tr>
     </thead>
     <tbody>
       ${itemRows}
@@ -130,6 +132,10 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 }
 
 function fmt(n) { return Math.round(n ?? 0).toLocaleString('ko-KR'); }
+function fmtMultiplier(n) {
+  const value = Number(n ?? 1);
+  return Number.isFinite(value) && value > 0 ? String(Number(value.toFixed(4))) : '1';
+}
 function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }

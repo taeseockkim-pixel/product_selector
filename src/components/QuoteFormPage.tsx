@@ -16,11 +16,13 @@ import { getSeq, saveQuote } from '../utils/quoteStorage';
 import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
 
+const OTHER_AUTHOR = '기타';
 const AUTHOR_DB: Record<string, { phone: string; email: string }> = {
   '조규광 이사': { phone: '010-8884-2760', email: 'kyukwang.jo@cimon.com' },
   '김태석 차장': { phone: '010-5522-1403', email: 'taeseock.kim@cimon.com' },
   '정성택 차장': { phone: '010-3293-3351', email: 'seongtaek.jeong@cimon.com' },
   '한진희 차장': { phone: '010-2847-6335', email: 'jinhee.han@cimon.com' },
+  [OTHER_AUTHOR]: { phone: '', email: '' },
 };
 
 const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
@@ -29,6 +31,7 @@ const AUTHOR_LABELS: Record<string, string> = {
   '김태석 차장': 'Taeseock Kim, Deputy General Manager',
   '정성택 차장': 'Seongtaek Jeong, Deputy General Manager',
   '한진희 차장': 'Jinhee Han, Deputy General Manager',
+  [OTHER_AUTHOR]: 'Other',
 };
 
 function authorLabel(name: string, lang: Lang) {
@@ -40,6 +43,15 @@ function formatKRW(n: number) { return Math.round(n).toLocaleString('ko-KR'); }
 function parseKRW(value: string) {
   const parsed = Number(value.replace(/[^\d]/g, ''));
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function validMultiplier(value: string | number | undefined) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+}
+
+function itemTotal(unitPrice: number | null | undefined, multiplier: string | number | undefined, quantity: number) {
+  return Math.round((unitPrice ?? 0) * validMultiplier(multiplier) * quantity);
 }
 
 function fmtDate(d: Date, lang: Lang): string {
@@ -67,6 +79,7 @@ interface ItemRow {
   spec: string;
   qty: number;
   unitPrice: number | null;
+  multiplier: string;
   catalogItem?: QuoteCatalogItem;
   product?: Product;
 }
@@ -101,6 +114,7 @@ interface AppsScriptPayload {
     spec: string;
     quantity: number;
     unitPrice: number;
+    multiplier: number;
     totalPrice: number;
   }>;
   createDraft: boolean;
@@ -164,6 +178,7 @@ function itemFromProduct(product: Product, lang: 'ko' | 'en'): ItemRow {
     spec,
     qty: 1,
     unitPrice,
+    multiplier: '1',
     catalogItem,
     product,
   };
@@ -177,6 +192,7 @@ function itemFromCatalog(catalogItem: QuoteCatalogItem, qty: number): ItemRow {
     spec: catalogItem.spec,
     qty,
     unitPrice: getQuoteCatalogUnitPrice(catalogItem, qty),
+    multiplier: '1',
     catalogItem,
   };
 }
@@ -246,6 +262,7 @@ function quoteToAppsScriptPayload(quote: Quote, createDraft: boolean, subject = 
       spec: item.spec,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
+      multiplier: item.multiplier ?? 1,
       totalPrice: item.totalPrice,
     })),
     createDraft,
@@ -352,6 +369,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [author, setAuthor] = useState('김태석 차장');
+  const [customAuthorName, setCustomAuthorName] = useState('');
+  const [customAuthorPhone, setCustomAuthorPhone] = useState('');
+  const [customAuthorEmail, setCustomAuthorEmail] = useState('');
   const [deliveryLocation, setDeliveryLocation] = useState(defaults.deliveryLocation);
   const [deliveryDeadline, setDeliveryDeadline] = useState(defaults.deliveryDeadline);
   const [paymentTerms, setPaymentTerms] = useState(defaults.paymentTerms);
@@ -416,6 +436,16 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const updatePrice = useCallback((idx: number, rawPrice: number) => {
     const unitPrice = Math.max(0, rawPrice || 0);
     setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, unitPrice } : item)));
+  }, []);
+
+  const updateMultiplier = useCallback((idx: number, rawMultiplier: string) => {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, multiplier: rawMultiplier } : item)));
+  }, []);
+
+  const normalizeMultiplier = useCallback((idx: number) => {
+    setItems((prev) => prev.map((item, i) => (
+      i === idx ? { ...item, multiplier: String(validMultiplier(item.multiplier)) } : item
+    )));
   }, []);
 
   const moveItem = useCallback((idx: number, dir: -1 | 1) => {
@@ -487,7 +517,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   }
 
   const authorInfo = AUTHOR_DB[author];
-  const subtotal = items.reduce((sum, it) => sum + (it.unitPrice ?? 0) * it.qty, 0);
+  const isOtherAuthor = author === OTHER_AUTHOR;
+  const resolvedAuthorName = isOtherAuthor ? customAuthorName.trim() : authorLabel(author, lang);
+  const resolvedAuthorPhone = isOtherAuthor ? customAuthorPhone.trim() : (authorInfo?.phone ?? '');
+  const resolvedAuthorEmail = isOtherAuthor ? customAuthorEmail.trim() : (authorInfo?.email ?? '');
+  const subtotal = items.reduce((sum, it) => sum + itemTotal(it.unitPrice, it.multiplier, it.qty), 0);
   const vatTotal = Math.round(subtotal * 1.1);
 
   function buildQuoteItems(): QuoteItem[] {
@@ -500,7 +534,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
         spec: displaySpec(it, lang),
         quantity: it.qty,
         unitPrice: up,
-        totalPrice: up * it.qty,
+        multiplier: validMultiplier(it.multiplier),
+        totalPrice: itemTotal(up, it.multiplier, it.qty),
       };
     });
   }
@@ -521,9 +556,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
       clientCompany: company,
       clientContact: contact,
       vatTotal,
-      authorName: authorLabel(author, lang),
+      authorName: resolvedAuthorName,
       client: { company, contact, phone, email },
-      author: { name: authorLabel(author, lang), phone: authorInfo?.phone ?? '', email: authorInfo?.email ?? '' },
+      author: { name: resolvedAuthorName, phone: resolvedAuthorPhone, email: resolvedAuthorEmail },
       details: { quoteDate: fmtDate(today, lang), deliveryLocation, deliveryDeadline, paymentTerms, validityPeriod, packing, notes },
       items: buildQuoteItems(),
       subtotal,
@@ -533,6 +568,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   function validateForSubmit(): boolean {
     if (!company.trim() || !contact.trim() || !phone.trim() || !email.trim()) {
       alert(t(UI.quoteFieldRequired));
+      return false;
+    }
+    if (isOtherAuthor && (!customAuthorName.trim() || !customAuthorPhone.trim() || !customAuthorEmail.trim())) {
+      alert(t(UI.quoteAuthorRequired));
       return false;
     }
     if (items.length === 0) {
@@ -779,6 +818,38 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                     {Object.keys(AUTHOR_DB).map((name) => <option key={name} value={name}>{authorLabel(name, lang)}</option>)}
                   </select>
                 </div>
+                {isOtherAuthor && (
+                  <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
+                    <div>
+                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)} *</label>
+                      <input
+                        value={customAuthorName}
+                        onChange={(e) => setCustomAuthorName(e.target.value)}
+                        placeholder={t(UI.quoteAuthor)}
+                        className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quotePhone)} *</label>
+                      <input
+                        value={customAuthorPhone}
+                        onChange={(e) => setCustomAuthorPhone(e.target.value)}
+                        placeholder="010-0000-0000"
+                        className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteEmail)} *</label>
+                      <input
+                        type="email"
+                        value={customAuthorEmail}
+                        onChange={(e) => setCustomAuthorEmail(e.target.value)}
+                        placeholder="email@company.com"
+                        className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteNotes)}</label>
                   <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919] resize-none" placeholder={lang === 'en' ? 'Notes to show on the quote' : '견적서에 표시할 특이사항'} />
@@ -850,6 +921,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                       <th className="text-center px-3 py-2.5 font-medium text-[#555555] text-xs w-20">{t(UI.quoteSpecAction)}</th>
                       <th className="text-center px-3 py-2.5 font-medium text-[#555555] text-xs w-20">{t(UI.quoteQty)}</th>
                       <th className="text-right px-4 py-2.5 font-medium text-[#555555] text-xs w-28">{t(UI.quoteUnitPrice)}</th>
+                      <th className="text-right px-3 py-2.5 font-medium text-[#555555] text-xs w-20">{t(UI.quoteMultiplier)}</th>
                       <th className="text-right px-4 py-2.5 font-medium text-[#555555] text-xs w-28">{t(UI.quoteTotal)}</th>
                       <th className="text-center px-3 py-2.5 font-medium text-[#555555] text-xs w-16">{t(UI.quoteRemove)}</th>
                     </tr>
@@ -857,7 +929,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                   <tbody>
                     {items.map((item, idx) => {
                       const tiered = item.catalogItem ? item.catalogItem.tiers.length > 1 : item.product ? isTieredPricing(item.product.id) : false;
-                      const rowTotal = (item.unitPrice ?? 0) * item.qty;
+                      const rowTotal = itemTotal(item.unitPrice, item.multiplier, item.qty);
                       const isDragging = draggedIndex === idx;
                       const isDropTarget = dragOverIndex === idx && draggedIndex !== null && draggedIndex !== idx;
                       const matchedProduct = findProductForItem(item);
@@ -947,6 +1019,18 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                               className="w-24 text-right border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#191919] bg-white"
                             />
                           </td>
+                          <td className="px-3 py-3 text-right">
+                            <input
+                              type="number"
+                              min="0.01"
+                              step="0.01"
+                              value={item.multiplier}
+                              onChange={(e) => updateMultiplier(idx, e.target.value)}
+                              onBlur={() => normalizeMultiplier(idx)}
+                              aria-label={`${t(UI.quoteMultiplier)} ${idx + 1}`}
+                              className="w-20 text-right border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#191919] bg-white"
+                            />
+                          </td>
                           <td className="px-4 py-3 text-right">
                             {item.unitPrice != null
                               ? <span className="font-semibold text-xs">{formatKRW(rowTotal)}</span>
@@ -966,7 +1050,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
                     })}
                     {items.length === 0 && (
                       <tr className="border-t border-[#ddd9d2] bg-white">
-                        <td colSpan={7} className="px-4 py-8 text-center text-sm text-[#999999]">
+                        <td colSpan={8} className="px-4 py-8 text-center text-sm text-[#999999]">
                           {t(UI.quoteEmptyItems)}
                         </td>
                       </tr>

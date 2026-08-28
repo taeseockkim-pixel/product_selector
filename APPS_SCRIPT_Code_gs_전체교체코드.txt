@@ -1,0 +1,417 @@
+// CIMON 제품선택가이드 Apps Script 전체 교체용 Code.gs
+// 사용 방법:
+// 1. Apps Script의 Code.gs 내용을 전부 삭제합니다.
+// 2. 이 파일의 내용을 전체 복사해서 Code.gs에 붙여넣습니다.
+// 3. CONFIG의 GEMINI_API_KEY에는 기존 Apps Script에서 사용하던 키가 반영되어 있습니다.
+// 4. Index.html은 APPS_SCRIPT_Index_html_전체교체코드.txt 내용으로 전체 교체합니다.
+// 5. 저장 후 새 버전으로 웹 앱 배포 업데이트합니다.
+
+const CONFIG = {
+  TEMPLATE_ID: '1uYNTzJrmEgePXT7RhnTpmz8Xd4atHCCNQPpW3-UmaAM',
+  ROOT_FOLDER_ID: '1NOwf4QXey_4W51pfd6_TQ2JYcXnpdbX3',
+  LEDGER_SHEET_NAME: '견적관리대장',
+  GEMINI_API_KEY: 'AIzaSyBFshNCRc924FBF1Web1_oPxoARGyT50zs',
+  GEMINI_URL_BASE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='
+};
+
+const VERCEL_APP_URL = 'https://product-selector-two.vercel.app';
+
+const CELL_MAP = {
+  clientName: 'C3',
+  clientContactPerson: 'C4',
+  clientPhone: 'F3',
+  clientEmail: 'F4',
+  quoteNumber: 'I3',
+  quoteDate: 'I4',
+  deliveryLocation: 'C9',
+  deliveryDeadline: 'C10',
+  paymentTerms: 'C11',
+  validityPeriod: 'C12',
+  packing: 'C13',
+  itemStartRow: 16,
+  notes: 'B34',
+  totalPriceCell: 'A30',
+  authorName: 'H37',
+  authorPhone: 'H38',
+  authorEmail: 'H39'
+};
+
+function doGet(e) {
+  const template = HtmlService.createTemplateFromFile('Index');
+  const queryString = e && e.queryString ? '?' + e.queryString : '';
+  template.appUrl = VERCEL_APP_URL + queryString;
+  return template
+    .evaluate()
+    .setTitle('CIMON 제품 선택 가이드')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function processQuoteFromReact(payload) {
+  const quoteData = {
+    details: payload.details,
+    items: payload.items
+  };
+
+  return processQuote(
+    quoteData,
+    Boolean(payload.createDraft),
+    payload.customSubject || '',
+    payload.customBody || ''
+  );
+}
+
+function getQuoteLedgerFromReact() {
+  const system = getYearSystem(new Date().getFullYear());
+  const sheet = system.ledgerSheet;
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+
+  if (lastRow < 1 || lastColumn < 1) {
+    return { success: true, headers: [], rows: [] };
+  }
+
+  const range = sheet.getRange(1, 1, lastRow, lastColumn);
+  const displayValues = range.getDisplayValues();
+  const richTextValues = range.getRichTextValues();
+  const headers = displayValues[0];
+  const rows = displayValues.slice(1).map(function(values, rowIndex) {
+    return {
+      values: values,
+      links: values.map(function(_, columnIndex) {
+        const richText = richTextValues[rowIndex + 1][columnIndex];
+        return richText ? richText.getLinkUrl() : null;
+      })
+    };
+  });
+
+  return { success: true, headers: headers, rows: rows };
+}
+
+function doPost(e) {
+  try {
+    const payload = JSON.parse(e.postData.contents);
+    const result = processQuoteFromReact(payload);
+    return ContentService
+      .createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ success: false, message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getYearSystem(year) {
+  const rootFolder = DriveApp.getFolderById(CONFIG.ROOT_FOLDER_ID);
+  const yearStr = year.toString();
+
+  let yearFolder;
+  const folderIter = rootFolder.getFoldersByName(yearStr);
+  if (folderIter.hasNext()) {
+    yearFolder = folderIter.next();
+  } else {
+    yearFolder = rootFolder.createFolder(yearStr);
+  }
+
+  const ledgerName = `${yearStr}_견적관리대장`;
+  let ledgerSS;
+  const fileIter = yearFolder.getFilesByName(ledgerName);
+  if (fileIter.hasNext()) {
+    ledgerSS = SpreadsheetApp.open(fileIter.next());
+  } else {
+    ledgerSS = SpreadsheetApp.create(ledgerName);
+    const file = DriveApp.getFileById(ledgerSS.getId());
+    file.moveTo(yearFolder);
+
+    const sheet = ledgerSS.getSheets()[0];
+    sheet.setName(CONFIG.LEDGER_SHEET_NAME);
+    sheet.appendRow([
+      'NO',
+      '연도',
+      '월',
+      '일',
+      '견적번호',
+      '업체명',
+      '고객명',
+      '연락처',
+      '이메일',
+      '제품 항목',
+      '제품명',
+      '견적 금액',
+      '비고',
+      '파일링크'
+    ]);
+    sheet.getRange(1, 1, 1, 14).setFontWeight('bold').setBackground('#f3f4f6');
+  }
+
+  const ledgerSheet = ledgerSS.getSheetByName(CONFIG.LEDGER_SHEET_NAME) || ledgerSS.getSheets()[0];
+  return { folder: yearFolder, ledger: ledgerSS, ledgerSheet };
+}
+
+function getNextQuoteNumber() {
+  try {
+    const today = new Date();
+    const system = getYearSystem(today.getFullYear());
+    const sheet = system.ledgerSheet;
+    const yearPrefix = `기술영업 ${Utilities.formatDate(today, Session.getScriptTimeZone(), 'yy')}`;
+    const lastRow = sheet.getLastRow();
+
+    let count = 0;
+    if (lastRow > 1) {
+      const data = sheet.getRange(2, 5, lastRow - 1, 1).getValues();
+      count = data.filter(row => row[0].toString().startsWith(yearPrefix)).length;
+    }
+
+    const seqStr = (count + 1).toString().padStart(3, '0');
+    return `${yearPrefix}${Utilities.formatDate(today, Session.getScriptTimeZone(), 'MM')}-${seqStr}`;
+  } catch (err) {
+    return `Error-${new Date().getTime()}`;
+  }
+}
+
+function processQuote(quoteData, createDraft, customSubject, customBody) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+  } catch (err) {
+    return { success: false, message: '다른 사용자가 저장 중입니다. 잠시 후 다시 시도해 주세요.' };
+  }
+
+  try {
+    const realQuoteNumber = getNextQuoteNumber();
+    quoteData.details.quoteNumber = realQuoteNumber;
+
+    const details = quoteData.details;
+    const dateMatches = String(details.quoteDate || '').match(/(\d{4})/);
+    const currentYear = dateMatches ? parseInt(dateMatches[1], 10) : new Date().getFullYear();
+    const system = getYearSystem(currentYear);
+
+    const safeQuoteNumber = sanitizeDriveName(details.quoteNumber);
+    const safeClientName = sanitizeDriveName(details.clientName);
+    const subFolderName = `${safeQuoteNumber}_${safeClientName}`;
+
+    let targetFolder;
+    const subFolders = system.folder.getFoldersByName(subFolderName);
+    if (subFolders.hasNext()) {
+      targetFolder = subFolders.next();
+    } else {
+      targetFolder = system.folder.createFolder(subFolderName);
+    }
+
+    const fileName = `${safeClientName}_견적서_${details.quoteDate}`;
+    const templateFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
+    const newFile = templateFile.makeCopy(fileName, targetFolder);
+    const spreadsheet = SpreadsheetApp.open(newFile);
+
+    const finalVatPrice = fillSheetData(spreadsheet, quoteData);
+    SpreadsheetApp.flush();
+
+    const sheetId = spreadsheet.getSheets()[0].getSheetId();
+    const pdfBlob = createPdfBlob(newFile.getId(), sheetId, fileName);
+    const pdfFile = targetFolder.createFile(pdfBlob);
+
+    saveToLedgerSheet(system.ledgerSheet, details, quoteData.items || [], finalVatPrice, pdfFile.getUrl());
+
+    let returnMessage = `[완료] ${currentYear}년도 폴더에 저장 완료.\n번호: ${realQuoteNumber}`;
+
+    if (createDraft) {
+      if (details.clientEmail && details.clientEmail.indexOf('@') > -1) {
+        GmailApp.createDraft(
+          details.clientEmail,
+          customSubject || `[CIMON] ${details.clientName} - 제품 견적서 송부 드립니다.`,
+          customBody || makeDefaultEmailBody(details),
+          {
+            attachments: [pdfFile.getBlob()],
+            name: details.authorName || 'CIMON'
+          }
+        );
+        returnMessage += '\n\nGmail 초안 생성 완료!';
+      } else {
+        returnMessage += '\n\n이메일 주소 오류: Gmail 초안 생성 실패';
+      }
+    }
+
+    lock.releaseLock();
+    return {
+      success: true,
+      url: pdfFile.getUrl(),
+      pdfUrl: pdfFile.getUrl(),
+      folderUrl: targetFolder.getUrl(),
+      sheetUrl: newFile.getUrl(),
+      newQuoteNumber: realQuoteNumber,
+      message: returnMessage
+    };
+  } catch (err) {
+    lock.releaseLock();
+    return { success: false, message: '작업 실패: ' + err.toString() };
+  }
+}
+
+function fillSheetData(spreadsheet, quoteData) {
+  const sheet = spreadsheet.getSheets()[0];
+  const details = quoteData.details || {};
+  const items = quoteData.items || [];
+
+  setValueIfRangeExists(sheet, CELL_MAP.clientName, details.clientName);
+  setValueIfRangeExists(sheet, CELL_MAP.clientContactPerson, details.clientContactPerson);
+  setValueIfRangeExists(sheet, CELL_MAP.clientPhone, details.clientPhone);
+  setValueIfRangeExists(sheet, CELL_MAP.clientEmail, details.clientEmail);
+  setValueIfRangeExists(sheet, CELL_MAP.quoteNumber, details.quoteNumber);
+  setValueIfRangeExists(sheet, CELL_MAP.quoteDate, details.quoteDate);
+  setValueIfRangeExists(sheet, CELL_MAP.deliveryLocation, details.deliveryLocation);
+  setValueIfRangeExists(sheet, CELL_MAP.deliveryDeadline, details.deliveryDeadline);
+  setValueIfRangeExists(sheet, CELL_MAP.paymentTerms, details.paymentTerms);
+  setValueIfRangeExists(sheet, CELL_MAP.validityPeriod, details.validityPeriod);
+  setValueIfRangeExists(sheet, CELL_MAP.packing, details.packing);
+  setValueIfRangeExists(sheet, CELL_MAP.authorName, details.authorName);
+  setValueIfRangeExists(sheet, CELL_MAP.authorPhone, details.authorPhone);
+  setValueIfRangeExists(sheet, CELL_MAP.authorEmail, details.authorEmail);
+  setValueIfRangeExists(sheet, CELL_MAP.notes, details.notes || '');
+
+  try {
+    sheet.getRange('D16:D100').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  } catch (err) {
+    // Ignore wrapping failures on templates with different ranges.
+  }
+
+  let supplyTotal = 0;
+  for (let i = 0; i < items.length; i++) {
+    const row = CELL_MAP.itemStartRow + i;
+    const item = items[i];
+    const quantity = Number(item.quantity || 0);
+    const unitPrice = Number(item.unitPrice || 0);
+    const multiplierValue = Number(item.multiplier || 1);
+    const multiplier = isFinite(multiplierValue) && multiplierValue > 0 ? multiplierValue : 1;
+    const effectiveUnitPrice = unitPrice * multiplier;
+    const totalPrice = Math.round(quantity * effectiveUnitPrice);
+
+    setValueIfRangeExists(sheet, `A${row}`, i + 1);
+    setValueIfRangeExists(sheet, `B${row}`, item.name || '');
+    setValueIfRangeExists(sheet, `D${row}`, item.spec || '');
+    setValueIfRangeExists(sheet, `G${row}`, quantity);
+    // 템플릿에는 배율 열이 없으므로 단가 칸에 배율을 반영한 유효 단가를 기록한다.
+    setValueIfRangeExists(sheet, `H${row}`, effectiveUnitPrice);
+    setValueIfRangeExists(sheet, `I${row}`, totalPrice);
+
+    supplyTotal += totalPrice;
+  }
+
+  const vatIncludedPrice = Math.round(supplyTotal * 1.1);
+  const formattedPrice = vatIncludedPrice.toLocaleString('ko-KR');
+  setValueIfRangeExists(sheet, CELL_MAP.totalPriceCell, `총 견적 금액(VAT포함): ${formattedPrice} 원`);
+
+  return vatIncludedPrice;
+}
+
+function createPdfBlob(spreadsheetId, sheetId, fileName) {
+  const url =
+    'https://docs.google.com/spreadsheets/d/' +
+    spreadsheetId +
+    '/export?format=pdf&size=A4&portrait=true&fitw=true&gridlines=false&gid=' +
+    sheetId;
+
+  const params = {
+    method: 'GET',
+    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+    muteHttpExceptions: true
+  };
+
+  return UrlFetchApp.fetch(url, params).getBlob().setName(fileName + '.pdf');
+}
+
+function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
+  try {
+    const quoteDate = String(details.quoteDate || '');
+    const dateMatches = quoteDate.match(/(\d{4}).*?(\d{1,2}).*?(\d{1,2})/);
+    const year = dateMatches ? dateMatches[1] : new Date().getFullYear();
+    const month = dateMatches ? dateMatches[2] : new Date().getMonth() + 1;
+    const day = dateMatches ? dateMatches[3] : new Date().getDate();
+    const firstItem = items[0] || {};
+    const productName = items.length > 1 ? `${firstItem.name} 외 ${items.length - 1}건` : firstItem.name || '';
+    const categoryRules = [
+      ['SCADA PRO', /SCADA\s*PRO/i],
+      ['SCADA', /SCADA/i],
+      ['TOUCH MONITOR', /TOUCH\s*MONITOR/i],
+      ['BOX PC', /BOX\s*PC|\bNB\d/i],
+      ['Hybird', /HYBRID|HYBIRD/i],
+      ['Accessory', /ACCESSORY|ACCESSARY|액세서리/i],
+      ['eXT', /\beXT\d*\b/i],
+      ['XPANEL', /XPANEL/i],
+      ['PLC', /\bPLC\b|\bCM[013]\b|NET\/RIO|CIMON-NET|REMOTE\s*IO|\bRIO\b/i],
+      ['TOUCH', /TOUCH|50000_70000|5000SERIES|500SERIES|\biN[TP]\d/i]
+    ];
+    const productCategories = [];
+    items.forEach(function(item) {
+      const source = String(item.type || '') + ' ' + String(item.name || '');
+      const matched = categoryRules.find(function(rule) { return rule[1].test(source); });
+      if (matched && productCategories.indexOf(matched[0]) === -1) productCategories.push(matched[0]);
+    });
+    const no = sheet.getLastRow();
+
+    sheet.appendRow([
+      no,
+      year,
+      month,
+      day,
+      details.quoteNumber,
+      details.clientName,
+      details.clientContactPerson,
+      details.clientPhone,
+      details.clientEmail,
+      productCategories.join(', '),
+      productName,
+      totalPrice,
+      details.notes || '',
+      fileUrl
+    ]);
+  } catch (err) {
+    Logger.log('Ledger Error: ' + err.toString());
+  }
+}
+
+function generateAIContent(prompt) {
+  if (!CONFIG.GEMINI_API_KEY) {
+    return 'Gemini API key가 설정되지 않았습니다.';
+  }
+
+  const url = CONFIG.GEMINI_URL_BASE + CONFIG.GEMINI_API_KEY;
+  const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+  try {
+    const response = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    const result = JSON.parse(response.getContentText());
+    return result.candidates && result.candidates[0] && result.candidates[0].content && result.candidates[0].content.parts
+      ? result.candidates[0].content.parts[0].text.trim()
+      : '응답 없음';
+  } catch (err) {
+    return '에러';
+  }
+}
+
+function makeDefaultEmailBody(details) {
+  return (
+    `안녕하세요, ${details.clientContactPerson || ''} 님\n` +
+    `CIMON ${details.authorName || ''} 입니다.\n\n` +
+    '요청하신 제품 견적서 송부 드립니다.\n' +
+    '발주 시 발주서와 사업자등록증 전달 부탁 드립니다.\n\n' +
+    '추가 문의 사항이 있으시다면 연락 / 회신 부탁 드립니다.\n\n' +
+    '감사합니다.'
+  );
+}
+
+function sanitizeDriveName(value) {
+  return String(value || '').replace(/[\/\\:*?"<>|]/g, '').trim() || '미입력';
+}
+
+function setValueIfRangeExists(sheet, a1Notation, value) {
+  try {
+    sheet.getRange(a1Notation).setValue(value || '');
+  } catch (err) {
+    Logger.log(`Range ${a1Notation} write skipped: ${err.toString()}`);
+  }
+}

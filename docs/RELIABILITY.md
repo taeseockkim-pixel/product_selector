@@ -139,6 +139,12 @@ npm run build                   # 프로덕션 빌드 확인
 2. `src/data/quoteProductCatalog.ts` 변경 확인
 3. `npm run verify` 실행
 
+견적서 품목 금액은 `단가 × 배율 × 수량`으로 계산한다. 배율을 변경하는 기능을 수정할 때는
+`QuoteFormPage.tsx`, 미리보기/인쇄 HTML, CSV 및 Apps Script 운영용 코드의 fallback 계산이
+같은 규칙을 사용하는지 확인한다. 기존 Excel 템플릿에는 배율 열이 없으므로 로컬/Apps Script
+템플릿 출력은 단가 칸에 유효 단가(`단가 × 배율`)를 기록한다. 변경 후 `npm run build`와
+`npm run lint`를 실행한다.
+
 ---
 
 ## 장애 대응

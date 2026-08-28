@@ -1,0 +1,39 @@
+아래 내용을 Apps Script의 Code.gs에 붙여넣으세요.
+
+중요:
+Code.gs 전체를 아래 코드로 교체하면 안 됩니다.
+기존 CONFIG, processQuote, fillSheetData, createPdfBlob, getYearSystem 같은 저장 관련 함수는 그대로 필요합니다.
+
+사용 방법:
+1. 기존 Code.gs 안에 있는 doGet(e) 함수 전체만 삭제합니다.
+2. Code.gs 맨 아래에 아래 코드 전체를 붙여넣습니다.
+3. 이미 processQuoteFromReact 함수가 있다면 기존 것을 삭제하고 아래 것으로 교체합니다.
+
+----- 여기부터 복사 -----
+const VERCEL_APP_URL = 'https://product-selector-two.vercel.app';
+
+function doGet(e) {
+  const template = HtmlService.createTemplateFromFile('Index');
+  const queryString = e && e.queryString ? '?' + e.queryString : '';
+  template.appUrl = VERCEL_APP_URL + queryString;
+  return template
+    .evaluate()
+    .setTitle('CIMON 제품 선택 가이드')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function processQuoteFromReact(payload) {
+  const quoteData = {
+    details: payload.details,
+    items: payload.items
+  };
+
+  return processQuote(
+    quoteData,
+    Boolean(payload.createDraft),
+    payload.customSubject || '',
+    payload.customBody || ''
+  );
+}
+----- 여기까지 복사 -----
+

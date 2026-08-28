@@ -57,13 +57,13 @@ export function generateQuoteCsv(quote) {
 
   // ── 제품 상세 ──
   rows.push(['[제품 목록]']);
-  rows.push(['NO', '구분', '제품명', '규격', '수량', '단가', '금액']);
+  rows.push(['NO', '구분', '제품명', '규격', '수량', '단가', '배율', '금액']);
   items.forEach((item) => {
-    rows.push([item.no, item.type, item.name, item.spec ?? '', item.quantity, item.unitPrice, item.totalPrice]);
+    rows.push([item.no, item.type, item.name, item.spec ?? '', item.quantity, item.unitPrice, item.multiplier ?? 1, item.totalPrice]);
   });
   rows.push([]);
-  rows.push(['', '', '', '', '공급가액 합계', '', subtotal]);
-  rows.push(['', '', '', '', '총 견적금액(VAT포함)', '', vatTotal]);
+  rows.push(['', '', '', '', '공급가액 합계', '', '', subtotal]);
+  rows.push(['', '', '', '', '총 견적금액(VAT포함)', '', '', vatTotal]);
   rows.push([]);
 
   if (details.notes) {
