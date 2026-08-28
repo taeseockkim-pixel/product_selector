@@ -397,3 +397,48 @@ function setValueIfRangeExists(sheet, a1Notation, value) {
     Logger.log(`Range ${a1Notation} write skipped: ${err.toString()}`);
   }
 }
+
+// ── 임시 진단 함수 (문제 해결 후 삭제 가능) ──────────────────────────────
+// 실행 방법: 상단 함수 선택 드롭다운 → diagnoseDriveConfig → 실행 버튼 →
+// 왼쪽 "실행(Executions)" 메뉴에서 로그 확인. 배포와 무관하게 즉시 실행됩니다.
+function diagnoseDriveConfig() {
+  Logger.log('=== 실행 계정: ' + Session.getActiveUser().getEmail() + ' ===');
+
+  try {
+    const root = DriveApp.getFolderById(CONFIG.ROOT_FOLDER_ID);
+    Logger.log('OK ROOT_FOLDER_ID 열기 성공: ' + root.getName());
+
+    try {
+      const iter = root.getFoldersByName('2026');
+      if (iter.hasNext()) {
+        const f = iter.next();
+        Logger.log('OK 2026 폴더 검색 성공: ' + f.getName() + ' (id=' + f.getId() + ')');
+      } else {
+        Logger.log('WARN 2026 폴더를 찾지 못함');
+      }
+    } catch (e2) {
+      Logger.log('FAIL getFoldersByName 실패: ' + e2);
+    }
+  } catch (e1) {
+    Logger.log('FAIL ROOT_FOLDER_ID 열기 실패: ' + e1);
+  }
+
+  try {
+    const t = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
+    Logger.log('OK TEMPLATE_ID 성공: ' + t.getName());
+  } catch (e3) {
+    Logger.log('FAIL TEMPLATE_ID 실패: ' + e3);
+  }
+
+  try {
+    const lt = DriveApp.getFileById(CONFIG.LEDGER_TEMPLATE_ID);
+    Logger.log('OK LEDGER_TEMPLATE_ID 성공: ' + lt.getName());
+  } catch (e4) {
+    Logger.log('FAIL LEDGER_TEMPLATE_ID 실패: ' + e4);
+  }
+
+  Logger.log('=== 현재 CONFIG 값 ===');
+  Logger.log('ROOT_FOLDER_ID = ' + CONFIG.ROOT_FOLDER_ID);
+  Logger.log('TEMPLATE_ID = ' + CONFIG.TEMPLATE_ID);
+  Logger.log('LEDGER_TEMPLATE_ID = ' + CONFIG.LEDGER_TEMPLATE_ID);
+}
