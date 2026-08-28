@@ -23,16 +23,6 @@ export interface AuthorInfo {
   department: string;
 }
 
-// 작성자 DB 시트(Google Sheets) 연동 실패 시 사용하는 기본 목록.
-// 실제 운영에서는 Apps Script가 시트에서 목록을 읽어와 이 배열을 대체한다.
-const FALLBACK_AUTHORS: AuthorInfo[] = [
-  { name: '조규광 이사', phone: '010-8884-2760', email: 'kyukwang.jo@cimon.com', department: '기술영업' },
-  { name: '김태석 차장', phone: '010-5522-1403', email: 'taeseock.kim@cimon.com', department: '기술영업' },
-  { name: '정성택 차장', phone: '010-3293-3351', email: 'seongtaek.jeong@cimon.com', department: '기술영업' },
-  { name: '한진희 차장', phone: '010-2847-6335', email: 'jinhee.han@cimon.com', department: '기술영업' },
-  { name: '프로젝트사업실', phone: '', email: '', department: '프로젝트' },
-];
-
 const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
 const AUTHOR_LABELS: Record<string, string> = {
   '조규광 이사': 'Kyukwang Jo, Director',
@@ -382,8 +372,8 @@ function loadAuthorsViaGoogleScript(): Promise<AuthorListResult> {
   });
 }
 
-/** 작성자 DB 시트에서 작성자 목록을 읽어온다. 실패 시 FALLBACK_AUTHORS로 대체한다. */
-async function loadAuthors(): Promise<{ list: AuthorInfo[]; fromFallback: boolean }> {
+/** 작성자 DB 시트에서 작성자 목록을 읽어온다. 실패 시 빈 배열을 반환한다. */
+async function loadAuthors(): Promise<AuthorInfo[]> {
   try {
     let result: AuthorListResult | null = null;
     if (window.parent && window.parent !== window) {
@@ -391,11 +381,11 @@ async function loadAuthors(): Promise<{ list: AuthorInfo[]; fromFallback: boolea
     } else if (window.google?.script?.run) {
       result = await loadAuthorsViaGoogleScript();
     }
-    if (result?.success && result.authors?.length) return { list: result.authors, fromFallback: false };
+    if (result?.success && result.authors?.length) return result.authors;
   } catch (err) {
-    console.warn('작성자 목록 조회 실패, 기본 목록 사용:', err);
+    console.warn('작성자 목록 조회 실패:', err);
   }
-  return { list: FALLBACK_AUTHORS, fromFallback: true };
+  return [];
 }
 
 async function processQuoteRequest(quote: Quote, createDraft: boolean, subject = '', body = ''): Promise<QuoteProcessResult> {
@@ -454,9 +444,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   const [contact, setContact] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [author, setAuthor] = useState('김태석 차장');
-  const [authors, setAuthors] = useState<AuthorInfo[]>(FALLBACK_AUTHORS);
-  const [authorsFromFallback, setAuthorsFromFallback] = useState(true);
+  const [author, setAuthor] = useState('');
+  const [authors, setAuthors] = useState<AuthorInfo[]>([]);
+  const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customAuthorName, setCustomAuthorName] = useState('');
   const [customAuthorPhone, setCustomAuthorPhone] = useState('');
   const [customAuthorEmail, setCustomAuthorEmail] = useState('');
@@ -496,13 +486,14 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
     setPacking((value) => (value === previous.packing ? next.packing : value));
   }, [lang]);
 
-  // 마운트 시 작성자 DB 시트에서 작성자 목록을 읽어온다 (실패 시 FALLBACK_AUTHORS 유지)
+  // 마운트 시 작성자 DB 시트에서 작성자 목록을 읽어온다
   useEffect(() => {
     let cancelled = false;
-    loadAuthors().then(({ list, fromFallback }) => {
+    loadAuthors().then((list) => {
       if (cancelled) return;
       setAuthors(list);
-      setAuthorsFromFallback(fromFallback);
+      setAuthorsLoading(false);
+      setAuthor((current) => (list.some((a) => a.name === current) ? current : (list[0]?.name ?? '')));
     });
     return () => { cancelled = true; };
   }, []);
@@ -667,8 +658,16 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
   }
 
   function validateForSubmit(): boolean {
+    if (authorsLoading) {
+      alert(t(UI.quoteAuthorsLoading));
+      return false;
+    }
     if (!company.trim() || !contact.trim() || !phone.trim() || !email.trim()) {
       alert(t(UI.quoteFieldRequired));
+      return false;
+    }
+    if (authors.length === 0 && !customAuthorName.trim()) {
+      alert(t(UI.quoteAuthorRequired));
       return false;
     }
     if (needsManualAuthor && (!customAuthorPhone.trim() || !customAuthorEmail.trim())) {
@@ -915,21 +914,26 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess }: Props
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)}</label>
-                  <select value={author} onChange={(e) => setAuthor(e.target.value)} className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]">
-                    {authors.map((a) => <option key={a.name} value={a.name}>{authorLabel(a.name, lang)}</option>)}
-                  </select>
-                  {authorsFromFallback && (
-                    <p className="text-[11px] text-amber-600 mt-1">{t(UI.quoteAuthorsFallbackNotice)}</p>
+                  {authorsLoading ? (
+                    <div className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-[#f7f6f3] text-[#999999]">
+                      {t(UI.quoteAuthorsLoading)}
+                    </div>
+                  ) : authors.length > 0 ? (
+                    <select value={author} onChange={(e) => setAuthor(e.target.value)} className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]">
+                      {authors.map((a) => <option key={a.name} value={a.name}>{authorLabel(a.name, lang)}</option>)}
+                    </select>
+                  ) : (
+                    <p className="text-xs text-amber-600">{t(UI.quoteAuthorsLoadFailed)}</p>
                   )}
                 </div>
-                {needsManualAuthor && (
+                {!authorsLoading && needsManualAuthor && (
                   <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
                     <div>
-                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)}</label>
+                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)}{authors.length === 0 ? ' *' : ''}</label>
                       <input
                         value={customAuthorName}
                         onChange={(e) => setCustomAuthorName(e.target.value)}
-                        placeholder={author}
+                        placeholder={author || t(UI.quoteAuthor)}
                         className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
                       />
                     </div>
