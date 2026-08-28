@@ -5,11 +5,6 @@ function fmt(n: number | undefined | null) {
   return Math.round(n ?? 0).toLocaleString('ko-KR');
 }
 
-function fmtMultiplier(n: number | undefined | null) {
-  const value = Number(n ?? 1);
-  return Number.isFinite(value) && value > 0 ? String(Number(value.toFixed(4))) : '1';
-}
-
 function esc(s: unknown) {
   return String(s ?? '')
     .replace(/&/g, '&amp;')
@@ -42,7 +37,6 @@ export function generateQuoteHtml(quote: Quote, lang: Lang = 'ko'): string {
     spec: lang === 'en' ? 'Specification' : '규격',
     qty: lang === 'en' ? 'Qty' : '수량',
     unitPrice: lang === 'en' ? 'Unit Price' : '단가',
-    multiplier: lang === 'en' ? 'Multiplier' : '배율',
     amount: lang === 'en' ? 'Amount' : '금액',
     total: lang === 'en' ? 'Total Quotation Amount (VAT incl.)' : '총 견적 금액(VAT포함)',
     currency: lang === 'en' ? 'KRW' : '원',
@@ -60,15 +54,14 @@ export function generateQuoteHtml(quote: Quote, lang: Lang = 'ko'): string {
       <td class="l b">${esc(item.name)}</td>
       <td class="l sm">${esc(item.spec ?? '')}</td>
       <td class="c">${item.quantity}</td>
-      <td class="r">${fmt(item.unitPrice)}</td>
-      <td class="r">${fmtMultiplier(item.multiplier)}</td>
+      <td class="r">${fmt(item.unitPrice * (item.multiplier ?? 1))}</td>
       <td class="r b">${fmt(item.totalPrice)}</td>
     </tr>`,
     )
     .join('');
 
   const emptyRows = Math.max(0, 10 - items.length);
-  const emptyRowHtml = `<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>`.repeat(emptyRows);
+  const emptyRowHtml = `<tr><td>&nbsp;</td><td></td><td></td><td></td><td></td><td></td></tr>`.repeat(emptyRows);
 
   return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -95,11 +88,10 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 .itbl td { border: 1px solid #bbb; padding: 3px 4px; vertical-align: middle; }
 .itbl th:nth-child(1), .itbl td:nth-child(1) { width: 5%; }
 .itbl th:nth-child(2), .itbl td:nth-child(2) { width: 18%; }
-.itbl th:nth-child(3), .itbl td:nth-child(3) { width: 39%; }
+.itbl th:nth-child(3), .itbl td:nth-child(3) { width: 46%; }
 .itbl th:nth-child(4), .itbl td:nth-child(4) { width: 7%; }
-.itbl th:nth-child(5), .itbl td:nth-child(5) { width: 14%; }
-.itbl th:nth-child(6), .itbl td:nth-child(6) { width: 7%; }
-.itbl th:nth-child(7), .itbl td:nth-child(7) { width: 10%; }
+.itbl th:nth-child(5), .itbl td:nth-child(5) { width: 12%; }
+.itbl th:nth-child(6), .itbl td:nth-child(6) { width: 12%; }
 .c { text-align: center; }
 .r { text-align: right; }
 .l { text-align: left; }
@@ -155,7 +147,7 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 
   <table class="itbl">
     <thead>
-      <tr><th>NO.</th><th>${label.product}</th><th>${label.spec}</th><th>${label.qty}</th><th>${label.unitPrice}</th><th>${label.multiplier}</th><th>${label.amount}</th></tr>
+      <tr><th>NO.</th><th>${label.product}</th><th>${label.spec}</th><th>${label.qty}</th><th>${label.unitPrice}</th><th>${label.amount}</th></tr>
     </thead>
     <tbody>
       ${itemRows}

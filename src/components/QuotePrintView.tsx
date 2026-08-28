@@ -24,10 +24,6 @@ export default function QuotePrintView({ quote, onClose, onGenerate, onEmail, ge
   const actionPreview = Boolean(onGenerate || onEmail);
   const supplyTotal = quote.items.reduce((sum, item) => sum + item.totalPrice, 0);
   const fmt = (n: number) => Math.round(n).toLocaleString('ko-KR');
-  const fmtMultiplier = (n: number | undefined) => {
-    const value = Number(n ?? 1);
-    return Number.isFinite(value) && value > 0 ? String(Number(value.toFixed(4))) : '1';
-  };
 
   useEffect(() => {
     if (actionPreview) return;
@@ -128,7 +124,6 @@ export default function QuotePrintView({ quote, onClose, onGenerate, onEmail, ge
                         <th className="px-3 py-2 text-left">규격</th>
                         <th className="w-16 px-3 py-2 text-right">수량</th>
                         <th className="w-28 px-3 py-2 text-right">단가</th>
-                        <th className="w-20 px-3 py-2 text-right">배율</th>
                         <th className="w-28 px-3 py-2 text-right">금액</th>
                       </tr>
                     </thead>
@@ -139,19 +134,18 @@ export default function QuotePrintView({ quote, onClose, onGenerate, onEmail, ge
                           <td className="px-3 py-3 font-medium">{item.name}</td>
                           <td className="px-3 py-3 text-xs leading-relaxed">{item.spec}</td>
                           <td className="px-3 py-3 text-right">{item.quantity}</td>
-                          <td className="px-3 py-3 text-right">{fmt(item.unitPrice)}</td>
-                          <td className="px-3 py-3 text-right">{fmtMultiplier(item.multiplier)}</td>
+                          <td className="px-3 py-3 text-right">{fmt(item.unitPrice * (item.multiplier ?? 1))}</td>
                           <td className="px-3 py-3 text-right font-semibold">{fmt(item.totalPrice)}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot className="bg-indigo-50">
                       <tr className="border-t border-indigo-100">
-                        <td colSpan={6} className="px-3 py-3 text-right font-semibold">공급가액 합계</td>
+                        <td colSpan={5} className="px-3 py-3 text-right font-semibold">공급가액 합계</td>
                         <td className="px-3 py-3 text-right font-semibold">{fmt(supplyTotal)} 원</td>
                       </tr>
                       <tr>
-                        <td colSpan={6} className="px-3 py-4 text-right text-lg font-bold text-indigo-700">총 견적 금액 (VAT포함)</td>
+                        <td colSpan={5} className="px-3 py-4 text-right text-lg font-bold text-indigo-700">총 견적 금액 (VAT포함)</td>
                         <td className="px-3 py-4 text-right text-lg font-bold text-indigo-700">{fmt(quote.vatTotal)} 원</td>
                       </tr>
                     </tfoot>
