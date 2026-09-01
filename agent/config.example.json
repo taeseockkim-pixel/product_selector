@@ -5,5 +5,6 @@
   "publicBaseUrl": "http://172.35.12.36:8790",
   "httpPort": 8790,
   "pollIntervalMs": 10000,
+  "fileLinkSecret": "CIMON-FILES-2026-jR4wN8sQ2tVx7LmE",
   "templatePath": "templates/견적서 샘플.xlsx"
 }

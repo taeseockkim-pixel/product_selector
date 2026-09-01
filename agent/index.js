@@ -17,6 +17,7 @@
 import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync } from 'fs';
 import { join, dirname, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
+import { createHmac, timingSafeEqual } from 'crypto';
 import express from 'express';
 import { fillQuoteTemplate } from '../server/fillTemplate.js';
 import { excelToPdf } from '../server/excelToPdf.js';
@@ -46,6 +47,7 @@ const STORAGE_ROOT = resolve(String(config.storageRoot || 'D:\\견적서'));
 const DEFAULT_DEPARTMENT = String(config.defaultDepartment || '기술영업');
 const PUBLIC_BASE_URL = String(config.publicBaseUrl || '').replace(/\/+$/, '');
 const HTTP_PORT = Number(config.httpPort || 8790);
+const FILE_LINK_SECRET = String(config.fileLinkSecret || '');
 const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 10000);
 const TEMPLATE_PATH = resolve(__dirname, String(config.templatePath || 'templates/견적서 샘플.xlsx'));
 const MAX_JOB_ATTEMPTS = 3;
@@ -94,6 +96,11 @@ if (!folderReady || !existsSync(PENDING_DIR) || !existsSync(RESULTS_DIR)) {
   }
   process.exit(1);
 }
+if (!FILE_LINK_SECRET) {
+  console.error('[에이전트] config.json에 fileLinkSecret을 입력해 주세요.');
+  console.error('[에이전트] 이 값은 견적 파일 링크의 부서 접근 제어 서명에 사용됩니다 (유출 금지).');
+  process.exit(1);
+}
 if (!existsSync(TEMPLATE_PATH)) {
   console.error(`[에이전트] 견적서 템플릿을 찾을 수 없습니다: ${TEMPLATE_PATH}`);
   process.exit(1);
@@ -102,6 +109,17 @@ if (!existsSync(TEMPLATE_PATH)) {
 // ── 유틸 ───────────────────────────────────────────────────────────────────
 function safeSegment(value) {
   return String(value ?? '').replace(/[/\\:*?"<>|]/g, '').trim();
+}
+
+// 파일 상대 경로에 대한 부서 접근 제어 서명 (HMAC-SHA256)
+function signRelativePath(relativePath) {
+  return createHmac('sha256', FILE_LINK_SECRET).update(String(relativePath)).digest('hex');
+}
+
+function verifyRelativePathSignature(relativePath, signature) {
+  const expected = Buffer.from(signRelativePath(relativePath), 'utf8');
+  const given = Buffer.from(String(signature || ''), 'utf8');
+  return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
 function quoteYear(details) {
@@ -199,7 +217,10 @@ async function processJob(fileName) {
   }
 
   const relativePath = [department, year, folderName, pdfFileName].map(encodeURIComponent).join('/');
-  const fileUrl = PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/files/${relativePath}` : '';
+  const signature = signRelativePath(decodeURIComponent(relativePath));
+  const fileUrl = PUBLIC_BASE_URL
+    ? `${PUBLIC_BASE_URL}/files/${relativePath}?k=${signature}`
+    : '';
 
   const result = {
     quoteNumber: details.quoteNumber ?? '',
@@ -334,9 +355,17 @@ app.get('/', (_req, res) => {
 
 app.use('/files', (req, res) => {
   try {
-    const raw = req.url.split('?')[0].replace(/^\/+/, '');
+    const [rawPath, rawQuery] = req.url.split('?');
+    const query = new URLSearchParams(rawQuery || '');
+    const raw = rawPath.replace(/^\/+/, '');
     if (!raw) return res.status(404).send('Not found');
+
+    // 부서 접근 제어: 대장에 기록된 서명된 링크만 허용한다 (경로 변조·상위 경로 접근 차단)
     const relative = decodeURIComponent(raw);
+    if (!verifyRelativePathSignature(relative, query.get('k'))) {
+      return res.status(403).send('Forbidden: 유효한 파일 링크가 아닙니다. 견적 목록의 링크를 이용해 주세요.');
+    }
+
     const absolute = resolve(join(STORAGE_ROOT, relative));
     if (absolute !== STORAGE_ROOT && !absolute.startsWith(STORAGE_ROOT + sep)) {
       return res.status(403).send('Forbidden');
