@@ -86,6 +86,8 @@ interface Props {
   onSuccess: () => void;
   /** 접속 계정과 매칭된 작성자 이름 — 권한 확인(App.tsx) 결과로 전달되면 자동 선택된다 */
   defaultAuthorName?: string;
+  /** 접속 계정 기준으로 작성자를 고정 (드롭다운 변경 불가) */
+  authorLocked?: boolean;
 }
 
 interface AppsScriptPayload {
@@ -332,7 +334,7 @@ function findProductForItem(item: ItemRow): Product | null {
   return null;
 }
 
-export default function QuoteFormPage({ cartProducts, onBack, onSuccess, defaultAuthorName }: Props) {
+export default function QuoteFormPage({ cartProducts, onBack, onSuccess, defaultAuthorName, authorLocked }: Props) {
   const t = useT();
   const { lang } = useLang();
 
@@ -571,7 +573,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       alert(t(UI.quoteFieldRequired));
       return false;
     }
-    if (authors.length === 0 && !customAuthorName.trim()) {
+    if (!authorLocked && authors.length === 0 && !customAuthorName.trim()) {
       alert(t(UI.quoteAuthorRequired));
       return false;
     }
@@ -823,6 +825,15 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                     <div className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-[#f7f6f3] text-[#999999]">
                       {t(UI.quoteAuthorsLoading)}
                     </div>
+                  ) : authorLocked ? (
+                    <>
+                      <input
+                        value={authorLabel(author, lang)}
+                        readOnly
+                        className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-[#f7f6f3] text-[#555555] cursor-default"
+                      />
+                      <p className="text-[11px] text-[#999999] mt-1">{t(UI.quoteAuthorAutoSet)}</p>
+                    </>
                   ) : authors.length > 0 ? (
                     <select value={author} onChange={(e) => setAuthor(e.target.value)} className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]">
                       {authors.map((a) => <option key={a.name} value={a.name}>{authorLabel(a.name, lang)}</option>)}
@@ -833,15 +844,17 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                 </div>
                 {!authorsLoading && needsManualAuthor && (
                   <div className="space-y-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
-                    <div>
-                      <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)}{authors.length === 0 ? ' *' : ''}</label>
-                      <input
-                        value={customAuthorName}
-                        onChange={(e) => setCustomAuthorName(e.target.value)}
-                        placeholder={author || t(UI.quoteAuthor)}
-                        className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
-                      />
-                    </div>
+                    {!authorLocked && (
+                      <div>
+                        <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteAuthor)}{authors.length === 0 ? ' *' : ''}</label>
+                        <input
+                          value={customAuthorName}
+                          onChange={(e) => setCustomAuthorName(e.target.value)}
+                          placeholder={author || t(UI.quoteAuthor)}
+                          className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-xs text-[#555555] mb-1">{t(UI.quotePhone)} *</label>
                       <input

@@ -301,6 +301,7 @@ function AppInner() {
           onBack={() => setViewMode('cart')}
           onSuccess={() => setViewMode('quotelist')}
           defaultAuthorName={authAuthor?.name}
+          authorLocked={authAuthor != null}
         />
         {toast && <Toast msg={toast} />}
       </div>
