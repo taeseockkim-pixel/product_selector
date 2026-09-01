@@ -87,6 +87,17 @@ function describeError(err) {
   return `${err.message || err}${causeInfo}`;
 }
 
+function printSelfSignedCertGuidance() {
+  console.error('[에이전트] 회사 네트워크의 SSL 검사(보안 프로그램)가 구글 연결의 인증서를 대체하고 있습니다.');
+  console.error('[에이전트] 해결 방법 1 (권장): 그 PC의 브라우저에서 https://script.google.com 접속');
+  console.error('[에이전트]   → 주소창 자물쇠 아이콘 → 인증서(연결이 안전함) → 인증서 보기');
+  console.error('[에이전트]   → 인증 경로의 최상위(루트) 인증서 선택 → 세부 정보 → "파일에 복사"');
+  console.error('[에이전트]   → Base-64 인코딩 X.509로 내보내 agent\\corp-ca.pem 으로 저장한 뒤 재시작');
+  console.error('[에이전트]   (또는 certmgr.msc → 신뢰할 수 있는 루트 인증 기관에서 회사 CA를 Base-64로 내보내기)');
+  console.error('[에이전트] 해결 방법 2 (임시): agent\\allow-insecure-tls 라는 이름의 빈 파일을 만들고 재시작');
+  console.error('[에이전트]   → 인증서 검증을 건너뜁니다. 보안상 임시 확인 용도로만 사용하세요.');
+}
+
 async function callAppsScript(body) {
   const res = await fetch(AGENT_URL, {
     method: 'POST',
@@ -196,6 +207,9 @@ async function pollOnce() {
     await completeResults(results);
   } catch (err) {
     console.error(`[에이전트] 폴링 오류: ${describeError(err)}`);
+    if (String(err?.cause?.code || '').includes('SELF_SIGNED_CERT') || String(err?.message || '').includes('SELF_SIGNED_CERT')) {
+      printSelfSignedCertGuidance();
+    }
   } finally {
     running = false;
   }
