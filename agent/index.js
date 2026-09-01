@@ -52,6 +52,7 @@ const MAX_JOB_ATTEMPTS = 3;
 
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
+const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
 
 if (!AGENT_FOLDER) {
   console.error('[에이전트] config.json에 agentFolderPath를 입력해 주세요 (Drive 동기화된 견적에이전트 폴더 경로).');
@@ -62,9 +63,10 @@ let folderReady = true;
 try {
   mkdirSync(PENDING_DIR, { recursive: true });
   mkdirSync(RESULTS_DIR, { recursive: true });
+  mkdirSync(DELIVERY_DIR, { recursive: true });
 } catch (err) {
-  folderReady = false;
-  console.error(`[에이전트] pending/results 폴더 준비 실패: ${describeError(err)}`);
+  console.error(`[에이전트] pending/results 폴더를 생성하지 못했습니다: ${describeError(err)}`);
+  process.exit(1);
 }
 
 if (!folderReady || !existsSync(PENDING_DIR) || !existsSync(RESULTS_DIR)) {
@@ -105,6 +107,33 @@ function safeSegment(value) {
 function quoteYear(details) {
   const match = String(details?.quoteDate || '').match(/(\d{4})/);
   return match ? match[1] : String(new Date().getFullYear());
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Apps Script가 delivery 폴더에 넣어둔 대장 사본(XLSX)을 기다렸다가
+// 견적 연도 폴더(견적 폴더들의 부모)에 {연도}_견적관리대장.xlsx로 복사한다.
+async function waitForLedgerCopy(quoteNumber, yearFolder, year) {
+  const ledgerName = `${year}_견적관리대장.xlsx`;
+  const source = join(DELIVERY_DIR, `대장_${safeSegment(quoteNumber)}.xlsx`);
+  const target = join(yearFolder, ledgerName);
+  const deadline = Date.now() + 45000;
+
+  while (Date.now() < deadline) {
+    if (existsSync(source)) {
+      try {
+        copyFileSync(source, target);
+        try { unlinkSync(source); } catch { /* 동기화 중 잠금 — 남아있어도 무해 */ }
+        return target;
+      } catch {
+        // 동기화 중 복사 실패 — 잠시 후 재시도
+      }
+    }
+    await delay(2000);
+  }
+  return '';
 }
 
 // ── 견적 1건 처리 ──────────────────────────────────────────────────────────
@@ -152,6 +181,15 @@ async function processJob(fileName) {
 
   await fillQuoteTemplate(quote, xlsxPath, TEMPLATE_PATH);
   excelToPdf(xlsxPath, pdfPath);
+
+  // 견적 연도 폴더에 최신 견적관리대장 사본을 함께 유지한다 (Drive의 대장과 동일한 레이아웃)
+  const yearFolder = dirname(folder);
+  const ledgerCopy = await waitForLedgerCopy(safeSegment(details.quoteNumber), yearFolder, year);
+  if (ledgerCopy) {
+    console.log(`[에이전트] 대장 사본 갱신: ${ledgerCopy}`);
+  } else {
+    console.warn(`[에이전트] 대장 사본을 수신하지 못해 건너뜁니다 (${year}년)`);
+  }
 
   const relativePath = [department, year, folderName, pdfFileName].map(encodeURIComponent).join('/');
   const fileUrl = PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/files/${relativePath}` : '';

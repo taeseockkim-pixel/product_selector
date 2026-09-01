@@ -130,6 +130,29 @@ function jsonResponse_(obj) {
 // Google Drive 데스크톱 동기화로 파일을 받아 XLSX/PDF를 생성·저장한다.
 // 에이전트는 완료 보고를 results 폴더에 쓰며, 1분 트리거가 대장 파일링크를 갱신한다.
 
+// 최신 견적관리대장 사본(XLSX)을 에이전트 전달 폴더에 내보낸다.
+// 에이전트가 견적 파일 생성 시 같은 연도 폴더에 함께 복사한다.
+function exportLedgerToAgent_(system, year, quoteNumber) {
+  try {
+    const ledgerId = system.ledger.getId();
+    const res = UrlFetchApp.fetch('https://docs.google.com/spreadsheets/d/' + ledgerId + '/export?format=xlsx', {
+      method: 'get',
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() !== 200) {
+      Logger.log('대장 내보내기 실패: ' + res.getContentText());
+      return;
+    }
+    const delivery = getAgentSubfolder_('delivery');
+    const fileName = `대장_${sanitizeDriveName(quoteNumber)}.xlsx`;
+    const blob = res.getBlob().setName(fileName);
+    delivery.createFile(blob);
+  } catch (err) {
+    Logger.log('대장 사본 전달 오류: ' + err.toString());
+  }
+}
+
 function getAgentFolder_() {
   const props = PropertiesService.getScriptProperties();
   const cachedId = props.getProperty('AGENT_FOLDER_ID');
@@ -404,6 +427,9 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
 
     // 대장의 파일링크는 비워두고, 에이전트가 저장을 완료하면 사내 경로로 채운다.
     saveToLedgerSheet(system.ledgerSheet, details, quoteData.items || [], finalVatPrice, '');
+
+    // 대장 사본(XLSX)을 에이전트 전달 폴더에 내보낸다. 에이전트가 견적 연도 폴더에 복사한다.
+    exportLedgerToAgent_(system, currentYear, realQuoteNumber);
 
     let returnMessage = '[완료] 견적번호: ' + realQuoteNumber + '\n파일은 사내 저장 PC(172.35.12.36)의 부서별 폴더에 1~2분 내 생성됩니다.';
 

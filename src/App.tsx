@@ -29,6 +29,9 @@ const CATEGORY_LABELS: Record<CategoryId, string> = {
 
 const ALL_CATEGORY_IDS: CategoryId[] = ['PLC', 'IPC', 'SCADA', 'XPANEL'];
 
+// 작성자를 자유롭게 변경할 수 있는 관리자 계정 (이메일 소문자 기준)
+const ADMIN_AUTHOR_EMAILS = new Set(['taeseock.kim@cimon.com']);
+
 function filterPlcProducts(plcSeries: PlcSeriesId, activeSubType: string) {
   return PRODUCTS.filter(
     (p) => p.category === 'PLC' && p.plcSeries === plcSeries && p.subType === activeSubType,
@@ -301,7 +304,7 @@ function AppInner() {
           onBack={() => setViewMode('cart')}
           onSuccess={() => setViewMode('quotelist')}
           defaultAuthorName={authAuthor?.name}
-          authorLocked={authAuthor != null}
+          authorLocked={authAuthor != null && !ADMIN_AUTHOR_EMAILS.has(authAuthor.email.toLowerCase())}
         />
         {toast && <Toast msg={toast} />}
       </div>

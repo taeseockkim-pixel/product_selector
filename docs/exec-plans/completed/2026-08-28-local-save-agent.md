@@ -14,11 +14,13 @@
 ```
 저장하기 → Apps Script: 번호 발급 + 대장 기록
                 + "견적에이전트/pending" 폴더에 견적 JSON 생성
+                + "견적에이전트/delivery" 폴더에 대장 사본(XLSX) 생성
                       ↓ Google Drive 데스크톱 동기화 (양방향)
 agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
     ├─ pending 폴더 감시(10초) → XLSX 생성 → Excel COM으로 PDF 변환
     ├─ {storageRoot}\{부서}\{연도}\{번호_업체명}\ 저장
-    ├─ results 폴더에 완료 보고 기록 (실패 시 3회 재시도 후 실패 보고)
+    ├─ delivery의 대장 사본을 연도 폴더에 {연도}_견적관리대장.xlsx로 복사
+    ├─ results 폴더에 완료 보고 기록 (실패 시 3회 재시도 후 실패 보고 + failed-jobs 백업)
     └─ HTTP 파일 서버(8790 포트)로 사내 견적 파일 다운로드 제공
 [Apps Script] 1분 트리거 processAgentResults → 대장 파일링크 갱신 + 파일 정리
 ```
@@ -28,19 +30,25 @@ agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
 - `APPS_SCRIPT_Code_gs_전체교체코드.txt`
   - `processQuote`: Drive 파일 생성 제거 → `enqueueLocalSave_()`이
     Drive `견적에이전트/pending` 폴더에 견적 JSON 파일 생성 + 1분 트리거 자동 등록
+  - `exportLedgerToAgent_()` (신규): 저장 후 최신 대장을 XLSX로 내보내
+    `견적에이전트/delivery` 폴더에 `대장_{견적번호}.xlsx`로 전달
   - `processAgentResults()` (신규, 1분 트리거): 에이전트 완료 보고 반영
     (대장 파일링크 갱신, 실패 시 pending을 failed 폴더로 이동, 잔여 파일 영구 삭제)
+  - `permanentlyDeleteFile_`: 공유 드라이브 항목 삭제용 `supportsAllDrives=true` 추가
   - `getAgentFolder_()`/`getAgentSubfolder_()`: 작성자 DB 시트 위치에
-    `견적에이전트/pending|results|failed` 폴더 자동 생성 (Script Properties에 ID 캐시)
+    `견적에이전트/pending|results|failed|delivery` 폴더 자동 생성 (Script Properties에 ID 캐시)
   - Gmail 초안용 임시 PDF는 생성 직후 영구 삭제 (Drive v3 DELETE) — 이전 버전에서 유지
   - 기존 시트 기반 대기열(`handleAgentClaim_`/`handleAgentComplete_`) 및
     doPost 에이전트 액션 제거
 - `agent/index.js`: Apps Script 폴링 제거 → 로컬 pending 폴더 감시 방식
+  - 확장자 없는 pending 파일도 처리, 실패 3회 시 `agent/failed-jobs/` 로컬 백업
 - `agent/config.example.json`: `agentFolderPath`(필수) 추가, 토큰/엔드포인트 제거
+- 프론트엔드: 관리자 계정(`App.tsx`의 `ADMIN_AUTHOR_EMAILS`)은 작성자 잠금 해제 — 자유롭게 작성자 변경 가능
 
 ## 알려진 제한
 
 - 저장 직후 견적 목록의 파일링크는 비어 있고, 완료 보고 반영(통상 1~3분) 후 채워진다.
+  대장 사본 XLSX도 같은 시점에 연도 폴더에 갱신된다.
 - 파일 생성 지연은 Drive 데스크톱 동기화 속도에 좌우된다 (업무 시간 내 수 초~수 분).
 - 처리 실패 3회 누적 시 대기 JSON은 `failed` 폴더로 이동된다. 원인 복구 후 수동으로
   pending 폴더에 되돌리면 재처리된다.
