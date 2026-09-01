@@ -180,28 +180,37 @@ Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배�
 | `AUTHOR_DB_SHEET_ID` | 작성자 DB 스프레드시트 (`시트1`) | 열 구성: 작성자(또는 이름) / 연락처 / 이메일 / 부서. 프론트엔드 작성자 드롭다운과 접근 권한 확인이 이 시트를 사용 |
 | `TEMPLATE_ID` | "견적서 샘플" 시트 | Gmail 초안 첨부용 임시 PDF 생성에만 사용 (저장 후 즉시 영구 삭제) |
 | `LEDGER_TEMPLATE_ID` | "견적관리대장 샘플" 시트 | 새 연도 폴더가 생성될 때만 `makeCopy()`로 복사, 탭 이름이 `LEDGER_SHEET_NAME`(`견적관리대장`)과 정확히 일치해야 함 |
-| `QUEUE_SHEET_NAME` / `AGENT_TOKEN` | 사내 PC 로컬 저장 에이전트 대기열 | 작성자 DB 스프레드시트의 `저장대기열` 시트에 견적 데이터를 적재, 에이전트가 토큰으로 인증해 가져감 |
+| `AGENT_QUEUE_FOLDER_NAME` | "견적에이전트" 폴더 (작성자 DB 시트와 같은 위치에 자동 생성) | 로컬 저장 에이전트와 pending/results 파일을 주고받는 대기열 폴더 |
 
 이 값들이 실제 Drive 항목과 어긋나면 "입력한 ID에 해당하는 항목이 없습니다" 예외가 발생하며, 저장하기와 견적 목록 조회가 동시에 실패한다(`getYearSystem()`을 공통으로 거치기 때문). Code.gs를 전체 교체할 때는 이 ID들이 실제 Drive 구조와 일치하는지 반드시 재확인한다.
 
 ### 사내 PC 로컬 저장 에이전트 (`agent/`)
 
 견적 파일(XLSX/PDF)은 구글 드라이브 대신 사내 PC(`172.35.12.36`)에 저장한다 (구글 용량 절약).
+회사 정책상 익명 웹 앱 배포가 불가능하므로, 에이전트와 Apps Script는 **Google Drive 폴더를
+통해 파일을 주고받는다** (인증·토큰·별도 배포 불필요).
 
 ```
-저장하기 → Apps Script: 번호 발급 + 대장 기록 + 저장대기열 등록 (Drive에 파일 생성 안 함)
-                ↑ 30초 폴링 (HTTPS 아웃바운드, 토큰 인증)
+저장하기 → Apps Script: 번호 발급 + 대장 기록
+                + "견적에이전트/pending" 폴더에 견적 JSON 생성 (Drive에 파일 생성 안 함)
+                      ↓ Google Drive 데스크톱 동기화 (회사 허용 정식 앱, 양방향)
 agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
-    ├─ 대기 견적 가져오기 → fillTemplate.js로 XLSX 생성 → Excel COM으로 PDF 변환
+    ├─ pending 폴더 감시(10초) → fillTemplate.js로 XLSX 생성 → Excel COM으로 PDF 변환
     ├─ {storageRoot}\{부서}\{연도}\{번호_업체명}\ 저장
-    └─ 완료 보고 → 대장 파일링크를 사내 다운로드 URL로 갱신
+    ├─ results 폴더에 완료 보고 JSON 기록 (성공 1회 실패 시 재시도 3회 후 실패 보고)
     └─ HTTP 파일 서버(8790 포트)로 사내에서 견적 파일 다운로드 제공
+[Apps Script] 1분 트리거 processAgentResults → 대장 파일링크를 사내 URL로 갱신 + 잔여 파일 정리
 ```
 
-- Gmail 초안(이메일 발송)은 첨부 PDF가 필요하므로 예외적으로 임시 시트/PDF를 만들고, **초안 생성 직후 영구 삭제**한다 (Drive v3 API DELETE, 용량 즉시 회수)
-- 에이전트 실행: 대상 PC에 프로젝트 복제 → `npm install` → `agent/config.example.json`을 `agent/config.json`으로 복사해 값 입력(토큰은 Code.gs `AGENT_TOKEN`과 일치) → `npm run agent`
-- 에이전트용 Apps Script 엔드포인트는 별도 배포(**액세스: 누구나**)로 발급한 URL을 `config.json`의 `appsScriptAgentUrl`에 넣는다. 이 배포에서는 `doPost`의 모든 동작이 토큰으로 보호된다
-- 대장의 파일링크는 에이전트 완료 보고 이후 채워지므로, 저장 직후에는 비어 있다 (에이전트 중단 시 PENDING 행은 15분 후 자동 재클레임)
+- 대기/완료 JSON은 KB 단위 텍스트라 Drive 용량 영향이 미미하며, 처리 후 즉시 삭제된다
+- Gmail 초안(이메일 발송)은 첨부 PDF가 필요하므로 예외적으로 임시 시트/PDF를 만들고, **초안 생성 직후 영구 삭제**한다
+- 에이전트 실행: 대상 PC에 프로젝트 복제 → `npm install` → Google Drive 데스크톱 설치·로그인 →
+  `agent/config.example.json`을 `agent/config.json`으로 복사해 값 입력
+  (`agentFolderPath`는 Drive 동기화된 `견적에이전트` 폴더의 로컬 경로 — 첫 저장 1회 후 자동 생성됨)
+  → `start-agent.bat` 실행
+- 저장 직후 견적 목록의 파일링크는 비어 있고, 에이전트 완료 보고가 반영되면(통상 1~3분) 채워진다
+- 처리 실패 3회 누적 시 대기 JSON은 `failed` 폴더로 이동되며, 원인 복구 후 수동으로 pending 폴더에
+  되돌리면 재처리된다
 
 견적관리대장 열을 변경할 때는 `saveToLedgerSheet()`의 행 배열을 함께 수정한다. 현재 열 순서는 `NO, 연도, 월, 일, 견적번호, ...`이다.
 

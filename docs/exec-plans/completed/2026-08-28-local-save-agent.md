@@ -6,45 +6,53 @@
 부서별 보안 폴더로 옮겨 구글 드라이브 용량 소모를 제거한다.
 대장·견적번호·작성자 권한은 기존 Google Sheets 시스템을 그대로 유지한다.
 
-## 아키텍처 (Pull 방식)
+## 아키텍처 (Google Drive 폴더 연동형)
 
-- Apps Script는 저장 시 견적 데이터를 작성자 DB 스프레드시트의 `저장대기열` 시트에
-  등록만 하고, 드라이브에는 어떤 파일도 만들지 않는다.
-- 사내 PC의 에이전트(`agent/index.js`)가 30초 간격으로 대기열을 폴링(HTTPS 아웃바운드)해
-  견적을 가져온 뒤, PC에서 XLSX 생성(`server/fillTemplate.js` 재사용)과 PDF 변환
-  (`server/excelToPdf.js`, Excel COM)을 수행해 부서별 폴더에 저장한다.
-- 에이전트가 완료를 보고하면 대장의 파일링크가 사내 다운로드 URL
-  (`http://172.35.12.36:8790/files/...`)로 채워진다.
-- 에이전트는 같은 포트에서 HTTP 파일 서버를 구동해 사내에서 견적 파일을 내려받을 수 있게 한다.
+회사 정책상 익명 웹 앱 배포가 불가능하므로, 에이전트와 Apps Script는 직접 통신하지 않고
+**Google Drive 폴더를 통해 대기열을 주고받는다** (인증·토큰·별도 배포 불필요).
+
+```
+저장하기 → Apps Script: 번호 발급 + 대장 기록
+                + "견적에이전트/pending" 폴더에 견적 JSON 생성
+                      ↓ Google Drive 데스크톱 동기화 (양방향)
+agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
+    ├─ pending 폴더 감시(10초) → XLSX 생성 → Excel COM으로 PDF 변환
+    ├─ {storageRoot}\{부서}\{연도}\{번호_업체명}\ 저장
+    ├─ results 폴더에 완료 보고 기록 (실패 시 3회 재시도 후 실패 보고)
+    └─ HTTP 파일 서버(8790 포트)로 사내 견적 파일 다운로드 제공
+[Apps Script] 1분 트리거 processAgentResults → 대장 파일링크 갱신 + 파일 정리
+```
 
 ## 주요 변경
 
 - `APPS_SCRIPT_Code_gs_전체교체코드.txt`
-  - `processQuote`: Drive 파일 생성 제거 → `enqueueLocalSave_()` 대기열 등록 + 대장 기록
-  - `createTempQuotePdf_`: Gmail 초안용 임시 PDF만 생성 후 **영구 삭제**(Drive v3 DELETE) — 이메일 건의 Drive 사용량 즉시 회수
-  - `doPost`: `AGENT_CLAIM`/`AGENT_COMPLETE` 액션 추가, 모든 doPost 동작 토큰 검증
-  - `handleAgentClaim_`/`handleAgentComplete_`: 대기열 클레임(15분 스테일 재클레임)·완료 처리
-  - CONFIG: `QUEUE_SHEET_NAME`, `AGENT_TOKEN` 추가
-- `agent/index.js` (신규): 폴링 + 파일 생성 + 부서별 저장 + HTTP 파일 서버
-- `agent/config.example.json` (신규): 설정 템플릿 (`agent/config.json`은 gitignore)
-- `agent/templates/견적서 샘플.xlsx`: 에이전트 자체 템플릿 사본
-- `server/fillTemplate.js`: 템플릿 경로를 선택 인자로 받도록 수정
-- `server/appsScriptQuote.js`: doPost 토큰 검증 대응 `agentToken` 전달
+  - `processQuote`: Drive 파일 생성 제거 → `enqueueLocalSave_()`이
+    Drive `견적에이전트/pending` 폴더에 견적 JSON 파일 생성 + 1분 트리거 자동 등록
+  - `processAgentResults()` (신규, 1분 트리거): 에이전트 완료 보고 반영
+    (대장 파일링크 갱신, 실패 시 pending을 failed 폴더로 이동, 잔여 파일 영구 삭제)
+  - `getAgentFolder_()`/`getAgentSubfolder_()`: 작성자 DB 시트 위치에
+    `견적에이전트/pending|results|failed` 폴더 자동 생성 (Script Properties에 ID 캐시)
+  - Gmail 초안용 임시 PDF는 생성 직후 영구 삭제 (Drive v3 DELETE) — 이전 버전에서 유지
+  - 기존 시트 기반 대기열(`handleAgentClaim_`/`handleAgentComplete_`) 및
+    doPost 에이전트 액션 제거
+- `agent/index.js`: Apps Script 폴링 제거 → 로컬 pending 폴더 감시 방식
+- `agent/config.example.json`: `agentFolderPath`(필수) 추가, 토큰/엔드포인트 제거
 
 ## 알려진 제한
 
-- 저장 직후 견적 목록의 파일링크는 비어 있고, 에이전트가 파일을 생성한 뒤 채워진다.
-- 에이전트가 중단되면 대기 행은 쌓이며, 에이전트 재시작 시 자동 처리된다
-  (15분 이상 CLAIMED 상태인 행은 자동 재클레임).
+- 저장 직후 견적 목록의 파일링크는 비어 있고, 완료 보고 반영(통상 1~3분) 후 채워진다.
+- 파일 생성 지연은 Drive 데스크톱 동기화 속도에 좌우된다 (업무 시간 내 수 초~수 분).
+- 처리 실패 3회 누적 시 대기 JSON은 `failed` 폴더로 이동된다. 원인 복구 후 수동으로
+  pending 폴더에 되돌리면 재처리된다.
 - 파일 서버는 HTTP(사내 LAN 전용)다. 외부 노출 금지.
-- 견적 대장(Google Sheets)·작성자 DB는 여전히 구글에 있으나 텍스트 데이터라 용량 영향이 미미하다.
 
 ## 배포 (대상 PC에서)
 
-1. 프로젝트 복제/복사 → `npm install`
-2. `agent/config.example.json` → `agent/config.json` 복사 후 값 입력
-   - `appsScriptAgentUrl`: Apps Script에서 **액세스: 누구나**로 별도 배포한 웹 앱 URL
-   - `agentToken`: Code.gs `CONFIG.AGENT_TOKEN`과 동일한 값
-   - `storageRoot` / `publicBaseUrl` / `httpPort`: 환경에 맞게
-3. `npm run agent` 실행 (Node 18+, Windows + Excel 필요, 상시 가동 권장)
-4. Apps Script `Code.gs` 교체 + 새 버전 배포 (사용 중 배포 갱신)
+1. **Google Drive 데스크톱** 설치 + 회사 계정 로그인 (Drive 동기화가 핵심 통로)
+2. 프로젝트 복제/복사 → `npm install`
+3. `agent/config.example.json` → `agent/config.json` 복사 후 값 입력
+   - `agentFolderPath`: Drive에서 동기화되는 `견적에이전트` 폴더의 로컬 경로
+     (첫 견적 저장 1회 후 Drive에 자동 생성됨; 이후 Drive 웹/데스크톱에서 위치 확인)
+   - `storageRoot`, `publicBaseUrl`, `httpPort`: 환경에 맞게
+4. `npm run agent` 또는 `start-agent.bat` 실행
+5. Apps Script `Code.gs` 교체 + 새 버전 배포 (사용 중 배포 갱신)

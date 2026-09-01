@@ -21,8 +21,9 @@ const CONFIG = {
   },
   LEDGER_SHEET_NAME: '견적관리대장',
   // 사내 PC 로컬 저장 에이전트 설정 (견적 파일을 구글 드라이브 대신 PC에 저장)
-  QUEUE_SHEET_NAME: '저장대기열',
-  AGENT_TOKEN: 'CIMON-AGENT-2026-kQ7xWm2Pz9Tb',
+  // 작성자 DB 시트가 있는 폴더 아래 '견적에이전트' 폴더를 만들고, 그 안에서
+  // pending/results 파일을 주고받는다 (에이전트 PC에는 Google Drive 데스크톱 필요)
+  AGENT_QUEUE_FOLDER_NAME: '견적에이전트',
   GEMINI_API_KEY: 'AIzaSyBFshNCRc924FBF1Web1_oPxoARGyT50zs',
   GEMINI_URL_BASE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='
 };
@@ -107,19 +108,7 @@ function getQuoteLedgerFromReact() {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-
-    // 사내 PC 로컬 저장 에이전트 요청 (토큰 필수)
-    if (payload.action === 'AGENT_CLAIM' || payload.action === 'AGENT_COMPLETE') {
-      if (String(payload.token || '') !== String(CONFIG.AGENT_TOKEN || '')) {
-        return jsonResponse_({ success: false, message: '토큰 인증에 실패했습니다.' });
-      }
-      if (payload.action === 'AGENT_CLAIM') {
-        return jsonResponse_(handleAgentClaim_());
-      }
-      return jsonResponse_(handleAgentComplete_(payload.results || []));
-    }
-
-    // 견적 저장 요청 (Vercel 폴백 경로) — 토큰이 있는 경우에만 허용
+    // Vercel 폴백 경로(사용되지 않음) — 토큰이 있는 경우에만 허용
     if (String(payload.agentToken || '') !== String(CONFIG.AGENT_TOKEN || '')) {
       return jsonResponse_({ success: false, message: '토큰 인증에 실패했습니다.' });
     }
@@ -134,6 +123,117 @@ function jsonResponse_(obj) {
   return ContentService
     .createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ── 사내 PC 로컬 저장 에이전트 (Google Drive 폴더 연동) ───────────────────
+// Apps Script는 대기 폴더에 견적 JSON 파일만 쓰고, 사내 PC의 에이전트가
+// Google Drive 데스크톱 동기화로 파일을 받아 XLSX/PDF를 생성·저장한다.
+// 에이전트는 완료 보고를 results 폴더에 쓰며, 1분 트리거가 대장 파일링크를 갱신한다.
+
+function getAgentFolder_() {
+  const props = PropertiesService.getScriptProperties();
+  const cachedId = props.getProperty('AGENT_FOLDER_ID');
+  if (cachedId) {
+    try {
+      return DriveApp.getFolderById(cachedId);
+    } catch (err) { /* 폴더가 삭제된 경우 재탐색 */ }
+  }
+  const authorFile = DriveApp.getFileById(CONFIG.AUTHOR_DB_SHEET_ID);
+  const parents = authorFile.getParents();
+  const parent = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
+  let folder;
+  const iter = parent.getFoldersByName(CONFIG.AGENT_QUEUE_FOLDER_NAME);
+  folder = iter.hasNext() ? iter.next() : parent.createFolder(CONFIG.AGENT_QUEUE_FOLDER_NAME);
+  props.setProperty('AGENT_FOLDER_ID', folder.getId());
+  return folder;
+}
+
+function getAgentSubfolder_(name) {
+  const root = getAgentFolder_();
+  const iter = root.getFoldersByName(name);
+  return iter.hasNext() ? iter.next() : root.createFolder(name);
+}
+
+function enqueueLocalSave_(details, items, vatTotal) {
+  const pending = getAgentSubfolder_('pending');
+  const fileName = `${sanitizeDriveName(details.quoteNumber)}.json`;
+  const payload = JSON.stringify({ details: details, items: items || [], vatTotal: vatTotal });
+  pending.createFile(fileName, payload, MimeType.PLAIN_TEXT);
+  ensureAgentTrigger_();
+}
+
+function ensureAgentTrigger_() {
+  const exists = ScriptApp.getProjectTriggers().some(function(t) {
+    return t.getHandlerFunction() === 'processAgentResults';
+  });
+  if (!exists) {
+    ScriptApp.newTrigger('processAgentResults').timeBased().everyMinutes(1).create();
+  }
+}
+
+// 1분마다 실행: 에이전트가 쓴 완료 보고를 반영해 대장 파일링크를 갱신하고 잔여 파일을 정리한다.
+function processAgentResults() {
+  let results;
+  try {
+    results = getAgentSubfolder_('results');
+  } catch (err) {
+    return;
+  }
+  const files = results.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+    let result = null;
+    try {
+      result = JSON.parse(file.getBlob().getDataAsString('utf8'));
+    } catch (err) {
+      continue; // 아직 동기화 중인 파일 — 다음 트리거에서 재시도
+    }
+
+    if (result && result.ok && result.department && result.quoteNumber && result.fileUrl) {
+      try {
+        updateLedgerLink_(result);
+      } catch (err) {
+        Logger.log('대장 파일링크 갱신 실패(' + result.quoteNumber + '): ' + err.toString());
+      }
+    } else if (result && result.ok === false) {
+      movePendingToFailed_(result.quoteNumber, result.error || '알 수 없는 오류');
+    }
+    permanentlyDeleteFile_(file.getId());
+  }
+}
+
+function updateLedgerLink_(result) {
+  const rootFolderId = resolveRootFolderId({ authorDepartment: result.department });
+  const year = Number(result.year) || new Date().getFullYear();
+  const ledger = getYearSystem(year, rootFolderId).ledgerSheet;
+  const lastRow = ledger.getLastRow();
+  if (lastRow < 2) return;
+  const numbers = ledger.getRange(2, 5, lastRow - 1, 1).getValues();
+  for (let i = 0; i < numbers.length; i++) {
+    if (String(numbers[i][0]).trim() === String(result.quoteNumber).trim()) {
+      ledger.getRange(i + 2, 14).setValue(result.fileUrl);
+      return;
+    }
+  }
+}
+
+function movePendingToFailed_(quoteNumber, error) {
+  try {
+    const pending = getAgentSubfolder_('pending');
+    const failed = getAgentSubfolder_('failed');
+    const iter = pending.getFilesByName(`${sanitizeDriveName(quoteNumber)}.json`);
+    if (iter.hasNext()) {
+      const file = iter.next();
+      failed.createFile(
+        `실패_${sanitizeDriveName(quoteNumber)}_${Date.now()}.json`,
+        JSON.stringify({ quoteNumber: quoteNumber, error: error }),
+        MimeType.PLAIN_TEXT
+      );
+      file.setTrashed(true);
+    }
+  } catch (err) {
+    Logger.log('실패 폴더 이동 오류(' + quoteNumber + '): ' + err.toString());
+  }
 }
 
 // 작성자 DB 시트(시트1)에서 행 목록을 읽는 공용 헬퍼.
@@ -305,7 +405,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
     // 대장의 파일링크는 비워두고, 에이전트가 저장을 완료하면 사내 경로로 채운다.
     saveToLedgerSheet(system.ledgerSheet, details, quoteData.items || [], finalVatPrice, '');
 
-    let returnMessage = '[완료] 견적번호: ' + realQuoteNumber + '\n파일은 사내 저장 PC(172.35.12.36)의 부서별 폴더에 생성됩니다.';
+    let returnMessage = '[완료] 견적번호: ' + realQuoteNumber + '\n파일은 사내 저장 PC(172.35.12.36)의 부서별 폴더에 1~2분 내 생성됩니다.';
 
     if (createDraft) {
       if (details.clientEmail && details.clientEmail.indexOf('@') > -1) {
@@ -374,102 +474,7 @@ function permanentlyDeleteFile_(fileId) {
   }
 }
 
-// ── 사내 PC 로컬 저장 에이전트 대기열 ─────────────────────────────────────
-
-// 저장 대기열 시트에 견적 데이터를 등록한다. 에이전트가 이 행을 가져가 파일을 생성한다.
-function enqueueLocalSave_(details, items, vatTotal) {
-  const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
-  let queue = ss.getSheetByName(CONFIG.QUEUE_SHEET_NAME);
-  if (!queue) {
-    queue = ss.insertSheet(CONFIG.QUEUE_SHEET_NAME);
-    queue.appendRow(['등록시각', '견적번호', '부서', '상태', '클레임시각', '완료시각', '오류', '데이터']);
-    queue.getRange(1, 1, 1, 8).setFontWeight('bold');
-  }
-  queue.appendRow([
-    new Date(),
-    details.quoteNumber || '',
-    details.authorDepartment || '',
-    'PENDING',
-    '',
-    '',
-    '',
-    JSON.stringify({ details: details, items: items || [], vatTotal: vatTotal })
-  ]);
-}
-
-// 에이전트가 PENDING(또는 오래된 CLAIMED) 행을 가져간다.
-function handleAgentClaim_() {
-  const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
-  const queue = ss.getSheetByName(CONFIG.QUEUE_SHEET_NAME);
-  if (!queue) return { success: true, jobs: [] };
-  const lastRow = queue.getLastRow();
-  if (lastRow < 2) return { success: true, jobs: [] };
-
-  const values = queue.getRange(2, 1, lastRow - 1, 8).getValues();
-  const now = new Date().getTime();
-  const staleMs = 15 * 60 * 1000;
-  const jobs = [];
-
-  values.forEach(function(row, i) {
-    const status = String(row[3] || '');
-    const claimedAt = row[4] instanceof Date ? row[4].getTime() : 0;
-    const isClaimable = status === 'PENDING' || (status === 'CLAIMED' && now - claimedAt > staleMs);
-    if (isClaimable) {
-      let payload = {};
-      try { payload = JSON.parse(row[7] || '{}'); } catch (err) {}
-      jobs.push({
-        id: String(i + 2),
-        quoteNumber: String(row[1] || ''),
-        department: String(row[2] || ''),
-        payload: payload
-      });
-      queue.getRange(i + 2, 4).setValue('CLAIMED');
-      queue.getRange(i + 2, 5).setValue(new Date());
-    }
-  });
-
-  return { success: true, jobs: jobs };
-}
-
-// 에이전트의 저장 완료 보고를 처리한다. 대기열 상태 갱신 + 대장 파일링크 채우기.
-function handleAgentComplete_(results) {
-  const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
-  const queue = ss.getSheetByName(CONFIG.QUEUE_SHEET_NAME);
-  const updated = [];
-
-  results.forEach(function(result) {
-    try {
-      const rowIndex = Number(result.id);
-      if (queue && rowIndex >= 2) {
-        queue.getRange(rowIndex, 4).setValue(result.ok ? 'DONE' : 'FAILED');
-        queue.getRange(rowIndex, 6).setValue(new Date());
-        queue.getRange(rowIndex, 7).setValue(result.ok ? '' : String(result.error || '').slice(0, 400));
-      }
-
-      if (result.ok && result.department && result.quoteNumber && result.fileUrl) {
-        const rootFolderId = resolveRootFolderId({ authorDepartment: result.department });
-        const year = Number(result.year) || new Date().getFullYear();
-        const ledger = getYearSystem(year, rootFolderId).ledgerSheet;
-        const lastRow = ledger.getLastRow();
-        if (lastRow > 1) {
-          const numbers = ledger.getRange(2, 5, lastRow - 1, 1).getValues();
-          for (let i = 0; i < numbers.length; i++) {
-            if (String(numbers[i][0]).trim() === String(result.quoteNumber).trim()) {
-              ledger.getRange(i + 2, 14).setValue(result.fileUrl);
-              break;
-            }
-          }
-        }
-      }
-
-      updated.push({ id: result.id, ok: true });
-    } catch (err) {
-      updated.push({ id: result.id, ok: false, error: String(err) });
-    }
-  });
-
-  return { success: true, updated: updated };
-}
+// ── 사내 PC 로컬 저장 에이전트 (Google Drive 폴더 연동) 끝 ────────────────
 
 function fillSheetData(spreadsheet, quoteData) {
   const sheet = spreadsheet.getSheets()[0];
