@@ -459,9 +459,10 @@ function createTempQuotePdf_(quoteData, system, details) {
 }
 
 // 드라이브 파일을 휴지통이 아닌 영구 삭제로 제거한다 (용량 즉시 회수).
+// 공유 드라이브(Shared Drive) 항목 삭제에는 supportsAllDrives 파라미터가 필요하다.
 function permanentlyDeleteFile_(fileId) {
   try {
-    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + fileId, {
+    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?supportsAllDrives=true', {
       method: 'delete',
       headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
       muteHttpExceptions: true
