@@ -57,8 +57,8 @@ if (!AGENT_FOLDER) {
   console.error('[에이전트] config.json에 agentFolderPath를 입력해 주세요 (Drive 동기화된 견적에이전트 폴더 경로).');
   process.exit(1);
 }
-if (!existsSync(PENDING_DIR)) {
-  console.error(`[에이전트] 대기 폴더를 찾을 수 없습니다: ${PENDING_DIR}`);
+if (!existsSync(AGENT_FOLDER)) {
+  console.error(`[에이전트] Drive 폴더를 찾을 수 없습니다: ${AGENT_FOLDER}`);
   if (existsSync(join(AGENT_FOLDER, 'package.json')) || existsSync(join(AGENT_FOLDER, 'agent'))) {
     console.error('[에이전트] 지정된 폴더는 프로젝트 폴더로 보입니다. agentFolderPath에는 프로젝트 폴더가 아니라');
     console.error('[에이전트] Google Drive 데스크톱이 동기화하는 "견적에이전트" 폴더의 로컬 경로를 입력해야 합니다.');
@@ -66,12 +66,36 @@ if (!existsSync(PENDING_DIR)) {
   }
   console.error('[에이전트] 확인 사항:');
   console.error('[에이전트]  1. 이 PC에 Google Drive 데스크톱이 설치되어 있고 회사 계정으로 로그인되어 있는가');
-  console.error('[에이전트]  2. Drive에서 "견적에이전트" 폴더가 동기화되고 있는가 (견적 저장이 1회 이상 있으면 자동 생성됨)');
-  console.error('[에이전트]  3. config.json의 agentFolderPath가 그 폴더의 실제 로컬 경로와 일치하는가');
+  console.error('[에이전트]  2. 탐색기에서 해당 폴더가 실제로 보이는가 (폴더 이름 철자·띄어쓰기 포함)');
+  console.error('[에이전트]  3. config.json의 agentFolderPath가 그 경로와 일치하는가 (슬래시 / 사용)');
+  console.error(`[에이전트] 설정된 경로(JSON 문자열): ${JSON.stringify(AGENT_FOLDER)}`);
   process.exit(1);
 }
-if (!existsSync(RESULTS_DIR)) {
+
+try {
+  mkdirSync(PENDING_DIR, { recursive: true });
   mkdirSync(RESULTS_DIR, { recursive: true });
+} catch (err) {
+  console.error(`[에이전트] pending/results 폴더를 생성하지 못했습니다: ${describeError(err)}`);
+  process.exit(1);
+}
+
+if (!existsSync(PENDING_DIR) || !existsSync(RESULTS_DIR)) {
+  console.error('[에이전트] pending/results 폴더 확인 실패 — 진단 정보:');
+  try {
+    console.error(`  상위 폴더 내용: ${readdirSync(AGENT_FOLDER).join(', ') || '(비어 있음)'}`);
+  } catch (err) {
+    console.error(`  상위 폴더 읽기 오류: ${err.code || err.message}`);
+  }
+  try {
+    statSync(PENDING_DIR);
+    console.error('  pending 폴더 stat: 성공 (existsSync 결과와 불일치)');
+  } catch (err) {
+    console.error(`  pending 폴더 stat 오류: ${err.code || err.message}`);
+  }
+  console.error(`  설정된 경로(JSON 문자열): ${JSON.stringify(PENDING_DIR)}`);
+  console.error('[에이전트] 위 내용과 Explorer에서 보이는 실제 폴더 이름(철자·띄어쓰기·숨은 문자 포함)을 비교해 주세요.');
+  process.exit(1);
 }
 if (!existsSync(TEMPLATE_PATH)) {
   console.error(`[에이전트] 견적서 템플릿을 찾을 수 없습니다: ${TEMPLATE_PATH}`);
