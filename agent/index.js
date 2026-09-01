@@ -188,7 +188,14 @@ async function processJob(fileName) {
   if (ledgerCopy) {
     console.log(`[에이전트] 대장 사본 갱신: ${ledgerCopy}`);
   } else {
-    console.warn(`[에이전트] 대장 사본을 수신하지 못해 건너뜁니다 (${year}년)`);
+    console.warn(`[에이전트] 대장 사본 미수신 — 도착 시 자동 복사하도록 대기열에 등록합니다 (${year}년)`);
+    deferredLedgerCopies.set(safeSegment(details.quoteNumber), {
+      quoteNumber: details.quoteNumber ?? '',
+      yearFolder,
+      year,
+      attempts: 0,
+      firstAt: Date.now(),
+    });
   }
 
   const relativePath = [department, year, folderName, pdfFileName].map(encodeURIComponent).join('/');
@@ -226,12 +233,15 @@ function reportJobFailure(fileName, payload, errorMessage) {
 
 // ── 대기 폴더 폴링 ─────────────────────────────────────────────────────────
 const jobAttempts = new Map();
+// 처리 시점에 대장 사본이 아직 동기화되지 않은 건 — 도착 시 연도 폴더에 복사한다
+const deferredLedgerCopies = new Map();
 let processing = false;
 
 async function pollPending() {
   if (processing) return;
   processing = true;
   try {
+    await processDeferredLedgerCopies();
     let fileNames = [];
     try {
       fileNames = readdirSync(PENDING_DIR).filter((f) => !f.startsWith('.') && f !== 'desktop.ini');
@@ -280,6 +290,32 @@ async function pollPending() {
     }
   } finally {
     processing = false;
+  }
+}
+
+// 처리 시점에 받지 못한 대장 사본을 최대 15분간 재확인하며 늦게 도착하면 복사한다.
+async function processDeferredLedgerCopies() {
+  if (deferredLedgerCopies.size === 0) return;
+  for (const [key, info] of [...deferredLedgerCopies]) {
+    const source = join(DELIVERY_DIR, `대장_${safeSegment(info.quoteNumber)}.xlsx`);
+    const target = join(info.yearFolder, `${info.year}_견적관리대장.xlsx`);
+    if (Date.now() - info.firstAt > 15 * 60 * 1000) {
+      deferredLedgerCopies.delete(key);
+      console.warn(`[에이전트] 대장 사본 수신 대기 포기 (15분 초과): ${info.quoteNumber}`);
+      continue;
+    }
+    if (!existsSync(source)) {
+      info.attempts += 1;
+      continue;
+    }
+    try {
+      copyFileSync(source, target);
+      try { unlinkSync(source); } catch { /* 동기화 중 잠금 — 남아있어도 무해 */ }
+      deferredLedgerCopies.delete(key);
+      console.log(`[에이전트] 대장 사본 갱신(지연 처리): ${target}`);
+    } catch {
+      info.attempts += 1; // 동기화 중 복사 실패 — 다음 폴링에서 재시도
+    }
   }
 }
 
