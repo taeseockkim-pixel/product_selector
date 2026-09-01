@@ -14,7 +14,7 @@
  * 요구: Node.js 18+, Windows + Excel(이 PC), Google Drive 데스크톱(로그인), 상시 가동 권장
  */
 
-import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync } from 'fs';
 import { join, dirname, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
@@ -170,19 +170,20 @@ async function processJob(fileName) {
 
 function reportJobFailure(fileName, payload, errorMessage) {
   const details = payload?.details || {};
-  try {
-    const result = {
-      quoteNumber: details.quoteNumber ?? '',
-      department: details.authorDepartment ?? '',
-      year: quoteYear(details),
-      ok: false,
-      error: String(errorMessage),
-    };
-    writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber) || fileName}.json`), JSON.stringify(result), 'utf8');
-    unlinkSync(join(PENDING_DIR, fileName));
-  } catch (err) {
-    console.error(`[에이전트] 실패 보고 기록 오류 (${fileName}): ${err.message}`);
-  }
+  // 원본 데이터 유실 방지를 위해 로컬 백업을 먼저 남긴다
+  const backupDir = join(__dirname, 'failed-jobs');
+  mkdirSync(backupDir, { recursive: true });
+  writeFileSync(join(backupDir, fileName), JSON.stringify(payload, null, 2), 'utf8');
+
+  const result = {
+    quoteNumber: details.quoteNumber ?? '',
+    department: details.authorDepartment ?? '',
+    year: quoteYear(details),
+    ok: false,
+    error: String(errorMessage),
+  };
+  writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber) || fileName}`), JSON.stringify(result), 'utf8');
+  unlinkSync(join(PENDING_DIR, fileName));
 }
 
 // ── 대기 폴더 폴링 ─────────────────────────────────────────────────────────
@@ -195,7 +196,7 @@ async function pollPending() {
   try {
     let fileNames = [];
     try {
-      fileNames = readdirSync(PENDING_DIR).filter((f) => f.endsWith('.json'));
+      fileNames = readdirSync(PENDING_DIR).filter((f) => !f.startsWith('.') && f !== 'desktop.ini');
     } catch {
       return;
     }
@@ -210,20 +211,32 @@ async function pollPending() {
         continue;
       }
       if (!payload?.details) continue;
+      if (!fileName.endsWith('.json')) {
+        // 확장자 없이 동기화된 경우에도 처리 가능하도록 원본을 .json으로 복제해 처리한다
+        try {
+          copyFileSync(jsonPath, jsonPath + '.json');
+        } catch { /* 복제 실패 시 원본 그대로 처리 */ }
+      }
+      const jobFileName = fileName.endsWith('.json') ? fileName : fileName + '.json';
 
       console.log(`[에이전트] 저장 대기 견적 처리 시작: ${payload.details.quoteNumber ?? fileName}`);
       try {
-        await processJob(fileName);
+        await processJob(jobFileName);
+        jobAttempts.delete(jobFileName);
         jobAttempts.delete(fileName);
         console.log(`[에이전트] 저장 완료: ${payload.details.quoteNumber}`);
       } catch (err) {
-        const attempts = (jobAttempts.get(fileName) || 0) + 1;
-        jobAttempts.set(fileName, attempts);
+        const attempts = (jobAttempts.get(jobFileName) || 0) + 1;
+        jobAttempts.set(jobFileName, attempts);
         console.error(`[에이전트] 저장 실패 (${attempts}/${MAX_JOB_ATTEMPTS}) ${payload.details.quoteNumber}: ${err.message}`);
         if (attempts >= MAX_JOB_ATTEMPTS) {
-          jobAttempts.delete(fileName);
-          reportJobFailure(fileName, payload, err.message);
-          console.error(`[에이전트] ${MAX_JOB_ATTEMPTS}회 실패 — 실패 보고를 기록했습니다.`);
+          jobAttempts.delete(jobFileName);
+          try {
+            reportJobFailure(jobFileName, payload, err.message);
+            console.error(`[에이전트] ${MAX_JOB_ATTEMPTS}회 실패 — 실패 보고를 기록했습니다. (로컬 백업: agent\\failed-jobs\\${fileName})`);
+          } catch (reportErr) {
+            console.error(`[에이전트] 실패 보고 기록 실패: ${reportErr.message} — 원본은 pending에 유지되며 백업은 agent\\failed-jobs\\에 있습니다.`);
+          }
         }
       }
     }

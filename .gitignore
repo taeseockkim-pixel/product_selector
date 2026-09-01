@@ -40,3 +40,6 @@ Quote_manage/
 
 # 로컬 저장 에이전트 실제 설정 (토큰 포함 — 커밋 금지)
 agent/config.json
+
+# ???? ?? ?? ?? ??
+agent/failed-jobs/
