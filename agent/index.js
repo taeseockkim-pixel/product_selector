@@ -106,6 +106,12 @@ async function callAppsScript(body) {
     redirect: 'follow',
   });
   const text = await res.text();
+  if (res.status === 401 || res.status === 403 || /userCodeAppPanel|accounts\.google\.com|ppConfig/.test(text)) {
+    throw new Error(
+      `Apps Script 인증 오류 (HTTP ${res.status}). 에이전트용 배포의 액세스가 '모든 사용자'(익명 허용)로 설정되어 있는지, ` +
+      `config.json의 URL이 그 배포의 /exec 주소와 일치하는지 확인하세요. (Google 계정이 필요한 배포는 익명 요청 시 로그인 페이지를 반환합니다)`
+    );
+  }
   try {
     return JSON.parse(text);
   } catch {
