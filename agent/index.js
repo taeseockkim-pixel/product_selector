@@ -59,6 +59,11 @@ if (!AGENT_FOLDER) {
 }
 if (!existsSync(PENDING_DIR)) {
   console.error(`[에이전트] 대기 폴더를 찾을 수 없습니다: ${PENDING_DIR}`);
+  if (existsSync(join(AGENT_FOLDER, 'package.json')) || existsSync(join(AGENT_FOLDER, 'agent'))) {
+    console.error('[에이전트] 지정된 폴더는 프로젝트 폴더로 보입니다. agentFolderPath에는 프로젝트 폴더가 아니라');
+    console.error('[에이전트] Google Drive 데스크톱이 동기화하는 "견적에이전트" 폴더의 로컬 경로를 입력해야 합니다.');
+    console.error('[에이전트]   예: "G:/공유 드라이브/견적서/견적에이전트"');
+  }
   console.error('[에이전트] 확인 사항:');
   console.error('[에이전트]  1. 이 PC에 Google Drive 데스크톱이 설치되어 있고 회사 계정으로 로그인되어 있는가');
   console.error('[에이전트]  2. Drive에서 "견적에이전트" 폴더가 동기화되고 있는가 (견적 저장이 1회 이상 있으면 자동 생성됨)');
