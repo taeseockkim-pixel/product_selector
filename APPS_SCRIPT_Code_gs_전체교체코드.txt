@@ -236,13 +236,19 @@ function getNextQuoteNumber(rootFolderId) {
     const yearPrefix = `기술영업 ${Utilities.formatDate(today, Session.getScriptTimeZone(), 'yy')}`;
     const lastRow = sheet.getLastRow();
 
-    let count = 0;
+    // 견적관리대장 NO열(A열)의 최대 번호를 기준으로 다음 일련번호를 결정한다.
+    // 대장이 비어 있으면 001부터 시작하고, 행이 삭제된 경우에도 최대 번호 + 1로 이어진다.
+    let seq = 1;
     if (lastRow > 1) {
-      const data = sheet.getRange(2, 5, lastRow - 1, 1).getValues();
-      count = data.filter(row => row[0].toString().startsWith(yearPrefix)).length;
+      const nos = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      const maxNo = nos.reduce(function(max, row) {
+        const value = Number(row[0]);
+        return Number.isFinite(value) && value > max ? value : max;
+      }, 0);
+      seq = maxNo + 1;
     }
 
-    const seqStr = (count + 1).toString().padStart(3, '0');
+    const seqStr = String(seq).padStart(3, '0');
     return `${yearPrefix}${Utilities.formatDate(today, Session.getScriptTimeZone(), 'MM')}-${seqStr}`;
   } catch (err) {
     return `Error-${new Date().getTime()}`;
@@ -428,7 +434,11 @@ function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
       const matched = categoryRules.find(function(rule) { return rule[1].test(source); });
       if (matched && productCategories.indexOf(matched[0]) === -1) productCategories.push(matched[0]);
     });
-    const no = sheet.getLastRow();
+
+    // 대장 NO는 견적번호의 일련번호(-NNN)와 항상 일치시킨다.
+    // 견적번호 파싱에 실패한 경우에만 행 개수로 보정한다.
+    const seqMatch = String(details.quoteNumber || '').match(/-(\d+)\s*$/);
+    const no = seqMatch ? parseInt(seqMatch[1], 10) : sheet.getLastRow();
 
     sheet.appendRow([
       no,
