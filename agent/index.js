@@ -55,6 +55,21 @@ if (!TOKEN || !AGENT_URL) {
   console.error('[에이전트] config.json에 agentToken과 appsScriptAgentUrl을 모두 입력해 주세요.');
   process.exit(1);
 }
+if (AGENT_URL.includes('여기에')) {
+  console.error('[에이전트] appsScriptAgentUrl에 아직 배포 URL을 입력하지 않았습니다.');
+  console.error('[에이전트] Apps Script 편집기 → 배포 → 새 배포 → 웹 앱 → 액세스: 누구나 로 배포한 URL을 넣어 주세요.');
+  process.exit(1);
+}
+try {
+  const agentOrigin = new URL(AGENT_URL).origin;
+  console.log(`[에이전트] Apps Script 엔드포인트: ${agentOrigin}`);
+  if (!AGENT_URL.endsWith('/exec')) {
+    console.warn('[에이전트] 경고: appsScriptAgentUrl이 /exec로 끝나지 않습니다. 배포 관리의 웹 앱 URL을 그대로 붙여넣어 주세요.');
+  }
+} catch {
+  console.error(`[에이전트] appsScriptAgentUrl이 올바른 URL이 아닙니다: ${AGENT_URL}`);
+  process.exit(1);
+}
 if (!existsSync(TEMPLATE_PATH)) {
   console.error(`[에이전트] 견적서 템플릿을 찾을 수 없습니다: ${TEMPLATE_PATH}`);
   process.exit(1);
@@ -63,6 +78,13 @@ if (!existsSync(TEMPLATE_PATH)) {
 // ── 유틸 ───────────────────────────────────────────────────────────────────
 function safeSegment(value) {
   return String(value ?? '').replace(/[/\\:*?"<>|]/g, '').trim();
+}
+
+// Node fetch 실패 시 원인 코드(ENOTFOUND, ECONNREFUSED 등)를 로그에 남긴다.
+function describeError(err) {
+  const cause = err?.cause;
+  const causeInfo = cause ? ` [원인: ${cause.code || ''} ${cause.message || ''}]` : '';
+  return `${err.message || err}${causeInfo}`;
 }
 
 async function callAppsScript(body) {
@@ -173,7 +195,7 @@ async function pollOnce() {
     }
     await completeResults(results);
   } catch (err) {
-    console.error(`[에이전트] 폴링 오류: ${err.message}`);
+    console.error(`[에이전트] 폴링 오류: ${describeError(err)}`);
   } finally {
     running = false;
   }
