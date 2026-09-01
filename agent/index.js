@@ -29,7 +29,18 @@ if (!existsSync(configPath)) {
   console.error('[에이전트] agent/config.example.json을 복사해 config.json으로 만들고 값을 채워 주세요.');
   process.exit(1);
 }
-const config = JSON.parse(readFileSync(configPath, 'utf8'));
+
+let config;
+try {
+  config = JSON.parse(readFileSync(configPath, 'utf8'));
+} catch (err) {
+  console.error('[에이전트] agent/config.json을 해석할 수 없습니다: ' + err.message);
+  console.error('[에이전트] JSON에서는 경로의 백슬래시(\\)를 반드시 두 개(\\\\) 쓰거나, 슬래시(/)를 사용해야 합니다.');
+  console.error('[에이전트]   잘못된 예: "storageRoot": "D:\\folders\\공유\\견적서"');
+  console.error('[에이전트]   올바른 예: "storageRoot": "D:/folders/공유/견적서"');
+  console.error('[에이전트]   또는     : "storageRoot": "D:\\\\folders\\\\공유\\\\견적서"');
+  process.exit(1);
+}
 
 const TOKEN = String(config.agentToken || '');
 const AGENT_URL = String(config.appsScriptAgentUrl || '');
