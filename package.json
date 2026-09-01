@@ -16,7 +16,8 @@
     "import:csv": "node scripts/import-from-csv.mjs",
     "import:csv:dry": "node scripts/import-from-csv.mjs --dry-run",
     "check:spec-consistency": "node scripts/check-spec-consistency.mjs",
-    "local": "npm run build && node server/index.js"
+    "local": "npm run build && node server/index.js",
+    "agent": "node agent/index.js"
   },
   "dependencies": {
     "@vercel/blob": "^2.3.3",

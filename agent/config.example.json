@@ -1,0 +1,10 @@
+{
+  "agentToken": "CIMON-AGENT-2026-kQ7xWm2Pz9Tb",
+  "appsScriptAgentUrl": "https://script.google.com/a/macros/cimon.com/s/여기에_에이전트용_배포_URL/exec",
+  "storageRoot": "D:\\견적서",
+  "defaultDepartment": "기술영업",
+  "publicBaseUrl": "http://172.35.12.36:8790",
+  "httpPort": 8790,
+  "pollIntervalMs": 30000,
+  "templatePath": "templates/견적서 샘플.xlsx"
+}

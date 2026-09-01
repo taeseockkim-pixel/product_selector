@@ -20,6 +20,9 @@ const CONFIG = {
     '프로젝트': '1_GTIZ94fvjP8N_uThxfcG-q4RyTtCfGw'
   },
   LEDGER_SHEET_NAME: '견적관리대장',
+  // 사내 PC 로컬 저장 에이전트 설정 (견적 파일을 구글 드라이브 대신 PC에 저장)
+  QUEUE_SHEET_NAME: '저장대기열',
+  AGENT_TOKEN: 'CIMON-AGENT-2026-kQ7xWm2Pz9Tb',
   GEMINI_API_KEY: 'AIzaSyBFshNCRc924FBF1Web1_oPxoARGyT50zs',
   GEMINI_URL_BASE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='
 };
@@ -104,15 +107,33 @@ function getQuoteLedgerFromReact() {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
+
+    // 사내 PC 로컬 저장 에이전트 요청 (토큰 필수)
+    if (payload.action === 'AGENT_CLAIM' || payload.action === 'AGENT_COMPLETE') {
+      if (String(payload.token || '') !== String(CONFIG.AGENT_TOKEN || '')) {
+        return jsonResponse_({ success: false, message: '토큰 인증에 실패했습니다.' });
+      }
+      if (payload.action === 'AGENT_CLAIM') {
+        return jsonResponse_(handleAgentClaim_());
+      }
+      return jsonResponse_(handleAgentComplete_(payload.results || []));
+    }
+
+    // 견적 저장 요청 (Vercel 폴백 경로) — 토큰이 있는 경우에만 허용
+    if (String(payload.agentToken || '') !== String(CONFIG.AGENT_TOKEN || '')) {
+      return jsonResponse_({ success: false, message: '토큰 인증에 실패했습니다.' });
+    }
     const result = processQuoteFromReact(payload);
-    return ContentService
-      .createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_(result);
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ success: false, message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonResponse_({ success: false, message: err.toString() });
   }
+}
+
+function jsonResponse_(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // 작성자 DB 시트(시트1)에서 행 목록을 읽는 공용 헬퍼.
@@ -274,42 +295,28 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
     const currentYear = dateMatches ? parseInt(dateMatches[1], 10) : new Date().getFullYear();
     const system = getYearSystem(currentYear, rootFolderId);
 
-    const safeQuoteNumber = sanitizeDriveName(details.quoteNumber);
-    const safeClientName = sanitizeDriveName(details.clientName);
-    const subFolderName = `${safeQuoteNumber}_${safeClientName}`;
+    // 실제 파일(XLSX/PDF)은 사내 PC(172.35.12.36)의 로컬 에이전트가 생성·저장한다.
+    // 여기서는 견적 데이터를 저장 대기열에 등록만 하고, 구글 드라이브에는 파일을 만들지 않는다.
+    const finalVatPrice = Math.round((quoteData.items || []).reduce(function(sum, item) {
+      return sum + Number(item.totalPrice || 0);
+    }, 0) * 1.1);
+    enqueueLocalSave_(details, quoteData.items || [], finalVatPrice);
 
-    let targetFolder;
-    const subFolders = system.folder.getFoldersByName(subFolderName);
-    if (subFolders.hasNext()) {
-      targetFolder = subFolders.next();
-    } else {
-      targetFolder = system.folder.createFolder(subFolderName);
-    }
+    // 대장의 파일링크는 비워두고, 에이전트가 저장을 완료하면 사내 경로로 채운다.
+    saveToLedgerSheet(system.ledgerSheet, details, quoteData.items || [], finalVatPrice, '');
 
-    const fileName = `${safeClientName}_견적서_${details.quoteDate}`;
-    const templateFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
-    const newFile = templateFile.makeCopy(fileName, targetFolder);
-    const spreadsheet = SpreadsheetApp.open(newFile);
-
-    const finalVatPrice = fillSheetData(spreadsheet, quoteData);
-    SpreadsheetApp.flush();
-
-    const sheetId = spreadsheet.getSheets()[0].getSheetId();
-    const pdfBlob = createPdfBlob(newFile.getId(), sheetId, fileName);
-    const pdfFile = targetFolder.createFile(pdfBlob);
-
-    saveToLedgerSheet(system.ledgerSheet, details, quoteData.items || [], finalVatPrice, pdfFile.getUrl());
-
-    let returnMessage = `[완료] ${currentYear}년도 폴더에 저장 완료.\n번호: ${realQuoteNumber}`;
+    let returnMessage = '[완료] 견적번호: ' + realQuoteNumber + '\n파일은 사내 저장 PC(172.35.12.36)의 부서별 폴더에 생성됩니다.';
 
     if (createDraft) {
       if (details.clientEmail && details.clientEmail.indexOf('@') > -1) {
+        // Gmail 초안 첨부용으로만 임시 PDF를 만들고, 초안 생성 직후 구글 드라이브에서 삭제한다.
+        const pdfBlob = createTempQuotePdf_(quoteData, system, details);
         GmailApp.createDraft(
           details.clientEmail,
           customSubject || `[CIMON] ${details.clientName} - 제품 견적서 송부 드립니다.`,
           customBody || makeDefaultEmailBody(details),
           {
-            attachments: [pdfFile.getBlob()],
+            attachments: [pdfBlob],
             name: details.authorName || 'CIMON'
           }
         );
@@ -322,10 +329,10 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
     lock.releaseLock();
     return {
       success: true,
-      url: pdfFile.getUrl(),
-      pdfUrl: pdfFile.getUrl(),
-      folderUrl: targetFolder.getUrl(),
-      sheetUrl: newFile.getUrl(),
+      url: '',
+      pdfUrl: '',
+      folderUrl: system.folder.getUrl(),
+      sheetUrl: '',
       newQuoteNumber: realQuoteNumber,
       message: returnMessage
     };
@@ -333,6 +340,135 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
     lock.releaseLock();
     return { success: false, message: '작업 실패: ' + err.toString() };
   }
+}
+
+// Gmail 초안 첨부용 임시 PDF 생성. 시트 복사 → 채우기 → PDF 내보내기 → 원본 시트 즉시 삭제.
+function createTempQuotePdf_(quoteData, system, details) {
+  const tempName = `임시_${sanitizeDriveName(details.quoteNumber)}_${Date.now()}`;
+  const templateFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID);
+  const newFile = templateFile.makeCopy(tempName, system.folder);
+  try {
+    const spreadsheet = SpreadsheetApp.open(newFile);
+    fillSheetData(spreadsheet, quoteData);
+    SpreadsheetApp.flush();
+    const sheetId = spreadsheet.getSheets()[0].getSheetId();
+    return createPdfBlob(newFile.getId(), sheetId, `${sanitizeDriveName(details.clientName)}_견적서_${details.quoteDate}`);
+  } finally {
+    permanentlyDeleteFile_(newFile.getId());
+  }
+}
+
+// 드라이브 파일을 휴지통이 아닌 영구 삭제로 제거한다 (용량 즉시 회수).
+function permanentlyDeleteFile_(fileId) {
+  try {
+    const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + fileId, {
+      method: 'delete',
+      headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() !== 204) {
+      Logger.log('파일 영구 삭제 실패(' + fileId + '): ' + res.getContentText());
+    }
+  } catch (err) {
+    Logger.log('파일 영구 삭제 예외(' + fileId + '): ' + err.toString());
+  }
+}
+
+// ── 사내 PC 로컬 저장 에이전트 대기열 ─────────────────────────────────────
+
+// 저장 대기열 시트에 견적 데이터를 등록한다. 에이전트가 이 행을 가져가 파일을 생성한다.
+function enqueueLocalSave_(details, items, vatTotal) {
+  const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+  let queue = ss.getSheetByName(CONFIG.QUEUE_SHEET_NAME);
+  if (!queue) {
+    queue = ss.insertSheet(CONFIG.QUEUE_SHEET_NAME);
+    queue.appendRow(['등록시각', '견적번호', '부서', '상태', '클레임시각', '완료시각', '오류', '데이터']);
+    queue.getRange(1, 1, 1, 8).setFontWeight('bold');
+  }
+  queue.appendRow([
+    new Date(),
+    details.quoteNumber || '',
+    details.authorDepartment || '',
+    'PENDING',
+    '',
+    '',
+    '',
+    JSON.stringify({ details: details, items: items || [], vatTotal: vatTotal })
+  ]);
+}
+
+// 에이전트가 PENDING(또는 오래된 CLAIMED) 행을 가져간다.
+function handleAgentClaim_() {
+  const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+  const queue = ss.getSheetByName(CONFIG.QUEUE_SHEET_NAME);
+  if (!queue) return { success: true, jobs: [] };
+  const lastRow = queue.getLastRow();
+  if (lastRow < 2) return { success: true, jobs: [] };
+
+  const values = queue.getRange(2, 1, lastRow - 1, 8).getValues();
+  const now = new Date().getTime();
+  const staleMs = 15 * 60 * 1000;
+  const jobs = [];
+
+  values.forEach(function(row, i) {
+    const status = String(row[3] || '');
+    const claimedAt = row[4] instanceof Date ? row[4].getTime() : 0;
+    const isClaimable = status === 'PENDING' || (status === 'CLAIMED' && now - claimedAt > staleMs);
+    if (isClaimable) {
+      let payload = {};
+      try { payload = JSON.parse(row[7] || '{}'); } catch (err) {}
+      jobs.push({
+        id: String(i + 2),
+        quoteNumber: String(row[1] || ''),
+        department: String(row[2] || ''),
+        payload: payload
+      });
+      queue.getRange(i + 2, 4).setValue('CLAIMED');
+      queue.getRange(i + 2, 5).setValue(new Date());
+    }
+  });
+
+  return { success: true, jobs: jobs };
+}
+
+// 에이전트의 저장 완료 보고를 처리한다. 대기열 상태 갱신 + 대장 파일링크 채우기.
+function handleAgentComplete_(results) {
+  const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+  const queue = ss.getSheetByName(CONFIG.QUEUE_SHEET_NAME);
+  const updated = [];
+
+  results.forEach(function(result) {
+    try {
+      const rowIndex = Number(result.id);
+      if (queue && rowIndex >= 2) {
+        queue.getRange(rowIndex, 4).setValue(result.ok ? 'DONE' : 'FAILED');
+        queue.getRange(rowIndex, 6).setValue(new Date());
+        queue.getRange(rowIndex, 7).setValue(result.ok ? '' : String(result.error || '').slice(0, 400));
+      }
+
+      if (result.ok && result.department && result.quoteNumber && result.fileUrl) {
+        const rootFolderId = resolveRootFolderId({ authorDepartment: result.department });
+        const year = Number(result.year) || new Date().getFullYear();
+        const ledger = getYearSystem(year, rootFolderId).ledgerSheet;
+        const lastRow = ledger.getLastRow();
+        if (lastRow > 1) {
+          const numbers = ledger.getRange(2, 5, lastRow - 1, 1).getValues();
+          for (let i = 0; i < numbers.length; i++) {
+            if (String(numbers[i][0]).trim() === String(result.quoteNumber).trim()) {
+              ledger.getRange(i + 2, 14).setValue(result.fileUrl);
+              break;
+            }
+          }
+        }
+      }
+
+      updated.push({ id: result.id, ok: true });
+    } catch (err) {
+      updated.push({ id: result.id, ok: false, error: String(err) });
+    }
+  });
+
+  return { success: true, updated: updated };
 }
 
 function fillSheetData(spreadsheet, quoteData) {
