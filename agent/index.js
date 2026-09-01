@@ -48,6 +48,11 @@ const DEFAULT_DEPARTMENT = String(config.defaultDepartment || '기술영업');
 const PUBLIC_BASE_URL = String(config.publicBaseUrl || '').replace(/\/+$/, '');
 const HTTP_PORT = Number(config.httpPort || 8790);
 const FILE_LINK_SECRET = String(config.fileLinkSecret || '');
+// 부서별 폴더 브라우저 비밀번호: { 부서: 비밀번호 }. adminPassword가 설정되어 있으면
+// 모든 부서 폴더를 열람할 수 있는 관리자 비밀번호로 동작한다.
+const FOLDER_PASSWORDS = config.folderPasswords && typeof config.folderPasswords === 'object' ? config.folderPasswords : {};
+const ADMIN_PASSWORD = String(config.adminPassword || '');
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 로그인 유지 12시간
 const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 10000);
 const TEMPLATE_PATH = resolve(__dirname, String(config.templatePath || 'templates/견적서 샘플.xlsx'));
 const MAX_JOB_ATTEMPTS = 3;
@@ -120,6 +125,60 @@ function verifyRelativePathSignature(relativePath, signature) {
   const expected = Buffer.from(signRelativePath(relativePath), 'utf8');
   const given = Buffer.from(String(signature || ''), 'utf8');
   return expected.length === given.length && timingSafeEqual(expected, given);
+}
+
+// ── 폴더 브라우저 세션/비밀번호 ────────────────────────────────────────────
+function safeEqualStr(a, b) {
+  const bufA = Buffer.from(String(a), 'utf8');
+  const bufB = Buffer.from(String(b), 'utf8');
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+}
+
+function signSession(value) {
+  return createHmac('sha256', FILE_LINK_SECRET).update(value).digest('hex');
+}
+
+function makeSessionCookie(department) {
+  const expires = Date.now() + SESSION_TTL_MS;
+  const value = `${department}|${expires}`;
+  return `session=${encodeURIComponent(value)}.${signSession(value)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+}
+
+function readSession(req) {
+  const cookies = req.headers.cookie || '';
+  const match = cookies.match(/(?:^|;\s*)session=([^;]+)/);
+  if (!match) return null;
+  const raw = decodeURIComponent(match[1]);
+  const idx = raw.lastIndexOf('.');
+  if (idx === -1) return null;
+  const value = raw.slice(0, idx);
+  const signature = raw.slice(idx + 1);
+  if (!safeEqualStr(signature, signSession(value))) return null;
+  const sepIdx = value.lastIndexOf('|');
+  if (sepIdx === -1) return null;
+  const department = value.slice(0, sepIdx);
+  const expires = Number(value.slice(sepIdx + 1));
+  if (!Number.isFinite(expires) || expires < Date.now()) return null;
+  return { department };
+}
+
+// 비밀번호 → 열람 가능 부서. adminPassword는 모든 부서('*')를 반환한다.
+function checkFolderPassword(password) {
+  const input = String(password || '');
+  if (!input) return null;
+  for (const [department, deptPassword] of Object.entries(FOLDER_PASSWORDS)) {
+    if (deptPassword && safeEqualStr(input, deptPassword)) return { department };
+  }
+  if (ADMIN_PASSWORD && safeEqualStr(input, ADMIN_PASSWORD)) return { department: '*' };
+  return null;
+}
+
+function escHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function quoteYear(details) {
@@ -346,11 +405,146 @@ function startPolling() {
   });
 }
 
-// ── 사내 파일 다운로드 서버 ────────────────────────────────────────────────
+// ── 사내 파일 브라우저/다운로드 서버 ───────────────────────────────────────
 const app = express();
+app.use(express.urlencoded({ extended: false }));
 
-app.get('/', (_req, res) => {
-  res.type('text/plain; charset=utf-8').send('CIMON 견적 파일 에이전트가 실행 중입니다.');
+const PAGE_STYLE = `
+    body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background: #f0ede8; margin: 0; padding: 40px 16px; }
+    .card { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #ddd9d2; border-radius: 12px; padding: 28px; }
+    h1 { font-size: 18px; color: #191919; margin: 0 0 6px; }
+    .sub { color: #999999; font-size: 12px; margin-bottom: 20px; }
+    input[type=password] { width: 100%%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd9d2; border-radius: 8px; font-size: 14px; }
+    button { margin-top: 12px; width: 100%%; padding: 10px 12px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+    .error { color: #dc2626; font-size: 13px; margin-top: 10px; }
+    table { width: 100%%; border-collapse: collapse; font-size: 13px; }
+    td, th { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; }
+    th { color: #555; font-size: 12px; }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .crumb { font-size: 13px; color: #555; margin-bottom: 14px; word-break: break-all; }
+    .crumb a { color: #555; }
+    .top { display: flex; justify-content: space-between; align-items: center; }
+    .logout { font-size: 12px; color: #999; }`.trim();
+
+function loginPageHtml(errorMessage = '') {
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 견적 파일 열람</title>
+<style>${PAGE_STYLE}</style></head>
+<body><div class="card">
+  <h1>CIMON 견적 파일 열람</h1>
+  <div class="sub">부서별 견적 폴더 — 접속 비밀번호를 입력해 주세요</div>
+  <form method="POST" action="/login">
+    <input type="password" name="password" placeholder="비밀번호" autofocus required>
+    <button type="submit">접속</button>
+    ${errorMessage ? `<div class="error">${escHtml(errorMessage)}</div>` : ''}
+  </form>
+</div></body></html>`;
+}
+
+function browserPageHtml(session, currentRelative, entries) {
+  const departmentLabel = session.department === '*' ? '전체 부서 (관리자)' : escHtml(session.department);
+  const crumbParts = [`<a href="/browse">홈</a>`];
+  let acc = '';
+  for (const part of currentRelative.split('/').filter(Boolean)) {
+    acc = acc ? `${acc}/${part}` : part;
+    crumbParts.push(`<a href="/browse?dir=${encodeURIComponent(acc)}">${escHtml(part)}</a>`);
+  }
+  const rows = entries.map((entry) => {
+    const displayPath = currentRelative ? `${currentRelative}/${entry.name}` : entry.name;
+    if (entry.isFolder) {
+      return `<tr><td>📁 <a href="/browse?dir=${encodeURIComponent(displayPath)}">${escHtml(entry.name)}</a></td><td>폴더</td></tr>`;
+    }
+    return `<tr><td>📄 <a href="/download?path=${encodeURIComponent(displayPath)}">${escHtml(entry.name)}</a></td><td>${entry.size}</td></tr>`;
+  }).join('');
+  const emptyRow = entries.length === 0 ? `<tr><td colspan="2" style="color:#999">파일이 없습니다.</td></tr>` : '';
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 견적 파일 열람</title>
+<style>${PAGE_STYLE}</style></head>
+<body><div class="card">
+  <div class="top">
+    <div><h1>CIMON 견적 파일 열람</h1><div class="sub">부서: ${departmentLabel}</div></div>
+    <a class="logout" href="/logout">로그아웃</a>
+  </div>
+  <div class="crumb">${crumbParts.join(' &gt; ')}</div>
+  <table><tr><th>이름</th><th>종류</th></tr>${rows}${emptyRow}</table>
+</div></body></html>`;
+}
+
+app.get('/', (req, res) => {
+  if (readSession(req)) return res.redirect('/browse');
+  res.type('html').send(loginPageHtml());
+});
+
+app.post('/login', (req, res) => {
+  const session = checkFolderPassword(req.body?.password);
+  if (!session) {
+    res.status(401).type('html').send(loginPageHtml('비밀번호가 올바르지 않습니다. 다시 입력해 주세요.'));
+    return;
+  }
+  res.setHeader('Set-Cookie', makeSessionCookie(session.department));
+  res.redirect('/browse');
+});
+
+app.get('/logout', (_req, res) => {
+  res.setHeader('Set-Cookie', 'session=; Path=/; Max-Age=0');
+  res.redirect('/');
+});
+
+// 세션 부서의 폴더 안에 있는지 검사하고 실제 경로를 반환한다
+function resolveInsideDepartment(session, relative) {
+  const deptRoot = resolve(join(STORAGE_ROOT, session.department === '*' ? '' : session.department));
+  const target = resolve(join(deptRoot, relative || ''));
+  if (target !== deptRoot && !target.startsWith(deptRoot + sep)) return null;
+  return { deptRoot, target };
+}
+
+app.get('/browse', (req, res) => {
+  const session = readSession(req);
+  if (!session) return res.redirect('/');
+  const { deptRoot } = resolveInsideDepartment(session, '');
+  let target = resolveInsideDepartment(session, String(req.query.dir || ''));
+  if (!target || !existsSync(target.target) || !statSync(target.target).isDirectory()) {
+    target = { deptRoot, target: deptRoot };
+  }
+
+  const relative = target.target === deptRoot ? '' : target.target.slice(deptRoot.length + 1).split(sep).join('/');
+  const entries = readdirSync(target.target, { withFileTypes: true })
+    .filter((e) => !e.name.startsWith('.'))
+    .map((e) => {
+      const isFolder = e.isDirectory();
+      let size = '';
+      if (!isFolder) {
+        try { size = `${Math.max(1, Math.round(statSync(join(target.target, e.name)).size / 1024))} KB`; } catch { size = '-'; }
+      }
+      return { name: e.name, isFolder, size };
+    })
+    .sort((a, b) => (a.isFolder === b.isFolder ? a.name.localeCompare(b.name, 'ko') : a.isFolder ? -1 : 1));
+
+  res.type('html').send(browserPageHtml(session, relative, entries));
+});
+
+app.get('/download', (req, res) => {
+  const session = readSession(req);
+  if (!session) return res.redirect('/');
+
+  // 경로는 storageRoot 기준(부서 세그먼트 포함)이며, 자기 부서(또는 관리자)만 허용한다
+  const storageRoot = resolve(STORAGE_ROOT);
+  const relative = String(req.query.path || '');
+  const target = resolve(join(storageRoot, relative));
+  if (target !== storageRoot && !target.startsWith(storageRoot + sep)) {
+    return res.status(403).send('Forbidden');
+  }
+  const firstSegment = relative.split(/[\\/]+/).filter(Boolean)[0] || '';
+  if (session.department !== '*' && firstSegment !== session.department) {
+    return res.status(403).send('Forbidden: 다른 부서의 파일은 열람할 수 없습니다.');
+  }
+  if (!existsSync(target) || !statSync(target).isFile()) {
+    return res.status(404).send('Not found');
+  }
+  res.sendFile(target);
 });
 
 app.use('/files', (req, res) => {
@@ -380,7 +574,8 @@ app.use('/files', (req, res) => {
 });
 
 app.listen(HTTP_PORT, () => {
-  console.log(`[에이전트] 파일 서버: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`}/files/...`);
+  console.log(`[에이전트] 파일 브라우저: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`} (부서 비밀번호로 접속)`);
+  console.log(`[에이전트] 서명된 파일 링크: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`}/files/...`);
 });
 
 // ── 시작 ───────────────────────────────────────────────────────────────────

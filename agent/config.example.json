@@ -6,5 +6,11 @@
   "httpPort": 8790,
   "pollIntervalMs": 10000,
   "fileLinkSecret": "CIMON-FILES-2026-jR4wN8sQ2tVx7LmE",
+  "folderPasswords": {
+    "기술영업": "기술영업접속비밀번호",
+    "영업": "영업접속비밀번호",
+    "프로젝트": "프로젝트접속비밀번호"
+  },
+  "adminPassword": "관리자비밀번호",
   "templatePath": "templates/견적서 샘플.xlsx"
 }
