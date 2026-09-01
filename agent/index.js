@@ -57,44 +57,39 @@ if (!AGENT_FOLDER) {
   console.error('[에이전트] config.json에 agentFolderPath를 입력해 주세요 (Drive 동기화된 견적에이전트 폴더 경로).');
   process.exit(1);
 }
-if (!existsSync(AGENT_FOLDER)) {
-  console.error(`[에이전트] Drive 폴더를 찾을 수 없습니다: ${AGENT_FOLDER}`);
-  if (existsSync(join(AGENT_FOLDER, 'package.json')) || existsSync(join(AGENT_FOLDER, 'agent'))) {
-    console.error('[에이전트] 지정된 폴더는 프로젝트 폴더로 보입니다. agentFolderPath에는 프로젝트 폴더가 아니라');
-    console.error('[에이전트] Google Drive 데스크톱이 동기화하는 "견적에이전트" 폴더의 로컬 경로를 입력해야 합니다.');
-    console.error('[에이전트]   예: "G:/공유 드라이브/견적서/견적에이전트"');
-  }
-  console.error('[에이전트] 확인 사항:');
-  console.error('[에이전트]  1. 이 PC에 Google Drive 데스크톱이 설치되어 있고 회사 계정으로 로그인되어 있는가');
-  console.error('[에이전트]  2. 탐색기에서 해당 폴더가 실제로 보이는가 (폴더 이름 철자·띄어쓰기 포함)');
-  console.error('[에이전트]  3. config.json의 agentFolderPath가 그 경로와 일치하는가 (슬래시 / 사용)');
-  console.error(`[에이전트] 설정된 경로(JSON 문자열): ${JSON.stringify(AGENT_FOLDER)}`);
-  process.exit(1);
-}
-
+// Drive 가상 드라이브는 세션/권한에 따라 보이지 않을 수 있어 단계별로 가시성을 검사한다.
+let folderReady = true;
 try {
   mkdirSync(PENDING_DIR, { recursive: true });
   mkdirSync(RESULTS_DIR, { recursive: true });
 } catch (err) {
-  console.error(`[에이전트] pending/results 폴더를 생성하지 못했습니다: ${describeError(err)}`);
-  process.exit(1);
+  folderReady = false;
+  console.error(`[에이전트] pending/results 폴더 준비 실패: ${describeError(err)}`);
 }
 
-if (!existsSync(PENDING_DIR) || !existsSync(RESULTS_DIR)) {
-  console.error('[에이전트] pending/results 폴더 확인 실패 — 진단 정보:');
-  try {
-    console.error(`  상위 폴더 내용: ${readdirSync(AGENT_FOLDER).join(', ') || '(비어 있음)'}`);
-  } catch (err) {
-    console.error(`  상위 폴더 읽기 오류: ${err.code || err.message}`);
+if (!folderReady || !existsSync(PENDING_DIR) || !existsSync(RESULTS_DIR)) {
+  console.error('[에이전트] Drive 폴더 가시성 진단:');
+  const parts = AGENT_FOLDER.split(sep).filter(Boolean);
+  let probe = parts.length > 0 ? parts[0] + sep : AGENT_FOLDER;
+  let sawProjectFolder = false;
+  console.error(`  ${existsSync(probe) ? '[OK]' : '[X ]'} ${probe}`);
+  for (const part of parts.slice(1)) {
+    probe = join(probe, part);
+    let visible = false;
+    try { visible = existsSync(probe); } catch { visible = false; }
+    console.error(`  ${visible ? '[OK]' : '[X ]'} ${probe}`);
+    if (!visible && existsSync(join(probe, 'package.json'))) sawProjectFolder = true;
   }
-  try {
-    statSync(PENDING_DIR);
-    console.error('  pending 폴더 stat: 성공 (existsSync 결과와 불일치)');
-  } catch (err) {
-    console.error(`  pending 폴더 stat 오류: ${err.code || err.message}`);
+  console.error(`[에이전트] 설정된 경로(JSON 문자열): ${JSON.stringify(AGENT_FOLDER)}`);
+  console.error('[에이전트] [X]가 처음 나타나는 위치가 문제 지점입니다.');
+  console.error('[에이전트]  1. 같은 터미널에서 dir "G:\\공유 드라이브\\견적서\\견적에이전트" 실행 결과와 비교해 주세요');
+  console.error('[에이전트]  2. 터미널을 관리자 권한으로 실행 중이라면 일반 권한으로 재시도해 주세요 (가상 드라이브는 세션마다 보임이 다를 수 있음)');
+  console.error('[에이전트]  3. Google Drive 데스크톱 앱을 재시작하고 다시 시도해 주세요');
+  if (sawProjectFolder) {
+    console.error('[에이전트]  4. 지정된 폴더 아래에 package.json이 있는 경우 프로젝트 폴더입니다. agentFolderPath는 Drive 동기화 "견적에이전트" 폴더여야 합니다');
+  } else {
+    console.error('[에이전트]  4. 폴더 이름이 "견적에이전트"와 철자·띄어쓰기까지 정확히 일치하는지 확인해 주세요');
   }
-  console.error(`  설정된 경로(JSON 문자열): ${JSON.stringify(PENDING_DIR)}`);
-  console.error('[에이전트] 위 내용과 Explorer에서 보이는 실제 폴더 이름(철자·띄어쓰기·숨은 문자 포함)을 비교해 주세요.');
   process.exit(1);
 }
 if (!existsSync(TEMPLATE_PATH)) {
