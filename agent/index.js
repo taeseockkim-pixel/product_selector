@@ -593,9 +593,17 @@ app.use('/files', (req, res) => {
   }
 });
 
-app.listen(HTTP_PORT, () => {
+const server = app.listen(HTTP_PORT, '0.0.0.0', () => {
   console.log(`[에이전트] 파일 브라우저: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`} (부서 비밀번호로 접속)`);
   console.log(`[에이전트] 서명된 파일 링크: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`}/files/...`);
+});
+
+server.on('error', (err) => {
+  console.error(`[에이전트] 파일 서버를 시작하지 못했습니다: ${err.code || err.message}`);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[에이전트] ${HTTP_PORT} 포트를 다른 프로그램이 사용 중입니다.`);
+  }
+  process.exitCode = 1;
 });
 
 // ── 시작 ───────────────────────────────────────────────────────────────────
