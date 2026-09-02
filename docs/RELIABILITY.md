@@ -212,6 +212,9 @@ agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
 - **폴더 브라우저 비밀번호 접속**: `http://172.35.12.36:8790` 접속 시 부서 비밀번호를 입력하면
   자기 부서 폴더만 웹에서 탐색·다운로드할 수 있다 (`config.json`의 `folderPasswords`,
   모든 부서를 열람하는 `adminPassword`는 선택). 세션 쿠키는 12시간 유지되며 HTTP 평문이므로 사내망 전용
+- 견적 목록의 `폴더` 버튼은 위 파일 브라우저를 새 탭으로 연다. 일반 브라우저는 보안상 주소창을
+  숨길 수 없으므로, 열람 화면의 주소에는 `http://172.35.12.36:8790`이 표시된다. 목록의 파일링크
+  셀 자체에는 URL 대신 PDF 파일명이 표시된다
 - **파일링크는 HMAC 서명 링크**다: 에이전트가 `config.json`의 `fileLinkSecret`으로
   부서 경로를 서명하고, 파일 서버가 서명을 검증한 뒤에만 파일을 제공한다.
   각 부서는 자기 부서 대장의 링크(=자기 부서 경로)만 받으므로 다른 부서 경로나
@@ -222,10 +225,10 @@ agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
 
 견적관리대장 열을 변경할 때는 `saveToLedgerSheet()`의 행 배열을 함께 수정한다. 현재 열 순서는 `NO, 연도, 월, 일, 견적번호, ...`이다.
 
-견적번호는 `기술영업 YYMM-NNN` 형식이며, NNN은 **대장 NO열(A열)의 최대값 + 1**이다 (대장이 비어 있으면 001부터 시작, 행 삭제 시에도 최대 번호 기준으로 이어짐). 대장의 NO는 견적번호의 `-NNN`과 항상 일치하도록 `saveToLedgerSheet()`가 견적번호에서 파싱해 기록한다. 부서별로 대장이 분리되어 있으므로 일련번호도 부서별로 독립적으로 관리된다.
+견적번호는 `<부서> YYMM-NNN` 형식이며 (예: `기술영업 2609-004`, `영업 2609-002`, `프로젝트 2609-002`), NNN은 **대장 NO열(A열)의 최대값 + 1**이다 (대장이 비어 있으면 001부터 시작, 행 삭제 시에도 최대 번호 기준으로 이어짐). 대장의 NO는 견적번호의 `-NNN`과 항상 일치하도록 `saveToLedgerSheet()`가 견적번호에서 파싱해 기록한다. 부서별로 대장이 분리되어 있으므로 일련번호도 부서별로 독립적으로 관리된다.
 
 ### 작성자 부서별 Drive 경로 분기 (`resolveRootFolderId`)
 
-프론트엔드는 작성자 DB 시트에서 읽어온 목록으로 드롭다운을 채우고, 선택된 작성자의 부서를 `QuoteAuthor.department`에 담아 Apps Script로 보낸다. `Code.gs`의 `resolveRootFolderId(details)`가 이 값을 보고 `CONFIG.DEPARTMENT_ROOTS[부서]`를 반환하며, `processQuote()`는 이 값을 `getNextQuoteNumber()`/`getYearSystem()`에 그대로 넘긴다. 그 결과 부서별로 폴더·대장·견적번호 시퀀스가 완전히 분리된다(같은 "기술영업 YYMM-NNN" 형식이지만 각자 자기 대장 안에서만 카운트되므로, 부서 간 동일한 번호가 존재할 수 있다 — 의도된 동작).
+프론트엔드는 작성자 DB 시트에서 읽어온 목록으로 드롭다운을 채우고, 선택된 작성자의 부서를 `QuoteAuthor.department`에 담아 Apps Script로 보낸다. `Code.gs`의 `resolveRootFolderId(details)`가 이 값을 보고 `CONFIG.DEPARTMENT_ROOTS[부서]`를 반환하며, `processQuote()`는 이 값을 `getNextQuoteNumber()`/`getYearSystem()`에 그대로 넘긴다. 그 결과 부서별로 폴더·대장·견적번호 시퀀스가 완전히 분리된다(견적번호는 `부서 YYMM-NNN` 형식이며 각자 자기 대장 안에서만 카운트되므로, 부서 간 동일한 번호가 존재할 수 있다 — 의도된 동작).
 
 **알려진 제한**: `getQuoteLedgerFromReact()`(견적 목록 화면)는 기본 부서(`DEFAULT_DEPARTMENT`) 대장만 조회한다. 다른 부서의 견적은 목록 화면에 표시되지 않고 각 부서 폴더의 대장에서만 확인 가능하다.

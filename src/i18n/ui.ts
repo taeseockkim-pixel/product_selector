@@ -120,6 +120,7 @@ export const UI = {
   quoteSaveLocation: t('저장 위치', 'Save location'),
   quoteFiles:       t('파일', 'Files'),
   quoteRefresh:     t('새로고침', 'Refresh'),
+  quoteFolderBtn:   t('폴더', 'Folder'),
   quoteListLoading: t('견적 목록을 불러오는 중...', 'Loading quote list...'),
   quoteDataMissing: t('견적 데이터를 찾을 수 없습니다.', 'Quote data could not be found.'),
   quoteDeleteConfirm: t('견적번호 {quoteNumber}를 삭제하시겠습니까?', 'Delete quote {quoteNumber}?'),

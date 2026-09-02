@@ -22,6 +22,20 @@ interface LedgerBridgeResponse {
   error?: string;
 }
 
+const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
+
+function fileNameFromLink(value: string) {
+  try {
+    const url = new URL(value);
+    const pathParts = url.pathname.split('/').filter(Boolean);
+    const lastPart = pathParts[pathParts.length - 1];
+    return lastPart ? decodeURIComponent(lastPart) : value;
+  } catch {
+    const lastPart = value.split(/[\\/]/).filter(Boolean).pop();
+    return lastPart || value;
+  }
+}
+
 function loadLedgerViaParent(): Promise<LedgerResult> {
   return new Promise((resolve, reject) => {
     const requestId = `ledger-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -99,6 +113,17 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
           <button onClick={() => void loadQuotes()} className="px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors">
             {t(UI.quoteRefresh)}
           </button>
+          <a
+            href={FOLDER_BROWSER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+            </svg>
+            {t(UI.quoteFolderBtn)}
+          </a>
           <button
             onClick={onNewQuote}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"
@@ -149,11 +174,13 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
                   {headers.map((_, cellIndex) => {
                     const value = row.values[cellIndex] ?? '';
                     const link = row.links[cellIndex];
+                    const href = link ?? (/^https?:\/\//i.test(value) ? value : null);
+                    const displayValue = href ? fileNameFromLink(href) : value;
                     return (
                       <td key={cellIndex} className="px-4 py-3 whitespace-nowrap text-[#555555]">
-                        {link ? (
-                          <a href={link} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline">
-                            {value || '열기'}
+                        {href ? (
+                          <a href={href} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline" title={displayValue}>
+                            {displayValue || '열기'}
                           </a>
                         ) : value}
                       </td>

@@ -121,11 +121,12 @@ quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록
   `CONFIG.DEPARTMENT_ROOTS[부서]` 폴더로 저장 경로를 분기한다. **견적 목록 화면도 접속 계정의
   부서 대장만 조회한다.**
 - **인쇄**: `QuotePrintView.tsx` → `src/utils/quoteHtml.ts`로 HTML 생성 → iframe → 브라우저 인쇄.
+- **견적 목록 파일링크**: Apps Script가 로컬 에이전트가 만든 PDF URL을 PDF 파일명으로 표시되는 RichText 링크로 대장에 기록한다. 목록 화면은 URL 대신 `부서 YYMM-NNN_업체명_견적서.pdf`를 표시하며, `폴더` 버튼으로 사내 파일 열람 페이지(`172.35.12.36:8790`)를 연다.
 - **Google Workspace 연동**: Apps Script wrapper를 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Apps Script 접근 권한은 `CIMON의 모든 사용자`로 유지할 수 있다.
 - **로컬 전용 XLSX/PDF 자동 생성**: `server/` 폴더의 Express 서버는 `npm run local`로만 구동되며,
   Windows Excel COM 객체를 사용하므로 **Vercel 프로덕션 환경에서는 동작하지 않는다.** Vercel
   배포 시에는 이 로컬 저장 단계 자체가 생략된다.
-- **api/quotes/**: Vercel 서버리스 함수지만 견적번호(`기술영업 YYMM-NNN`) 발급 외 실질적인
+- **api/quotes/**: Vercel 서버리스 함수지만 부서별 견적번호(`부서 YYMM-NNN`) 발급 외 실질적인
   저장/조회 로직은 없는 스텁 상태.
 - **Apps Script 반영 파일**: `appscript/Index.wrapper.html` 내용을 Apps Script의 `Index.html`에 반영하고, `appscript/wrapper-code.patch.gs`의 `doGet`/`processQuoteFromReact`를 `Code.gs`에 반영한 뒤 새 버전으로 Web App을 배포한다. Vercel API fallback을 직접 쓸 때만 `APPS_SCRIPT_WEB_APP_URL`이 필요하다.
 - **견적관리대장 기록**: 날짜는 `연도 / 월 / 일`로 나누어 저장한다. 제품 항목은 전체 견적 품목을 기준으로 제품군을 정규화하며, 여러 제품군은 `PLC, TOUCH`처럼 쉼표로 함께 기록하고 NET/RIO는 PLC에 포함한다.

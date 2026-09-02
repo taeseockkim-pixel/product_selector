@@ -234,7 +234,14 @@ function updateLedgerLink_(result) {
   const numbers = ledger.getRange(2, 5, lastRow - 1, 1).getValues();
   for (let i = 0; i < numbers.length; i++) {
     if (String(numbers[i][0]).trim() === String(result.quoteNumber).trim()) {
-      ledger.getRange(i + 2, 14).setValue(result.fileUrl);
+      const fileUrl = String(result.fileUrl);
+      const path = fileUrl.split('?')[0].split('/');
+      const fileName = decodeURIComponent(path[path.length - 1] || '열기');
+      const linkValue = SpreadsheetApp.newRichTextValue()
+        .setText(fileName)
+        .setLinkUrl(fileUrl)
+        .build();
+      ledger.getRange(i + 2, 14).setRichTextValue(linkValue);
       return;
     }
   }
@@ -372,12 +379,13 @@ function getYearSystem(year, rootFolderId) {
   return { folder: yearFolder, ledger: ledgerSS, ledgerSheet };
 }
 
-function getNextQuoteNumber(rootFolderId) {
+function getNextQuoteNumber(rootFolderId, department) {
   try {
     const today = new Date();
     const system = getYearSystem(today.getFullYear(), rootFolderId);
     const sheet = system.ledgerSheet;
-    const yearPrefix = `기술영업 ${Utilities.formatDate(today, Session.getScriptTimeZone(), 'yy')}`;
+    const departmentName = String(department || CONFIG.DEFAULT_DEPARTMENT).trim() || CONFIG.DEFAULT_DEPARTMENT;
+    const yearPrefix = `${departmentName} ${Utilities.formatDate(today, Session.getScriptTimeZone(), 'yy')}`;
     const lastRow = sheet.getLastRow();
 
     // 견적관리대장 NO열(A열)의 최대 번호를 기준으로 다음 일련번호를 결정한다.
@@ -411,7 +419,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
     const details = quoteData.details;
     const rootFolderId = resolveRootFolderId(details);
 
-    const realQuoteNumber = getNextQuoteNumber(rootFolderId);
+    const realQuoteNumber = getNextQuoteNumber(rootFolderId, details.authorDepartment);
     details.quoteNumber = realQuoteNumber;
 
     const dateMatches = String(details.quoteDate || '').match(/(\d{4})/);

@@ -15,7 +15,7 @@
  */
 
 import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync } from 'fs';
-import { join, dirname, resolve, sep } from 'path';
+import { join, dirname, resolve, sep, basename, extname } from 'path';
 import { fileURLToPath } from 'url';
 import { createHmac, timingSafeEqual } from 'crypto';
 import express from 'express';
@@ -421,10 +421,10 @@ const PAGE_STYLE = `
     .card { max-width: 760px; margin: 0 auto; background: #fff; border: 1px solid #ddd9d2; border-radius: 12px; padding: 28px; }
     h1 { font-size: 18px; color: #191919; margin: 0 0 6px; }
     .sub { color: #999999; font-size: 12px; margin-bottom: 20px; }
-    input[type=password] { width: 100%%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd9d2; border-radius: 8px; font-size: 14px; }
-    button { margin-top: 12px; width: 100%%; padding: 10px 12px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+    input[type=password] { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #ddd9d2; border-radius: 8px; font-size: 14px; }
+    button { margin-top: 12px; width: 100%; padding: 10px 12px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
     .error { color: #dc2626; font-size: 13px; margin-top: 10px; }
-    table { width: 100%%; border-collapse: collapse; font-size: 13px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
     td, th { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; }
     th { color: #555; font-size: 12px; }
     a { color: #2563eb; text-decoration: none; }
@@ -561,7 +561,7 @@ app.get('/download', (req, res) => {
   if (!existsSync(target) || !statSync(target).isFile()) {
     return res.status(404).send('Not found');
   }
-  res.sendFile(target);
+  res.download(target, basename(target));
 });
 
 app.use('/files', (req, res) => {
@@ -583,6 +583,9 @@ app.use('/files', (req, res) => {
     }
     if (!existsSync(absolute) || !statSync(absolute).isFile()) {
       return res.status(404).send('Not found');
+    }
+    if (extname(absolute).toLowerCase() === '.xlsx') {
+      return res.download(absolute, basename(absolute));
     }
     res.sendFile(absolute);
   } catch (err) {

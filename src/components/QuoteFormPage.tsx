@@ -550,7 +550,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     const previewSeq = getSeq(yymm) + 1;
     return {
       id: 'preview',
-      quoteNumber: `${lang === 'en' ? 'Technical Sales' : '기술영업'} ${yymm}-${String(previewSeq).padStart(3, '0')}`,
+      quoteNumber: `${authorDepartment || '기술영업'} ${yymm}-${String(previewSeq).padStart(3, '0')}`,
       createdAt: today.toISOString(),
       clientCompany: company,
       clientContact: contact,
