@@ -439,7 +439,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
     // 대장 사본(XLSX)을 에이전트 전달 폴더에 내보낸다. 에이전트가 견적 연도 폴더에 복사한다.
     exportLedgerToAgent_(system, currentYear, realQuoteNumber);
 
-    let returnMessage = '[완료] 견적번호: ' + realQuoteNumber + '\n파일은 사내 저장 PC(172.35.12.36)의 부서별 폴더에 1~2분 내 생성됩니다.';
+    let returnMessage = '[완료] 견적번호: ' + realQuoteNumber + '\n파일은 사내 저장 PC의 부서별 폴더에 1~2분 내 생성됩니다.';
 
     if (createDraft) {
       if (details.clientEmail && details.clientEmail.indexOf('@') > -1) {
