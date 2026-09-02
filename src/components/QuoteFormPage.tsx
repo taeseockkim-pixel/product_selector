@@ -21,6 +21,8 @@ import {
 import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
 
+const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
+
 const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
 const AUTHOR_LABELS: Record<string, string> = {
   '조규광 이사': 'Kyukwang Jo, Director',
@@ -746,8 +748,19 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
               {t(UI.back)}
             </button>
             <h1 className="text-lg font-bold text-[#191919]">{t(UI.quoteModalTitle)}</h1>
-          </div>
-          <div className="flex gap-2">
+           </div>
+           <div className="flex gap-2">
+            <a
+              href={FOLDER_BROWSER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+              </svg>
+              {t(UI.quoteFolderBtn)}
+            </a>
             <button
               onClick={openPreview}
               disabled={previewLoading}
