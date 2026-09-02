@@ -116,6 +116,13 @@ function safeSegment(value) {
   return String(value ?? '').replace(/[/\\:*?"<>|]/g, '').trim();
 }
 
+// Node 오류의 원인 코드(ENOTFOUND, EACCES 등)까지 로그에 남긴다.
+function describeError(err) {
+  const cause = err?.cause;
+  const causeInfo = cause ? ` [원인: ${cause.code || ''} ${cause.message || ''}]` : '';
+  return `${err.message || err}${causeInfo}`;
+}
+
 // 파일 상대 경로에 대한 부서 접근 제어 서명 (HMAC-SHA256)
 function signRelativePath(relativePath) {
   return createHmac('sha256', FILE_LINK_SECRET).update(String(relativePath)).digest('hex');
@@ -443,20 +450,19 @@ function loginPageHtml(errorMessage = '') {
 </div></body></html>`;
 }
 
-function browserPageHtml(session, currentRelative, entries) {
+function browserPageHtml(session, dirRelative, entries) {
   const departmentLabel = session.department === '*' ? '전체 부서 (관리자)' : escHtml(session.department);
   const crumbParts = [`<a href="/browse">홈</a>`];
   let acc = '';
-  for (const part of currentRelative.split('/').filter(Boolean)) {
+  for (const part of dirRelative.split('/').filter(Boolean)) {
     acc = acc ? `${acc}/${part}` : part;
     crumbParts.push(`<a href="/browse?dir=${encodeURIComponent(acc)}">${escHtml(part)}</a>`);
   }
   const rows = entries.map((entry) => {
-    const displayPath = currentRelative ? `${currentRelative}/${entry.name}` : entry.name;
     if (entry.isFolder) {
-      return `<tr><td>📁 <a href="/browse?dir=${encodeURIComponent(displayPath)}">${escHtml(entry.name)}</a></td><td>폴더</td></tr>`;
+      return `<tr><td>📁 <a href="/browse?dir=${encodeURIComponent(entry.browsePath)}">${escHtml(entry.name)}</a></td><td>폴더</td></tr>`;
     }
-    return `<tr><td>📄 <a href="/download?path=${encodeURIComponent(displayPath)}">${escHtml(entry.name)}</a></td><td>${entry.size}</td></tr>`;
+    return `<tr><td>📄 <a href="/download?path=${encodeURIComponent(entry.downloadPath)}">${escHtml(entry.name)}</a></td><td>${entry.size}</td></tr>`;
   }).join('');
   const emptyRow = entries.length === 0 ? `<tr><td colspan="2" style="color:#999">파일이 없습니다.</td></tr>` : '';
   return `<!DOCTYPE html>
@@ -510,7 +516,12 @@ app.get('/browse', (req, res) => {
     target = { deptRoot, target: deptRoot };
   }
 
-  const relative = target.target === deptRoot ? '' : target.target.slice(deptRoot.length + 1).split(sep).join('/');
+  // 폴더 이동용 경로(dirRelative)는 부서 폴더 기준,
+  // 다운로드용 경로(downloadPath)는 저장 루트 기준(부서 접두사 포함)으로 계산한다.
+  const storageRootResolved = resolve(STORAGE_ROOT);
+  const dirRelative = target.target === deptRoot ? '' : target.target.slice(deptRoot.length + 1).split(sep).join('/');
+  const storageRelative = target.target === storageRootResolved ? '' : target.target.slice(storageRootResolved.length + 1).split(sep).join('/');
+
   const entries = readdirSync(target.target, { withFileTypes: true })
     .filter((e) => !e.name.startsWith('.'))
     .map((e) => {
@@ -519,11 +530,17 @@ app.get('/browse', (req, res) => {
       if (!isFolder) {
         try { size = `${Math.max(1, Math.round(statSync(join(target.target, e.name)).size / 1024))} KB`; } catch { size = '-'; }
       }
-      return { name: e.name, isFolder, size };
+      return {
+        name: e.name,
+        isFolder,
+        size,
+        browsePath: dirRelative ? `${dirRelative}/${e.name}` : e.name,
+        downloadPath: storageRelative ? `${storageRelative}/${e.name}` : e.name,
+      };
     })
     .sort((a, b) => (a.isFolder === b.isFolder ? a.name.localeCompare(b.name, 'ko') : a.isFolder ? -1 : 1));
 
-  res.type('html').send(browserPageHtml(session, relative, entries));
+  res.type('html').send(browserPageHtml(session, dirRelative, entries));
 });
 
 app.get('/download', (req, res) => {
