@@ -240,10 +240,23 @@ export function getQuoteCatalogUnitPrice(item: QuoteCatalogItem, qty: number): n
 }
 
 export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined {
-  const normalized = name.trim().toUpperCase();
+  const direct = QUOTE_PRODUCT_ITEMS.find((item) => item.id === name);
+  if (direct) return direct;
+
+  const normalizeName = (value: string) => value
+    .trim()
+    .toUpperCase()
+    .replace(/\\s+/g, ' ')
+    .replace(/\\s*\\([^)]*\\)\\s*$/, '')
+    .replace(/^CM03-(\\d+)(\\/)/, (_, digits, suffix) => \`CM03-\${digits.padStart(4, '0')}\${suffix}\`);
+  const normalized = normalizeName(name);
+  const aliases: Record<string, string> = {
+    'CM0-SCB15I': 'CM0-SCB15IR',
+  };
+  const candidates = [normalized, aliases[normalized]].filter(Boolean);
   return QUOTE_PRODUCT_ITEMS.find((item) => {
-    const itemName = item.name.trim().toUpperCase();
-    return itemName === normalized || itemName === \`CM-\${normalized}\` || itemName.endsWith(normalized);
+    const itemName = normalizeName(item.name);
+    return candidates.some((candidate) => itemName === candidate || itemName === \`CM-\${candidate}\` || itemName.endsWith(candidate));
   });
 }
 
