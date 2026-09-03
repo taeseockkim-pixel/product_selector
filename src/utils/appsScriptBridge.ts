@@ -29,6 +29,18 @@ export interface AuthorizationResult {
   message?: string;
 }
 
+export interface LedgerRow {
+  values: string[];
+  links: Array<string | null>;
+}
+
+export interface LedgerResult {
+  success: boolean;
+  headers?: string[];
+  rows?: LedgerRow[];
+  message?: string;
+}
+
 export interface AppsScriptBridgeResponse {
   source?: string;
   type?: string;
@@ -63,6 +75,7 @@ declare global {
               processQuoteFromReact: (payload: unknown) => void;
               getAuthorsFromReact: () => void;
               getAuthorizedUserFromReact: () => void;
+              getQuoteLedgerFromReact: () => void;
             };
           };
         };
@@ -71,7 +84,7 @@ declare global {
   }
 }
 
-function callAppsScriptFn<T>(fnName: 'getAuthorsFromReact' | 'getAuthorizedUserFromReact'): Promise<T> {
+function callAppsScriptFn<T>(fnName: 'getAuthorsFromReact' | 'getAuthorizedUserFromReact' | 'getQuoteLedgerFromReact'): Promise<T> {
   return new Promise((resolve, reject) => {
     const runner = window.google?.script?.run;
     if (!runner) {
@@ -86,8 +99,8 @@ function callAppsScriptFn<T>(fnName: 'getAuthorsFromReact' | 'getAuthorizedUserF
 }
 
 function callAppsScriptFnViaParentBridge<T>(
-  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT',
-  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER',
+  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT',
+  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER',
   timeoutMs: number,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -130,6 +143,14 @@ export function fetchAuthorization(): Promise<AuthorizationResult> {
     return callAppsScriptFnViaParentBridge<AuthorizationResult>('LOAD_AUTHORIZED_USER_RESULT', 'LOAD_AUTHORIZED_USER', 15000);
   }
   return callAppsScriptFn<AuthorizationResult>('getAuthorizedUserFromReact');
+}
+
+/** 접속 계정의 부서 대장을 조회한다 */
+export function fetchLedger(): Promise<LedgerResult> {
+  if (window.parent && window.parent !== window) {
+    return callAppsScriptFnViaParentBridge<LedgerResult>('LOAD_QUOTE_LEDGER_RESULT', 'LOAD_QUOTE_LEDGER', 30000);
+  }
+  return callAppsScriptFn<LedgerResult>('getQuoteLedgerFromReact');
 }
 
 /** 앱 진입 시 접속 계정의 견적 기능 사용 권한을 확인한다 (fetchAuthorization 별칭) */

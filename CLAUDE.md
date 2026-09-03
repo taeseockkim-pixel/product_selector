@@ -122,6 +122,8 @@ quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록
   부서 대장만 조회한다.**
 - **인쇄**: `QuotePrintView.tsx` → `src/utils/quoteHtml.ts`로 HTML 생성 → iframe → 브라우저 인쇄.
 - **견적 목록 파일링크**: Apps Script가 로컬 에이전트가 만든 PDF URL을 PDF 파일명으로 표시되는 RichText 링크로 대장에 기록한다. 목록 화면은 URL 대신 `부서 YYMM-NNN_업체명_견적서.pdf`를 표시하며, `폴더` 버튼으로 사내 파일 열람 페이지(`172.35.12.36:8790`)를 연다.
+- **견적 목록 검색/정렬**: 대장 데이터를 불러온 뒤 검색어로 전체 항목을 필터링할 수 있고, 각 헤더를 눌러 오름차순/내림차순 정렬한다. 중복 검색 결과는 선택 창에서 특정 견적을 고를 수 있으며, 테이블은 고정 레이아웃과 줄바꿈으로 가로 스크롤 없이 표시한다.
+- **고객정보 자동 매칭**: 견적 작성 화면에서 업체명 또는 담당자를 입력하고 포커스를 이동하면 현재 부서 대장의 기존 고객 정보를 찾아 업체명·담당자·연락처·이메일을 자동 입력한다. 동일한 이름이 여러 건이면 고객 선택 창을 표시한다.
 - **Google Workspace 연동**: Apps Script wrapper를 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Apps Script 접근 권한은 `CIMON의 모든 사용자`로 유지할 수 있다.
 - **로컬 전용 XLSX/PDF 자동 생성**: `server/` 폴더의 Express 서버는 `npm run local`로만 구동되며,
   Windows Excel COM 객체를 사용하므로 **Vercel 프로덕션 환경에서는 동작하지 않는다.** Vercel

@@ -15,8 +15,10 @@ import {
 import { getSeq, saveQuote } from '../utils/quoteStorage';
 import {
   fetchAuthors,
+  fetchLedger,
   type QuoteProcessResult,
   type AppsScriptBridgeResponse,
+  type LedgerRow,
 } from '../utils/appsScriptBridge';
 import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
@@ -80,6 +82,33 @@ interface ItemRow {
   multiplier: string;
   catalogItem?: QuoteCatalogItem;
   product?: Product;
+}
+
+interface CustomerRecord {
+  id: string;
+  company: string;
+  contact: string;
+  phone: string;
+  email: string;
+}
+
+function findLedgerColumn(headers: string[], labels: string[]) {
+  return headers.findIndex((header) => labels.some((label) => header.includes(label)));
+}
+
+function customerRecordsFromLedger(headers: string[], rows: LedgerRow[]): CustomerRecord[] {
+  const companyIndex = findLedgerColumn(headers, ['업체명', '회사명', '회사']);
+  const contactIndex = findLedgerColumn(headers, ['고객명', '담당자']);
+  const phoneIndex = findLedgerColumn(headers, ['연락처', '전화', '휴대폰']);
+  const emailIndex = findLedgerColumn(headers, ['이메일', '메일']);
+
+  return rows.map((row, index) => ({
+    id: `${index}-${row.values.join('|')}`,
+    company: companyIndex >= 0 ? row.values[companyIndex] ?? '' : '',
+    contact: contactIndex >= 0 ? row.values[contactIndex] ?? '' : '',
+    phone: phoneIndex >= 0 ? row.values[phoneIndex] ?? '' : '',
+    email: emailIndex >= 0 ? row.values[emailIndex] ?? '' : '',
+  })).filter((record) => record.company.trim() || record.contact.trim());
 }
 
 interface Props {
@@ -352,6 +381,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [author, setAuthor] = useState(defaultAuthorName ?? '');
   const [authors, setAuthors] = useState<AuthorInfo[]>([]);
   const [authorsLoading, setAuthorsLoading] = useState(true);
+  const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
+  const [customerPicker, setCustomerPicker] = useState<{ field: 'company' | 'contact'; matches: CustomerRecord[] } | null>(null);
   const [customAuthorName, setCustomAuthorName] = useState('');
   const [customAuthorPhone, setCustomAuthorPhone] = useState('');
   const [customAuthorEmail, setCustomAuthorEmail] = useState('');
@@ -406,6 +437,19 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     });
     return () => { cancelled = true; };
   }, [defaultAuthorName]);
+
+  // 현재 접속 계정의 부서 대장에서 기존 고객 정보를 읽어온다.
+  useEffect(() => {
+    let cancelled = false;
+    fetchLedger().then((result) => {
+      if (!cancelled && result.success) {
+        setCustomerRecords(customerRecordsFromLedger(result.headers ?? [], result.rows ?? []));
+      }
+    }).catch((err) => {
+      console.warn('기존 고객 정보 조회 실패:', err);
+    });
+    return () => { cancelled = true; };
+  }, []);
   const selectedGroup = QUOTE_PRODUCT_CATALOG.find((group) => group.sheet === selectedSheet) ?? firstCatalogGroup;
   const selectedCatalogItem =
     selectedGroup?.items.find((item) => item.id === selectedProductId) ?? selectedGroup?.items[0] ?? null;
@@ -503,6 +547,23 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     const group = QUOTE_PRODUCT_CATALOG.find((item) => item.sheet === sheet);
     setSelectedSheet(sheet);
     setSelectedProductId(group?.items[0]?.id ?? '');
+  }
+
+  function applyCustomerRecord(record: CustomerRecord) {
+    setCompany(record.company);
+    setContact(record.contact);
+    setPhone(record.phone);
+    setEmail(record.email);
+    setCustomerPicker(null);
+  }
+
+  function handleCustomerBlur(field: 'company' | 'contact') {
+    const value = field === 'company' ? company : contact;
+    const query = value.trim().toLocaleLowerCase('ko-KR');
+    if (!query) return;
+    const matches = customerRecords.filter((record) => record[field].toLocaleLowerCase('ko-KR').includes(query));
+    if (matches.length === 1) applyCustomerRecord(matches[0]);
+    else if (matches.length > 1) setCustomerPicker({ field, matches });
   }
 
   function handleAddItem() {
@@ -725,6 +786,54 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
           </div>
         </div>
       )}
+      {customerPicker && (
+        <div className="fixed inset-0 bg-black/50 z-[65] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-blue-600 text-white">
+              <div>
+                <h2 className="text-sm font-bold">{t(UI.quoteCustomerSelectTitle)}</h2>
+                <p className="text-xs text-blue-100 mt-1">{t(UI.quoteCustomerSelectHint)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCustomerPicker(null)}
+                className="text-blue-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                x
+              </button>
+            </div>
+            <div className="p-5 space-y-2 max-h-[60vh] overflow-y-auto">
+              {customerPicker.matches.map((record) => (
+                <button
+                  key={record.id}
+                  type="button"
+                  onClick={() => applyCustomerRecord(record)}
+                  className="w-full text-left rounded-lg border border-[#ddd9d2] px-4 py-3 hover:bg-blue-50 hover:border-blue-200 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-sm text-[#191919]">{record.company || '-'}</span>
+                    <span className="text-xs text-[#777777]">{record.contact || '-'}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-[#999999]">
+                    <span>{record.phone || '-'}</span>
+                    <span>{record.email || '-'}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end px-5 py-4 bg-[#f0ede8] border-t border-[#ddd9d2]">
+              <button
+                type="button"
+                onClick={() => setCustomerPicker(null)}
+                className="px-4 py-2 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-white transition-colors"
+              >
+                {t(UI.quoteCancel)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {detailProduct && (
         <SpecModal
           product={detailProduct}
@@ -782,22 +891,45 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
             <section className="bg-[#f0ede8] rounded-xl border border-[#ddd9d2] p-5">
               <h3 className="text-xs font-semibold text-[#999999] uppercase tracking-wider mb-4">{t(UI.quoteCustomerInfo)}</h3>
               <div className="space-y-3">
-                {[
-                  { label: t(UI.quoteCompany) + ' *', value: company, onChange: setCompany, placeholder: t(UI.quoteCompany) },
-                  { label: t(UI.quoteContact) + ' *', value: contact, onChange: setContact, placeholder: t(UI.quoteContact) },
-                  { label: t(UI.quotePhone) + ' *', value: phone, onChange: setPhone, placeholder: '010-0000-0000' },
-                  { label: t(UI.quoteEmail) + ' *', value: email, onChange: setEmail, placeholder: 'email@company.com' },
-                ].map(({ label, value, onChange, placeholder }) => (
-                  <div key={label}>
-                    <label className="block text-xs text-[#555555] mb-1">{label}</label>
-                    <input
-                      value={value}
-                      onChange={(e) => onChange(e.target.value)}
-                      placeholder={placeholder}
-                      className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
-                    />
-                  </div>
-                ))}
+                <div>
+                  <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteCompany)} *</label>
+                  <input
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    onBlur={() => handleCustomerBlur('company')}
+                    placeholder={t(UI.quoteCompany)}
+                    className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteContact)} *</label>
+                  <input
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    onBlur={() => handleCustomerBlur('contact')}
+                    placeholder={t(UI.quoteContact)}
+                    className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#555555] mb-1">{t(UI.quotePhone)} *</label>
+                  <input
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="010-0000-0000"
+                    className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteEmail)} *</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="email@company.com"
+                    className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                  />
+                </div>
               </div>
             </section>
 
