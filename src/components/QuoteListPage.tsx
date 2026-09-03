@@ -40,12 +40,12 @@ interface Props {
 export default function QuoteListPage({ onBack, onNewQuote }: Props) {
   const t = useT();
   const currentYear = new Date().getFullYear();
-  const ledgerYears = Array.from({ length: 11 }, (_, index) => currentYear - index);
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<LedgerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [ledgerYears, setLedgerYears] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortIndex, setSortIndex] = useState<number | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -57,6 +57,13 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
     try {
       const result = await fetchLedger(selectedYear);
       if (!result.success) throw new Error(result.message || '견적관리대장을 불러오지 못했습니다.');
+      const availableYears = (result.availableYears ?? [selectedYear])
+        .filter((year) => Number.isInteger(year) && year >= 2000 && year <= currentYear)
+        .sort((left, right) => right - left);
+      setLedgerYears(availableYears);
+      if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+        setSelectedYear(availableYears[0]);
+      }
       setHeaders(result.headers ?? []);
       setRows(result.rows ?? []);
     } catch (err) {
@@ -66,7 +73,7 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [selectedYear]);
+  }, [currentYear, selectedYear]);
 
   useEffect(() => { void loadQuotes(); }, [loadQuotes]);
 
@@ -120,16 +127,18 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
             {t(UI.back)}
           </button>
           <h1 className="text-lg font-bold text-[#191919]">{t(UI.quoteListTitle)}</h1>
-          <label className="flex items-center gap-1.5">
-            <span className="sr-only">{t(UI.quoteYear)}</span>
-            <select
-              value={selectedYear}
-              onChange={(event) => handleYearChange(Number(event.target.value))}
-              className="border border-[#ddd9d2] rounded-lg px-2.5 py-1.5 text-sm bg-white text-[#555555] focus:outline-none focus:border-[#191919]"
-            >
-              {ledgerYears.map((year) => <option key={year} value={year}>{year}{t(UI.quoteYearSuffix)}</option>)}
-            </select>
-          </label>
+          {ledgerYears.length > 0 && (
+            <label className="flex items-center gap-1.5">
+              <span className="sr-only">{t(UI.quoteYear)}</span>
+              <select
+                value={selectedYear}
+                onChange={(event) => handleYearChange(Number(event.target.value))}
+                className="border border-[#ddd9d2] rounded-lg px-2.5 py-1.5 text-sm bg-white text-[#555555] focus:outline-none focus:border-[#191919]"
+              >
+                {ledgerYears.map((year) => <option key={year} value={year}>{year}{t(UI.quoteYearSuffix)}</option>)}
+              </select>
+            </label>
+          )}
         </div>
         <div className="flex flex-wrap justify-end gap-2">
           <button onClick={() => void loadQuotes()} className="px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors">

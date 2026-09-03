@@ -86,16 +86,17 @@ function getQuoteLedgerFromReact(requestedYear) {
   const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
     ? parsedYear
     : currentYear;
+  const availableYears = getAvailableLedgerYears_(rootFolderId, currentYear);
   const system = getExistingYearSystem_(year, rootFolderId);
   if (!system) {
-    return { success: true, headers: [], rows: [] };
+    return { success: true, headers: [], rows: [], availableYears: availableYears };
   }
   const sheet = system.ledgerSheet;
   const lastRow = sheet.getLastRow();
   const lastColumn = sheet.getLastColumn();
 
   if (lastRow < 1 || lastColumn < 1) {
-    return { success: true, headers: [], rows: [] };
+    return { success: true, headers: [], rows: [], availableYears: availableYears };
   }
 
   const range = sheet.getRange(1, 1, lastRow, lastColumn);
@@ -112,7 +113,7 @@ function getQuoteLedgerFromReact(requestedYear) {
     };
   });
 
-  return { success: true, headers: headers, rows: rows };
+  return { success: true, headers: headers, rows: rows, availableYears: availableYears };
 }
 
 function doPost(e) {
@@ -415,6 +416,23 @@ function getExistingYearSystem_(year, rootFolderId) {
   const ledgerSS = SpreadsheetApp.open(fileIter.next());
   const ledgerSheet = ledgerSS.getSheetByName(CONFIG.LEDGER_SHEET_NAME) || ledgerSS.getSheets()[0];
   return { folder: yearFolder, ledger: ledgerSS, ledgerSheet };
+}
+
+function getAvailableLedgerYears_(rootFolderId, currentYear) {
+  const targetRootId = rootFolderId || CONFIG.DEPARTMENT_ROOTS[CONFIG.DEFAULT_DEPARTMENT];
+  const rootFolder = DriveApp.getFolderById(targetRootId);
+  const folders = rootFolder.getFolders();
+  const years = [];
+  while (folders.hasNext()) {
+    const folder = folders.next();
+    const yearName = String(folder.getName()).trim();
+    if (!/^\d{4}$/.test(yearName)) continue;
+    const year = Number(yearName);
+    if (year > currentYear) continue;
+    const ledgerFiles = folder.getFilesByName(`${yearName}_견적관리대장`);
+    if (ledgerFiles.hasNext()) years.push(year);
+  }
+  return years.sort((left, right) => right - left);
 }
 
 function getNextQuoteNumber(rootFolderId, department) {

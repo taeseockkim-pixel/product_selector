@@ -38,6 +38,7 @@ export interface LedgerResult {
   success: boolean;
   headers?: string[];
   rows?: LedgerRow[];
+  availableYears?: number[];
   message?: string;
 }
 
