@@ -36,9 +36,10 @@ function ledgerValue(headers: string[], row: LedgerRow, labels: string[]) {
 interface Props {
   onBack: () => void;
   onNewQuote: () => void;
+  department: string;
 }
 
-export default function QuoteListPage({ onBack, onNewQuote }: Props) {
+export default function QuoteListPage({ onBack, onNewQuote, department }: Props) {
   const t = useT();
   const currentYear = new Date().getFullYear();
   const [headers, setHeaders] = useState<string[]>([]);
@@ -189,7 +190,7 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
         </div>
       </div>
 
-      <AiSearchPanel open={aiSearchOpen} year={selectedYear} headers={headers} rows={rows} />
+      <AiSearchPanel open={aiSearchOpen} year={selectedYear} department={department} headers={headers} rows={rows} />
 
       {searchPickerRows && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-start justify-center overflow-y-auto py-10 px-4">

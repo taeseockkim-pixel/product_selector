@@ -4,6 +4,7 @@ const MAX_API_KEY_LENGTH = 500;
 const MAX_MODEL_LENGTH = 200;
 const MAX_QUESTION_LENGTH = 2000;
 const MAX_CONTEXT_LENGTH = 120000;
+const ALLOWED_DEPARTMENTS = new Set(['기술영업', '영업', '프로젝트']);
 
 function isRecord(value) {
   return typeof value === 'object' && value !== null;
@@ -90,6 +91,16 @@ export async function processOpenRouterRequest(rawBody) {
     return response(400, { success: false, message: 'AI 검색 질문을 입력해 주세요.' });
   }
 
+  const department = textValue(body.department).trim();
+  if (!ALLOWED_DEPARTMENTS.has(department)) {
+    return response(400, { success: false, message: '접속 계정의 견적 부서를 확인할 수 없습니다.' });
+  }
+
+  const context = isRecord(body.context) ? body.context : null;
+  if (!context || textValue(context.department).trim() !== department) {
+    return response(403, { success: false, message: '현재 접속 계정의 부서 데이터만 AI 검색에 사용할 수 있습니다.' });
+  }
+
   const model = textValue(body.model, DEFAULT_MODEL).trim() || DEFAULT_MODEL;
   if (model.length > MAX_MODEL_LENGTH) {
     return response(400, { success: false, message: 'AI 모델명이 너무 깁니다.' });
@@ -113,6 +124,8 @@ export async function processOpenRouterRequest(rawBody) {
         content: [
           '당신은 CIMON 견적관리대장 분석 도우미입니다.',
           '반드시 제공된 JSON 데이터만 근거로 답하고, 데이터에 없는 수치나 업체를 추측하지 마세요.',
+          `현재 사용자의 견적관리 부서는 ${department}입니다. ${department} 부서 외의 정보나 답변은 제공하지 마세요.`,
+          '다른 부서의 견적·업체·금액을 요청받으면 권한상 조회할 수 없다고 답하세요.',
           '금액은 원화(KRW) 기준으로 설명하세요.',
           '현재 데이터는 견적관리대장 기준이며 실제 발주·매출과 다를 수 있음을 필요한 경우 명시하세요.',
           '제품명은 여러 품목이 포함된 견적에서 요약되어 있을 수 있으므로 제품별 정확한 집계가 불가능하면 그 한계를 명시하세요.',
@@ -121,7 +134,7 @@ export async function processOpenRouterRequest(rawBody) {
       },
       {
         role: 'user',
-        content: `질문:\n${question}\n\n견적관리대장 데이터(JSON):\n${contextText}`,
+        content: `질문:\n${question}\n\n접속 부서:\n${department}\n\n견적관리대장 데이터(JSON):\n${contextText}`,
       },
     ],
     temperature: 0.1,

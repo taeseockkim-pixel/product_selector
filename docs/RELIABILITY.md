@@ -25,7 +25,7 @@ Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 및 api/ai/query
 [ARCHITECTURE.md](../ARCHITECTURE.md#견적서-기능-아키텍처) 참조.
 견적 작성 중인 입력값과 품목은 `cimon-quote-draft:<계정 이메일>` localStorage 키에 계정별로 보존된다. 사용자가 수동으로 초기화하거나 견적 저장/메일 초안 생성이 성공한 경우에만 삭제된다.
 견적 목록의 연도 선택과 14개 단위 파일 분할은 Apps Script 전체 교체용 `APPS_SCRIPT_Code_gs_전체교체코드.txt` 및 `APPS_SCRIPT_Index_html_전체교체코드.txt`에도 반영해야 한다. Apps Script를 새 버전으로 배포하고, 분할 생성 로직이 포함된 `agent/index.js`를 저장 PC에서 재시작해야 운영에 적용된다.
-AI 검색의 개인 OpenRouter API 키는 요청 처리 중에만 사용하고 localStorage·서버 파일·데이터베이스에 저장하지 않는다. OpenRouter 키를 소스 코드나 Vercel 빌드 환경변수에 넣지 않으며, 고객 데이터 요청에는 ZDR 제공자 제한을 우선 사용한다.
+AI 검색의 개인 OpenRouter API 키는 요청 처리 중에만 사용하고 localStorage·서버 파일·데이터베이스에 저장하지 않는다. 요청은 로그인한 작성자의 부서 데이터로 제한하고 담당자·연락처·이메일을 포함하므로 OpenRouter ZDR 제공자 제한을 우선 사용한다. OpenRouter 키를 소스 코드나 Vercel 빌드 환경변수에 넣지 않는다.
 
 ---
 

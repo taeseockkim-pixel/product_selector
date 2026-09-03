@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import type { LedgerRow } from '../utils/appsScriptBridge';
@@ -6,6 +6,7 @@ import type { LedgerRow } from '../utils/appsScriptBridge';
 interface Props {
   open: boolean;
   year: number;
+  department: string;
   headers: string[];
   rows: LedgerRow[];
 }
@@ -21,6 +22,7 @@ interface AiApiResponse {
 interface LedgerAiContext {
   source: string;
   selectedYear: number;
+  department: string;
   rowCount: number;
   truncated: boolean;
   note: string;
@@ -28,6 +30,9 @@ interface LedgerAiContext {
     date: string;
     quoteNumber: string;
     company: string;
+    contact: string;
+    phone: string;
+    email: string;
     category: string;
     product: string;
     amountKrw: number | null;
@@ -58,13 +63,16 @@ function findColumn(headers: string[], labels: string[]) {
   return headers.findIndex((header) => labels.some((label) => header.includes(label)));
 }
 
-function contextFromLedger(headers: string[], rows: LedgerRow[], year: number): LedgerAiContext {
+function contextFromLedger(headers: string[], rows: LedgerRow[], year: number, department: string): LedgerAiContext {
   const quoteNumberIndex = findColumn(headers, ['견적번호']);
   const dateIndex = findColumn(headers, ['견적일자', '날짜']);
   const yearIndex = findColumn(headers, ['연도', '년도']);
   const monthIndex = findColumn(headers, ['월']);
   const dayIndex = findColumn(headers, ['일']);
   const companyIndex = findColumn(headers, ['업체명', '회사명', '회사']);
+  const contactIndex = findColumn(headers, ['고객명', '담당자']);
+  const phoneIndex = findColumn(headers, ['연락처', '전화', '휴대폰']);
+  const emailIndex = findColumn(headers, ['이메일', '메일']);
   const categoryIndex = findColumn(headers, ['제품군', '제품 항목', '제품분류', '카테고리']);
   const productIndex = findColumn(headers, ['제품명', '품명', '모델명']);
   const amountIndex = findColumn(headers, ['견적금액', '총 견적금액', '금액']);
@@ -83,6 +91,9 @@ function contextFromLedger(headers: string[], rows: LedgerRow[], year: number): 
       date,
       quoteNumber: valueAt(row, quoteNumberIndex),
       company: valueAt(row, companyIndex),
+      contact: valueAt(row, contactIndex),
+      phone: valueAt(row, phoneIndex),
+      email: valueAt(row, emailIndex),
       category: valueAt(row, categoryIndex),
       product,
       amountKrw: parseAmount(valueAt(row, amountIndex)),
@@ -92,9 +103,10 @@ function contextFromLedger(headers: string[], rows: LedgerRow[], year: number): 
   return {
     source: 'CIMON 견적관리대장',
     selectedYear: year,
+    department,
     rowCount: rows.length,
     truncated: rows.length > MAX_CONTEXT_ROWS,
-    note: '연락처와 이메일은 포함하지 않았습니다. 제품명은 여러 품목 견적에서 요약되어 있을 수 있습니다.',
+    note: '현재 사용자의 부서 대장만 포함합니다. 제품명은 여러 품목 견적에서 요약되어 있을 수 있습니다.',
     rows: contextRows,
   };
 }
@@ -128,8 +140,9 @@ async function requestAi(payload: Record<string, unknown>): Promise<AiApiRespons
   return result;
 }
 
-export default function AiSearchPanel({ open, year, headers, rows }: Props) {
+export default function AiSearchPanel({ open, year, department, headers, rows }: Props) {
   const t = useT();
+  const apiKeyInputRef = useRef<HTMLInputElement>(null);
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState(DEFAULT_MODEL);
   const [zdrOnly, setZdrOnly] = useState(true);
@@ -144,6 +157,7 @@ export default function AiSearchPanel({ open, year, headers, rows }: Props) {
 
   const scopeMessage = t(UI.quoteAiScope)
     .replace('{year}', String(year))
+    .replace('{department}', department || t(UI.quoteAiUnknownDepartment))
     .replace('{count}', String(rows.length));
 
   function handleKeyChange(value: string) {
@@ -182,6 +196,11 @@ export default function AiSearchPanel({ open, year, headers, rows }: Props) {
     setAnswer('');
   }
 
+  function handleChangeKey() {
+    handleClearKey();
+    apiKeyInputRef.current?.focus();
+  }
+
   async function handleAsk() {
     const key = apiKey.trim();
     const query = question.trim();
@@ -208,7 +227,8 @@ export default function AiSearchPanel({ open, year, headers, rows }: Props) {
         model: model.trim() || DEFAULT_MODEL,
         zdr: zdrOnly,
         question: query,
-        context: contextFromLedger(headers, rows, year),
+        department,
+        context: contextFromLedger(headers, rows, year, department),
       });
       setAnswer(result.answer ?? '');
     } catch (err) {
@@ -244,6 +264,7 @@ export default function AiSearchPanel({ open, year, headers, rows }: Props) {
           <label className="block text-xs font-medium text-[#555555] mb-1">{t(UI.quoteAiApiKey)}</label>
           <div className="flex flex-wrap gap-2">
             <input
+              ref={apiKeyInputRef}
               type="password"
               value={apiKey}
               onChange={(event) => handleKeyChange(event.target.value)}
@@ -252,6 +273,7 @@ export default function AiSearchPanel({ open, year, headers, rows }: Props) {
               }}
               placeholder={t(UI.quoteAiApiKeyPlaceholder)}
               autoComplete="off"
+              readOnly={connectionState === 'connected'}
               className="min-w-0 flex-1 border border-[#c9d8ee] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-blue-500"
             />
             <button
@@ -262,13 +284,22 @@ export default function AiSearchPanel({ open, year, headers, rows }: Props) {
             >
               {connectionState === 'checking' ? t(UI.quoteAiChecking) : t(UI.quoteAiConnect)}
             </button>
-            {apiKey && (
+            {apiKey && connectionState !== 'connected' && (
               <button
                 type="button"
                 onClick={handleClearKey}
                 className="rounded-lg border border-[#c9d8ee] bg-white px-3 py-2 text-sm text-[#555555] hover:bg-blue-100"
               >
                 {t(UI.quoteAiClearKey)}
+              </button>
+            )}
+            {connectionState === 'connected' && (
+              <button
+                type="button"
+                onClick={handleChangeKey}
+                className="rounded-lg border border-[#c9d8ee] bg-white px-3 py-2 text-sm text-[#555555] hover:bg-blue-100"
+              >
+                {t(UI.quoteAiChangeKey)}
               </button>
             )}
           </div>

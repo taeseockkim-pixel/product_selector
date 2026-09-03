@@ -319,6 +319,7 @@ function AppInner() {
         <QuoteListPage
           onBack={() => setViewMode('main')}
           onNewQuote={handleGoToQuoteCreate}
+          department={authAuthor?.department ?? ''}
         />
         {toast && <Toast msg={toast} />}
       </div>
