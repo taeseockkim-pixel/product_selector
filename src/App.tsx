@@ -12,7 +12,12 @@ import ComparePage from './components/ComparePage';
 import QuoteFormPage from './components/QuoteFormPage';
 import QuoteListPage from './components/QuoteListPage';
 import SearchOverlay from './components/SearchOverlay';
-import { checkQuoteAccess } from './utils/appsScriptBridge';
+import {
+  checkQuoteAccess,
+  fetchQuoteForEdit,
+  updateQuoteOrder,
+  type QuoteEditData,
+} from './utils/appsScriptBridge';
 import 'flag-icons/css/flag-icons.min.css';
 import SpecModal from './components/SpecModal';
 import { LangProvider, useLang, useT } from './context/LangContext';
@@ -131,6 +136,7 @@ function AppInner() {
 
   // ── 견적 기능 접근 권한 (작성자 DB 시트 등록 계정만 사용 가능) ──
   const [authAuthor, setAuthAuthor] = useState<AuthorInfo | null>(null);
+  const [editingQuote, setEditingQuote] = useState<QuoteEditData | null>(null);
   const authEmailRef = useRef('');
   const accessCheckRef = useRef<Promise<'authorized' | 'denied'> | null>(null);
 
@@ -171,7 +177,27 @@ function AppInner() {
   }
 
   async function handleGoToQuoteCreate() {
-    if (await ensureQuoteAccess()) setViewMode('quotecreate');
+    if (await ensureQuoteAccess()) {
+      setEditingQuote(null);
+      setViewMode('quotecreate');
+    }
+  }
+
+  async function handleEditQuote(year: number, quoteNumber: string) {
+    if (!(await ensureQuoteAccess())) return;
+    try {
+      const result = await fetchQuoteForEdit(year, quoteNumber);
+      if (!result.success || !result.quote) throw new Error(result.message || t(UI.quoteEditLoadFailed));
+      setEditingQuote(result.quote);
+      setViewMode('quotecreate');
+    } catch (err) {
+      alert(`${t(UI.quoteEditLoadFailed)}: ${String(err)}`);
+    }
+  }
+
+  async function handleOrderChange(year: number, quoteNumber: string, ordered: boolean) {
+    const result = await updateQuoteOrder(year, quoteNumber, ordered);
+    if (!result.success) throw new Error(result.message || t(UI.quoteOrderUpdateFailed));
   }
 
   // 헤더+탭 높이를 동적으로 측정 → 사이드바 sticky top/height 계산
@@ -275,6 +301,7 @@ function AppInner() {
 
   function handleReset() {
     setViewMode('main');
+    setEditingQuote(null);
     setActiveCategory('PLC');
     setPlcSeries('CM1');
     setPlcSubType(getDefaultSubType('CM1'));
@@ -302,9 +329,11 @@ function AppInner() {
         <QuoteFormPage
           cartProducts={PRODUCTS.filter((p) => cartList.includes(p.id))}
           onBack={() => setViewMode('cart')}
-          onSuccess={() => setViewMode('quotelist')}
+          onSuccess={() => { setEditingQuote(null); setViewMode('quotelist'); }}
           defaultAuthorName={authAuthor?.name}
           authorLocked={authAuthor != null && !ADMIN_AUTHOR_EMAILS.has(authAuthor.email.toLowerCase())}
+          department={authAuthor?.department}
+          editQuote={editingQuote}
           draftOwnerEmail={authAuthor?.email}
         />
         {toast && <Toast msg={toast} />}
@@ -319,6 +348,8 @@ function AppInner() {
         <QuoteListPage
           onBack={() => setViewMode('main')}
           onNewQuote={handleGoToQuoteCreate}
+          onEditQuote={(year, quoteNumber) => { void handleEditQuote(year, quoteNumber); }}
+          onOrderChange={handleOrderChange}
           department={authAuthor?.department ?? ''}
         />
         {toast && <Toast msg={toast} />}

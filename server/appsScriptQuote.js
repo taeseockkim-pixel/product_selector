@@ -46,6 +46,9 @@ function toAppsScriptPayload(quote, options = {}) {
     createDraft: Boolean(options.createDraft),
     customSubject: options.subject ?? '',
     customBody: options.body ?? '',
+    revisionOf: options.revisionOf ?? '',
+    revisionYear: options.revisionYear,
+    revisionDepartment: options.revisionDepartment ?? '',
     // Apps Script doPost의 토큰 검증용 (APPS_SCRIPT_AGENT_TOKEN 환경변수)
     agentToken: process.env.APPS_SCRIPT_AGENT_TOKEN ?? '',
   };

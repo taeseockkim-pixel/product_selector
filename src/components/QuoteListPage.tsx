@@ -33,13 +33,33 @@ function ledgerValue(headers: string[], row: LedgerRow, labels: string[]) {
   return index >= 0 ? row.values[index] ?? '' : '';
 }
 
+function quoteRowKey(headers: string[], row: LedgerRow) {
+  return ledgerValue(headers, row, ['견적번호']).trim() || row.values.join('|');
+}
+
+function isOrderMarked(value: string) {
+  return ['발주', '완료', '예', 'Y', 'O', 'TRUE'].includes(value.trim().toUpperCase());
+}
+
+function uploadUrl(year: number, department: string, quoteNumber: string, company: string) {
+  const params = new URLSearchParams({
+    year: String(year),
+    department,
+    quoteNumber,
+    company,
+  });
+  return `${FOLDER_BROWSER_URL}upload?${params.toString()}`;
+}
+
 interface Props {
   onBack: () => void;
   onNewQuote: () => void;
+  onEditQuote: (year: number, quoteNumber: string) => void;
+  onOrderChange: (year: number, quoteNumber: string, ordered: boolean) => Promise<void>;
   department: string;
 }
 
-export default function QuoteListPage({ onBack, onNewQuote, department }: Props) {
+export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrderChange, department }: Props) {
   const t = useT();
   const currentYear = new Date().getFullYear();
   const [headers, setHeaders] = useState<string[]>([]);
@@ -53,6 +73,8 @@ export default function QuoteListPage({ onBack, onNewQuote, department }: Props)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchPickerRows, setSearchPickerRows] = useState<LedgerRow[] | null>(null);
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
+  const [orderStatus, setOrderStatus] = useState<Record<string, boolean>>({});
+  const [orderUpdatingKey, setOrderUpdatingKey] = useState<string | null>(null);
 
   const loadQuotes = useCallback(async () => {
     setLoading(true);
@@ -79,6 +101,14 @@ export default function QuoteListPage({ onBack, onNewQuote, department }: Props)
   }, [currentYear, selectedYear]);
 
   useEffect(() => { void loadQuotes(); }, [loadQuotes]);
+
+  useEffect(() => {
+    const nextStatus: Record<string, boolean> = {};
+    rows.forEach((row) => {
+      nextStatus[quoteRowKey(headers, row)] = isOrderMarked(ledgerValue(headers, row, ['발주']));
+    });
+    setOrderStatus(nextStatus);
+  }, [headers, rows]);
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('ko-KR');
   const searchedRows = rows
@@ -116,10 +146,27 @@ export default function QuoteListPage({ onBack, onNewQuote, department }: Props)
     if (matches.length > 1) setSearchPickerRows(matches);
   }
 
+  async function handleOrderChange(row: LedgerRow, ordered: boolean) {
+    const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+    if (!quoteNumber) return;
+    const key = quoteRowKey(headers, row);
+    const previous = orderStatus[key] ?? false;
+    setOrderStatus((current) => ({ ...current, [key]: ordered }));
+    setOrderUpdatingKey(key);
+    try {
+      await onOrderChange(selectedYear, quoteNumber, ordered);
+    } catch (err) {
+      setOrderStatus((current) => ({ ...current, [key]: previous }));
+      alert(`${t(UI.quoteOrderUpdateFailed)}: ${String(err)}`);
+    } finally {
+      setOrderUpdatingKey(null);
+    }
+  }
+
   return (
     <div className="max-w-[1800px] mx-auto w-full px-4 sm:px-6 py-6">
       <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             onClick={onBack}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#191919] text-white text-sm font-medium hover:bg-[#333333] transition-colors"
@@ -130,6 +177,9 @@ export default function QuoteListPage({ onBack, onNewQuote, department }: Props)
             {t(UI.back)}
           </button>
           <h1 className="text-lg font-bold text-[#191919]">{t(UI.quoteListTitle)}</h1>
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+            {t(UI.quoteDepartment)}: {department || '-'}
+          </span>
           {ledgerYears.length > 0 && (
             <label className="flex items-center gap-1.5">
               <span className="sr-only">{t(UI.quoteYear)}</span>
@@ -284,31 +334,73 @@ export default function QuoteListPage({ onBack, onNewQuote, department }: Props)
                     </button>
                   </th>
                 ))}
+                <th className="text-left whitespace-normal break-words px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs">
+                  {t(UI.quoteAction)}
+                </th>
               </tr>
             </thead>
             <tbody>
-              {visibleRows.map((row, rowIndex) => (
-                <tr key={`${row.values.join('|')}-${rowIndex}`} className="border-t border-[#f0ede8] hover:bg-[#fafaf9]">
-                  {headers.map((_, cellIndex) => {
-                    const value = row.values[cellIndex] ?? '';
-                    const link = row.links[cellIndex];
-                    const href = link ?? (/^https?:\/\//i.test(value) ? value : null);
-                    const displayValue = href ? fileNameFromLink(href) : value;
-                    return (
-                      <td key={cellIndex} className="px-2 lg:px-3 py-3 whitespace-normal break-words text-[#555555]">
-                        {href ? (
-                          <a href={href} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline break-all" title={displayValue}>
-                            {displayValue || '열기'}
-                          </a>
-                        ) : value}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              {visibleRows.map((row, rowIndex) => {
+                const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+                const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
+                const rowKey = quoteRowKey(headers, row);
+                return (
+                  <tr key={`${row.values.join('|')}-${rowIndex}`} className="border-t border-[#f0ede8] hover:bg-[#fafaf9]">
+                    {headers.map((header, cellIndex) => {
+                      const value = row.values[cellIndex] ?? '';
+                      const link = row.links[cellIndex];
+                      const href = link ?? (/^https?:\/\//i.test(value) ? value : null);
+                      const displayValue = href ? fileNameFromLink(href) : value;
+                      const isOrderColumn = header.includes('발주');
+                      const checked = orderStatus[rowKey] ?? isOrderMarked(value);
+                      return (
+                        <td key={cellIndex} className="px-2 lg:px-3 py-3 whitespace-normal break-words text-[#555555]">
+                          {isOrderColumn ? (
+                            <label className="inline-flex items-center gap-1.5 font-medium text-[#555555]">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                disabled={!quoteNumber || orderUpdatingKey === rowKey}
+                                onChange={(event) => void handleOrderChange(row, event.target.checked)}
+                              />
+                              <span>{checked ? t(UI.quoteOrderMarked) : t(UI.quoteOrder)}</span>
+                            </label>
+                          ) : href ? (
+                            <a href={href} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline break-all" title={displayValue}>
+                              {displayValue || '열기'}
+                            </a>
+                          ) : value}
+                        </td>
+                      );
+                    })}
+                    <td className="px-2 lg:px-3 py-3 whitespace-normal break-words">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          type="button"
+                          disabled={!quoteNumber}
+                          onClick={() => onEditQuote(selectedYear, quoteNumber)}
+                          className="rounded border border-blue-200 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {t(UI.quoteEditBtn)}
+                        </button>
+                        <a
+                          href={quoteNumber && company ? uploadUrl(selectedYear, department, quoteNumber, company) : '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}
+                          className="rounded border border-green-200 px-2 py-1 text-[11px] font-medium text-green-700 hover:bg-green-50 aria-disabled:pointer-events-none aria-disabled:opacity-40"
+                          aria-disabled={!quoteNumber || !company}
+                        >
+                          {t(UI.quoteUploadBtn)}
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {!loading && !error && visibleRows.length === 0 && rows.length > 0 && (
                 <tr>
-                  <td colSpan={headers.length} className="px-4 py-8 text-center text-sm text-[#999999]">
+                  <td colSpan={headers.length + 1} className="px-4 py-8 text-center text-sm text-[#999999]">
                     {t(UI.quoteSearchNoResults)}
                   </td>
                 </tr>

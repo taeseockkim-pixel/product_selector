@@ -121,6 +121,50 @@
         return;
       }
 
+      if (message.type === 'LOAD_QUOTE_EDIT') {
+        google.script.run
+          .withSuccessHandler((result) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'LOAD_QUOTE_EDIT_RESULT',
+              requestId: message.requestId,
+              result,
+            }, appOrigin);
+          })
+          .withFailureHandler((error) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'LOAD_QUOTE_EDIT_RESULT',
+              requestId: message.requestId,
+              error: String(error),
+            }, appOrigin);
+          })
+          .getQuoteForEditFromReact(message.year, message.quoteNumber);
+        return;
+      }
+
+      if (message.type === 'UPDATE_QUOTE_ORDER') {
+        google.script.run
+          .withSuccessHandler((result) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'UPDATE_QUOTE_ORDER_RESULT',
+              requestId: message.requestId,
+              result,
+            }, appOrigin);
+          })
+          .withFailureHandler((error) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'UPDATE_QUOTE_ORDER_RESULT',
+              requestId: message.requestId,
+              error: String(error),
+            }, appOrigin);
+          })
+          .updateQuoteOrderFromReact({ year: message.year, quoteNumber: message.quoteNumber, ordered: message.ordered });
+        return;
+      }
+
       if (message.type !== 'PROCESS_QUOTE') return;
 
       google.script.run

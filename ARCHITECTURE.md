@@ -195,6 +195,14 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
 - Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략된다. Apps Script wrapper 안에서 실행되는 Vercel 앱은 `postMessage` 브릿지로 저장 요청을 전달하고, wrapper 밖에서 직접 실행될 때만 `/api/google/quote` fallback을 사용한다.
 - 견적 목록은 `getQuoteLedgerFromReact(year)`로 선택 연도를 전달한다. 읽기 전용 연도 조회는 기존 연도 폴더와 대장이 있을 때만 열고, 없는 연도는 생성하지 않는다.
 - 견적번호는 대장에 기본 번호 하나로 기록한다. 로컬 에이전트는 템플릿의 14개 품목 행 제약을 기준으로 품목을 분할해 같은 견적 폴더에 `_1`, `_2` 접미사를 붙인 XLSX/PDF를 생성한다.
+- **견적 수정(리비전)**: `getQuoteForEditFromReact()`가 스냅샷 시트에서 원본을 불러오며, 저장은
+  `processQuote(..., revisionOf, revisionYear, revisionDepartment)`로 이어진다. 대장 원본 행(F~N열)만
+  갱신하고, 파일은 `_RevNN` 접미사로 같은 폴더에 추가된다. `revisionYear`/`revisionDepartment`는
+  원본을 조회했던 연도/부서를 그대로 전달해야 로컬 에이전트가 다른 연도/부서 폴더에 저장하지 않는다.
+  **삭제 기능은 구현하지 않는다.**
+- **발주 체크박스 / 서류 업로드**: `updateQuoteOrderFromReact()`가 대장 E열(발주)에 기록하고,
+  `saveToLedgerSheet()`는 이 열을 절대 덮어쓰지 않는다. 서류 업로드는 Apps Script를 거치지 않고
+  로컬 에이전트의 `POST /upload`로 직접 처리된다(부서 비밀번호 세션 필요).
 - AI 검색은 현재 로그인한 작성자의 부서로 조회된 선택 연도의 대장 요약 행만 사용한다. 개인 OpenRouter API 키는 요청 본문으로만 전달하며 애플리케이션 저장소에 기록하지 않는다. 담당자·연락처·이메일을 포함하므로 ZDR 제공자 사용을 기본값으로 권장한다.
 
 Apps Script 반영 파일:

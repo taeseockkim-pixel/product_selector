@@ -15,6 +15,7 @@
  */
 
 import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync } from 'fs';
+import { writeFile } from 'fs/promises';
 import { join, dirname, resolve, sep, basename, extname } from 'path';
 import { fileURLToPath } from 'url';
 import { createHmac, timingSafeEqual } from 'crypto';
@@ -57,6 +58,7 @@ const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 10000);
 const TEMPLATE_PATH = resolve(__dirname, String(config.templatePath || 'templates/견적서 샘플.xlsx'));
 const MAX_JOB_ATTEMPTS = 3;
 const ITEMS_PER_FILE = 14;
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
@@ -186,10 +188,17 @@ function escHtml(value) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function quoteYear(details) {
+  // Apps Script가 수정본 저장 시 원본 대장 연도(revisionYear)를 currentYear로 확정해 담아준다.
+  // details.quoteDate는 항상 "오늘"이므로 연도 폴더 결정에는 details.year를 우선 사용해야 한다.
+  const explicitYear = Number(details?.year);
+  if (Number.isInteger(explicitYear) && explicitYear >= 2000 && explicitYear <= 2100) {
+    return String(explicitYear);
+  }
   const match = String(details?.quoteDate || '').match(/(\d{4})/);
   return match ? match[1] : String(new Date().getFullYear());
 }
@@ -239,24 +248,31 @@ async function waitForLedgerCopy(quoteNumber, yearFolder, year) {
 }
 
 // ── 견적 1건 처리 ──────────────────────────────────────────────────────────
+// 작성자 시트 값이 비정상('.', '..', 공란)이면 경로 탈출을 막기 위해 기본 부서로 대체한다.
+function safeDepartmentSegment(value) {
+  const segment = safeSegment(value);
+  return (segment && segment !== '.' && segment !== '..') ? segment : DEFAULT_DEPARTMENT;
+}
+
 async function processJob(fileName) {
   const jsonPath = join(PENDING_DIR, fileName);
   const payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
   const details = payload.details || {};
   const items = payload.items || [];
 
-  const department = safeSegment(details.authorDepartment || DEFAULT_DEPARTMENT) || DEFAULT_DEPARTMENT;
+  const department = safeDepartmentSegment(details.authorDepartment || DEFAULT_DEPARTMENT);
   const year = quoteYear(details);
-  const baseQuoteNumber = safeSegment(details.quoteNumber);
+  const outputQuoteNumber = safeSegment(details.quoteNumber);
+  const baseQuoteNumber = safeSegment(details.baseQuoteNumber || details.quoteNumber);
   const itemParts = splitItems(items);
-  const folderName = `${baseQuoteNumber}_${safeSegment(details.clientName)}`;
+  const folderName = `${baseQuoteNumber}_${safeSegment(details.folderClientName || details.clientName)}`;
   const folder = join(STORAGE_ROOT, department, year, folderName);
   mkdirSync(folder, { recursive: true });
 
   const pdfFileNames = [];
   for (let partIndex = 0; partIndex < itemParts.length; partIndex += 1) {
     const partItems = itemParts[partIndex];
-    const partNumber = partQuoteNumber(baseQuoteNumber, partIndex, itemParts.length);
+    const partNumber = partQuoteNumber(outputQuoteNumber, partIndex, itemParts.length);
     const xlsxFileName = `${partNumber}_${safeSegment(details.clientName)}_견적서.xlsx`;
     const pdfFileName = xlsxFileName.replace(/\.xlsx$/, '.pdf');
     const xlsxPath = join(folder, xlsxFileName);
@@ -316,6 +332,8 @@ async function processJob(fileName) {
 
   const result = {
     quoteNumber: details.quoteNumber ?? '',
+    ledgerQuoteNumber: details.baseQuoteNumber || details.quoteNumber || '',
+    revisionNumber: Number(details.revisionNumber) || 0,
     department,
     year,
     ok: true,
@@ -446,6 +464,9 @@ function startPolling() {
 // ── 사내 파일 브라우저/다운로드 서버 ───────────────────────────────────────
 const app = express();
 app.use(express.urlencoded({ extended: false }));
+// JSON 본문 파서는 /upload 라우트에만 적용한다 — 로그인 등 다른 모든 요청이 인증 전에
+// 30MB까지 버퍼링을 강제로 겪지 않도록 앱 전체에는 걸지 않는다.
+const uploadJsonParser = express.json({ limit: '30mb' });
 
 const PAGE_STYLE = `
     body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background: #f0ede8; margin: 0; padding: 40px 16px; }
@@ -465,7 +486,14 @@ const PAGE_STYLE = `
     .top { display: flex; justify-content: space-between; align-items: center; }
     .logout { font-size: 12px; color: #999; }`.trim();
 
-function loginPageHtml(errorMessage = '') {
+function safeNextPath(value) {
+  const next = String(value || '').trim();
+  // "/\evil.com"처럼 백슬래시로 시작하는 경로는 브라우저가 "//evil.com"(프로토콜 상대 URL)으로
+  // 해석해 로그인 후 외부 사이트로 리다이렉트될 수 있으므로, 두 번째 문자도 "/"·"\"가 아니어야 한다.
+  return /^\/[^/\\]/.test(next) ? next : '/browse';
+}
+
+function loginPageHtml(errorMessage = '', nextPath = '') {
   return `<!DOCTYPE html>
 <html lang="ko">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 견적 파일 열람</title>
@@ -474,6 +502,7 @@ function loginPageHtml(errorMessage = '') {
   <h1>CIMON 견적 파일 열람</h1>
   <div class="sub">부서별 견적 폴더 — 접속 비밀번호를 입력해 주세요</div>
   <form method="POST" action="/login">
+    ${nextPath ? `<input type="hidden" name="next" value="${escHtml(nextPath)}">` : ''}
     <input type="password" name="password" placeholder="비밀번호" autofocus required>
     <button type="submit">접속</button>
     ${errorMessage ? `<div class="error">${escHtml(errorMessage)}</div>` : ''}
@@ -507,27 +536,187 @@ function browserPageHtml(session, dirRelative, entries) {
   </div>
   <div class="crumb">${crumbParts.join(' &gt; ')}</div>
   <table><tr><th>이름</th><th>종류</th></tr>${rows}${emptyRow}</table>
-</div></body></html>`;
+  </div></body></html>`;
+}
+
+function resolveQuoteFolder(session, values) {
+  const year = String(values.year || '').trim();
+  if (!/^\d{4}$/.test(year)) return null;
+
+  let department = session.department;
+  if (session.department === '*') {
+    department = safeSegment(values.department);
+    const allowedDepartments = new Set([DEFAULT_DEPARTMENT, ...Object.keys(FOLDER_PASSWORDS)]);
+    if (!allowedDepartments.has(department)) return null;
+  }
+  const quoteNumber = safeSegment(String(values.quoteNumber || '').replace(/_Rev\d+$/i, ''));
+  const company = safeSegment(values.company);
+  if (!department || !quoteNumber || !company) return null;
+
+  const departmentRoot = resolve(join(STORAGE_ROOT, department));
+  const yearRoot = resolve(join(departmentRoot, year));
+  if (!yearRoot.startsWith(departmentRoot + sep) || !existsSync(yearRoot) || !statSync(yearRoot).isDirectory()) return null;
+
+  const exactTarget = resolve(join(yearRoot, `${quoteNumber}_${company}`));
+  let target = exactTarget;
+  if (!existsSync(target) || !statSync(target).isDirectory()) {
+    const candidates = readdirSync(yearRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name.startsWith(`${quoteNumber}_`));
+    if (candidates.length !== 1) return null;
+    target = resolve(join(yearRoot, candidates[0].name));
+  }
+  if (!target.startsWith(yearRoot + sep) || !existsSync(target) || !statSync(target).isDirectory()) return null;
+  return { department, year, quoteNumber, company, target, folderName: basename(target) };
+}
+
+function uploadPageHtml(session, targetInfo, message = '', isError = false) {
+  const departmentLabel = session.department === '*' ? `전체 부서 (관리자) / ${escHtml(targetInfo.department)}` : escHtml(session.department);
+  const statusClass = isError ? 'error' : 'success';
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 견적 서류 업로드</title>
+<style>${PAGE_STYLE} .hint { color:#777; font-size:12px; line-height:1.6; margin:12px 0 18px; } .success { color:#15803d; font-size:13px; margin-top:12px; } .error { color:#dc2626; font-size:13px; margin-top:12px; } input[type=file] { width:100%; box-sizing:border-box; padding:9px; border:1px solid #ddd9d2; border-radius:8px; background:#fff; }</style></head>
+<body><div class="card">
+  <div class="top">
+    <div><h1>견적 서류 업로드</h1><div class="sub">부서: ${departmentLabel}</div></div>
+    <a class="logout" href="/browse">목록으로</a>
+  </div>
+  <div class="crumb">대상 폴더: ${escHtml(targetInfo.folderName)}</div>
+  <p class="hint">업체 발주서, 사업자등록증 등 PDF·HWP·Word·Excel·이미지·ZIP 파일을 업로드할 수 있습니다. 파일당 최대 20MB입니다.</p>
+  <form id="uploadForm">
+    <input type="hidden" id="uploadYear" value="${escHtml(targetInfo.year)}">
+    <input type="hidden" id="uploadDepartment" value="${escHtml(targetInfo.department)}">
+    <input type="hidden" id="uploadQuoteNumber" value="${escHtml(targetInfo.quoteNumber)}">
+    <input type="hidden" id="uploadCompany" value="${escHtml(targetInfo.company)}">
+    <input id="fileInput" type="file" accept=".pdf,.hwp,.hwpx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip" required>
+    <button type="submit">업로드</button>
+    <div id="status" class="${statusClass}">${escHtml(message)}</div>
+  </form>
+</div>
+<script>
+  const form = document.getElementById('uploadForm');
+  const input = document.getElementById('fileInput');
+  const status = document.getElementById('status');
+  function toBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '');
+      reader.onerror = () => reject(new Error('파일을 읽지 못했습니다.'));
+      reader.readAsDataURL(file);
+    });
+  }
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const file = input.files[0];
+    if (!file) return;
+    status.className = '';
+    status.textContent = '업로드 중...';
+    try {
+      const content = await toBase64(file);
+      const response = await fetch('/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          year: document.getElementById('uploadYear').value,
+          department: document.getElementById('uploadDepartment').value,
+          quoteNumber: document.getElementById('uploadQuoteNumber').value,
+          company: document.getElementById('uploadCompany').value,
+          fileName: file.name,
+          content,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || '업로드에 실패했습니다.');
+      status.className = 'success';
+      status.textContent = '업로드 완료: ' + result.fileName;
+      form.reset();
+    } catch (error) {
+      status.className = 'error';
+      status.textContent = String(error);
+    }
+  });
+</script>
+</body></html>`;
 }
 
 app.get('/', (req, res) => {
-  if (readSession(req)) return res.redirect('/browse');
-  res.type('html').send(loginPageHtml());
+  const nextPath = safeNextPath(req.query.next);
+  if (readSession(req)) return res.redirect(nextPath);
+  res.type('html').send(loginPageHtml('', String(req.query.next || '')));
 });
 
 app.post('/login', (req, res) => {
   const session = checkFolderPassword(req.body?.password);
   if (!session) {
-    res.status(401).type('html').send(loginPageHtml('비밀번호가 올바르지 않습니다. 다시 입력해 주세요.'));
+    res.status(401).type('html').send(loginPageHtml('비밀번호가 올바르지 않습니다. 다시 입력해 주세요.', String(req.body?.next || '')));
     return;
   }
   res.setHeader('Set-Cookie', makeSessionCookie(session.department));
-  res.redirect('/browse');
+  res.redirect(safeNextPath(req.body?.next));
 });
 
 app.get('/logout', (_req, res) => {
   res.setHeader('Set-Cookie', 'session=; Path=/; Max-Age=0');
   res.redirect('/');
+});
+
+app.get('/upload', (req, res) => {
+  const session = readSession(req);
+  if (!session) {
+    return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
+  }
+  const targetInfo = resolveQuoteFolder(session, req.query);
+  if (!targetInfo) return res.status(404).type('html').send('견적 폴더를 찾을 수 없습니다. 견적번호와 업체명을 확인해 주세요.');
+  res.type('html').send(uploadPageHtml(session, targetInfo));
+});
+
+app.post('/upload', (req, res, next) => {
+  // 세션 쿠키가 없는 요청은 굳이 대용량 JSON 본문을 파싱하지 않고 즉시 거부한다.
+  if (!readSession(req)) return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
+  next();
+}, uploadJsonParser, async (req, res) => {
+  const session = readSession(req);
+  if (!session) return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
+
+  const targetInfo = resolveQuoteFolder(session, req.body || {});
+  if (!targetInfo) return res.status(404).json({ success: false, message: '견적 폴더를 찾을 수 없습니다.' });
+
+  const rawFileName = String(req.body?.fileName || '').trim();
+  const content = String(req.body?.content || '');
+  // safeSegment로 Windows에서 특별한 의미를 갖는 문자(: * ? " < > | 등)를 제거한다 —
+  // 예: "report.pdf:hidden.pdf" 같은 NTFS 대체 데이터 스트림 트릭 방지.
+  const fileName = safeSegment(rawFileName);
+  const extension = extname(fileName).toLowerCase();
+  const stem = basename(fileName, extension);
+  const reservedNames = new Set(['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']);
+  const allowedExtensions = new Set(['.pdf', '.hwp', '.hwpx', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png', '.zip']);
+  if (!fileName || fileName !== rawFileName || basename(fileName) !== fileName || fileName === 'desktop.ini' || fileName.toLowerCase() === 'desktop.ini' || reservedNames.has(stem.toUpperCase())) {
+    return res.status(400).json({ success: false, message: '파일명이 올바르지 않습니다.' });
+  }
+  if (!allowedExtensions.has(extension)) {
+    return res.status(400).json({ success: false, message: '지원하지 않는 파일 형식입니다.' });
+  }
+  if (!content || content.length > Math.ceil(MAX_UPLOAD_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]*={0,2}$/.test(content)) {
+    return res.status(400).json({ success: false, message: '파일 데이터가 올바르지 않거나 너무 큽니다.' });
+  }
+
+  const buffer = Buffer.from(content, 'base64');
+  if (buffer.length === 0 || buffer.length > MAX_UPLOAD_BYTES) {
+    return res.status(413).json({ success: false, message: '파일은 20MB 이하만 업로드할 수 있습니다.' });
+  }
+
+  let outputName = fileName;
+  const existingPath = join(targetInfo.target, outputName);
+  if (existsSync(existingPath)) {
+    outputName = `${stem}_${Date.now()}${extension}`;
+  }
+  try {
+    await writeFile(join(targetInfo.target, outputName), buffer);
+  } catch (err) {
+    console.error(`[업로드] 파일 저장 실패: ${describeError(err)}`);
+    return res.status(500).json({ success: false, message: '파일 저장에 실패했습니다.' });
+  }
+  res.json({ success: true, fileName: outputName });
 });
 
 // 세션 부서의 폴더 안에 있는지 검사하고 실제 경로를 반환한다

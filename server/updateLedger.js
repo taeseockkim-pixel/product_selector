@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { existsSync } from 'fs';
 
-const HEADERS = ['NO', '년도', '월', '일', '견적번호', '업체명', '고객명', '연락처', '이메일', '제품 항목', '제품명', '견적 금액', '비고', '파일링크'];
+const HEADERS = ['NO', '년도', '월', '일', '발주', '견적번호', '업체명', '고객명', '연락처', '이메일', '제품 항목', '제품명', '견적 금액', '비고', '파일링크'];
 
 const PRODUCT_CATEGORIES = [
   ['SCADA PRO', /SCADA\s*PRO/i],
@@ -61,6 +61,7 @@ export async function appendToLedger(quote, ledgerPath, xlsxPath) {
     year,
     month,
     day,
+    '', // E열: 발주 — 사용자가 대장에서 직접 관리하는 열이므로 항상 공란으로 추가한다.
     quote.quoteNumber,
     quote.client.company,
     quote.client.contact,
@@ -71,7 +72,7 @@ export async function appendToLedger(quote, ledgerPath, xlsxPath) {
     quote.vatTotal,
     quote.details.notes ?? '',
   ]);
-  row.getCell(14).value = { text: '열기', hyperlink: xlsxPath };
+  row.getCell(15).value = { text: '열기', hyperlink: xlsxPath };
 
   await wb.xlsx.writeFile(ledgerPath);
 }

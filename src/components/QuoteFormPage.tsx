@@ -17,6 +17,7 @@ import {
   fetchAuthors,
   fetchLedger,
   type QuoteProcessResult,
+  type QuoteEditData,
   type AppsScriptBridgeResponse,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
@@ -276,6 +277,10 @@ interface Props {
   defaultAuthorName?: string;
   /** 접속 계정 기준으로 작성자를 고정 (드롭다운 변경 불가) */
   authorLocked?: boolean;
+  /** 접속 계정과 매칭된 작성자 부서 */
+  department?: string;
+  /** 수정할 기존 견적 원본 */
+  editQuote?: QuoteEditData | null;
   /** 사용자별 미완성 견적 초안을 보존하기 위한 Google 계정 이메일 */
   draftOwnerEmail?: string;
 }
@@ -311,6 +316,11 @@ interface AppsScriptPayload {
   createDraft: boolean;
   customSubject: string;
   customBody: string;
+  revisionOf?: string;
+  /** 원본 견적이 저장된 대장 연도 — 수정본 저장 시 같은 연도 대장을 다시 찾는 데 사용한다 */
+  revisionYear?: number;
+  /** 원본 견적이 저장된 부서 — 폼의 작성자 드롭다운과 무관하게 수정본을 원본과 같은 폴더/대장에 저장한다 */
+  revisionDepartment?: string;
 }
 
 function createKey(prefix: string) {
@@ -354,6 +364,49 @@ function itemFromCatalog(catalogItem: QuoteCatalogItem, qty: number): ItemRow {
   };
 }
 
+function draftFromQuoteEdit(editQuote: QuoteEditData): QuoteFormDraft {
+  const firstCatalogGroup = QUOTE_PRODUCT_CATALOG[0];
+  const items = editQuote.items.map((item, index) => {
+    const catalogItem = findQuoteCatalogItem(item.name);
+    const product = PRODUCTS.find((candidate) => candidate.id === item.name || candidate.modelName === item.name);
+    return {
+      key: `edit-item-${index}-${item.name}`,
+      type: item.type ?? '',
+      name: item.name,
+      spec: item.spec ?? '',
+      qty: Math.max(1, Math.trunc(item.quantity || 1)),
+      unitPrice: Number.isFinite(item.unitPrice) ? (item.unitPrice as number) : null,
+      multiplier: String(validMultiplier(item.multiplier)),
+      productId: product?.id,
+      catalogItemId: catalogItem?.id,
+    };
+  });
+  const firstItem = items[0];
+  const firstCatalogItem = firstItem?.catalogItemId ? findQuoteCatalogItem(firstItem.catalogItemId) : null;
+  const details = editQuote.details;
+  return {
+    version: 1,
+    company: details.clientName ?? '',
+    contact: details.clientContactPerson ?? '',
+    phone: details.clientPhone ?? '',
+    email: details.clientEmail ?? '',
+    author: details.authorName ?? '',
+    customAuthorName: '',
+    customAuthorPhone: '',
+    customAuthorEmail: '',
+    deliveryLocation: details.deliveryLocation ?? '',
+    deliveryDeadline: details.deliveryDeadline ?? '',
+    paymentTerms: details.paymentTerms ?? '',
+    validityPeriod: details.validityPeriod ?? '',
+    packing: details.packing ?? '',
+    notes: details.notes ?? '',
+    selectedSheet: firstCatalogItem?.sheet || firstCatalogGroup?.sheet || '',
+    selectedProductId: firstCatalogItem?.id || firstCatalogGroup?.items[0]?.id || '',
+    addQty: 1,
+    items,
+  };
+}
+
 function displayCategory(value: string, lang: Lang) {
   if (lang === 'ko') return value;
   const categoryMap: Record<string, string> = {
@@ -386,7 +439,15 @@ async function readJsonResponse<T>(res: Response): Promise<T> {
   }
 }
 
-function quoteToAppsScriptPayload(quote: Quote, createDraft: boolean, subject = '', body = ''): AppsScriptPayload {
+function quoteToAppsScriptPayload(
+  quote: Quote,
+  createDraft: boolean,
+  subject = '',
+  body = '',
+  revisionOf = '',
+  revisionYear?: number,
+  revisionDepartment = '',
+): AppsScriptPayload {
   return {
     details: {
       clientName: quote.client.company,
@@ -418,6 +479,9 @@ function quoteToAppsScriptPayload(quote: Quote, createDraft: boolean, subject = 
     createDraft,
     customSubject: subject,
     customBody: body,
+    revisionOf: revisionOf || undefined,
+    revisionYear: Number.isFinite(revisionYear) ? revisionYear : undefined,
+    revisionDepartment: revisionDepartment || undefined,
   };
 }
 
@@ -473,8 +537,16 @@ async function loadAuthors(): Promise<AuthorInfo[]> {
   return [];
 }
 
-async function processQuoteRequest(quote: Quote, createDraft: boolean, subject = '', body = ''): Promise<QuoteProcessResult> {
-  const appsScriptPayload = quoteToAppsScriptPayload(quote, createDraft, subject, body);
+async function processQuoteRequest(
+  quote: Quote,
+  createDraft: boolean,
+  subject = '',
+  body = '',
+  revisionOf = '',
+  revisionYear?: number,
+  revisionDepartment = '',
+): Promise<QuoteProcessResult> {
+  const appsScriptPayload = quoteToAppsScriptPayload(quote, createDraft, subject, body, revisionOf, revisionYear, revisionDepartment);
 
   if (window.parent && window.parent !== window) {
     return processQuoteViaParentBridge(appsScriptPayload);
@@ -487,7 +559,7 @@ async function processQuoteRequest(quote: Quote, createDraft: boolean, subject =
   const res = await fetch('/api/google/quote', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ quote, createDraft, subject, body }),
+    body: JSON.stringify({ quote, createDraft, subject, body, revisionOf, revisionYear, revisionDepartment }),
   });
   const result = await readJsonResponse<QuoteProcessResult>(res);
   if (!res.ok) {
@@ -516,7 +588,7 @@ function findProductForItem(item: ItemRow): Product | null {
   return null;
 }
 
-export default function QuoteFormPage({ cartProducts, onBack, onSuccess, defaultAuthorName, authorLocked, draftOwnerEmail }: Props) {
+export default function QuoteFormPage({ cartProducts, onBack, onSuccess, defaultAuthorName, authorLocked, department, editQuote, draftOwnerEmail }: Props) {
   const t = useT();
   const { lang } = useLang();
 
@@ -528,28 +600,31 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     ? `cimon-quote-draft:${draftOwnerEmail.trim().toLowerCase()}`
     : null;
   const [savedDraft] = useState<QuoteFormDraft | null>(() => loadQuoteFormDraft(draftStorageKey));
+  // draftFromQuoteEdit는 catalog/product 조회를 포함해 다소 무거우므로, useState 지연 초기화로
+  // 마운트 시 한 번만 계산한다(매 렌더마다 재계산하지 않음). 이 값은 아래 useState 초기값에만 쓰인다.
+  const [initialDraft] = useState<QuoteFormDraft | null>(() => (editQuote ? draftFromQuoteEdit(editQuote) : savedDraft));
 
   const firstCatalogGroup = QUOTE_PRODUCT_CATALOG[0];
-  const [company, setCompany] = useState(savedDraft?.company ?? '');
-  const [contact, setContact] = useState(savedDraft?.contact ?? '');
-  const [phone, setPhone] = useState(savedDraft?.phone ?? '');
-  const [email, setEmail] = useState(savedDraft?.email ?? '');
+  const [company, setCompany] = useState(initialDraft?.company ?? '');
+  const [contact, setContact] = useState(initialDraft?.contact ?? '');
+  const [phone, setPhone] = useState(initialDraft?.phone ?? '');
+  const [email, setEmail] = useState(initialDraft?.email ?? '');
   const [author, setAuthor] = useState(
-    authorLocked ? (defaultAuthorName ?? '') : (savedDraft?.author || defaultAuthorName || ''),
+    authorLocked ? (defaultAuthorName ?? '') : (initialDraft?.author || defaultAuthorName || ''),
   );
   const [authors, setAuthors] = useState<AuthorInfo[]>([]);
   const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
   const [customerPicker, setCustomerPicker] = useState<{ field: 'company' | 'contact'; matches: CustomerRecord[] } | null>(null);
-  const [customAuthorName, setCustomAuthorName] = useState(savedDraft?.customAuthorName ?? '');
-  const [customAuthorPhone, setCustomAuthorPhone] = useState(savedDraft?.customAuthorPhone ?? '');
-  const [customAuthorEmail, setCustomAuthorEmail] = useState(savedDraft?.customAuthorEmail ?? '');
-  const [deliveryLocation, setDeliveryLocation] = useState(savedDraft?.deliveryLocation || defaults.deliveryLocation);
-  const [deliveryDeadline, setDeliveryDeadline] = useState(savedDraft?.deliveryDeadline || defaults.deliveryDeadline);
-  const [paymentTerms, setPaymentTerms] = useState(savedDraft?.paymentTerms || defaults.paymentTerms);
-  const [validityPeriod, setValidityPeriod] = useState(savedDraft?.validityPeriod || defaults.validityPeriod);
-  const [packing, setPacking] = useState(savedDraft?.packing || defaults.packing);
-  const [notes, setNotes] = useState(savedDraft?.notes ?? '');
+  const [customAuthorName, setCustomAuthorName] = useState(initialDraft?.customAuthorName ?? '');
+  const [customAuthorPhone, setCustomAuthorPhone] = useState(initialDraft?.customAuthorPhone ?? '');
+  const [customAuthorEmail, setCustomAuthorEmail] = useState(initialDraft?.customAuthorEmail ?? '');
+  const [deliveryLocation, setDeliveryLocation] = useState(initialDraft?.deliveryLocation || defaults.deliveryLocation);
+  const [deliveryDeadline, setDeliveryDeadline] = useState(initialDraft?.deliveryDeadline || defaults.deliveryDeadline);
+  const [paymentTerms, setPaymentTerms] = useState(initialDraft?.paymentTerms || defaults.paymentTerms);
+  const [validityPeriod, setValidityPeriod] = useState(initialDraft?.validityPeriod || defaults.validityPeriod);
+  const [packing, setPacking] = useState(initialDraft?.packing || defaults.packing);
+  const [notes, setNotes] = useState(initialDraft?.notes ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [emailing, setEmailing] = useState(false);
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(null);
@@ -559,13 +634,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
-  const [selectedSheet, setSelectedSheet] = useState(savedDraft?.selectedSheet || firstCatalogGroup?.sheet || '');
-  const [selectedProductId, setSelectedProductId] = useState(savedDraft?.selectedProductId || firstCatalogGroup?.items[0]?.id || '');
-  const [addQty, setAddQty] = useState(savedDraft?.addQty ?? 1);
+  const [selectedSheet, setSelectedSheet] = useState(initialDraft?.selectedSheet || firstCatalogGroup?.sheet || '');
+  const [selectedProductId, setSelectedProductId] = useState(initialDraft?.selectedProductId || firstCatalogGroup?.items[0]?.id || '');
+  const [addQty, setAddQty] = useState(initialDraft?.addQty ?? 1);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const [items, setItems] = useState<ItemRow[]>(() => restoreQuoteItems(savedDraft, cartProducts, lang));
+  const [items, setItems] = useState<ItemRow[]>(() => restoreQuoteItems(initialDraft, cartProducts, lang));
 
   useEffect(() => {
     const previous = quoteDefaults(lang === 'ko' ? 'en' : 'ko', validity);
@@ -610,7 +685,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   }, []);
 
   // 입력 중인 견적은 계정별로 저장해 페이지 이동·브라우저 재실행 후 복원한다.
+  // 수정(editQuote) 세션에서는 저장하지 않는다 — 그렇지 않으면 진행 중이던 "새 견적" 초안이
+  // 수정 중인 기존 견적 데이터로 덮어써져 버린다.
   useEffect(() => {
+    if (editQuote) return;
     saveQuoteFormDraft(draftStorageKey, {
       version: 1,
       company,
@@ -633,6 +711,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       items: items.map(storedItemFromRow),
     });
   }, [
+    editQuote,
     draftStorageKey,
     company,
     contact,
@@ -789,7 +868,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setSelectedSheet(firstCatalogGroup?.sheet ?? '');
     setSelectedProductId(firstCatalogGroup?.items[0]?.id ?? '');
     setAddQty(1);
-    setItems(cartProducts.map((product) => itemFromProduct(product, lang)));
+    // 수정(editQuote) 중 초기화는 원본 견적 항목으로 되돌린다 — 카트 담긴 상품으로 바꿔치기하지 않는다.
+    setItems(editQuote ? restoreQuoteItems(draftFromQuoteEdit(editQuote), [], lang) : cartProducts.map((product) => itemFromProduct(product, lang)));
     setCustomerPicker(null);
     if (previewPdfUrl) URL.revokeObjectURL(previewPdfUrl);
     setPreviewPdfUrl(null);
@@ -800,7 +880,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setDetailProduct(null);
     setDraggedIndex(null);
     setDragOverIndex(null);
-    clearQuoteFormDraft(draftStorageKey);
+    // editQuote 세션은 공용 draft 키에 저장한 적이 없으므로, 초기화 시에도 지우지 않는다 —
+    // 그렇지 않으면 사용자가 별도로 진행 중이던 새 견적 초안이 함께 삭제된다.
+    if (!editQuote) clearQuoteFormDraft(draftStorageKey);
   }
 
   function handleAddItem() {
@@ -918,7 +1000,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     else setSubmitting(true);
     try {
       const quote = previewQuote ?? buildDraftQuote();
-      const result = await processQuoteRequest(quote, createDraft, subject, body);
+      const revisionOf = editQuote?.baseQuoteNumber || editQuote?.quoteNumber || '';
+      const revisionYear = revisionOf ? editQuote?.year : undefined;
+      const revisionDepartment = revisionOf ? (editQuote?.department || '') : '';
+      const result = await processQuoteRequest(quote, createDraft, subject, body, revisionOf, revisionYear, revisionDepartment);
       if (!result.success) {
         throw new Error(result.message ?? t(UI.quoteGoogleConfigMissing));
       }
@@ -928,7 +1013,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         quoteNumber: result.newQuoteNumber ?? quote.quoteNumber,
       };
       saveQuote(finalQuote);
-      clearQuoteFormDraft(draftStorageKey);
+      // 수정(editQuote) 세션은 애초에 공용 "새 견적" 초안 키에 저장한 적이 없으므로 지우지 않는다 —
+      // 그렇지 않으면 사용자가 별도로 진행 중이던 새 견적 초안이 함께 삭제된다.
+      if (!editQuote) clearQuoteFormDraft(draftStorageKey);
       setPreviewQuote(finalQuote);
 
       alert(result.message ?? `${t(UI.quoteSaved)}\n${t(UI.quoteNumber)}: ${finalQuote.quoteNumber}`);
@@ -1086,7 +1173,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
               </svg>
               {t(UI.back)}
             </button>
-            <h1 className="text-lg font-bold text-[#191919]">{t(UI.quoteModalTitle)}</h1>
+            <h1 className="text-lg font-bold text-[#191919]">{editQuote ? t(UI.quoteEditTitle) : t(UI.quoteModalTitle)}</h1>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+              {t(UI.quoteDepartment)}: {department || '-'}
+            </span>
           </div>
           <div className="flex flex-wrap justify-end gap-2">
               <a

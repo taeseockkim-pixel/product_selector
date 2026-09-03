@@ -51,6 +51,46 @@ const CELL_MAP = {
 };
 
 const ITEMS_PER_FILE = 14;
+const QUOTE_SNAPSHOT_SHEET_NAME = '견적원본데이터';
+
+// 견적관리대장 열 번호 (1부터 시작). 사용자가 "일"과 "견적번호" 사이에 "발주" 열을
+// 직접 추가했으므로, 그 뒤 열들은 기존 문서에 적혀 있던 번호보다 한 칸씩 뒤로 밀린다.
+// 대장 컬럼 구성을 바꾸면 반드시 이 상수만 수정한다 (다른 곳에 열 번호를 직접 적지 않는다).
+const LEDGER_COL = {
+  NO: 1,
+  YEAR: 2,
+  MONTH: 3,
+  DAY: 4,
+  ORDER: 5,
+  QUOTE_NUMBER: 6,
+  CLIENT_NAME: 7,
+  CLIENT_CONTACT: 8,
+  CLIENT_PHONE: 9,
+  CLIENT_EMAIL: 10,
+  CATEGORIES: 11,
+  PRODUCT_NAME: 12,
+  TOTAL_PRICE: 13,
+  NOTES: 14,
+  FILE_LINK: 15
+};
+
+// 대장 시트가 LEDGER_COL과 같은 열 구성(E=발주, F=견적번호)을 갖는지 검증한다.
+// LEDGER_TEMPLATE_ID 스프레드시트나 특정 연도 시트의 열 구성이 어긋나 있으면 조용히 잘못된
+// 열에 쓰는 대신 즉시 에러를 던진다. (연 단위 자동 생성 시 특히 중요 — 템플릿에 발주 열이
+// 없다면 새로 만들어지는 모든 연도의 대장이 한 칸씩 밀려 저장된다.)
+function assertLedgerLayout_(ledgerSheet) {
+  const lastColumn = Math.max(ledgerSheet.getLastColumn(), LEDGER_COL.FILE_LINK);
+  const headers = ledgerSheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
+  const orderHeader = String(headers[LEDGER_COL.ORDER - 1] || '');
+  const quoteNumberHeader = String(headers[LEDGER_COL.QUOTE_NUMBER - 1] || '');
+  if (orderHeader.indexOf('발주') === -1 || quoteNumberHeader.indexOf('견적번호') === -1) {
+    throw new Error(
+      '견적관리대장의 열 구성이 예상과 다릅니다(E열=발주, F열=견적번호이어야 합니다). ' +
+      'LEDGER_TEMPLATE_ID 대장 템플릿 또는 이 연도 시트의 헤더 행을 확인해 주세요.'
+    );
+  }
+  return ledgerSheet;
+}
 
 function doGet(e) {
   const template = HtmlService.createTemplateFromFile('Index');
@@ -72,7 +112,10 @@ function processQuoteFromReact(payload) {
     quoteData,
     Boolean(payload.createDraft),
     payload.customSubject || '',
-    payload.customBody || ''
+    payload.customBody || '',
+    payload.revisionOf || '',
+    payload.revisionYear,
+    payload.revisionDepartment || ''
   );
 }
 
@@ -119,8 +162,12 @@ function getQuoteLedgerFromReact(requestedYear) {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents);
-    // Vercel 폴백 경로(사용되지 않음) — 토큰이 있는 경우에만 허용
-    if (String(payload.agentToken || '') !== String(CONFIG.AGENT_TOKEN || '')) {
+    // Vercel 폴백 경로(주로 사용되지 않음) — Apps Script 프로젝트의 스크립트 속성(Script Properties)에
+    // AGENT_TOKEN 값을 설정해야만 이 경로가 동작한다. 설정되어 있지 않으면 무조건 거부한다(fail-closed).
+    // 설정 방법: Apps Script 편집기 > 프로젝트 설정 > 스크립트 속성 > AGENT_TOKEN 추가,
+    // 그리고 Vercel 환경변수 APPS_SCRIPT_AGENT_TOKEN에 같은 값을 설정한다.
+    const expectedToken = String(PropertiesService.getScriptProperties().getProperty('AGENT_TOKEN') || '');
+    if (!expectedToken || String(payload.agentToken || '') !== expectedToken) {
       return jsonResponse_({ success: false, message: '토큰 인증에 실패했습니다.' });
     }
     const result = processQuoteFromReact(payload);
@@ -239,7 +286,19 @@ function processAgentResults() {
       try {
         updateLedgerLink_(result);
       } catch (err) {
+        // 파일은 이미 생성되었지만 대장 링크 갱신에 실패한 상태 — 결과를 지우면 영구히 유실되므로
+        // resultsFailed 폴더에 원본을 보존하고, 매분 트리거가 같은 오류로 계속 재시도하지 않도록
+        // results 폴더에서는 제거한다. 관리자가 수동으로 확인/재처리해야 한다.
         Logger.log('대장 파일링크 갱신 실패(' + result.quoteNumber + '): ' + err.toString());
+        try {
+          getAgentSubfolder_('resultsFailed').createFile(
+            `링크실패_${sanitizeDriveName(result.quoteNumber || file.getName())}_${Date.now()}.json`,
+            JSON.stringify({ result: result, error: err.toString() }),
+            MimeType.PLAIN_TEXT
+          );
+        } catch (copyErr) {
+          Logger.log('resultsFailed 보존 실패: ' + copyErr.toString());
+        }
       }
     } else if (result && result.ok === false) {
       movePendingToFailed_(result.quoteNumber, result.error || '알 수 없는 오류');
@@ -251,23 +310,51 @@ function processAgentResults() {
 function updateLedgerLink_(result) {
   const rootFolderId = resolveRootFolderId({ authorDepartment: result.department });
   const year = Number(result.year) || new Date().getFullYear();
-  const ledger = getYearSystem(year, rootFolderId).ledgerSheet;
-  const lastRow = ledger.getLastRow();
-  if (lastRow < 2) return;
-  const numbers = ledger.getRange(2, 5, lastRow - 1, 1).getValues();
-  for (let i = 0; i < numbers.length; i++) {
-    if (String(numbers[i][0]).trim() === String(result.quoteNumber).trim()) {
-      const fileUrl = String(result.fileUrl);
-      const path = fileUrl.split('?')[0].split('/');
-      const fileName = decodeURIComponent(path[path.length - 1] || '열기');
-      const linkValue = SpreadsheetApp.newRichTextValue()
-        .setText(fileName)
-        .setLinkUrl(fileUrl)
-        .build();
-      ledger.getRange(i + 2, 14).setRichTextValue(linkValue);
-      return;
-    }
+  const system = getExistingYearSystem_(year, rootFolderId);
+  if (!system) {
+    throw new Error('대장을 찾을 수 없습니다(부서: ' + result.department + ', 연도: ' + year + ')');
   }
+  const ledger = system.ledgerSheet;
+  const ledgerQuoteNumber = String(result.ledgerQuoteNumber || baseQuoteNumber_(result.quoteNumber)).trim();
+  const row = findLedgerRow_(ledger, ledgerQuoteNumber);
+  if (row < 2) {
+    throw new Error('대장에서 견적번호를 찾을 수 없습니다: ' + ledgerQuoteNumber);
+  }
+
+  const fileUrl = String(result.fileUrl);
+  const path = fileUrl.split('?')[0].split('/');
+  const fileName = decodeURIComponent(path[path.length - 1] || '열기');
+  const revisionNumber = Number(result.revisionNumber) || 0;
+  const linkLabel = revisionNumber > 0
+    ? `Rev${String(revisionNumber).padStart(2, '0')}: ${fileName}`
+    : `원본: ${fileName}`;
+  const cell = ledger.getRange(row, LEDGER_COL.FILE_LINK);
+  const links = [];
+  const existing = cell.getRichTextValue();
+  if (existing) {
+    existing.getRuns().forEach(function(run) {
+      const url = run.getLinkUrl();
+      if (!url) return; // 구분자(' | ')처럼 링크가 없는 런은 누적하지 않는다.
+      const text = run.getText();
+      if (text) links.push({ text: text, url: url });
+    });
+  }
+  if (links.length === 0) {
+    const currentText = String(cell.getDisplayValue() || '').trim();
+    if (currentText) links.push({ text: currentText, url: null });
+  }
+  if (links.some(function(link) { return link.url === fileUrl; })) return;
+  links.push({ text: linkLabel, url: fileUrl });
+
+  const separator = ' | ';
+  const combinedText = links.map(function(link) { return link.text; }).join(separator);
+  const builder = SpreadsheetApp.newRichTextValue().setText(combinedText);
+  let offset = 0;
+  links.forEach(function(link) {
+    if (link.url) builder.setLinkUrl(offset, offset + link.text.length, link.url);
+    offset += link.text.length + separator.length;
+  });
+  cell.setRichTextValue(builder.build());
 }
 
 function movePendingToFailed_(quoteNumber, error) {
@@ -435,6 +522,167 @@ function getAvailableLedgerYears_(rootFolderId, currentYear) {
   return years.sort((left, right) => right - left);
 }
 
+function getQuoteSnapshotSheet_(spreadsheet, create) {
+  let sheet = spreadsheet.getSheetByName(QUOTE_SNAPSHOT_SHEET_NAME);
+  if (!sheet && create) {
+    sheet = spreadsheet.insertSheet(QUOTE_SNAPSHOT_SHEET_NAME);
+    sheet.getRange(1, 1, 1, 5).setValues([['견적번호', '기본견적번호', '저장시각', '작성자 이메일', '데이터']]);
+    try { sheet.hideSheet(); } catch (err) { /* 숨김 처리 실패해도 데이터 저장은 계속한다. */ }
+  }
+  return sheet;
+}
+
+function baseQuoteNumber_(quoteNumber) {
+  return String(quoteNumber || '').trim().replace(/_Rev\d+$/i, '');
+}
+
+function findLedgerRow_(sheet, quoteNumber) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  const numbers = sheet.getRange(2, LEDGER_COL.QUOTE_NUMBER, lastRow - 1, 1).getDisplayValues();
+  const target = String(quoteNumber || '').trim();
+  for (let i = 0; i < numbers.length; i++) {
+    if (String(numbers[i][0] || '').trim() === target) return i + 2;
+  }
+  return -1;
+}
+
+function getNextRevisionNumber_(spreadsheet, ledgerSheet, baseQuoteNumber) {
+  let maxRevision = 0;
+  const snapshot = getQuoteSnapshotSheet_(spreadsheet, false);
+  if (snapshot && snapshot.getLastRow() >= 2) {
+    const rows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 2).getDisplayValues();
+    rows.forEach(function(row) {
+      if (String(row[1] || '').trim() !== baseQuoteNumber) return;
+      const match = String(row[0] || '').match(/_Rev(\d+)$/i);
+      if (match) maxRevision = Math.max(maxRevision, parseInt(match[1], 10));
+    });
+  }
+
+  const ledgerRow = findLedgerRow_(ledgerSheet, baseQuoteNumber);
+  if (ledgerRow >= 2) {
+    const linkText = String(ledgerSheet.getRange(ledgerRow, LEDGER_COL.FILE_LINK).getDisplayValue() || '');
+    const matches = linkText.match(/_Rev(\d+)/gi) || [];
+    matches.forEach(function(value) {
+      const match = value.match(/(\d+)/);
+      if (match) maxRevision = Math.max(maxRevision, parseInt(match[1], 10));
+    });
+  }
+  return maxRevision + 1;
+}
+
+function saveQuoteSnapshot_(spreadsheet, details, items, totalPrice) {
+  const snapshot = getQuoteSnapshotSheet_(spreadsheet, true);
+  const outputQuoteNumber = String(details.quoteNumber || '').trim();
+  const baseQuoteNumber = String(details.baseQuoteNumber || outputQuoteNumber).trim();
+  snapshot.appendRow([
+    outputQuoteNumber,
+    baseQuoteNumber,
+    new Date(),
+    String(details.authorEmail || '').trim(),
+    JSON.stringify({ details: details, items: items || [], totalPrice: totalPrice })
+  ]);
+}
+
+function getQuoteFolderClientName_(spreadsheet, baseQuoteNumber) {
+  const snapshot = getQuoteSnapshotSheet_(spreadsheet, false);
+  if (!snapshot || snapshot.getLastRow() < 2) return '';
+  const rows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
+  for (let i = rows.length - 1; i >= 0; i--) {
+    if (String(rows[i][1] || '').trim() !== baseQuoteNumber) continue;
+    try {
+      const stored = JSON.parse(String(rows[i][4] || '{}'));
+      return String(stored.details?.folderClientName || stored.details?.clientName || '').trim();
+    } catch (err) {
+      return '';
+    }
+  }
+  return '';
+}
+
+function getQuoteForEditFromReact(requestedYear, quoteNumber) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '견적 수정 권한을 확인할 수 없습니다.' };
+    }
+    const currentYear = new Date().getFullYear();
+    const parsedYear = Number(requestedYear);
+    const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+      ? parsedYear
+      : currentYear;
+    const rootFolderId = resolveRootFolderId({ authorDepartment: access.author.department });
+    const system = getExistingYearSystem_(year, rootFolderId);
+    const baseQuoteNumber = baseQuoteNumber_(quoteNumber);
+    if (!system || !baseQuoteNumber) {
+      return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도를 확인해 주세요.' };
+    }
+    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+    if (!snapshot || snapshot.getLastRow() < 2) {
+      return { success: false, message: '이 견적에는 수정 가능한 원본 데이터가 없습니다.' };
+    }
+    const rows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
+    for (let i = rows.length - 1; i >= 0; i--) {
+      if (String(rows[i][1] || '').trim() !== baseQuoteNumber) continue;
+      const stored = JSON.parse(String(rows[i][4] || '{}'));
+      return {
+        success: true,
+        quote: {
+          quoteNumber: String(rows[i][0] || stored.details?.quoteNumber || baseQuoteNumber),
+          baseQuoteNumber: baseQuoteNumber,
+          year: year,
+          // 수정 저장 시 폴더/대장 조회는 반드시 이 부서(원본이 실제로 저장된 부서)를 사용해야 한다.
+          // 폼의 작성자 드롭다운에서 다른 사람을 선택해도 엉뚱한 부서 대장을 찾지 않도록 한다.
+          department: access.author.department || '',
+          details: stored.details || {},
+          items: Array.isArray(stored.items) ? stored.items : []
+        }
+      };
+    }
+    return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도를 확인해 주세요.' };
+  } catch (err) {
+    return { success: false, message: '견적 원본 조회 실패: ' + err.toString() };
+  }
+}
+
+function updateQuoteOrderFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '발주 상태를 변경할 권한이 없습니다.' };
+    }
+    const currentYear = new Date().getFullYear();
+    const parsedYear = Number(payload && payload.year);
+    const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+      ? parsedYear
+      : currentYear;
+    const rootFolderId = resolveRootFolderId({ authorDepartment: access.author.department });
+    const system = getExistingYearSystem_(year, rootFolderId);
+    const baseQuoteNumber = baseQuoteNumber_(payload && payload.quoteNumber);
+    if (!system || !baseQuoteNumber) {
+      return { success: false, message: '발주 상태를 기록할 견적을 찾을 수 없습니다.' };
+    }
+    const row = findLedgerRow_(system.ledgerSheet, baseQuoteNumber);
+    if (row < 2) return { success: false, message: '발주 상태를 기록할 견적을 찾을 수 없습니다.' };
+    // LEDGER_COL.ORDER(E열)를 우선 사용하고, 헤더가 실제로 '발주'를 포함하는지 검증한다.
+    // 대장 구조가 예상과 다를 때 엉뚱한 열을 덮어쓰지 않도록 검증 실패 시 전체 헤더에서 재탐색한다.
+    const headers = system.ledgerSheet.getRange(1, 1, 1, system.ledgerSheet.getLastColumn()).getDisplayValues()[0];
+    let orderColumn = String(headers[LEDGER_COL.ORDER - 1] || '').indexOf('발주') !== -1 ? LEDGER_COL.ORDER - 1 : -1;
+    if (orderColumn < 0) {
+      orderColumn = headers.findIndex(function(header) {
+        return String(header || '').indexOf('발주') !== -1;
+      });
+    }
+    if (orderColumn < 0) {
+      return { success: false, message: '견적관리대장에 발주 컬럼이 없습니다.' };
+    }
+    system.ledgerSheet.getRange(row, orderColumn + 1).setValue(payload && payload.ordered === true ? '발주' : '');
+    return { success: true, message: '발주 여부가 기록되었습니다.' };
+  } catch (err) {
+    return { success: false, message: '발주 상태 기록 실패: ' + err.toString() };
+  }
+}
+
 function getNextQuoteNumber(rootFolderId, department) {
   try {
     const today = new Date();
@@ -444,16 +692,17 @@ function getNextQuoteNumber(rootFolderId, department) {
     const yearPrefix = `${departmentName} ${Utilities.formatDate(today, Session.getScriptTimeZone(), 'yy')}`;
     const lastRow = sheet.getLastRow();
 
-    // 견적관리대장 NO열(A열)의 최대 번호를 기준으로 다음 일련번호를 결정한다.
-    // 대장이 비어 있으면 001부터 시작하고, 행이 삭제된 경우에도 최대 번호 + 1로 이어진다.
+    // 견적관리대장 NO열(A열)에서 가장 작은 빈 번호를 찾아 다음 일련번호로 사용한다.
+    // 삭제된 견적번호가 있으면 그 번호를 먼저 재사용한다.
     let seq = 1;
     if (lastRow > 1) {
       const nos = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-      const maxNo = nos.reduce(function(max, row) {
+      const usedNumbers = {};
+      nos.forEach(function(row) {
         const value = Number(row[0]);
-        return Number.isFinite(value) && value > max ? value : max;
-      }, 0);
-      seq = maxNo + 1;
+        if (Number.isInteger(value) && value > 0) usedNumbers[value] = true;
+      });
+      while (usedNumbers[seq]) seq += 1;
     }
 
     const seqStr = String(seq).padStart(3, '0');
@@ -463,7 +712,7 @@ function getNextQuoteNumber(rootFolderId, department) {
   }
 }
 
-function processQuote(quoteData, createDraft, customSubject, customBody) {
+function processQuote(quoteData, createDraft, customSubject, customBody, revisionOf, revisionYear, revisionDepartment) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -473,26 +722,71 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
 
   try {
     const details = quoteData.details;
+    const requestedBaseQuoteNumber = baseQuoteNumber_(revisionOf);
+    // 수정본은 원본을 조회했을 때의 부서(revisionDepartment)를 그대로 사용해야 한다.
+    // 폼의 작성자 드롭다운에서 다른 사람을 선택했더라도, 폴더/대장 조회는 반드시 원본이 저장된
+    // 부서를 기준으로 해야 로컬 에이전트가 같은 폴더에 파일을 저장할 수 있다.
+    if (requestedBaseQuoteNumber && String(revisionDepartment || '').trim()) {
+      details.authorDepartment = String(revisionDepartment).trim();
+    }
     const rootFolderId = resolveRootFolderId(details);
 
-    const realQuoteNumber = getNextQuoteNumber(rootFolderId, details.authorDepartment);
+    // 수정본은 원본을 조회했던 연도(revisionYear)를 그대로 사용해야 한다.
+    // 견적일자를 오늘 날짜로 채워도 원본이 저장된 연도의 대장을 찾도록 한다.
+    // 미래 연도·존재하지 않는 연도가 들어오면 대장/폴더를 새로 만들지 않고 즉시 실패시킨다.
+    const nowYear = new Date().getFullYear();
+    let currentYear;
+    let system;
+    const parsedRevisionYear = Number(revisionYear);
+    if (requestedBaseQuoteNumber) {
+      if (Number.isInteger(parsedRevisionYear) && parsedRevisionYear >= 2000 && parsedRevisionYear <= nowYear) {
+        currentYear = parsedRevisionYear;
+      } else {
+        const dateMatches = String(details.quoteDate || '').match(/(\d{4})/);
+        currentYear = dateMatches ? Math.min(parseInt(dateMatches[1], 10), nowYear) : nowYear;
+      }
+      // 수정 대상은 기존 연도 폴더/대장이 반드시 있어야 한다 — 없으면 새로 만들지 않고 실패 응답한다.
+      system = getExistingYearSystem_(currentYear, rootFolderId);
+      if (!system || findLedgerRow_(system.ledgerSheet, requestedBaseQuoteNumber) < 2) {
+        lock.releaseLock();
+        return { success: false, message: '수정할 원본 견적을 찾을 수 없습니다. 연도를 확인해 주세요.' };
+      }
+    } else {
+      const dateMatches = String(details.quoteDate || '').match(/(\d{4})/);
+      currentYear = dateMatches ? parseInt(dateMatches[1], 10) : nowYear;
+      system = getYearSystem(currentYear, rootFolderId);
+    }
+
+    let realQuoteNumber;
+    let baseQuoteNumber;
+    let revisionNumber = 0;
+    if (requestedBaseQuoteNumber) {
+      baseQuoteNumber = requestedBaseQuoteNumber;
+      revisionNumber = getNextRevisionNumber_(system.ledger, system.ledgerSheet, baseQuoteNumber);
+      realQuoteNumber = `${baseQuoteNumber}_Rev${String(revisionNumber).padStart(2, '0')}`;
+      details.baseQuoteNumber = baseQuoteNumber;
+      details.revisionNumber = revisionNumber;
+      details.folderClientName = getQuoteFolderClientName_(system.ledger, baseQuoteNumber) || details.clientName;
+    } else {
+      realQuoteNumber = getNextQuoteNumber(rootFolderId, details.authorDepartment);
+      baseQuoteNumber = realQuoteNumber;
+      details.folderClientName = details.clientName;
+    }
     details.quoteNumber = realQuoteNumber;
+    // 로컬 에이전트는 details.quoteDate(항상 오늘 날짜)가 아니라 이 값으로 저장 연도 폴더를 결정해야
+    // 수정본을 원본과 같은 연도 폴더에 저장할 수 있다.
+    details.year = currentYear;
 
-    const dateMatches = String(details.quoteDate || '').match(/(\d{4})/);
-    const currentYear = dateMatches ? parseInt(dateMatches[1], 10) : new Date().getFullYear();
-    const system = getYearSystem(currentYear, rootFolderId);
-
-    // 실제 파일(XLSX/PDF)은 사내 PC(172.35.12.36)의 로컬 에이전트가 생성·저장한다.
-    // 여기서는 견적 데이터를 저장 대기열에 등록만 하고, 구글 드라이브에는 파일을 만들지 않는다.
     const items = quoteData.items || [];
     const itemParts = splitQuoteItems_(items);
     const finalVatPrice = Math.round(items.reduce(function(sum, item) {
       return sum + Number(item.totalPrice || 0);
     }, 0) * 1.1);
-    enqueueLocalSave_(details, items, finalVatPrice);
 
-    // 대장의 파일링크는 비워두고, 에이전트가 저장을 완료하면 사내 경로로 채운다.
+    // 대장 반영을 먼저 확정한 뒤에만 로컬 파일 생성을 대기열에 등록한다.
+    // (수정 대상 행을 못 찾는 등 대장 반영이 실패하면 파일을 만들지 않는다.)
     saveToLedgerSheet(system.ledgerSheet, details, items, finalVatPrice, '');
+    enqueueLocalSave_(details, items, finalVatPrice);
 
     // 대장 사본(XLSX)을 에이전트 전달 폴더에 내보낸다. 에이전트가 견적 연도 폴더에 복사한다.
     exportLedgerToAgent_(system, currentYear, realQuoteNumber);
@@ -535,6 +829,8 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
       folderUrl: system.folder.getUrl(),
       sheetUrl: '',
       newQuoteNumber: realQuoteNumber,
+      baseQuoteNumber: baseQuoteNumber,
+      revisionNumber: revisionNumber || undefined,
       message: returnMessage
     };
   } catch (err) {
@@ -651,56 +947,72 @@ function createPdfBlob(spreadsheetId, sheetId, fileName) {
 }
 
 function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
-  try {
-    const quoteDate = String(details.quoteDate || '');
-    const dateMatches = quoteDate.match(/(\d{4}).*?(\d{1,2}).*?(\d{1,2})/);
-    const year = dateMatches ? dateMatches[1] : new Date().getFullYear();
-    const month = dateMatches ? dateMatches[2] : new Date().getMonth() + 1;
-    const day = dateMatches ? dateMatches[3] : new Date().getDate();
-    const firstItem = items[0] || {};
-    const productName = items.length > 1 ? `${firstItem.name} 외 ${items.length - 1}건` : firstItem.name || '';
-    const categoryRules = [
-      ['SCADA PRO', /SCADA\s*PRO/i],
-      ['SCADA', /SCADA/i],
-      ['TOUCH MONITOR', /TOUCH\s*MONITOR/i],
-      ['BOX PC', /BOX\s*PC|\bNB\d/i],
-      ['Hybird', /HYBRID|HYBIRD/i],
-      ['Accessory', /ACCESSORY|ACCESSARY|액세서리/i],
-      ['eXT', /\beXT\d*\b/i],
-      ['XPANEL', /XPANEL/i],
-      ['PLC', /\bPLC\b|\bCM[013]\b|NET\/RIO|CIMON-NET|REMOTE\s*IO|\bRIO\b/i],
-      ['TOUCH', /TOUCH|50000_70000|5000SERIES|500SERIES|\biN[TP]\d/i]
-    ];
-    const productCategories = [];
-    items.forEach(function(item) {
-      const source = String(item.type || '') + ' ' + String(item.name || '');
-      const matched = categoryRules.find(function(rule) { return rule[1].test(source); });
-      if (matched && productCategories.indexOf(matched[0]) === -1) productCategories.push(matched[0]);
-    });
+  // 신규/수정 행을 고정 열 번호(LEDGER_COL)에 그대로 쓰기 전에 실제 헤더가 예상과 일치하는지
+  // 검증한다 — 대장 템플릿의 열 구성이 다르면 조용히 잘못된 열에 쓰는 대신 즉시 실패시킨다.
+  assertLedgerLayout_(sheet);
+  const quoteDate = String(details.quoteDate || '');
+  const dateMatches = quoteDate.match(/(\d{4}).*?(\d{1,2}).*?(\d{1,2})/);
+  const year = dateMatches ? dateMatches[1] : new Date().getFullYear();
+  const month = dateMatches ? dateMatches[2] : new Date().getMonth() + 1;
+  const day = dateMatches ? dateMatches[3] : new Date().getDate();
+  const firstItem = items[0] || {};
+  const productName = items.length > 1 ? `${firstItem.name} 외 ${items.length - 1}건` : firstItem.name || '';
+  const categoryRules = [
+    ['SCADA PRO', /SCADA\s*PRO/i],
+    ['SCADA', /SCADA/i],
+    ['TOUCH MONITOR', /TOUCH\s*MONITOR/i],
+    ['BOX PC', /BOX\s*PC|\bNB\d/i],
+    ['Hybird', /HYBRID|HYBIRD/i],
+    ['Accessory', /ACCESSORY|ACCESSARY|액세서리/i],
+    ['eXT', /\beXT\d*\b/i],
+    ['XPANEL', /XPANEL/i],
+    ['PLC', /\bPLC\b|\bCM[013]\b|NET\/RIO|CIMON-NET|REMOTE\s*IO|\bRIO\b/i],
+    ['TOUCH', /TOUCH|50000_70000|5000SERIES|500SERIES|\biN[TP]\d/i]
+  ];
+  const productCategories = [];
+  items.forEach(function(item) {
+    const source = String(item.type || '') + ' ' + String(item.name || '');
+    const matched = categoryRules.find(function(rule) { return rule[1].test(source); });
+    if (matched && productCategories.indexOf(matched[0]) === -1) productCategories.push(matched[0]);
+  });
 
-    // 대장 NO는 견적번호의 일련번호(-NNN)와 항상 일치시킨다.
-    // 견적번호 파싱에 실패한 경우에만 행 개수로 보정한다.
-    const seqMatch = String(details.quoteNumber || '').match(/-(\d+)\s*$/);
-    const no = seqMatch ? parseInt(seqMatch[1], 10) : sheet.getLastRow();
+  // 수정본은 원본 행을 갱신하고, 원본 견적번호는 대장에 그대로 유지한다.
+  const ledgerQuoteNumber = String(details.baseQuoteNumber || details.quoteNumber || '').trim();
+  // 대장 NO는 기본 견적번호의 일련번호(-NNN)와 항상 일치시킨다.
+  // 견적번호 파싱에 실패한 경우에만 행 개수로 보정한다.
+  const seqMatch = ledgerQuoteNumber.match(/-(\d+)\s*$/);
+  const no = seqMatch ? parseInt(seqMatch[1], 10) : sheet.getLastRow();
 
-    sheet.appendRow([
-      no,
-      year,
-      month,
-      day,
-      details.quoteNumber,
-      details.clientName,
-      details.clientContactPerson,
-      details.clientPhone,
-      details.clientEmail,
-      productCategories.join(', '),
-      productName,
-      totalPrice,
-      details.notes || '',
-      fileUrl
-    ]);
-  } catch (err) {
-    Logger.log('Ledger Error: ' + err.toString());
+  // F열(견적번호)부터 N열(비고)까지 9개 값 — E열(발주)은 사용자가 대장에서 직접
+  // 관리하는 열이므로 신규/수정 저장 로직에서는 절대 건드리지 않는다.
+  const quoteInfoValues = [
+    ledgerQuoteNumber,
+    details.clientName,
+    details.clientContactPerson,
+    details.clientPhone,
+    details.clientEmail,
+    productCategories.join(', '),
+    productName,
+    totalPrice,
+    details.notes || ''
+  ];
+
+  const existingRow = details.baseQuoteNumber ? findLedgerRow_(sheet, details.baseQuoteNumber) : -1;
+  if (details.baseQuoteNumber && existingRow < 2) {
+    throw new Error('수정 대상 원본 행을 찾을 수 없습니다.');
+  }
+
+  // 스냅샷 저장을 먼저 시도한다 — 스냅샷이 실패하면(예: 셀 글자수 한도) 대장 행은 아직
+  // 손대지 않은 상태이므로 "일부만 반영된" 상태가 되지 않는다.
+  saveQuoteSnapshot_(sheet.getParent(), details, items, totalPrice);
+
+  if (existingRow >= 2) {
+    // 수정본: A~D열(날짜)과 E열(발주)은 원본 값을 그대로 두고 F~N열만 갱신한다.
+    // O열(파일링크)은 updateLedgerLink_이 원본·Rev 링크를 누적하므로 여기서 건드리지 않는다.
+    sheet.getRange(existingRow, LEDGER_COL.QUOTE_NUMBER, 1, quoteInfoValues.length).setValues([quoteInfoValues]);
+  } else {
+    // 신규 견적: A~D, E(발주 공란), F~N, O(파일링크)를 한 번에 추가한다.
+    sheet.appendRow([no, year, month, day, ''].concat(quoteInfoValues).concat([fileUrl]));
   }
 }
 

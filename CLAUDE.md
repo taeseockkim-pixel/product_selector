@@ -131,6 +131,10 @@ QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ←
 - **고객정보 자동 매칭**: 견적 작성 화면에서 업체명 또는 담당자를 입력하고 포커스를 이동하면 현재 부서 대장의 기존 고객 정보를 찾아 업체명·담당자·연락처·이메일을 자동 입력한다. 동일한 이름이 여러 건이면 고객 선택 창을 표시한다.
 - **AI 대장 검색**: 견적 목록의 `AI 검색` 패널에서 사용자가 개인 OpenRouter API 키를 연결 확인한 뒤 자연어 질문을 보낼 수 있다. 연결 후 `API 키 변경` 버튼으로 기존 연결을 지우고 새 키를 입력할 수 있다. 키는 브라우저 localStorage나 서버 저장소에 보관하지 않으며, 현재 로그인한 작성자의 부서로 조회된 선택 연도 대장만 요청에 포함한다. 담당자·연락처·이메일은 포함하므로 ZDR 사용을 권장한다.
 - **견적 품목 분할 출력**: 작성 화면에서는 품목 수를 제한하지 않는다. Apps Script가 하나의 견적번호와 대장 행을 생성하고, 사내 저장 에이전트가 품목을 14개씩 같은 폴더의 `견적번호_1`, `견적번호_2` 파일로 나누어 XLSX/PDF를 생성한다.
+- **부서 배지**: 견적 목록/작성 화면 상단에 접속 계정의 부서(`기술영업`/`영업`/`프로젝트`)를 배지로 표시한다. `App.tsx`가 `getAuthorizedUserFromReact()` 결과의 `author.department`를 `QuoteListPage`/`QuoteFormPage`에 `department` prop으로 내려준다.
+- **견적 수정(리비전)**: 목록의 `수정` 버튼은 `getQuoteForEditFromReact()`로 스냅샷 시트(`견적스냅샷`)에서 원본을 불러와 폼에 채운다(`QuoteEditData`에 `year`/`department`/`baseQuoteNumber` 포함). 저장 시 원본 견적번호는 대장에 그대로 두고 `{원본견적번호}_RevNN` 파일을 **원본과 같은 폴더**에 추가하며, 대장 원본 행은 F~N열만 갱신한다(A~E열은 그대로 유지). O열(파일링크)에는 원본·각 Rev 링크가 `' | '`로 누적된다. 리비전 저장은 원본을 조회했던 연도/부서(`revisionYear`/`revisionDepartment`)를 폼의 작성자 드롭다운과 무관하게 그대로 사용해야 로컬 에이전트가 같은 폴더에 파일을 저장한다. **삭제 기능은 사용자 요청에 따라 의도적으로 구현하지 않았다.**
+- **서류 업로드**: 견적 목록에서 업로드 링크는 로컬 에이전트(`agent/index.js`)의 `/upload` 페이지(부서 비밀번호 로그인 필요)로 연결되며, 연도·부서·견적번호·업체명으로 확인된 해당 견적 폴더에 발주서·사업자등록증 등(PDF/HWP/DOC/XLS/이미지/ZIP, 20MB 이하)을 추가한다.
+- **발주 체크박스**: 견적 목록의 발주 체크박스는 `updateQuoteOrderFromReact()`를 호출해 대장 E열(발주)에 직접 기록한다. E열은 신규/수정 저장 로직(`saveToLedgerSheet()`)이 절대 건드리지 않는, 사용자가 대장에서 직접 관리하는 열이다.
 - **미완성 초안 보존**: 견적 작성 입력값과 품목은 접속 계정 이메일별 localStorage 키에 저장한다. 페이지 이동이나 브라우저 재실행 후 같은 계정으로 진입하면 복원되며, 사용자가 `초기화`를 누르거나 견적 저장/메일 초안 생성이 성공한 경우에만 해당 초안을 삭제한다.
 - **Google Workspace 연동**: Apps Script wrapper를 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Apps Script 접근 권한은 `CIMON의 모든 사용자`로 유지할 수 있다.
 - **로컬 전용 XLSX/PDF 자동 생성**: `server/` 폴더의 Express 서버는 `npm run local`로만 구동되며,
@@ -138,7 +142,7 @@ QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ←
   배포 시에는 이 로컬 저장 단계 자체가 생략된다.
 - **api/quotes/**: Vercel 서버리스 함수지만 부서별 견적번호(`부서 YYMM-NNN`) 발급 외 실질적인
   저장/조회 로직은 없는 스텁 상태.
-- **Apps Script 반영 파일**: `appscript/Index.wrapper.html` 내용을 Apps Script의 `Index.html`에 반영하고, `appscript/wrapper-code.patch.gs`의 `doGet`/`processQuoteFromReact`를 `Code.gs`에 반영한 뒤 새 버전으로 Web App을 배포한다. Vercel API fallback을 직접 쓸 때만 `APPS_SCRIPT_WEB_APP_URL`이 필요하다.
+- **Apps Script 반영 파일**: 운영 배포는 전체 교체용 파일만 사용한다 — `APPS_SCRIPT_Code_gs_전체교체코드.txt` 내용 전체를 Apps Script `Code.gs`에, `APPS_SCRIPT_Index_html_전체교체코드.txt` 내용 전체를 `Index.html`에 그대로 붙여넣고 저장한 뒤 새 버전으로 Web App을 배포한다. `appscript/wrapper-code.patch.gs`·`appscript/doPost.patch.gs`는 참고용 레거시 부분 패치 파일로 **운영에는 사용하지 않는다** (`appscript/Index.wrapper.html`은 `APPS_SCRIPT_Index_html_전체교체코드.txt`와 동일한 내용을 유지하는 개발용 사본). Vercel API fallback을 직접 쓸 때만 `APPS_SCRIPT_WEB_APP_URL`이 필요하다.
 - **견적관리대장 기록**: 날짜는 `연도 / 월 / 일`로 나누어 저장한다. 제품 항목은 전체 견적 품목을 기준으로 제품군을 정규화하며, 여러 제품군은 `PLC, TOUCH`처럼 쉼표로 함께 기록하고 NET/RIO는 PLC에 포함한다.
 
 ---
