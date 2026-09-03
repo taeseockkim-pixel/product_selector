@@ -811,13 +811,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   onClick={() => applyCustomerRecord(record)}
                   className="w-full text-left rounded-lg border border-[#ddd9d2] px-4 py-3 hover:bg-blue-50 hover:border-blue-200 transition-colors"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="font-semibold text-sm text-[#191919]">{record.company || '-'}</span>
-                    <span className="text-xs text-[#777777]">{record.contact || '-'}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <span><strong className="text-xs text-[#777777] mr-1">{t(UI.quoteCompany)}:</strong>{record.company || '-'}</span>
+                    <span><strong className="text-xs text-[#777777] mr-1">{t(UI.quoteContact)}:</strong>{record.contact || '-'}</span>
                   </div>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-[#999999]">
-                    <span>{record.phone || '-'}</span>
-                    <span>{record.email || '-'}</span>
+                    <span><strong className="text-[#777777] mr-1">{t(UI.quotePhone)}:</strong>{record.phone || '-'}</span>
+                    <span><strong className="text-[#777777] mr-1">{t(UI.quoteEmail)}:</strong>{record.email || '-'}</span>
                   </div>
                 </button>
               ))}
