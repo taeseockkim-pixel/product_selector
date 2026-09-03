@@ -2,7 +2,7 @@
 
 > 견적 목록은 Apps Script의 `getQuoteLedgerFromReact()`를 통해 현재 연도 Google Sheet
 > `견적관리대장`의 표시값, 열 순서, 파일 링크를 그대로 조회하는 읽기 전용 화면이다.
-> 브라우저 `localStorage`는 견적 목록의 원천으로 사용하지 않는다.
+> 브라우저 `localStorage`는 견적 목록의 원천으로 사용하지 않으며, 사용자별 미완성 견적 초안 보존에만 별도 키로 사용한다.
 
 ## 개요
 
@@ -153,7 +153,7 @@ Product {
 ## 견적서 기능 아키텍처
 
 제품 필터링 흐름과 완전히 분리된 별도 하위 시스템. 제품 카탈로그와 달리 **Apps Script Web App을
-통해 Drive/Sheets/Gmail에 결과물을 남기고, 브라우저 `localStorage`는 목록 캐시로만 사용**한다.
+통해 Drive/Sheets/Gmail에 결과물을 남기고, 브라우저 `localStorage`는 목록 캐시와 사용자별 미완성 초안 보존에 사용**한다.
 
 ```
 Product_Prise.xlsx
@@ -165,7 +165,8 @@ QuoteFormPage.tsx
     │  quoteProductCatalog.ts / priceData.ts (fallback) 로 단가 계산
     │  품목 금액 = 단가 × 배율 × 수량 (배율 기본값 1)
     ▼
-quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")
+quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록 캐시
+QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ← 미완성 초안
     │
     ├── POST /api/google/quote  (Vercel 서버리스 + 로컬 Express 동일 경로)
     │     └── server/appsScriptQuote.js

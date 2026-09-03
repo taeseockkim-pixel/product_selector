@@ -305,6 +305,7 @@ function AppInner() {
           onSuccess={() => setViewMode('quotelist')}
           defaultAuthorName={authAuthor?.name}
           authorLocked={authAuthor != null && !ADMIN_AUTHOR_EMAILS.has(authAuthor.email.toLowerCase())}
+          draftOwnerEmail={authAuthor?.email}
         />
         {toast && <Toast msg={toast} />}
       </div>

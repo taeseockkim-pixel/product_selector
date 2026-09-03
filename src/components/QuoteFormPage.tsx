@@ -92,6 +92,164 @@ interface CustomerRecord {
   email: string;
 }
 
+interface StoredQuoteItem {
+  key: string;
+  type: string;
+  name: string;
+  spec: string;
+  qty: number;
+  unitPrice: number | null;
+  multiplier: string;
+  productId?: string;
+  catalogItemId?: string;
+}
+
+interface QuoteFormDraft {
+  version: 1;
+  company: string;
+  contact: string;
+  phone: string;
+  email: string;
+  author: string;
+  customAuthorName: string;
+  customAuthorPhone: string;
+  customAuthorEmail: string;
+  deliveryLocation: string;
+  deliveryDeadline: string;
+  paymentTerms: string;
+  validityPeriod: string;
+  packing: string;
+  notes: string;
+  selectedSheet: string;
+  selectedProductId: string;
+  addQty: number;
+  items: StoredQuoteItem[];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function stringValue(value: unknown, fallback = '') {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function numberValue(value: unknown, fallback: number) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function storedItemFromRow(item: ItemRow): StoredQuoteItem {
+  return {
+    key: item.key,
+    type: item.type,
+    name: item.name,
+    spec: item.spec,
+    qty: item.qty,
+    unitPrice: item.unitPrice,
+    multiplier: item.multiplier,
+    productId: item.product?.id,
+    catalogItemId: item.catalogItem?.id,
+  };
+}
+
+function itemRowFromStored(value: unknown, index: number): ItemRow | null {
+  if (!isRecord(value) || typeof value.name !== 'string') return null;
+  const product = typeof value.productId === 'string'
+    ? PRODUCTS.find((candidate) => candidate.id === value.productId)
+    : undefined;
+  const catalogItem = typeof value.catalogItemId === 'string'
+    ? findQuoteCatalogItem(value.catalogItemId)
+    : findQuoteCatalogItem(value.name);
+  const unitPrice = value.unitPrice === null
+    ? null
+    : numberValue(value.unitPrice, 0);
+
+  return {
+    key: stringValue(value.key, `draft-item-${index}`),
+    type: stringValue(value.type),
+    name: value.name,
+    spec: stringValue(value.spec),
+    qty: Math.max(1, Math.trunc(numberValue(value.qty, 1))),
+    unitPrice,
+    multiplier: stringValue(value.multiplier, '1'),
+    product,
+    catalogItem,
+  };
+}
+
+function loadQuoteFormDraft(storageKey: string | null): QuoteFormDraft | null {
+  if (!storageKey) return null;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed) || parsed.version !== 1 || !Array.isArray(parsed.items)) return null;
+    const items = parsed.items.flatMap((item, index) => {
+      const restored = itemRowFromStored(item, index);
+      return restored ? [{
+        key: restored.key,
+        type: restored.type,
+        name: restored.name,
+        spec: restored.spec,
+        qty: restored.qty,
+        unitPrice: restored.unitPrice,
+        multiplier: restored.multiplier,
+        productId: restored.product?.id,
+        catalogItemId: restored.catalogItem?.id,
+      }] : [];
+    });
+    return {
+      version: 1,
+      company: stringValue(parsed.company),
+      contact: stringValue(parsed.contact),
+      phone: stringValue(parsed.phone),
+      email: stringValue(parsed.email),
+      author: stringValue(parsed.author),
+      customAuthorName: stringValue(parsed.customAuthorName),
+      customAuthorPhone: stringValue(parsed.customAuthorPhone),
+      customAuthorEmail: stringValue(parsed.customAuthorEmail),
+      deliveryLocation: stringValue(parsed.deliveryLocation),
+      deliveryDeadline: stringValue(parsed.deliveryDeadline),
+      paymentTerms: stringValue(parsed.paymentTerms),
+      validityPeriod: stringValue(parsed.validityPeriod),
+      packing: stringValue(parsed.packing),
+      notes: stringValue(parsed.notes),
+      selectedSheet: stringValue(parsed.selectedSheet),
+      selectedProductId: stringValue(parsed.selectedProductId),
+      addQty: Math.max(1, Math.trunc(numberValue(parsed.addQty, 1))),
+      items,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function restoreQuoteItems(draft: QuoteFormDraft | null, cartProducts: Product[], lang: 'ko' | 'en') {
+  if (!draft) return cartProducts.map((product) => itemFromProduct(product, lang));
+  return draft.items.flatMap((item, index) => {
+    const restored = itemRowFromStored(item, index);
+    return restored ? [restored] : [];
+  });
+}
+
+function saveQuoteFormDraft(storageKey: string | null, draft: QuoteFormDraft) {
+  if (!storageKey) return;
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(draft));
+  } catch {
+    // 저장소 용량 부족 등으로 초안 저장에 실패해도 견적 작성은 계속한다.
+  }
+}
+
+function clearQuoteFormDraft(storageKey: string | null) {
+  if (!storageKey) return;
+  try {
+    localStorage.removeItem(storageKey);
+  } catch {
+    // localStorage 접근이 불가능한 환경에서는 무시한다.
+  }
+}
+
 function findLedgerColumn(headers: string[], labels: string[]) {
   return headers.findIndex((header) => labels.some((label) => header.includes(label)));
 }
@@ -119,6 +277,8 @@ interface Props {
   defaultAuthorName?: string;
   /** 접속 계정 기준으로 작성자를 고정 (드롭다운 변경 불가) */
   authorLocked?: boolean;
+  /** 사용자별 미완성 견적 초안을 보존하기 위한 Google 계정 이메일 */
+  draftOwnerEmail?: string;
 }
 
 interface AppsScriptPayload {
@@ -365,7 +525,7 @@ function findProductForItem(item: ItemRow): Product | null {
   return null;
 }
 
-export default function QuoteFormPage({ cartProducts, onBack, onSuccess, defaultAuthorName, authorLocked }: Props) {
+export default function QuoteFormPage({ cartProducts, onBack, onSuccess, defaultAuthorName, authorLocked, draftOwnerEmail }: Props) {
   const t = useT();
   const { lang } = useLang();
 
@@ -373,25 +533,32 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const validity = new Date(today);
   validity.setDate(today.getDate() + 14);
   const defaults = quoteDefaults(lang, validity);
+  const draftStorageKey = draftOwnerEmail?.trim()
+    ? `cimon-quote-draft:${draftOwnerEmail.trim().toLowerCase()}`
+    : null;
+  const [savedDraft] = useState<QuoteFormDraft | null>(() => loadQuoteFormDraft(draftStorageKey));
 
-  const [company, setCompany] = useState('');
-  const [contact, setContact] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  const [author, setAuthor] = useState(defaultAuthorName ?? '');
+  const firstCatalogGroup = QUOTE_PRODUCT_CATALOG[0];
+  const [company, setCompany] = useState(savedDraft?.company ?? '');
+  const [contact, setContact] = useState(savedDraft?.contact ?? '');
+  const [phone, setPhone] = useState(savedDraft?.phone ?? '');
+  const [email, setEmail] = useState(savedDraft?.email ?? '');
+  const [author, setAuthor] = useState(
+    authorLocked ? (defaultAuthorName ?? '') : (savedDraft?.author || defaultAuthorName || ''),
+  );
   const [authors, setAuthors] = useState<AuthorInfo[]>([]);
   const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
   const [customerPicker, setCustomerPicker] = useState<{ field: 'company' | 'contact'; matches: CustomerRecord[] } | null>(null);
-  const [customAuthorName, setCustomAuthorName] = useState('');
-  const [customAuthorPhone, setCustomAuthorPhone] = useState('');
-  const [customAuthorEmail, setCustomAuthorEmail] = useState('');
-  const [deliveryLocation, setDeliveryLocation] = useState(defaults.deliveryLocation);
-  const [deliveryDeadline, setDeliveryDeadline] = useState(defaults.deliveryDeadline);
-  const [paymentTerms, setPaymentTerms] = useState(defaults.paymentTerms);
-  const [validityPeriod, setValidityPeriod] = useState(defaults.validityPeriod);
-  const [packing, setPacking] = useState(defaults.packing);
-  const [notes, setNotes] = useState('');
+  const [customAuthorName, setCustomAuthorName] = useState(savedDraft?.customAuthorName ?? '');
+  const [customAuthorPhone, setCustomAuthorPhone] = useState(savedDraft?.customAuthorPhone ?? '');
+  const [customAuthorEmail, setCustomAuthorEmail] = useState(savedDraft?.customAuthorEmail ?? '');
+  const [deliveryLocation, setDeliveryLocation] = useState(savedDraft?.deliveryLocation || defaults.deliveryLocation);
+  const [deliveryDeadline, setDeliveryDeadline] = useState(savedDraft?.deliveryDeadline || defaults.deliveryDeadline);
+  const [paymentTerms, setPaymentTerms] = useState(savedDraft?.paymentTerms || defaults.paymentTerms);
+  const [validityPeriod, setValidityPeriod] = useState(savedDraft?.validityPeriod || defaults.validityPeriod);
+  const [packing, setPacking] = useState(savedDraft?.packing || defaults.packing);
+  const [notes, setNotes] = useState(savedDraft?.notes ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [emailing, setEmailing] = useState(false);
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(null);
@@ -401,16 +568,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
-  const firstCatalogGroup = QUOTE_PRODUCT_CATALOG[0];
-  const [selectedSheet, setSelectedSheet] = useState(firstCatalogGroup?.sheet ?? '');
-  const [selectedProductId, setSelectedProductId] = useState(firstCatalogGroup?.items[0]?.id ?? '');
-  const [addQty, setAddQty] = useState(1);
+  const [selectedSheet, setSelectedSheet] = useState(savedDraft?.selectedSheet || firstCatalogGroup?.sheet || '');
+  const [selectedProductId, setSelectedProductId] = useState(savedDraft?.selectedProductId || firstCatalogGroup?.items[0]?.id || '');
+  const [addQty, setAddQty] = useState(savedDraft?.addQty ?? 1);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const [items, setItems] = useState<ItemRow[]>(() =>
-    cartProducts.map((p) => itemFromProduct(p, lang)),
-  );
+  const [items, setItems] = useState<ItemRow[]>(() => restoreQuoteItems(savedDraft, cartProducts, lang));
 
   useEffect(() => {
     const previous = quoteDefaults(lang === 'ko' ? 'en' : 'ko', validity);
@@ -430,13 +594,16 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       setAuthors(list);
       setAuthorsLoading(false);
       setAuthor((current) => {
+        if (authorLocked && defaultAuthorName && list.some((a) => a.name === defaultAuthorName)) {
+          return defaultAuthorName;
+        }
         if (current && list.some((a) => a.name === current)) return current;
         if (defaultAuthorName && list.some((a) => a.name === defaultAuthorName)) return defaultAuthorName;
         return list[0]?.name ?? '';
       });
     });
     return () => { cancelled = true; };
-  }, [defaultAuthorName]);
+  }, [authorLocked, defaultAuthorName]);
 
   // 현재 접속 계정의 부서 대장에서 기존 고객 정보를 읽어온다.
   useEffect(() => {
@@ -450,6 +617,52 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     });
     return () => { cancelled = true; };
   }, []);
+
+  // 입력 중인 견적은 계정별로 저장해 페이지 이동·브라우저 재실행 후 복원한다.
+  useEffect(() => {
+    saveQuoteFormDraft(draftStorageKey, {
+      version: 1,
+      company,
+      contact,
+      phone,
+      email,
+      author,
+      customAuthorName,
+      customAuthorPhone,
+      customAuthorEmail,
+      deliveryLocation,
+      deliveryDeadline,
+      paymentTerms,
+      validityPeriod,
+      packing,
+      notes,
+      selectedSheet,
+      selectedProductId,
+      addQty,
+      items: items.map(storedItemFromRow),
+    });
+  }, [
+    draftStorageKey,
+    company,
+    contact,
+    phone,
+    email,
+    author,
+    customAuthorName,
+    customAuthorPhone,
+    customAuthorEmail,
+    deliveryLocation,
+    deliveryDeadline,
+    paymentTerms,
+    validityPeriod,
+    packing,
+    notes,
+    selectedSheet,
+    selectedProductId,
+    addQty,
+    items,
+  ]);
+
   const selectedGroup = QUOTE_PRODUCT_CATALOG.find((group) => group.sheet === selectedSheet) ?? firstCatalogGroup;
   const selectedCatalogItem =
     selectedGroup?.items.find((item) => item.id === selectedProductId) ?? selectedGroup?.items[0] ?? null;
@@ -564,6 +777,39 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     const matches = customerRecords.filter((record) => record[field].toLocaleLowerCase('ko-KR').includes(query));
     if (matches.length === 1) applyCustomerRecord(matches[0]);
     else if (matches.length > 1) setCustomerPicker({ field, matches });
+  }
+
+  function handleResetForm() {
+    if (!window.confirm(t(UI.quoteResetConfirm))) return;
+    setCompany('');
+    setContact('');
+    setPhone('');
+    setEmail('');
+    setAuthor(defaultAuthorName ?? (authorLocked ? '' : authors[0]?.name ?? ''));
+    setCustomAuthorName('');
+    setCustomAuthorPhone('');
+    setCustomAuthorEmail('');
+    setDeliveryLocation(defaults.deliveryLocation);
+    setDeliveryDeadline(defaults.deliveryDeadline);
+    setPaymentTerms(defaults.paymentTerms);
+    setValidityPeriod(defaults.validityPeriod);
+    setPacking(defaults.packing);
+    setNotes('');
+    setSelectedSheet(firstCatalogGroup?.sheet ?? '');
+    setSelectedProductId(firstCatalogGroup?.items[0]?.id ?? '');
+    setAddQty(1);
+    setItems(cartProducts.map((product) => itemFromProduct(product, lang)));
+    setCustomerPicker(null);
+    if (previewPdfUrl) URL.revokeObjectURL(previewPdfUrl);
+    setPreviewPdfUrl(null);
+    setPreviewQuote(null);
+    setEmailModalOpen(false);
+    setEmailSubject('');
+    setEmailBody('');
+    setDetailProduct(null);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    clearQuoteFormDraft(draftStorageKey);
   }
 
   function handleAddItem() {
@@ -699,6 +945,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         quoteNumber: result.newQuoteNumber ?? quote.quoteNumber,
       };
       saveQuote(finalQuote);
+      clearQuoteFormDraft(draftStorageKey);
       setPreviewQuote(finalQuote);
 
       alert(result.message ?? `${t(UI.quoteSaved)}\n${t(UI.quoteNumber)}: ${finalQuote.quoteNumber}`);
@@ -857,30 +1104,38 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
               {t(UI.back)}
             </button>
             <h1 className="text-lg font-bold text-[#191919]">{t(UI.quoteModalTitle)}</h1>
-           </div>
-           <div className="flex gap-2">
-            <a
-              href={FOLDER_BROWSER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-              </svg>
-              {t(UI.quoteFolderBtn)}
-            </a>
-            <button
-              onClick={openPreview}
-              disabled={previewLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] disabled:opacity-60 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              {previewLoading ? t(UI.quotePreviewLoading) : t(UI.quotePrintBtn)}
-            </button>
+          </div>
+          <div className="flex flex-wrap justify-end gap-2">
+              <a
+                href={FOLDER_BROWSER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                </svg>
+                {t(UI.quoteFolderBtn)}
+              </a>
+              <button
+                type="button"
+                onClick={handleResetForm}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              >
+                {t(UI.quoteResetBtn)}
+              </button>
+              <button
+                type="button"
+                onClick={openPreview}
+                disabled={previewLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] disabled:opacity-60 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                {previewLoading ? t(UI.quotePreviewLoading) : t(UI.quotePrintBtn)}
+              </button>
           </div>
         </div>
 

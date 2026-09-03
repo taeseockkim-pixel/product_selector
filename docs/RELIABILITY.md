@@ -23,6 +23,7 @@ Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 서버리스 함
 **참고**: 운영 접속은 Apps Script wrapper URL을 사용한다. wrapper는 Vercel 앱을 iframe으로 표시하고, 견적 저장/메일 초안 생성은 `google.script.run`으로 기존 Apps Script `processQuote`에 위임한다. `/api/google/quote`는 wrapper 밖에서 직접 Vercel 앱을 열었을 때의 fallback이다.
 `server/` 폴더의 `/api/local/*`(Express, XLSX/PDF 생성)는 Vercel 배포 대상이 아니다 — `npm run local`로 로컬에서만 구동된다. 자세한 구조는
 [ARCHITECTURE.md](../ARCHITECTURE.md#견적서-기능-아키텍처) 참조.
+견적 작성 중인 입력값과 품목은 `cimon-quote-draft:<계정 이메일>` localStorage 키에 계정별로 보존된다. 사용자가 수동으로 초기화하거나 견적 저장/메일 초안 생성이 성공한 경우에만 삭제된다.
 
 ---
 
