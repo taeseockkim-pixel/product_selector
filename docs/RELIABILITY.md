@@ -14,7 +14,7 @@ GitHub (taeseockkim-pixel/product_selector)
 Vercel 빌드 (npm run build)
   │  빌드 성공 시
   ▼
-Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 서버리스 함수 배포
+Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 및 api/ai/query 서버리스 함수 배포
 ```
 
 **배포 소요 시간**: ~1~2분 (정적 SPA 빌드)  
@@ -25,6 +25,7 @@ Vercel CDN 배포 (전 세계 엣지 노드) + api/google/quote 서버리스 함
 [ARCHITECTURE.md](../ARCHITECTURE.md#견적서-기능-아키텍처) 참조.
 견적 작성 중인 입력값과 품목은 `cimon-quote-draft:<계정 이메일>` localStorage 키에 계정별로 보존된다. 사용자가 수동으로 초기화하거나 견적 저장/메일 초안 생성이 성공한 경우에만 삭제된다.
 견적 목록의 연도 선택과 14개 단위 파일 분할은 Apps Script 전체 교체용 `APPS_SCRIPT_Code_gs_전체교체코드.txt` 및 `APPS_SCRIPT_Index_html_전체교체코드.txt`에도 반영해야 한다. Apps Script를 새 버전으로 배포하고, 분할 생성 로직이 포함된 `agent/index.js`를 저장 PC에서 재시작해야 운영에 적용된다.
+AI 검색의 개인 OpenRouter API 키는 요청 처리 중에만 사용하고 localStorage·서버 파일·데이터베이스에 저장하지 않는다. OpenRouter 키를 소스 코드나 Vercel 빌드 환경변수에 넣지 않으며, 고객 데이터 요청에는 ZDR 제공자 제한을 우선 사용한다.
 
 ---
 
@@ -163,7 +164,7 @@ npm run build                   # 프로덕션 빌드 확인
 
 ## 환경 변수
 
-제품 카탈로그는 정적 데이터이므로 환경 변수 불필요. 운영 흐름은 Apps Script wrapper를 통해 실행되므로 서비스 계정 키가 필요 없다.
+제품 카탈로그는 정적 데이터이므로 환경 변수 불필요. 운영 흐름은 Apps Script wrapper를 통해 실행되므로 서비스 계정 키가 필요 없다. AI 검색은 사용자가 입력한 개인 OpenRouter 키를 요청 본문으로 전달한다.
 
 | 항목 | 용도 |
 |---|---|
@@ -171,6 +172,7 @@ npm run build                   # 프로덕션 빌드 확인
 | `appscript/wrapper-code.patch.gs` | Apps Script `Code.gs`에 반영할 `doGet` 및 브릿지 함수 |
 | `APPS_SCRIPT_Code_gs_전체교체코드.txt` | 견적관리대장 `일` 열, 제품군 정규화, 품목 배율 계산이 포함된 운영용 `Code.gs` 전체 코드 |
 | `APPS_SCRIPT_WEB_APP_URL` | 선택. Vercel 앱을 wrapper 밖에서 직접 열어 `/api/google/quote` fallback을 사용할 때만 필요 |
+| `OPENROUTER_API_KEY` | 사용하지 않음. 개인 키는 사용자 화면에서 일시적으로 입력하며 저장하지 않음 |
 
 Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배포할 수 있다. 사용자가 Apps Script URL로 접속하면 CIMON 로그인 세션 안에서 `google.script.run`이 실행되므로 Vercel 서버가 Apps Script를 직접 호출하지 않는다.
 

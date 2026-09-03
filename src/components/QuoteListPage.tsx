@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type KeyboardEvent } from 'react';
 import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import { fetchLedger, type LedgerRow } from '../utils/appsScriptBridge';
+import AiSearchPanel from './AiSearchPanel';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
 
@@ -50,6 +51,7 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
   const [sortIndex, setSortIndex] = useState<number | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [searchPickerRows, setSearchPickerRows] = useState<LedgerRow[] | null>(null);
+  const [aiSearchOpen, setAiSearchOpen] = useState(false);
 
   const loadQuotes = useCallback(async () => {
     setLoading(true);
@@ -141,6 +143,14 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
           )}
         </div>
         <div className="flex flex-wrap justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setAiSearchOpen((open) => !open)}
+            aria-expanded={aiSearchOpen}
+            className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+          >
+            {t(UI.quoteAiSearchBtn)}
+          </button>
           <button onClick={() => void loadQuotes()} className="px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors">
             {t(UI.quoteRefresh)}
           </button>
@@ -178,6 +188,8 @@ export default function QuoteListPage({ onBack, onNewQuote }: Props) {
           </button>
         </div>
       </div>
+
+      <AiSearchPanel open={aiSearchOpen} year={selectedYear} headers={headers} rows={rows} />
 
       {searchPickerRows && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-start justify-center overflow-y-auto py-10 px-4">

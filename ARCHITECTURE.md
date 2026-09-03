@@ -172,6 +172,9 @@ QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ←
     ├── POST /api/google/quote  (Vercel 서버리스 + 로컬 Express 동일 경로)
     │     └── server/appsScriptQuote.js
     │           └── Apps Script processQuote: Drive/Sheets/Gmail 처리
+
+    ├── POST /api/ai/query
+    │     └── server/openrouter.js → 사용자 입력 개인 키로 OpenRouter 연결 확인/대장 질의
     │
     ├── api/quotes/index.ts, [id].ts
     │     └── 레거시 스텁. 신규 저장 흐름에서는 사용하지 않음.
@@ -192,6 +195,7 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
 - Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략된다. Apps Script wrapper 안에서 실행되는 Vercel 앱은 `postMessage` 브릿지로 저장 요청을 전달하고, wrapper 밖에서 직접 실행될 때만 `/api/google/quote` fallback을 사용한다.
 - 견적 목록은 `getQuoteLedgerFromReact(year)`로 선택 연도를 전달한다. 읽기 전용 연도 조회는 기존 연도 폴더와 대장이 있을 때만 열고, 없는 연도는 생성하지 않는다.
 - 견적번호는 대장에 기본 번호 하나로 기록한다. 로컬 에이전트는 템플릿의 14개 품목 행 제약을 기준으로 품목을 분할해 같은 견적 폴더에 `_1`, `_2` 접미사를 붙인 XLSX/PDF를 생성한다.
+- AI 검색은 현재 선택한 연도의 대장 요약 행만 사용한다. 개인 OpenRouter API 키는 요청 본문으로만 전달하며 애플리케이션 저장소에 기록하지 않는다. 고객 연락처·이메일은 AI 요청에서 제외하고, ZDR 제공자 사용을 기본값으로 권장한다.
 
 Apps Script 반영 파일:
 

@@ -9,6 +9,7 @@ import { fillQuoteTemplate } from './fillTemplate.js';
 import { excelToPdf } from './excelToPdf.js';
 import { appendToLedger } from './updateLedger.js';
 import { processAppsScriptQuote } from './appsScriptQuote.js';
+import { processOpenRouterRequest } from './openrouter.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -110,6 +111,16 @@ app.post('/api/google/quote', async (req, res) => {
     res.json(result);
   } catch (err) {
     res.status(500).json({ success: false, message: String(err) });
+  }
+});
+
+/** 사용자 개인 OpenRouter API 키를 저장하지 않고 AI 요청만 중계한다. */
+app.post('/api/ai/query', async (req, res) => {
+  try {
+    const result = await processOpenRouterRequest(req.body);
+    res.status(result.status).json(result.body);
+  } catch {
+    res.status(500).json({ success: false, message: 'AI 요청 처리 중 오류가 발생했습니다.' });
   }
 });
 
