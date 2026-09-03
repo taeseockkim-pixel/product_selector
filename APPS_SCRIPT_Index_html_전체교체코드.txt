@@ -77,7 +77,7 @@
               error: String(error),
             }, appOrigin);
           })
-          .getQuoteLedgerFromReact();
+          .getQuoteLedgerFromReact(message.year);
         return;
       }
 

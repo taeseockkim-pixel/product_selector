@@ -56,6 +56,7 @@ const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 로그인 유지 12시간
 const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 10000);
 const TEMPLATE_PATH = resolve(__dirname, String(config.templatePath || 'templates/견적서 샘플.xlsx'));
 const MAX_JOB_ATTEMPTS = 3;
+const ITEMS_PER_FILE = 14;
 
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
@@ -193,6 +194,23 @@ function quoteYear(details) {
   return match ? match[1] : String(new Date().getFullYear());
 }
 
+function splitItems(items) {
+  const parts = [];
+  for (let index = 0; index < items.length; index += ITEMS_PER_FILE) {
+    parts.push(items.slice(index, index + ITEMS_PER_FILE));
+  }
+  return parts.length > 0 ? parts : [[]];
+}
+
+function partQuoteNumber(baseQuoteNumber, partIndex, partCount) {
+  return partCount > 1 ? `${baseQuoteNumber}_${partIndex + 1}` : baseQuoteNumber;
+}
+
+function vatTotalForItems(items) {
+  const supplyTotal = items.reduce((sum, item) => sum + Number(item.totalPrice || 0), 0);
+  return Math.round(supplyTotal * 1.1);
+}
+
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -229,42 +247,50 @@ async function processJob(fileName) {
 
   const department = safeSegment(details.authorDepartment || DEFAULT_DEPARTMENT) || DEFAULT_DEPARTMENT;
   const year = quoteYear(details);
-  const folderName = `${safeSegment(details.quoteNumber)}_${safeSegment(details.clientName)}`;
+  const baseQuoteNumber = safeSegment(details.quoteNumber);
+  const itemParts = splitItems(items);
+  const folderName = `${baseQuoteNumber}_${safeSegment(details.clientName)}`;
   const folder = join(STORAGE_ROOT, department, year, folderName);
   mkdirSync(folder, { recursive: true });
 
-  const xlsxFileName = `${safeSegment(details.quoteNumber)}_${safeSegment(details.clientName)}_견적서.xlsx`;
-  const pdfFileName = xlsxFileName.replace(/\.xlsx$/, '.pdf');
-  const xlsxPath = join(folder, xlsxFileName);
-  const pdfPath = join(folder, pdfFileName);
+  const pdfFileNames = [];
+  for (let partIndex = 0; partIndex < itemParts.length; partIndex += 1) {
+    const partItems = itemParts[partIndex];
+    const partNumber = partQuoteNumber(baseQuoteNumber, partIndex, itemParts.length);
+    const xlsxFileName = `${partNumber}_${safeSegment(details.clientName)}_견적서.xlsx`;
+    const pdfFileName = xlsxFileName.replace(/\.xlsx$/, '.pdf');
+    const xlsxPath = join(folder, xlsxFileName);
+    const pdfPath = join(folder, pdfFileName);
+    const quote = {
+      quoteNumber: partNumber,
+      client: {
+        company: details.clientName ?? '',
+        contact: details.clientContactPerson ?? '',
+        phone: details.clientPhone ?? '',
+        email: details.clientEmail ?? '',
+      },
+      author: {
+        name: details.authorName ?? '',
+        phone: details.authorPhone ?? '',
+        email: details.authorEmail ?? '',
+      },
+      details: {
+        quoteDate: details.quoteDate ?? '',
+        deliveryLocation: details.deliveryLocation ?? '',
+        deliveryDeadline: details.deliveryDeadline ?? '',
+        paymentTerms: details.paymentTerms ?? '',
+        validityPeriod: details.validityPeriod ?? '',
+        packing: details.packing ?? '',
+        notes: details.notes ?? '',
+      },
+      items: partItems,
+      vatTotal: vatTotalForItems(partItems),
+    };
 
-  const quote = {
-    client: {
-      company: details.clientName ?? '',
-      contact: details.clientContactPerson ?? '',
-      phone: details.clientPhone ?? '',
-      email: details.clientEmail ?? '',
-    },
-    author: {
-      name: details.authorName ?? '',
-      phone: details.authorPhone ?? '',
-      email: details.authorEmail ?? '',
-    },
-    details: {
-      quoteDate: details.quoteDate ?? '',
-      deliveryLocation: details.deliveryLocation ?? '',
-      deliveryDeadline: details.deliveryDeadline ?? '',
-      paymentTerms: details.paymentTerms ?? '',
-      validityPeriod: details.validityPeriod ?? '',
-      packing: details.packing ?? '',
-      notes: details.notes ?? '',
-    },
-    items: items,
-    vatTotal: Number(payload.vatTotal ?? 0),
-  };
-
-  await fillQuoteTemplate(quote, xlsxPath, TEMPLATE_PATH);
-  excelToPdf(xlsxPath, pdfPath);
+    await fillQuoteTemplate(quote, xlsxPath, TEMPLATE_PATH);
+    excelToPdf(xlsxPath, pdfPath);
+    pdfFileNames.push(pdfFileName);
+  }
 
   // 견적 연도 폴더에 최신 견적관리대장 사본을 함께 유지한다 (Drive의 대장과 동일한 레이아웃)
   const yearFolder = dirname(folder);
@@ -282,7 +308,7 @@ async function processJob(fileName) {
     });
   }
 
-  const relativePath = [department, year, folderName, pdfFileName].map(encodeURIComponent).join('/');
+  const relativePath = [department, year, folderName, pdfFileNames[0]].map(encodeURIComponent).join('/');
   const signature = signRelativePath(decodeURIComponent(relativePath));
   const fileUrl = PUBLIC_BASE_URL
     ? `${PUBLIC_BASE_URL}/files/${relativePath}?k=${signature}`
@@ -294,6 +320,11 @@ async function processJob(fileName) {
     year,
     ok: true,
     fileUrl,
+    fileUrls: pdfFileNames.map((pdfFileName) => {
+      const partPath = [department, year, folderName, pdfFileName].map(encodeURIComponent).join('/');
+      const partSignature = signRelativePath(decodeURIComponent(partPath));
+      return PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/files/${partPath}?k=${partSignature}` : '';
+    }),
     localPath: folder,
   };
   writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber)}.json`), JSON.stringify(result), 'utf8');
@@ -523,7 +554,7 @@ app.get('/browse', (req, res) => {
   const storageRelative = target.target === storageRootResolved ? '' : target.target.slice(storageRootResolved.length + 1).split(sep).join('/');
 
   const entries = readdirSync(target.target, { withFileTypes: true })
-    .filter((e) => !e.name.startsWith('.'))
+    .filter((e) => !e.name.startsWith('.') && e.name.toLowerCase() !== 'desktop.ini')
     .map((e) => {
       const isFolder = e.isDirectory();
       let size = '';

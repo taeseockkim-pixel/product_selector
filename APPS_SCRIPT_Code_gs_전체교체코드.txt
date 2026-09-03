@@ -50,6 +50,8 @@ const CELL_MAP = {
   authorEmail: 'H39'
 };
 
+const ITEMS_PER_FILE = 14;
+
 function doGet(e) {
   const template = HtmlService.createTemplateFromFile('Index');
   const queryString = e && e.queryString ? '?' + e.queryString : '';
@@ -74,12 +76,20 @@ function processQuoteFromReact(payload) {
   );
 }
 
-function getQuoteLedgerFromReact() {
+function getQuoteLedgerFromReact(requestedYear) {
   // 접속 계정의 부서에 해당하는 대장만 조회한다 (미등록 계정은 기본 부서 대장).
   const access = getAuthorizedUserFromReact();
   const department = access.success && access.authorized && access.author ? access.author.department : '';
   const rootFolderId = resolveRootFolderId({ authorDepartment: department });
-  const system = getYearSystem(new Date().getFullYear(), rootFolderId);
+  const currentYear = new Date().getFullYear();
+  const parsedYear = Number(requestedYear);
+  const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+    ? parsedYear
+    : currentYear;
+  const system = getExistingYearSystem_(year, rootFolderId);
+  if (!system) {
+    return { success: true, headers: [], rows: [] };
+  }
   const sheet = system.ledgerSheet;
   const lastRow = sheet.getLastRow();
   const lastColumn = sheet.getLastColumn();
@@ -183,6 +193,18 @@ function enqueueLocalSave_(details, items, vatTotal) {
   const payload = JSON.stringify({ details: details, items: items || [], vatTotal: vatTotal });
   pending.createFile(fileName, payload, MimeType.PLAIN_TEXT);
   ensureAgentTrigger_();
+}
+
+function splitQuoteItems_(items) {
+  const parts = [];
+  for (let i = 0; i < items.length; i += ITEMS_PER_FILE) {
+    parts.push(items.slice(i, i + ITEMS_PER_FILE));
+  }
+  return parts.length > 0 ? parts : [[]];
+}
+
+function quotePartNumber_(baseQuoteNumber, partIndex, partCount) {
+  return partCount > 1 ? `${baseQuoteNumber}_${partIndex + 1}` : baseQuoteNumber;
 }
 
 function ensureAgentTrigger_() {
@@ -379,6 +401,22 @@ function getYearSystem(year, rootFolderId) {
   return { folder: yearFolder, ledger: ledgerSS, ledgerSheet };
 }
 
+// 목록 조회에서는 존재하지 않는 연도의 폴더·대장을 새로 만들지 않는다.
+function getExistingYearSystem_(year, rootFolderId) {
+  const targetRootId = rootFolderId || CONFIG.DEPARTMENT_ROOTS[CONFIG.DEFAULT_DEPARTMENT];
+  const rootFolder = DriveApp.getFolderById(targetRootId);
+  const yearStr = String(year);
+  const folderIter = rootFolder.getFoldersByName(yearStr);
+  if (!folderIter.hasNext()) return null;
+  const yearFolder = folderIter.next();
+  const ledgerName = `${yearStr}_견적관리대장`;
+  const fileIter = yearFolder.getFilesByName(ledgerName);
+  if (!fileIter.hasNext()) return null;
+  const ledgerSS = SpreadsheetApp.open(fileIter.next());
+  const ledgerSheet = ledgerSS.getSheetByName(CONFIG.LEDGER_SHEET_NAME) || ledgerSS.getSheets()[0];
+  return { folder: yearFolder, ledger: ledgerSS, ledgerSheet };
+}
+
 function getNextQuoteNumber(rootFolderId, department) {
   try {
     const today = new Date();
@@ -428,29 +466,40 @@ function processQuote(quoteData, createDraft, customSubject, customBody) {
 
     // 실제 파일(XLSX/PDF)은 사내 PC(172.35.12.36)의 로컬 에이전트가 생성·저장한다.
     // 여기서는 견적 데이터를 저장 대기열에 등록만 하고, 구글 드라이브에는 파일을 만들지 않는다.
-    const finalVatPrice = Math.round((quoteData.items || []).reduce(function(sum, item) {
+    const items = quoteData.items || [];
+    const itemParts = splitQuoteItems_(items);
+    const finalVatPrice = Math.round(items.reduce(function(sum, item) {
       return sum + Number(item.totalPrice || 0);
     }, 0) * 1.1);
-    enqueueLocalSave_(details, quoteData.items || [], finalVatPrice);
+    enqueueLocalSave_(details, items, finalVatPrice);
 
     // 대장의 파일링크는 비워두고, 에이전트가 저장을 완료하면 사내 경로로 채운다.
-    saveToLedgerSheet(system.ledgerSheet, details, quoteData.items || [], finalVatPrice, '');
+    saveToLedgerSheet(system.ledgerSheet, details, items, finalVatPrice, '');
 
     // 대장 사본(XLSX)을 에이전트 전달 폴더에 내보낸다. 에이전트가 견적 연도 폴더에 복사한다.
     exportLedgerToAgent_(system, currentYear, realQuoteNumber);
 
-    let returnMessage = '[완료] 견적번호: ' + realQuoteNumber + '\n파일은 사내 저장 PC의 부서별 폴더에 1~2분 내 생성됩니다.';
+    let returnMessage = '[완료] 견적번호: ' + realQuoteNumber;
+    if (itemParts.length > 1) {
+      returnMessage += `\n${itemParts.length}개 파일로 분할 생성됩니다. (파일당 최대 ${ITEMS_PER_FILE}개 품목)`;
+    }
+    returnMessage += '\n파일은 사내 저장 PC의 부서별 폴더에 1~2분 내 생성됩니다.';
 
     if (createDraft) {
       if (details.clientEmail && details.clientEmail.indexOf('@') > -1) {
         // Gmail 초안 첨부용으로만 임시 PDF를 만들고, 초안 생성 직후 구글 드라이브에서 삭제한다.
-        const pdfBlob = createTempQuotePdf_(quoteData, system, details);
+        const pdfBlobs = itemParts.map(function(partItems, partIndex) {
+          const partDetails = Object.assign({}, details, {
+            quoteNumber: quotePartNumber_(realQuoteNumber, partIndex, itemParts.length)
+          });
+          return createTempQuotePdf_({ details: partDetails, items: partItems }, system, partDetails);
+        });
         GmailApp.createDraft(
           details.clientEmail,
           customSubject || `[CIMON] ${details.clientName} - 제품 견적서 송부 드립니다.`,
           customBody || makeDefaultEmailBody(details),
           {
-            attachments: [pdfBlob],
+            attachments: pdfBlobs,
             name: details.authorName || 'CIMON'
           }
         );
@@ -486,7 +535,7 @@ function createTempQuotePdf_(quoteData, system, details) {
     fillSheetData(spreadsheet, quoteData);
     SpreadsheetApp.flush();
     const sheetId = spreadsheet.getSheets()[0].getSheetId();
-    return createPdfBlob(newFile.getId(), sheetId, `${sanitizeDriveName(details.clientName)}_견적서_${details.quoteDate}`);
+    return createPdfBlob(newFile.getId(), sheetId, `${sanitizeDriveName(details.quoteNumber)}_${sanitizeDriveName(details.clientName)}_견적서`);
   } finally {
     permanentlyDeleteFile_(newFile.getId());
   }

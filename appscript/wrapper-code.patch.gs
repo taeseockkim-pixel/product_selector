@@ -24,8 +24,13 @@ function processQuoteFromReact(payload) {
   );
 }
 
-function getQuoteLedgerFromReact() {
-  const system = getYearSystem(new Date().getFullYear());
+function getQuoteLedgerFromReact(year) {
+  const parsedYear = Number(year);
+  const currentYear = new Date().getFullYear();
+  const selectedYear = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+    ? parsedYear
+    : currentYear;
+  const system = getYearSystem(selectedYear);
   const sheet = system.ledgerSheet;
   const lastRow = sheet.getLastRow();
   const lastColumn = sheet.getLastColumn();

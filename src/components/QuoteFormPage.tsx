@@ -25,7 +25,6 @@ import SpecModal from './SpecModal';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
 
-const MAX_ITEMS = 14; // 견적서 샘플.xlsx 품목 행이 16~29행(14행)까지만 준비되어 있음
 const AUTHOR_LABELS: Record<string, string> = {
   '조규광 이사': 'Kyukwang Jo, Director',
   '김태석 차장': 'Taeseock Kim, Deputy General Manager',
@@ -373,14 +372,6 @@ function displaySpec(item: ItemRow, lang: Lang) {
 
 function formatMoney(value: number, lang: Lang) {
   return lang === 'ko' ? `${formatKRW(value)} 원` : `${formatKRW(value)} KRW`;
-}
-
-function uiText(entry: { ko: string; en: string }, lang: Lang, values: Record<string, string | number> = {}) {
-  let text = entry[lang];
-  for (const [key, value] of Object.entries(values)) {
-    text = text.split(`{${key}}`).join(String(value));
-  }
-  return text;
 }
 
 async function readJsonResponse<T>(res: Response): Promise<T> {
@@ -814,10 +805,6 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
   function handleAddItem() {
     if (!selectedCatalogItem) return;
-    if (items.length >= MAX_ITEMS) {
-      alert(uiText(UI.quoteMaxItems, lang, { max: MAX_ITEMS }));
-      return;
-    }
     const qty = Math.max(1, addQty || 1);
     setItems((prev) => [...prev, itemFromCatalog(selectedCatalogItem, qty)]);
   }
@@ -892,10 +879,6 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     }
     if (items.length === 0) {
       alert(t(UI.quoteItemsRequired));
-      return false;
-    }
-    if (items.length > MAX_ITEMS) {
-      alert(uiText(UI.quoteMaxItemsWithCurrent, lang, { max: MAX_ITEMS, current: items.length }));
       return false;
     }
     return true;
@@ -1325,7 +1308,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <button
                     type="button"
                     onClick={handleAddItem}
-                    disabled={!selectedCatalogItem || items.length >= MAX_ITEMS}
+                    disabled={!selectedCatalogItem}
                     className="w-full rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
                     {t(UI.quoteAddBtn)}{selectedCatalogPrice != null ? ` (${formatMoney(selectedCatalogPrice, lang)})` : ''}

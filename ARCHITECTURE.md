@@ -164,6 +164,7 @@ quoteProductCatalog.ts
 QuoteFormPage.tsx
     │  quoteProductCatalog.ts / priceData.ts (fallback) 로 단가 계산
     │  품목 금액 = 단가 × 배율 × 수량 (배율 기본값 1)
+    │  품목 수 제한 없음 → 에이전트가 14개씩 파일 분할
     ▼
 quoteStorage.ts → localStorage ("cimon-quotes", "cimon-quote-seq")  ← 목록 캐시
 QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ← 미완성 초안
@@ -189,6 +190,8 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
 - `excelToPdf.js`는 Windows Excel COM 객체에 의존 → **Vercel 프로덕션에서는 동작 불가**, 로컬
   개발(`npm run local`) 전용 기능이다.
 - Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략된다. Apps Script wrapper 안에서 실행되는 Vercel 앱은 `postMessage` 브릿지로 저장 요청을 전달하고, wrapper 밖에서 직접 실행될 때만 `/api/google/quote` fallback을 사용한다.
+- 견적 목록은 `getQuoteLedgerFromReact(year)`로 선택 연도를 전달한다. 읽기 전용 연도 조회는 기존 연도 폴더와 대장이 있을 때만 열고, 없는 연도는 생성하지 않는다.
+- 견적번호는 대장에 기본 번호 하나로 기록한다. 로컬 에이전트는 템플릿의 14개 품목 행 제약을 기준으로 품목을 분할해 같은 견적 폴더에 `_1`, `_2` 접미사를 붙인 XLSX/PDF를 생성한다.
 
 Apps Script 반영 파일:
 

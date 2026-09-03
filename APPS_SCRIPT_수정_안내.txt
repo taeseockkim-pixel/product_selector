@@ -35,6 +35,7 @@ D:\smart_quote_sys\product_selector\APPS_SCRIPT_Code_gs_전체교체코드.txt
 - 이 전체 교체용 Code.gs는 제품선택가이드 wrapper와 견적 저장/PDF/Gmail 초안 생성에 필요한 함수만 담았습니다.
 - 기존 예전 화면용 사용자 관리, 제품 드롭다운, 예전 HTML용 함수는 제거됩니다.
 - Gemini AI 요약용 CONFIG.GEMINI_API_KEY는 전체 교체용 Code.gs 파일에 기존 값으로 반영되어 있습니다.
+- 견적 목록의 연도 선택과 14개 단위 파일 분할 로직도 이 전체 교체용 Code.gs에 포함되어 있습니다.
 
 
 3. wrapper-code.patch.gs 내용에서 확인할 값
@@ -60,6 +61,10 @@ const VERCEL_APP_URL = 'https://product-selector-two.vercel.app';
 7) 실행 사용자: 나
 8) 배포 업데이트
 9) 배포 관리 화면의 웹 앱 URL을 복사
+
+견적 품목을 14개 초과로 생성하려면 저장 PC의 `agent/index.js`도 최신 버전으로 교체한 뒤
+에이전트를 재시작해야 합니다. Apps Script만 먼저 업데이트하면 대장 기록은 되지만 파일 생성이
+기존 에이전트의 14개 제한에서 실패할 수 있습니다.
 
 
 5. 접속 URL

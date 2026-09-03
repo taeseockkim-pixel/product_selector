@@ -75,7 +75,7 @@ declare global {
               processQuoteFromReact: (payload: unknown) => void;
               getAuthorsFromReact: () => void;
               getAuthorizedUserFromReact: () => void;
-              getQuoteLedgerFromReact: () => void;
+              getQuoteLedgerFromReact: (year?: number) => void;
             };
           };
         };
@@ -84,7 +84,10 @@ declare global {
   }
 }
 
-function callAppsScriptFn<T>(fnName: 'getAuthorsFromReact' | 'getAuthorizedUserFromReact' | 'getQuoteLedgerFromReact'): Promise<T> {
+function callAppsScriptFn<T>(
+  fnName: 'getAuthorsFromReact' | 'getAuthorizedUserFromReact' | 'getQuoteLedgerFromReact',
+  year?: number,
+): Promise<T> {
   return new Promise((resolve, reject) => {
     const runner = window.google?.script?.run;
     if (!runner) {
@@ -94,7 +97,9 @@ function callAppsScriptFn<T>(fnName: 'getAuthorsFromReact' | 'getAuthorizedUserF
     const call = runner
       .withSuccessHandler<T>(resolve)
       .withFailureHandler((error) => reject(new Error(String(error))));
-    call[fnName]();
+    if (fnName === 'getQuoteLedgerFromReact') call.getQuoteLedgerFromReact(year);
+    else if (fnName === 'getAuthorsFromReact') call.getAuthorsFromReact();
+    else call.getAuthorizedUserFromReact();
   });
 }
 
@@ -102,6 +107,7 @@ function callAppsScriptFnViaParentBridge<T>(
   resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT',
   requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER',
   timeoutMs: number,
+  payload: { year?: number } = {},
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     const requestId = `${requestType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -123,7 +129,7 @@ function callAppsScriptFnViaParentBridge<T>(
 
     window.addEventListener('message', handleMessage);
     window.parent.postMessage(
-      { source: 'cimon-quote-app', type: requestType, requestId },
+      { source: 'cimon-quote-app', type: requestType, requestId, ...payload },
       '*',
     );
   });
@@ -146,11 +152,16 @@ export function fetchAuthorization(): Promise<AuthorizationResult> {
 }
 
 /** 접속 계정의 부서 대장을 조회한다 */
-export function fetchLedger(): Promise<LedgerResult> {
+export function fetchLedger(year?: number): Promise<LedgerResult> {
   if (window.parent && window.parent !== window) {
-    return callAppsScriptFnViaParentBridge<LedgerResult>('LOAD_QUOTE_LEDGER_RESULT', 'LOAD_QUOTE_LEDGER', 30000);
+    return callAppsScriptFnViaParentBridge<LedgerResult>(
+      'LOAD_QUOTE_LEDGER_RESULT',
+      'LOAD_QUOTE_LEDGER',
+      30000,
+      { year },
+    );
   }
-  return callAppsScriptFn<LedgerResult>('getQuoteLedgerFromReact');
+  return callAppsScriptFn<LedgerResult>('getQuoteLedgerFromReact', year);
 }
 
 /** 앱 진입 시 접속 계정의 견적 기능 사용 권한을 확인한다 (fetchAuthorization 별칭) */
