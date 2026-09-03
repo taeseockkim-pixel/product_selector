@@ -133,7 +133,7 @@ QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ←
 - **견적 품목 분할 출력**: 작성 화면에서는 품목 수를 제한하지 않는다. Apps Script가 하나의 견적번호와 대장 행을 생성하고, 사내 저장 에이전트가 품목을 14개씩 같은 폴더의 `견적번호_1`, `견적번호_2` 파일로 나누어 XLSX/PDF를 생성한다.
 - **부서 배지**: 견적 목록/작성 화면 상단에 접속 계정의 부서(`기술영업`/`영업`/`프로젝트`)를 배지로 표시한다. `App.tsx`가 `getAuthorizedUserFromReact()` 결과의 `author.department`를 `QuoteListPage`/`QuoteFormPage`에 `department` prop으로 내려준다.
 - **견적 수정(리비전)**: 목록의 `수정` 버튼은 `getQuoteForEditFromReact()`로 스냅샷 시트(`견적스냅샷`)에서 원본을 불러와 폼에 채운다(`QuoteEditData`에 `year`/`department`/`baseQuoteNumber` 포함). 저장 시 원본 견적번호는 대장에 그대로 두고 `{원본견적번호}_RevNN` 파일을 **원본과 같은 폴더**에 추가하며, 대장 원본 행은 F~N열만 갱신한다(A~E열은 그대로 유지). O열(파일링크)에는 원본·각 Rev 링크가 `' | '`로 누적된다. 리비전 저장은 원본을 조회했던 연도/부서(`revisionYear`/`revisionDepartment`)를 폼의 작성자 드롭다운과 무관하게 그대로 사용해야 로컬 에이전트가 같은 폴더에 파일을 저장한다. **삭제 기능은 사용자 요청에 따라 의도적으로 구현하지 않았다.**
-- **서류 업로드**: 견적 목록에서 업로드 링크는 로컬 에이전트(`agent/index.js`)의 `/upload` 페이지(부서 비밀번호 로그인 필요)로 연결되며, 연도·부서·견적번호·업체명으로 확인된 해당 견적 폴더에 발주서·사업자등록증 등(PDF/HWP/DOC/XLS/이미지/ZIP, 20MB 이하)을 추가한다.
+- **서류 업로드**: 견적 목록에서 업로드 링크는 로컬 에이전트(`agent/index.js`)의 `/upload` 페이지(부서 비밀번호 로그인 필요)로 연결되며, 연도·부서·견적번호·업체명으로 확인된 해당 견적 폴더에 발주서·사업자등록증·PPT 등 대부분의 파일(실행/스크립트 파일 제외, 1GB 이하)을 추가한다.
 - **발주 체크박스**: 견적 목록의 발주 체크박스는 `updateQuoteOrderFromReact()`를 호출해 대장 E열(발주)에 직접 기록한다. E열은 신규/수정 저장 로직(`saveToLedgerSheet()`)이 절대 건드리지 않는, 사용자가 대장에서 직접 관리하는 열이다.
 - **미완성 초안 보존**: 견적 작성 입력값과 품목은 접속 계정 이메일별 localStorage 키에 저장한다. 페이지 이동이나 브라우저 재실행 후 같은 계정으로 진입하면 복원되며, 사용자가 `초기화`를 누르거나 견적 저장/메일 초안 생성이 성공한 경우에만 해당 초안을 삭제한다.
 - **Google Workspace 연동**: Apps Script wrapper를 사용한다. 서비스 계정 JSON 키와 Domain-wide delegation은 필요하지 않으며, Apps Script 접근 권한은 `CIMON의 모든 사용자`로 유지할 수 있다.

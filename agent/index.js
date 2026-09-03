@@ -58,7 +58,7 @@ const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 10000);
 const TEMPLATE_PATH = resolve(__dirname, String(config.templatePath || 'templates/견적서 샘플.xlsx'));
 const MAX_JOB_ATTEMPTS = 3;
 const ITEMS_PER_FILE = 14;
-const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
@@ -486,8 +486,9 @@ function startPolling() {
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 // JSON 본문 파서는 /upload 라우트에만 적용한다 — 로그인 등 다른 모든 요청이 인증 전에
-// 30MB까지 버퍼링을 강제로 겪지 않도록 앱 전체에는 걸지 않는다.
-const uploadJsonParser = express.json({ limit: '30mb' });
+// 대용량 버퍼링을 강제로 겪지 않도록 앱 전체에는 걸지 않는다.
+// base64로 인코딩하면 원본 크기의 4/3배가 되므로(1GB → 약 1.33GB), 여유를 두고 1400mb로 설정한다.
+const uploadJsonParser = express.json({ limit: '1400mb' });
 
 const PAGE_STYLE = `
     body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background: #f0ede8; margin: 0; padding: 40px 16px; }
@@ -603,13 +604,13 @@ function uploadPageHtml(session, targetInfo, message = '', isError = false) {
     <a class="logout" href="/browse">목록으로</a>
   </div>
   <div class="crumb">대상 폴더: ${escHtml(targetInfo.folderName)}</div>
-  <p class="hint">업체 발주서, 사업자등록증 등 PDF·HWP·Word·Excel·이미지·ZIP 파일을 업로드할 수 있습니다. 파일당 최대 20MB입니다.</p>
+  <p class="hint">발주서, 사업자등록증, 발표자료(PPT) 등 대부분의 파일 형식을 업로드할 수 있습니다(실행 파일 등 일부 형식은 제외). 파일당 최대 1GB입니다.</p>
   <form id="uploadForm">
     <input type="hidden" id="uploadYear" value="${escHtml(targetInfo.year)}">
     <input type="hidden" id="uploadDepartment" value="${escHtml(targetInfo.department)}">
     <input type="hidden" id="uploadQuoteNumber" value="${escHtml(targetInfo.quoteNumber)}">
     <input type="hidden" id="uploadCompany" value="${escHtml(targetInfo.company)}">
-    <input id="fileInput" type="file" accept=".pdf,.hwp,.hwpx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip" required>
+    <input id="fileInput" type="file" required>
     <button type="submit">업로드</button>
     <div id="status" class="${statusClass}">${escHtml(message)}</div>
   </form>
@@ -710,12 +711,19 @@ app.post('/upload', (req, res, next) => {
   const extension = extname(fileName).toLowerCase();
   const stem = basename(fileName, extension);
   const reservedNames = new Set(['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']);
-  const allowedExtensions = new Set(['.pdf', '.hwp', '.hwpx', '.doc', '.docx', '.xls', '.xlsx', '.jpg', '.jpeg', '.png', '.zip']);
+  // 확장자는 허용 목록이 아니라 차단 목록으로 관리한다 — pptx 등 문서 형식은 모두 허용하고,
+  // 다른 직원이 나중에 내려받아 실행했을 때 위험할 수 있는 실행/스크립트 파일만 막는다.
+  const blockedExtensions = new Set([
+    '.exe', '.bat', '.cmd', '.com', '.scr', '.msi', '.msp', '.mst', '.jar',
+    '.vb', '.vbs', '.vbe', '.js', '.jse', '.ws', '.wsf', '.wsh', '.ps1', '.psm1',
+    '.sh', '.dll', '.cpl', '.reg', '.hta', '.gadget', '.lnk', '.scf', '.apk',
+    '.html', '.htm', '.svg',
+  ]);
   if (!fileName || fileName !== rawFileName || basename(fileName) !== fileName || fileName === 'desktop.ini' || fileName.toLowerCase() === 'desktop.ini' || reservedNames.has(stem.toUpperCase())) {
     return res.status(400).json({ success: false, message: '파일명이 올바르지 않습니다.' });
   }
-  if (!allowedExtensions.has(extension)) {
-    return res.status(400).json({ success: false, message: '지원하지 않는 파일 형식입니다.' });
+  if (!extension || blockedExtensions.has(extension)) {
+    return res.status(400).json({ success: false, message: '보안상 이 파일 형식(실행 파일 등)은 업로드할 수 없습니다.' });
   }
   if (!content || content.length > Math.ceil(MAX_UPLOAD_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]*={0,2}$/.test(content)) {
     return res.status(400).json({ success: false, message: '파일 데이터가 올바르지 않거나 너무 큽니다.' });
@@ -723,7 +731,7 @@ app.post('/upload', (req, res, next) => {
 
   const buffer = Buffer.from(content, 'base64');
   if (buffer.length === 0 || buffer.length > MAX_UPLOAD_BYTES) {
-    return res.status(413).json({ success: false, message: '파일은 20MB 이하만 업로드할 수 있습니다.' });
+    return res.status(413).json({ success: false, message: '파일은 1GB 이하만 업로드할 수 있습니다.' });
   }
 
   let outputName = fileName;
