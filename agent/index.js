@@ -254,6 +254,26 @@ function safeDepartmentSegment(value) {
   return (segment && segment !== '.' && segment !== '..') ? segment : DEFAULT_DEPARTMENT;
 }
 
+// 같은 견적번호(baseQuoteNumber)로 이미 만들어진 폴더가 있으면 그 폴더를 그대로 재사용한다.
+// 계산된 이름(`baseQuoteNumber_folderClientName`)이 실제 폴더명과 정확히 일치하지 않는 경우
+// (업체명 표기 차이, 사람이 폴더명을 직접 수정한 경우 등)에도 수정본(Rev) 파일이 별도의 새
+// 폴더가 아니라 원본과 같은 폴더에 들어가도록 하기 위함이다. 일치하는 폴더가 없거나 후보가
+// 여럿이라 모호한 경우에는 계산된 경로를 그대로 사용한다(기존 동작과 동일, 신규 생성 허용).
+function resolveExistingQuoteFolder_(yearDir, baseQuoteNumber, computedFolderName) {
+  const computedPath = join(yearDir, computedFolderName);
+  if (existsSync(computedPath) && statSync(computedPath).isDirectory()) return computedPath;
+  if (!existsSync(yearDir)) return computedPath;
+  try {
+    const prefix = `${baseQuoteNumber}_`;
+    const candidates = readdirSync(yearDir, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name.startsWith(prefix));
+    if (candidates.length === 1) return join(yearDir, candidates[0].name);
+  } catch {
+    // 연도 폴더를 읽을 수 없으면(권한 등) 계산된 경로로 진행한다.
+  }
+  return computedPath;
+}
+
 async function processJob(fileName) {
   const jsonPath = join(PENDING_DIR, fileName);
   const payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
@@ -266,7 +286,8 @@ async function processJob(fileName) {
   const baseQuoteNumber = safeSegment(details.baseQuoteNumber || details.quoteNumber);
   const itemParts = splitItems(items);
   const folderName = `${baseQuoteNumber}_${safeSegment(details.folderClientName || details.clientName)}`;
-  const folder = join(STORAGE_ROOT, department, year, folderName);
+  const yearDir = join(STORAGE_ROOT, department, year);
+  const folder = resolveExistingQuoteFolder_(yearDir, baseQuoteNumber, folderName);
   mkdirSync(folder, { recursive: true });
 
   const pdfFileNames = [];
