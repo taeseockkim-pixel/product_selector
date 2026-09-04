@@ -43,7 +43,7 @@ function isOrderMarked(value: string) {
 
 function columnWidth(header: string) {
   if (header.includes('NO')) return 48;
-  if (header.includes('연도')) return 56;
+  if (header.includes('연도')) return 48;
   if (header === '월' || header === '일') return 42;
   if (header.includes('발주')) return 78;
   if (header.includes('견적번호')) return 128;
