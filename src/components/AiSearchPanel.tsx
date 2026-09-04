@@ -36,6 +36,7 @@ interface LedgerAiContext {
     category: string;
     product: string;
     amountKrw: number | null;
+    ordered: boolean;
   }>;
 }
 
@@ -59,6 +60,10 @@ function parseAmount(value: string): number | null {
   return Number.isFinite(amount) ? amount : null;
 }
 
+function isOrderMarked(value: string) {
+  return ['발주', '완료', '예', 'Y', 'O', 'TRUE'].includes(value.trim().toUpperCase());
+}
+
 function findColumn(headers: string[], labels: string[]) {
   return headers.findIndex((header) => labels.some((label) => header.includes(label)));
 }
@@ -69,6 +74,7 @@ function contextFromLedger(headers: string[], rows: LedgerRow[], year: number, d
   const yearIndex = findColumn(headers, ['연도', '년도']);
   const monthIndex = findColumn(headers, ['월']);
   const dayIndex = findColumn(headers, ['일']);
+  const orderIndex = findColumn(headers, ['발주']);
   const companyIndex = findColumn(headers, ['업체명', '회사명', '회사']);
   const contactIndex = findColumn(headers, ['고객명', '담당자']);
   const phoneIndex = findColumn(headers, ['연락처', '전화', '휴대폰']);
@@ -97,6 +103,7 @@ function contextFromLedger(headers: string[], rows: LedgerRow[], year: number, d
       category: valueAt(row, categoryIndex),
       product,
       amountKrw: parseAmount(valueAt(row, amountIndex)),
+      ordered: orderIndex >= 0 ? isOrderMarked(valueAt(row, orderIndex)) : false,
     };
   }).filter((row) => row.quoteNumber || row.company || row.product);
 
@@ -106,7 +113,7 @@ function contextFromLedger(headers: string[], rows: LedgerRow[], year: number, d
     department,
     rowCount: rows.length,
     truncated: rows.length > MAX_CONTEXT_ROWS,
-    note: '현재 사용자의 부서 대장만 포함합니다. 제품명은 여러 품목 견적에서 요약되어 있을 수 있습니다.',
+    note: '현재 사용자의 부서 대장만 포함합니다. ordered 필드는 발주 완료 여부(true=발주완료, false=미발주)입니다. 제품명은 여러 품목 견적에서 요약되어 있을 수 있습니다.',
     rows: contextRows,
   };
 }
