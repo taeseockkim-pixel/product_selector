@@ -119,7 +119,7 @@ export const UI = {
   quoteNewBtn:      t('견적서 작성', 'Create Quote'),
   quoteEditTitle:   t('견적서 수정', 'Edit Quote'),
   quoteEditBtn:     t('수정', 'Edit'),
-  quoteUploadBtn:   t('서류 업로드', 'Upload Documents'),
+  quoteUploadBtn:   t('업로드', 'Upload'),
   quoteOrder:       t('발주', 'Ordered'),
   quoteOrderMarked: t('발주 완료', 'Ordered'),
   quoteOrderUpdating: t('기록 중...', 'Updating...'),

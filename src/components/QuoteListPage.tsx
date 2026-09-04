@@ -67,7 +67,7 @@ function columnWidth(header: string) {
   return 110;
 }
 
-const ACTION_COLUMN_WIDTH = 184;
+const ACTION_COLUMN_WIDTH = 144;
 
 function uploadUrl(year: number, department: string, quoteNumber: string, company: string) {
   const params = new URLSearchParams({
@@ -416,7 +416,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                           type="button"
                           disabled={!quoteNumber}
                           onClick={() => onEditQuote(selectedYear, quoteNumber)}
-                          className="w-[76px] rounded border border-blue-200 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
+                          className="w-14 rounded border border-blue-200 px-1 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
                         >
                           {t(UI.quoteEditBtn)}
                         </button>
@@ -425,7 +425,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}
-                          className="w-[76px] rounded border border-green-200 px-2 py-1 text-[11px] font-medium text-green-700 hover:bg-green-50 aria-disabled:pointer-events-none aria-disabled:opacity-40 text-center"
+                          className="w-14 rounded border border-green-200 px-1 py-1 text-[11px] font-medium text-green-700 hover:bg-green-50 aria-disabled:pointer-events-none aria-disabled:opacity-40 text-center"
                           aria-disabled={!quoteNumber || !company}
                         >
                           {t(UI.quoteUploadBtn)}
