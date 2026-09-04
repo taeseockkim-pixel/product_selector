@@ -235,15 +235,25 @@ function getAgentFolder_() {
   const cachedId = props.getProperty('AGENT_FOLDER_ID');
   if (cachedId) {
     try {
-      return DriveApp.getFolderById(cachedId);
-    } catch (err) { /* 폴더가 삭제된 경우 재탐색 */ }
+      const folder = DriveApp.getFolderById(cachedId);
+      if (folder && !folder.isTrashed()) return folder;
+    } catch (err) { /* 폴더가 삭제되었거나 접근 불가 시 재탐색 */ }
   }
   const authorFile = DriveApp.getFileById(CONFIG.AUTHOR_DB_SHEET_ID);
   const parents = authorFile.getParents();
   const parent = parents.hasNext() ? parents.next() : DriveApp.getRootFolder();
-  let folder;
+  let folder = null;
   const iter = parent.getFoldersByName(CONFIG.AGENT_QUEUE_FOLDER_NAME);
-  folder = iter.hasNext() ? iter.next() : parent.createFolder(CONFIG.AGENT_QUEUE_FOLDER_NAME);
+  while (iter.hasNext()) {
+    const candidate = iter.next();
+    if (!candidate.isTrashed()) {
+      folder = candidate;
+      break;
+    }
+  }
+  if (!folder) {
+    folder = parent.createFolder(CONFIG.AGENT_QUEUE_FOLDER_NAME);
+  }
   props.setProperty('AGENT_FOLDER_ID', folder.getId());
   return folder;
 }
@@ -251,7 +261,11 @@ function getAgentFolder_() {
 function getAgentSubfolder_(name) {
   const root = getAgentFolder_();
   const iter = root.getFoldersByName(name);
-  return iter.hasNext() ? iter.next() : root.createFolder(name);
+  while (iter.hasNext()) {
+    const candidate = iter.next();
+    if (!candidate.isTrashed()) return candidate;
+  }
+  return root.createFolder(name);
 }
 
 function enqueueLocalSave_(details, items, vatTotal) {
@@ -1149,9 +1163,63 @@ function diagnoseDriveConfig() {
     Logger.log('FAIL 작성자 DB 시트 열기 실패: ' + e5);
   }
 
+  try {
+    const agentFolder = getAgentFolder_();
+    Logger.log('OK AGENT_FOLDER 성공: ' + agentFolder.getName() + ' (ID: ' + agentFolder.getId() + ', trashed: ' + agentFolder.isTrashed() + ')');
+    ['pending', 'results', 'delivery', 'failed', 'resultsFailed'].forEach(function(sub) {
+      try {
+        const sf = getAgentSubfolder_(sub);
+        const count = sf.getFiles();
+        let cnt = 0;
+        while (count.hasNext()) { count.next(); cnt++; }
+        Logger.log('  - 서브폴더 [' + sub + '] ID: ' + sf.getId() + ', 파일 수: ' + cnt + ', trashed: ' + sf.isTrashed());
+      } catch (sfe) {
+        Logger.log('  - 서브폴더 [' + sub + '] 실패: ' + sfe);
+      }
+    });
+  } catch (eAgent) {
+    Logger.log('FAIL AGENT_FOLDER 실패: ' + eAgent);
+  }
+
   Logger.log('=== 현재 CONFIG 값 ===');
   Logger.log('DEPARTMENT_ROOTS = ' + JSON.stringify(CONFIG.DEPARTMENT_ROOTS));
   Logger.log('TEMPLATE_ID = ' + CONFIG.TEMPLATE_ID);
   Logger.log('LEDGER_TEMPLATE_ID = ' + CONFIG.LEDGER_TEMPLATE_ID);
   Logger.log('AUTHOR_DB_SHEET_ID = ' + CONFIG.AUTHOR_DB_SHEET_ID);
+}
+
+// ── 파일링크 복구 유틸리티 ──────────────────────────────────────────────────
+// 에이전트 큐 삭제 등으로 대장 파일링크가 누락된 견적 행에 서명된 링크를 직접 채워넣는다.
+// 사용 방법: 편집기 상단 함수 드롭다운에서 repairMissingLedgerLink 선택 → [실행] 클릭
+function repairMissingLedgerLink() {
+  const quoteNumber = '기술영업 2609-001'; // 복구할 견적번호
+  const year = 2026;
+  const department = '기술영업';
+  const company = '싸이몬';
+  const publicBaseUrl = 'http://172.35.12.36:8790';
+  const fileLinkSecret = 'CIMON-FILES-2026-jR4wN8sQ2tVx7LmE';
+
+  const folderName = `${quoteNumber}_${company}`;
+  const fileName = `${quoteNumber}_${company}_견적서.pdf`;
+  const relativePath = [department, String(year), folderName, fileName].map(encodeURIComponent).join('/');
+
+  const signatureBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(relativePath), fileLinkSecret);
+  const signature = signatureBytes.map(function(b) {
+    const v = (b < 0 ? b + 256 : b).toString(16);
+    return v.length === 1 ? '0' + v : v;
+  }).join('');
+  const fileUrl = `${publicBaseUrl}/files/${relativePath}?k=${signature}`;
+
+  const result = {
+    quoteNumber: quoteNumber,
+    ledgerQuoteNumber: quoteNumber,
+    revisionNumber: 0,
+    department: department,
+    year: year,
+    ok: true,
+    fileUrl: fileUrl
+  };
+
+  updateLedgerLink_(result);
+  Logger.log('복구 완료! 대장에 파일링크가 성공적으로 등록되었습니다: ' + fileUrl);
 }
