@@ -20,6 +20,8 @@ const CONFIG = {
     '프로젝트': '1_GTIZ94fvjP8N_uThxfcG-q4RyTtCfGw'
   },
   LEDGER_SHEET_NAME: '견적관리대장',
+  // 모든 부서의 대장을 조회/관리할 수 있는 관리자 계정 이메일 목록
+  ADMIN_EMAILS: ['taeseock.kim@cimon.com'],
   // 사내 PC 로컬 저장 에이전트 설정 (견적 파일을 구글 드라이브 대신 PC에 저장)
   // 작성자 DB 시트가 있는 폴더 아래 '견적에이전트' 폴더를 만들고, 그 안에서
   // pending/results 파일을 주고받는다 (에이전트 PC에는 Google Drive 데스크톱 필요)
@@ -119,10 +121,20 @@ function processQuoteFromReact(payload) {
   );
 }
 
-function getQuoteLedgerFromReact(requestedYear) {
-  // 접속 계정의 부서에 해당하는 대장만 조회한다 (미등록 계정은 기본 부서 대장).
+function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
   const access = getAuthorizedUserFromReact();
-  const department = access.success && access.authorized && access.author ? access.author.department : '';
+  if (!access.success || !access.authorized || !access.author) {
+    return { success: false, message: '접속 권한이 없습니다.' };
+  }
+
+  // 관리자는 모든 부서의 대장을 선택해 조회할 수 있다.
+  // 일반 사용자는 본인 등록 부서의 대장만 조회할 수 있다.
+  let department = access.author.department;
+  const targetDept = String(requestedDepartment || '').trim();
+  if (access.isAdmin && targetDept && CONFIG.DEPARTMENT_ROOTS[targetDept]) {
+    department = targetDept;
+  }
+
   const rootFolderId = resolveRootFolderId({ authorDepartment: department });
   const currentYear = new Date().getFullYear();
   const parsedYear = Number(requestedYear);
@@ -131,15 +143,22 @@ function getQuoteLedgerFromReact(requestedYear) {
     : currentYear;
   const availableYears = getAvailableLedgerYears_(rootFolderId, currentYear);
   const system = getExistingYearSystem_(year, rootFolderId);
+  const baseResult = {
+    success: true,
+    availableYears: availableYears,
+    department: department,
+    isAdmin: Boolean(access.isAdmin),
+    availableDepartments: Object.keys(CONFIG.DEPARTMENT_ROOTS)
+  };
   if (!system) {
-    return { success: true, headers: [], rows: [], availableYears: availableYears };
+    return Object.assign({ headers: [], rows: [] }, baseResult);
   }
   const sheet = system.ledgerSheet;
   const lastRow = sheet.getLastRow();
   const lastColumn = sheet.getLastColumn();
 
   if (lastRow < 1 || lastColumn < 1) {
-    return { success: true, headers: [], rows: [], availableYears: availableYears };
+    return Object.assign({ headers: [], rows: [] }, baseResult);
   }
 
   const range = sheet.getRange(1, 1, lastRow, lastColumn);
@@ -156,7 +175,7 @@ function getQuoteLedgerFromReact(requestedYear) {
     };
   });
 
-  return { success: true, headers: headers, rows: rows, availableYears: availableYears };
+  return Object.assign({ headers: headers, rows: rows }, baseResult);
 }
 
 function doPost(e) {
@@ -449,7 +468,16 @@ function getAuthorizedUserFromReact() {
     if (!matched) {
       return { success: true, authorized: false, email: userEmail };
     }
-    return { success: true, authorized: true, author: matched };
+    const isAdmin = Boolean(CONFIG.ADMIN_EMAILS && CONFIG.ADMIN_EMAILS.some(function(adminEmail) {
+      return String(adminEmail || '').trim().toLowerCase() === userEmail;
+    }));
+    return {
+      success: true,
+      authorized: true,
+      author: matched,
+      isAdmin: isAdmin,
+      availableDepartments: Object.keys(CONFIG.DEPARTMENT_ROOTS)
+    };
   } catch (err) {
     return { success: false, message: '권한 확인 중 오류가 발생했습니다: ' + err.toString() };
   }
@@ -600,7 +628,7 @@ function getQuoteFolderClientName_(spreadsheet, baseQuoteNumber) {
   return '';
 }
 
-function getQuoteForEditFromReact(requestedYear, quoteNumber) {
+function getQuoteForEditFromReact(requestedYear, quoteNumber, requestedDepartment) {
   try {
     const access = getAuthorizedUserFromReact();
     if (!access.success || !access.authorized || !access.author) {
@@ -611,11 +639,24 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber) {
     const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
       ? parsedYear
       : currentYear;
-    const rootFolderId = resolveRootFolderId({ authorDepartment: access.author.department });
+
+    // 수정 대상 부서 결정:
+    // 1) 견적번호 접두사(예: "기술영업 2609-001" -> "기술영업")가 유효 부서이면 최우선 사용
+    // 2) 관리자가 전달한 requestedDepartment가 유효하면 사용
+    // 3) 그 외에는 본인 등록 부서 사용
+    const prefixDept = String(quoteNumber || '').trim().split(/\s+/)[0];
+    let department = access.author.department;
+    if (CONFIG.DEPARTMENT_ROOTS[prefixDept]) {
+      department = prefixDept;
+    } else if (access.isAdmin && requestedDepartment && CONFIG.DEPARTMENT_ROOTS[String(requestedDepartment).trim()]) {
+      department = String(requestedDepartment).trim();
+    }
+
+    const rootFolderId = resolveRootFolderId({ authorDepartment: department });
     const system = getExistingYearSystem_(year, rootFolderId);
     const baseQuoteNumber = baseQuoteNumber_(quoteNumber);
     if (!system || !baseQuoteNumber) {
-      return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도를 확인해 주세요.' };
+      return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도와 부서를 확인해 주세요.' };
     }
     const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
     if (!snapshot || snapshot.getLastRow() < 2) {
@@ -632,14 +673,13 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber) {
           baseQuoteNumber: baseQuoteNumber,
           year: year,
           // 수정 저장 시 폴더/대장 조회는 반드시 이 부서(원본이 실제로 저장된 부서)를 사용해야 한다.
-          // 폼의 작성자 드롭다운에서 다른 사람을 선택해도 엉뚱한 부서 대장을 찾지 않도록 한다.
-          department: access.author.department || '',
+          department: department,
           details: stored.details || {},
           items: Array.isArray(stored.items) ? stored.items : []
         }
       };
     }
-    return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도를 확인해 주세요.' };
+    return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도와 부서를 확인해 주세요.' };
   } catch (err) {
     return { success: false, message: '견적 원본 조회 실패: ' + err.toString() };
   }
@@ -656,9 +696,18 @@ function updateQuoteOrderFromReact(payload) {
     const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
       ? parsedYear
       : currentYear;
-    const rootFolderId = resolveRootFolderId({ authorDepartment: access.author.department });
-    const system = getExistingYearSystem_(year, rootFolderId);
+
     const baseQuoteNumber = baseQuoteNumber_(payload && payload.quoteNumber);
+    const prefixDept = String(baseQuoteNumber || '').trim().split(/\s+/)[0];
+    let department = access.author.department;
+    if (CONFIG.DEPARTMENT_ROOTS[prefixDept]) {
+      department = prefixDept;
+    } else if (access.isAdmin && payload && payload.department && CONFIG.DEPARTMENT_ROOTS[String(payload.department).trim()]) {
+      department = String(payload.department).trim();
+    }
+
+    const rootFolderId = resolveRootFolderId({ authorDepartment: department });
+    const system = getExistingYearSystem_(year, rootFolderId);
     if (!system || !baseQuoteNumber) {
       return { success: false, message: '발주 상태를 기록할 견적을 찾을 수 없습니다.' };
     }

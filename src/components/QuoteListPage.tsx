@@ -82,14 +82,26 @@ function uploadUrl(year: number, department: string, quoteNumber: string, compan
 interface Props {
   onBack: () => void;
   onNewQuote: () => void;
-  onEditQuote: (year: number, quoteNumber: string) => void;
-  onOrderChange: (year: number, quoteNumber: string, ordered: boolean) => Promise<void>;
+  onEditQuote: (year: number, quoteNumber: string, department?: string) => void;
+  onOrderChange: (year: number, quoteNumber: string, ordered: boolean, department?: string) => Promise<void>;
   department: string;
+  isAdmin?: boolean;
+  availableDepartments?: string[];
 }
 
-export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrderChange, department }: Props) {
+export default function QuoteListPage({
+  onBack,
+  onNewQuote,
+  onEditQuote,
+  onOrderChange,
+  department,
+  isAdmin,
+  availableDepartments,
+}: Props) {
   const t = useT();
   const currentYear = new Date().getFullYear();
+  const deptList = availableDepartments?.length ? availableDepartments : ['기술영업', '영업', '프로젝트'];
+  const [currentDepartment, setCurrentDepartment] = useState(department || '기술영업');
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<LedgerRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,17 +116,23 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
   const [orderStatus, setOrderStatus] = useState<Record<string, boolean>>({});
   const [orderUpdatingKey, setOrderUpdatingKey] = useState<string | null>(null);
 
-  const loadQuotes = useCallback(async () => {
+  useEffect(() => {
+    if (department && !isAdmin) {
+      setCurrentDepartment(department);
+    }
+  }, [department, isAdmin]);
+
+  const loadQuotes = useCallback(async (targetYear = selectedYear, targetDept = currentDepartment) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchLedger(selectedYear);
+      const result = await fetchLedger(targetYear, targetDept);
       if (!result.success) throw new Error(result.message || '견적관리대장을 불러오지 못했습니다.');
-      const availableYears = (result.availableYears ?? [selectedYear])
+      const availableYears = (result.availableYears ?? [targetYear])
         .filter((year) => Number.isInteger(year) && year >= 2000 && year <= currentYear)
         .sort((left, right) => right - left);
       setLedgerYears(availableYears);
-      if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+      if (availableYears.length > 0 && !availableYears.includes(targetYear)) {
         setSelectedYear(availableYears[0]);
       }
       setHeaders(result.headers ?? []);
@@ -126,9 +144,11 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
     } finally {
       setLoading(false);
     }
-  }, [currentYear, selectedYear]);
+  }, [currentYear, selectedYear, currentDepartment]);
 
-  useEffect(() => { void loadQuotes(); }, [loadQuotes]);
+  useEffect(() => {
+    void loadQuotes(selectedYear, currentDepartment);
+  }, [loadQuotes, selectedYear, currentDepartment]);
 
   useEffect(() => {
     const nextStatus: Record<string, boolean> = {};
@@ -168,6 +188,12 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
     setSearchPickerRows(null);
   }
 
+  function handleDepartmentChange(nextDept: string) {
+    if (nextDept === currentDepartment) return;
+    setCurrentDepartment(nextDept);
+    setSearchPickerRows(null);
+  }
+
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== 'Enter' || !normalizedSearch) return;
     const matches = rows.filter((row) => !normalizedSearch || row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch)));
@@ -182,7 +208,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
     setOrderStatus((current) => ({ ...current, [key]: ordered }));
     setOrderUpdatingKey(key);
     try {
-      await onOrderChange(selectedYear, quoteNumber, ordered);
+      await onOrderChange(selectedYear, quoteNumber, ordered, currentDepartment);
     } catch (err) {
       setOrderStatus((current) => ({ ...current, [key]: previous }));
       alert(`${t(UI.quoteOrderUpdateFailed)}: ${String(err)}`);
@@ -205,9 +231,30 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
             {t(UI.back)}
           </button>
           <h1 className="text-lg font-bold text-[#191919]">{t(UI.quoteListTitle)}</h1>
-          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-lg font-bold text-blue-700">
-            {t(UI.quoteDepartment)}: {department || '-'}
-          </span>
+          {isAdmin ? (
+            <div className="flex items-center gap-2 rounded-full bg-blue-50 pl-3 pr-2 py-1 border border-blue-200 shadow-sm">
+              <span className="text-sm font-bold text-blue-700">
+                {t(UI.quoteDepartment)}:
+              </span>
+              <select
+                value={currentDepartment}
+                onChange={(event) => handleDepartmentChange(event.target.value)}
+                className="bg-transparent text-sm font-bold text-blue-700 focus:outline-none cursor-pointer pr-1"
+                aria-label={t(UI.quoteDepartment)}
+              >
+                {deptList.map((dept) => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                Admin
+              </span>
+            </div>
+          ) : (
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-lg font-bold text-blue-700">
+              {t(UI.quoteDepartment)}: {currentDepartment || '-'}
+            </span>
+          )}
           {ledgerYears.length > 0 && (
             <label className="flex items-center gap-1.5">
               <span className="sr-only">{t(UI.quoteYear)}</span>
@@ -268,7 +315,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
         </div>
       </div>
 
-      <AiSearchPanel open={aiSearchOpen} year={selectedYear} department={department} headers={headers} rows={rows} />
+      <AiSearchPanel open={aiSearchOpen} year={selectedYear} department={currentDepartment} headers={headers} rows={rows} />
 
       {searchPickerRows && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-start justify-center overflow-y-auto py-10 px-4">
@@ -415,13 +462,13 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                         <button
                           type="button"
                           disabled={!quoteNumber}
-                          onClick={() => onEditQuote(selectedYear, quoteNumber)}
+                          onClick={() => onEditQuote(selectedYear, quoteNumber, currentDepartment)}
                           className="w-14 rounded border border-blue-200 px-1 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
                         >
                           {t(UI.quoteEditBtn)}
                         </button>
                         <a
-                          href={quoteNumber && company ? uploadUrl(selectedYear, department, quoteNumber, company) : '#'}
+                          href={quoteNumber && company ? uploadUrl(selectedYear, currentDepartment, quoteNumber, company) : '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}

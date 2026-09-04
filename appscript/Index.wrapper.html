@@ -73,7 +73,7 @@
               error: String(error),
             }, appOrigin);
           })
-          .getQuoteLedgerFromReact(message.year);
+          .getQuoteLedgerFromReact(message.year, message.department);
         return;
       }
 
@@ -139,7 +139,7 @@
               error: String(error),
             }, appOrigin);
           })
-          .getQuoteForEditFromReact(message.year, message.quoteNumber);
+          .getQuoteForEditFromReact(message.year, message.quoteNumber, message.department);
         return;
       }
 
@@ -161,7 +161,7 @@
               error: String(error),
             }, appOrigin);
           })
-          .updateQuoteOrderFromReact({ year: message.year, quoteNumber: message.quoteNumber, ordered: message.ordered });
+          .updateQuoteOrderFromReact({ year: message.year, quoteNumber: message.quoteNumber, ordered: message.ordered, department: message.department });
         return;
       }
 

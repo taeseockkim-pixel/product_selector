@@ -77,6 +77,10 @@ export interface AuthorizationResult {
   /** authorized === false일 때 확인된 계정 이메일 */
   email?: string;
   message?: string;
+  /** 모든 부서를 조회/관리할 수 있는 관리자 여부 */
+  isAdmin?: boolean;
+  /** 선택 가능한 부서 목록 (예: ['기술영업', '영업', '프로젝트']) */
+  availableDepartments?: string[];
 }
 
 export interface LedgerRow {
@@ -89,6 +93,9 @@ export interface LedgerResult {
   headers?: string[];
   rows?: LedgerRow[];
   availableYears?: number[];
+  department?: string;
+  isAdmin?: boolean;
+  availableDepartments?: string[];
   message?: string;
 }
 
@@ -134,8 +141,8 @@ declare global {
               processQuoteFromReact: (payload: unknown) => void;
               getAuthorsFromReact: () => void;
               getAuthorizedUserFromReact: () => void;
-              getQuoteLedgerFromReact: (year?: number) => void;
-              getQuoteForEditFromReact: (year: number, quoteNumber: string) => void;
+              getQuoteLedgerFromReact: (year?: number, department?: string) => void;
+              getQuoteForEditFromReact: (year: number, quoteNumber: string, department?: string) => void;
               updateQuoteOrderFromReact: (payload: unknown) => void;
             };
           };
@@ -149,6 +156,7 @@ function callAppsScriptFn<T>(
   fnName: 'getAuthorsFromReact' | 'getAuthorizedUserFromReact' | 'getQuoteLedgerFromReact' | 'getQuoteForEditFromReact',
   year?: number,
   quoteNumber?: string,
+  department?: string,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     const runner = window.google?.script?.run;
@@ -159,8 +167,8 @@ function callAppsScriptFn<T>(
     const call = runner
       .withSuccessHandler<T>(resolve)
       .withFailureHandler((error) => reject(new Error(String(error))));
-    if (fnName === 'getQuoteLedgerFromReact') call.getQuoteLedgerFromReact(year);
-    else if (fnName === 'getQuoteForEditFromReact') call.getQuoteForEditFromReact(year ?? 0, quoteNumber ?? '');
+    if (fnName === 'getQuoteLedgerFromReact') call.getQuoteLedgerFromReact(year, department);
+    else if (fnName === 'getQuoteForEditFromReact') call.getQuoteForEditFromReact(year ?? 0, quoteNumber ?? '', department);
     else if (fnName === 'getAuthorsFromReact') call.getAuthorsFromReact();
     else call.getAuthorizedUserFromReact();
   });
@@ -231,35 +239,35 @@ export function fetchAuthorization(): Promise<AuthorizationResult> {
   return callAppsScriptFn<AuthorizationResult>('getAuthorizedUserFromReact');
 }
 
-/** 접속 계정의 부서 대장을 조회한다 */
-export function fetchLedger(year?: number): Promise<LedgerResult> {
+/** 접속 계정(또는 관리자가 선택한 부서)의 대장을 조회한다 */
+export function fetchLedger(year?: number, department?: string): Promise<LedgerResult> {
   if (window.parent && window.parent !== window) {
     return callAppsScriptFnViaParentBridge<LedgerResult>(
       'LOAD_QUOTE_LEDGER_RESULT',
       'LOAD_QUOTE_LEDGER',
       30000,
-      { year },
+      { year, department },
     );
   }
-  return callAppsScriptFn<LedgerResult>('getQuoteLedgerFromReact', year);
+  return callAppsScriptFn<LedgerResult>('getQuoteLedgerFromReact', year, undefined, department);
 }
 
 /** 선택한 견적의 원본 데이터를 읽어 수정 폼에 전달한다 */
-export function fetchQuoteForEdit(year: number, quoteNumber: string): Promise<QuoteEditResult> {
+export function fetchQuoteForEdit(year: number, quoteNumber: string, department?: string): Promise<QuoteEditResult> {
   if (window.parent && window.parent !== window) {
     return callAppsScriptFnViaParentBridge<QuoteEditResult>(
       'LOAD_QUOTE_EDIT_RESULT',
       'LOAD_QUOTE_EDIT',
       30000,
-      { year, quoteNumber },
+      { year, quoteNumber, department },
     );
   }
-  return callAppsScriptFn<QuoteEditResult>('getQuoteForEditFromReact', year, quoteNumber);
+  return callAppsScriptFn<QuoteEditResult>('getQuoteForEditFromReact', year, quoteNumber, department);
 }
 
 /** 현재 사용자의 대장에 발주 여부를 기록한다 */
-export function updateQuoteOrder(year: number, quoteNumber: string, ordered: boolean): Promise<QuoteProcessResult> {
-  const payload = { year, quoteNumber, ordered };
+export function updateQuoteOrder(year: number, quoteNumber: string, ordered: boolean, department?: string): Promise<QuoteProcessResult> {
+  const payload = { year, quoteNumber, ordered, department };
   if (window.parent && window.parent !== window) {
     return callAppsScriptFnViaParentBridge<QuoteProcessResult>(
       'UPDATE_QUOTE_ORDER_RESULT',

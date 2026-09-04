@@ -136,6 +136,8 @@ function AppInner() {
 
   // ── 견적 기능 접근 권한 (작성자 DB 시트 등록 계정만 사용 가능) ──
   const [authAuthor, setAuthAuthor] = useState<AuthorInfo | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [availableDepartments, setAvailableDepartments] = useState<string[]>(['기술영업', '영업', '프로젝트']);
   const [editingQuote, setEditingQuote] = useState<QuoteEditData | null>(null);
   const authEmailRef = useRef('');
   const accessCheckRef = useRef<Promise<'authorized' | 'denied'> | null>(null);
@@ -146,6 +148,14 @@ function AppInner() {
         .then((result) => {
           if (result.success && result.authorized && result.author) {
             setAuthAuthor(result.author);
+            const admin = Boolean(
+              result.isAdmin ||
+              (result.author.email && ADMIN_AUTHOR_EMAILS.has(result.author.email.toLowerCase()))
+            );
+            setIsAdmin(admin);
+            if (result.availableDepartments?.length) {
+              setAvailableDepartments(result.availableDepartments);
+            }
             return 'authorized' as const;
           }
           authEmailRef.current = result.email ?? '';
@@ -183,10 +193,10 @@ function AppInner() {
     }
   }
 
-  async function handleEditQuote(year: number, quoteNumber: string) {
+  async function handleEditQuote(year: number, quoteNumber: string, department?: string) {
     if (!(await ensureQuoteAccess())) return;
     try {
-      const result = await fetchQuoteForEdit(year, quoteNumber);
+      const result = await fetchQuoteForEdit(year, quoteNumber, department);
       if (!result.success || !result.quote) throw new Error(result.message || t(UI.quoteEditLoadFailed));
       setEditingQuote(result.quote);
       setViewMode('quotecreate');
@@ -195,8 +205,8 @@ function AppInner() {
     }
   }
 
-  async function handleOrderChange(year: number, quoteNumber: string, ordered: boolean) {
-    const result = await updateQuoteOrder(year, quoteNumber, ordered);
+  async function handleOrderChange(year: number, quoteNumber: string, ordered: boolean, department?: string) {
+    const result = await updateQuoteOrder(year, quoteNumber, ordered, department);
     if (!result.success) throw new Error(result.message || t(UI.quoteOrderUpdateFailed));
   }
 
@@ -348,9 +358,11 @@ function AppInner() {
         <QuoteListPage
           onBack={() => setViewMode('main')}
           onNewQuote={handleGoToQuoteCreate}
-          onEditQuote={(year, quoteNumber) => { void handleEditQuote(year, quoteNumber); }}
+          onEditQuote={handleEditQuote}
           onOrderChange={handleOrderChange}
-          department={authAuthor?.department ?? ''}
+          department={authAuthor?.department ?? '기술영업'}
+          isAdmin={isAdmin}
+          availableDepartments={availableDepartments}
         />
         {toast && <Toast msg={toast} />}
       </div>

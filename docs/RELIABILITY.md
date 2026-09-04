@@ -270,10 +270,9 @@ NNN은 **대장 NO열(A열)에서 비어 있는 가장 작은 번호**다 (`getN
 
 프론트엔드는 작성자 DB 시트에서 읽어온 목록으로 드롭다운을 채우고, 선택된 작성자의 부서를 `QuoteAuthor.department`에 담아 Apps Script로 보낸다. `Code.gs`의 `resolveRootFolderId(details)`가 이 값을 보고 `CONFIG.DEPARTMENT_ROOTS[부서]`를 반환하며, `processQuote()`는 이 값을 `getNextQuoteNumber()`/`getYearSystem()`에 그대로 넘긴다. 그 결과 부서별로 폴더·대장·견적번호 시퀀스가 완전히 분리된다(견적번호는 `부서 YYMM-NNN` 형식이며 각자 자기 대장 안에서만 카운트되므로, 부서 간 동일한 번호가 존재할 수 있다 — 의도된 동작).
 
-**알려진 제한**: `getQuoteLedgerFromReact()`(견적 목록 화면)는 `getAuthorizedUserFromReact()`로 확인한
-**로그인 계정 본인의 부서** 대장만 조회한다(작성자 DB 시트에 이메일이 없으면 조회 실패). 다른 부서의
-견적은 목록 화면에 표시되지 않고 각 부서 폴더의 대장에서만 확인 가능하다. 연도 선택 드롭다운은
-`getAvailableLedgerYears_()`가 실제로 `{연도}_견적관리대장` 파일이 존재하는 연도만 반환하며, 없는
+**알려진 제한**: 일반 사용자의 `getQuoteLedgerFromReact()`(견적 목록 화면)는 `getAuthorizedUserFromReact()`로 확인한
+**로그인 계정 본인의 부서** 대장만 조회한다(작성자 DB 시트에 이메일이 없으면 조회 실패). 반면 **관리자 계정**(`ADMIN_EMAILS` / `ADMIN_AUTHOR_EMAILS`)은 견적 목록 상단의 부서 선택 드롭다운을 통해 모든 부서(`기술영업`/`영업`/`프로젝트`)의 대장을 자유롭게 전환해 조회·수정·발주체크·업로드할 수 있다. 연도 선택 드롭다운은
+`getAvailableLedgerYears_()`가 해당 부서 폴더에 실제로 `{연도}_견적관리대장` 파일이 존재하는 연도만 반환하며, 없는
 연도를 선택해도 폴더/대장을 새로 만들지 않는다. 견적 목록에 표시되는 부서 배지(`quoteDepartment`)도
-같은 `access.author.department` 값을 사용한다.
+선택된 부서를 반영하며, 관리자일 때는 Admin 배지가 함께 표시된다.
 
