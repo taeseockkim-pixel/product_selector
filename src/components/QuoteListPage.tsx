@@ -51,7 +51,7 @@ function formatAmountValue(value: string) {
 
 function columnWidth(header: string) {
   if (header.includes('NO')) return 48;
-  if (header.includes('연도') || header.includes('년도')) return 44;
+  if (header.includes('연도') || header.includes('년도')) return 56;
   if (header === '월' || header === '일') return 42;
   if (header.includes('발주')) return 78;
   if (header.includes('견적번호')) return 128;
@@ -354,7 +354,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
             <thead className="bg-[#f0ede8]">
               <tr>
                 {headers.map((header, index) => (
-                  <th key={`${header}-${index}`} className="text-left whitespace-normal break-words px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs">
+                  <th key={`${header}-${index}`} className={`text-left px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs ${header.includes('연도') || header.includes('년도') ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
                     <button
                       type="button"
                       onClick={() => handleSort(index)}
@@ -387,10 +387,11 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                       const href = link ?? (/^https?:\/\//i.test(value) ? value : null);
                       const displayValue = href ? fileNameFromLink(href) : value;
                       const isOrderColumn = header.includes('발주');
+                      const isYearColumn = header.includes('연도') || header.includes('년도');
                       const isAmountColumn = header.includes('금액');
                       const checked = orderStatus[rowKey] ?? isOrderMarked(value);
                       return (
-                        <td key={cellIndex} className="px-2 lg:px-3 py-3 whitespace-normal break-words text-[#555555]">
+                        <td key={cellIndex} className={`px-2 lg:px-3 py-3 text-[#555555] ${isYearColumn ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
                           {isOrderColumn ? (
                             <label className="inline-flex items-center gap-1.5 font-medium text-[#555555]">
                               <input
