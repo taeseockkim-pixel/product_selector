@@ -41,6 +41,14 @@ function isOrderMarked(value: string) {
   return ['발주', '완료', '예', 'Y', 'O', 'TRUE'].includes(value.trim().toUpperCase());
 }
 
+function formatAmountValue(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+  const numeric = Number(trimmed.replace(/[^\d.-]/g, ''));
+  if (!Number.isFinite(numeric)) return value;
+  return `${numeric.toLocaleString('ko-KR')} 원`;
+}
+
 function columnWidth(header: string) {
   if (header.includes('NO')) return 48;
   if (header.includes('연도')) return 44;
@@ -53,11 +61,13 @@ function columnWidth(header: string) {
   if (header.includes('이메일')) return 148;
   if (header.includes('제품 항목') || header.includes('제품군')) return 106;
   if (header.includes('제품명')) return 190;
-  if (header.includes('견적 금액') || header.includes('금액')) return 104;
+  if (header.includes('견적 금액') || header.includes('금액')) return 128;
   if (header.includes('비고')) return 130;
   if (header.includes('파일링크')) return 220;
   return 110;
 }
+
+const ACTION_COLUMN_WIDTH = 184;
 
 function uploadUrl(year: number, department: string, quoteNumber: string, company: string) {
   const params = new URLSearchParams({
@@ -334,12 +344,12 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
       {!loading && !error && rows.length > 0 && (
         <div className="bg-white rounded-xl border border-[#ddd9d2] overflow-hidden">
           <div className="overflow-x-auto">
-          <table className="w-full min-w-[1440px] table-fixed text-xs">
+          <table className="table-fixed text-xs" style={{ width: `${headers.reduce((sum, header) => sum + columnWidth(header), 0) + ACTION_COLUMN_WIDTH}px` }}>
             <colgroup>
               {headers.map((header, index) => (
                 <col key={`${header}-${index}`} style={{ width: `${columnWidth(header)}px` }} />
               ))}
-              <col style={{ width: '128px' }} />
+              <col style={{ width: `${ACTION_COLUMN_WIDTH}px` }} />
             </colgroup>
             <thead className="bg-[#f0ede8]">
               <tr>
@@ -377,6 +387,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                       const href = link ?? (/^https?:\/\//i.test(value) ? value : null);
                       const displayValue = href ? fileNameFromLink(href) : value;
                       const isOrderColumn = header.includes('발주');
+                      const isAmountColumn = header.includes('금액');
                       const checked = orderStatus[rowKey] ?? isOrderMarked(value);
                       return (
                         <td key={cellIndex} className="px-2 lg:px-3 py-3 whitespace-normal break-words text-[#555555]">
@@ -394,7 +405,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                             <a href={href} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline break-all" title={displayValue}>
                               {displayValue || '열기'}
                             </a>
-                          ) : value}
+                          ) : isAmountColumn ? formatAmountValue(value) : value}
                         </td>
                       );
                     })}
@@ -404,7 +415,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                           type="button"
                           disabled={!quoteNumber}
                           onClick={() => onEditQuote(selectedYear, quoteNumber)}
-                          className="rounded border border-blue-200 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          className="w-[76px] rounded border border-blue-200 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
                         >
                           {t(UI.quoteEditBtn)}
                         </button>
@@ -413,7 +424,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}
-                          className="rounded border border-green-200 px-2 py-1 text-[11px] font-medium text-green-700 hover:bg-green-50 aria-disabled:pointer-events-none aria-disabled:opacity-40"
+                          className="w-[76px] rounded border border-green-200 px-2 py-1 text-[11px] font-medium text-green-700 hover:bg-green-50 aria-disabled:pointer-events-none aria-disabled:opacity-40 text-center"
                           aria-disabled={!quoteNumber || !company}
                         >
                           {t(UI.quoteUploadBtn)}
