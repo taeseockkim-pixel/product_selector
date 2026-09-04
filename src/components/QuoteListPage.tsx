@@ -41,6 +41,24 @@ function isOrderMarked(value: string) {
   return ['발주', '완료', '예', 'Y', 'O', 'TRUE'].includes(value.trim().toUpperCase());
 }
 
+function columnWidth(header: string) {
+  if (header.includes('NO')) return 48;
+  if (header.includes('연도')) return 56;
+  if (header === '월' || header === '일') return 42;
+  if (header.includes('발주')) return 78;
+  if (header.includes('견적번호')) return 128;
+  if (header.includes('업체명') || header.includes('회사명')) return 100;
+  if (header.includes('고객명') || header.includes('담당자')) return 92;
+  if (header.includes('연락처')) return 104;
+  if (header.includes('이메일')) return 148;
+  if (header.includes('제품 항목') || header.includes('제품군')) return 106;
+  if (header.includes('제품명')) return 190;
+  if (header.includes('견적 금액') || header.includes('금액')) return 104;
+  if (header.includes('비고')) return 130;
+  if (header.includes('파일링크')) return 220;
+  return 110;
+}
+
 function uploadUrl(year: number, department: string, quoteNumber: string, company: string) {
   const params = new URLSearchParams({
     year: String(year),
@@ -315,7 +333,14 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
 
       {!loading && !error && rows.length > 0 && (
         <div className="bg-white rounded-xl border border-[#ddd9d2] overflow-hidden">
-          <table className="w-full table-fixed text-xs">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[1440px] table-fixed text-xs">
+            <colgroup>
+              {headers.map((header, index) => (
+                <col key={`${header}-${index}`} style={{ width: `${columnWidth(header)}px` }} />
+              ))}
+              <col style={{ width: '128px' }} />
+            </colgroup>
             <thead className="bg-[#f0ede8]">
               <tr>
                 {headers.map((header, index) => (
@@ -407,6 +432,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
