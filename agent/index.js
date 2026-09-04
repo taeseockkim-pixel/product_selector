@@ -506,7 +506,12 @@ const PAGE_STYLE = `
     .crumb { font-size: 13px; color: #555; margin-bottom: 14px; word-break: break-all; }
     .crumb a { color: #555; }
     .top { display: flex; justify-content: space-between; align-items: center; }
-    .logout { font-size: 12px; color: #999; }`.trim();
+    .logout { font-size: 12px; color: #999; }
+    .btn-action { display: inline-block; padding: 3px 8px; font-size: 11px; border-radius: 4px; text-decoration: none !important; font-weight: 500; }
+    .btn-view { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; margin-right: 4px; }
+    .btn-view:hover { background: #dbeafe; }
+    .btn-down { color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; }
+    .btn-down:hover { background: #dcfce7; }`.trim();
 
 function safeNextPath(value) {
   const next = String(value || '').trim();
@@ -542,11 +547,20 @@ function browserPageHtml(session, dirRelative, entries) {
   }
   const rows = entries.map((entry) => {
     if (entry.isFolder) {
-      return `<tr><td>📁 <a href="/browse?dir=${encodeURIComponent(entry.browsePath)}">${escHtml(entry.name)}</a></td><td>폴더</td></tr>`;
+      return `<tr><td>📁 <a href="/browse?dir=${encodeURIComponent(entry.browsePath)}">${escHtml(entry.name)}</a></td><td>폴더</td><td style="text-align:center; color:#ccc;">-</td></tr>`;
     }
-    return `<tr><td>📄 <a href="/download?path=${encodeURIComponent(entry.downloadPath)}">${escHtml(entry.name)}</a></td><td>${entry.size}</td></tr>`;
+    const viewUrl = `/view?path=${encodeURIComponent(entry.downloadPath)}`;
+    const downUrl = `/download?path=${encodeURIComponent(entry.downloadPath)}`;
+    return `<tr>` +
+      `<td>📄 <a href="${viewUrl}" target="_blank" rel="noopener noreferrer">${escHtml(entry.name)}</a></td>` +
+      `<td>${entry.size}</td>` +
+      `<td style="white-space:nowrap; text-align:center;">` +
+      `<a href="${viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-action btn-view" title="새 탭에서 열기">열기</a>` +
+      `<a href="${downUrl}" class="btn-action btn-down" title="파일 다운로드">다운로드</a>` +
+      `</td>` +
+      `</tr>`;
   }).join('');
-  const emptyRow = entries.length === 0 ? `<tr><td colspan="2" style="color:#999">파일이 없습니다.</td></tr>` : '';
+  const emptyRow = entries.length === 0 ? `<tr><td colspan="3" style="color:#999; text-align:center; padding:16px;">파일이 없습니다.</td></tr>` : '';
   return `<!DOCTYPE html>
 <html lang="ko">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 견적 파일 열람</title>
@@ -557,7 +571,7 @@ function browserPageHtml(session, dirRelative, entries) {
     <a class="logout" href="/logout">로그아웃</a>
   </div>
   <div class="crumb">${crumbParts.join(' &gt; ')}</div>
-  <table><tr><th>이름</th><th>종류</th></tr>${rows}${emptyRow}</table>
+  <table><tr><th>이름</th><th style="width:75px;">크기</th><th style="width:130px; text-align:center;">동작</th></tr>${rows}${emptyRow}</table>
   </div></body></html>`;
 }
 
@@ -790,6 +804,35 @@ app.get('/browse', (req, res) => {
     .sort((a, b) => (a.isFolder === b.isFolder ? a.name.localeCompare(b.name, 'ko') : a.isFolder ? -1 : 1));
 
   res.type('html').send(browserPageHtml(session, dirRelative, entries));
+});
+
+app.get('/view', (req, res) => {
+  const session = readSession(req);
+  if (!session) return res.redirect('/');
+
+  // 경로는 storageRoot 기준(부서 세그먼트 포함)이며, 자기 부서(또는 관리자)만 허용한다
+  const storageRoot = resolve(STORAGE_ROOT);
+  const relative = String(req.query.path || '');
+  const target = resolve(join(storageRoot, relative));
+  if (target !== storageRoot && !target.startsWith(storageRoot + sep)) {
+    return res.status(403).send('Forbidden');
+  }
+  const firstSegment = relative.split(/[\\/]+/).filter(Boolean)[0] || '';
+  if (session.department !== '*' && firstSegment !== session.department) {
+    return res.status(403).send('Forbidden: 다른 부서의 파일은 열람할 수 없습니다.');
+  }
+  if (!existsSync(target) || !statSync(target).isFile()) {
+    return res.status(404).send('Not found');
+  }
+
+  // 브라우저에서 인라인으로 볼 수 있는 파일(PDF, 이미지, 텍스트 등)은 sendFile로 전달해 새 탭에서 열리도록 하고,
+  // 엑셀(.xlsx), 워드, 한글, 압축파일 등 브라우저가 직접 열지 못하는 파일은 다운로드로 전환한다.
+  const ext = extname(target).toLowerCase();
+  const nonInlineExts = new Set(['.xlsx', '.xls', '.doc', '.docx', '.hwp', '.hwpx', '.zip', '.7z', '.rar']);
+  if (nonInlineExts.has(ext)) {
+    return res.download(target, basename(target));
+  }
+  res.sendFile(target);
 });
 
 app.get('/download', (req, res) => {
