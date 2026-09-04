@@ -60,8 +60,8 @@ function columnWidth(header: string) {
   if (header.includes('연락처')) return 104;
   if (header.includes('이메일')) return 148;
   if (header.includes('제품 항목') || header.includes('제품군')) return 106;
-  if (header.includes('제품명')) return 190;
-  if (header.includes('견적 금액') || header.includes('금액')) return 128;
+  if (header.includes('제품명')) return 160;
+  if (header.includes('견적 금액') || header.includes('금액')) return 112;
   if (header.includes('비고')) return 130;
   if (header.includes('파일링크')) return 220;
   return 110;
@@ -205,7 +205,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
             {t(UI.back)}
           </button>
           <h1 className="text-lg font-bold text-[#191919]">{t(UI.quoteListTitle)}</h1>
-          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-lg font-bold text-blue-700">
             {t(UI.quoteDepartment)}: {department || '-'}
           </span>
           {ledgerYears.length > 0 && (
@@ -353,12 +353,12 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
             </colgroup>
             <thead className="bg-[#f0ede8]">
               <tr>
-                {headers.map((header, index) => (
-                  <th key={`${header}-${index}`} className={`text-left px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs ${header.includes('연도') || header.includes('년도') ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
+                  {headers.map((header, index) => (
+                  <th key={`${header}-${index}`} className={`${header.includes('금액') ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs ${header.includes('연도') || header.includes('년도') ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
                     <button
                       type="button"
                       onClick={() => handleSort(index)}
-                      className="inline-flex w-full items-center gap-1 text-left hover:text-[#191919]"
+                      className={`inline-flex w-full items-center gap-1 hover:text-[#191919] ${header.includes('금액') ? 'justify-end text-right' : 'text-left'}`}
                       title={sortIndex === index && sortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}
                       aria-label={`${header} ${sortIndex === index && sortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}`}
                     >
@@ -391,7 +391,7 @@ export default function QuoteListPage({ onBack, onNewQuote, onEditQuote, onOrder
                       const isAmountColumn = header.includes('금액');
                       const checked = orderStatus[rowKey] ?? isOrderMarked(value);
                       return (
-                        <td key={cellIndex} className={`px-2 lg:px-3 py-3 text-[#555555] ${isYearColumn ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
+                        <td key={cellIndex} className={`${isAmountColumn ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 text-[#555555] ${isYearColumn ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
                           {isOrderColumn ? (
                             <label className="inline-flex items-center gap-1.5 font-medium text-[#555555]">
                               <input
