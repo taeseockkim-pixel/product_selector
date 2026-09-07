@@ -1122,7 +1122,14 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
     };
   } catch (err) {
     lock.releaseLock();
-    return { success: false, message: '작업 실패: ' + err.toString() };
+    const errorText = String(err && err.toString ? err.toString() : err);
+    if (/DriveApp|액세스가 거부|Access denied|권한이 없습니다/i.test(errorText)) {
+      return {
+        success: false,
+        message: '견적 저장에 필요한 Google Drive 권한이 없습니다. 관리자에게 부서 폴더·대장 템플릿·견적에이전트 폴더의 편집 권한을 요청해 주세요. 관리자 계정에서 diagnoseUserDriveAccess를 실행하면 누락된 권한을 확인할 수 있습니다.'
+      };
+    }
+    return { success: false, message: '작업 실패: ' + errorText };
   }
 }
 
