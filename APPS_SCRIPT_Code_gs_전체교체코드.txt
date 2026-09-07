@@ -37,6 +37,7 @@ const VERCEL_APP_URL = 'https://product-selector-two.vercel.app';
 //   (예: "김원중 [James Kim] 상무" → 실패 / "김원중 상무" → 정상)
 const ORDER_EMAIL_TO = '김유빈 대리 <yubin.kim@cimon.com>';
 const ORDER_EMAIL_CC = [
+  '조규광 이사 <kyukwang.jo@cimon.com>',
   '김태석 차장 <taeseock.kim@cimon.com>',
   '정성택 차장 <seongtaek.jeong@cimon.com>',
   '한진희 차장 <jinhee.han@cimon.com>',
