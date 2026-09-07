@@ -65,8 +65,6 @@ const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
 const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
-// 구글 드라이브 동기화 폴더에 업로드 문서를 미러링하는 전용 폴더 (Apps Script가 읽어 메일 첨부로 사용)
-const MIRROR_DOCS_DIR = join(AGENT_FOLDER, '문서');
 // Apps Script가 로컬 LOG에 남기고 싶은 활동 로그를 큐잉하는 폴더 (Drive 동기화 → 에이전트가 LOG 폴더로 복사)
 const LOG_QUEUE_DIR = join(AGENT_FOLDER, 'logs');
 const LOG_ROOT = join(STORAGE_ROOT, 'LOG');
@@ -415,7 +413,6 @@ async function processJob(fileName) {
   const actualFolderName = basename(folder);
 
   const pdfFileNames = [];
-  const generatedFileNames = [];
   for (let partIndex = 0; partIndex < itemParts.length; partIndex += 1) {
     const partItems = itemParts[partIndex];
     const partNumber = partQuoteNumber(outputQuoteNumber, partIndex, itemParts.length);
@@ -423,7 +420,6 @@ async function processJob(fileName) {
     const pdfFileName = xlsxFileName.replace(/\.xlsx$/, '.pdf');
     const xlsxPath = join(folder, xlsxFileName);
     const pdfPath = join(folder, pdfFileName);
-    generatedFileNames.push(xlsxFileName, pdfFileName);
     const quote = {
       quoteNumber: partNumber,
       client: {
@@ -453,18 +449,6 @@ async function processJob(fileName) {
     await fillQuoteTemplate(quote, xlsxPath, TEMPLATE_PATH);
     excelToPdf(xlsxPath, pdfPath);
     pdfFileNames.push(pdfFileName);
-  }
-
-  // 발주등록 요청 메일 첨부를 위해, 생성된 견적 XLSX/PDF도 Drive 동기화 폴더(문서)에 미러링한다.
-  // 이 폴더는 업로드 문서와 함께 모달 첨부 선택 목록에 표시되고, Apps Script가 첨부로 읽는다.
-  try {
-    const mirrorDir = join(MIRROR_DOCS_DIR, actualFolderName);
-    mkdirSync(mirrorDir, { recursive: true });
-    for (const generatedName of generatedFileNames) {
-      copyFileSync(join(folder, generatedName), join(mirrorDir, generatedName));
-    }
-  } catch (mirrorErr) {
-    console.error(`[에이전트] 견적 파일 문서 미러링 실패: ${describeError(mirrorErr)}`);
   }
 
   // 견적 연도 폴더에 최신 견적관리대장 사본을 함께 유지한다 (Drive의 대장과 동일한 레이아웃)
@@ -1152,16 +1136,6 @@ app.post('/upload', (req, res, next) => {
   const rawAccount = String(req.body?.authorEmail || targetInfo.authorEmail || session.department || 'unknown').trim().toLowerCase();
   const detail = `파일명: ${outputName} (${Math.max(1, Math.round(buffer.length / 1024))} KB) | 대상 견적: ${targetInfo.quoteNumber}_${targetInfo.company} | 부서: ${targetInfo.department}`;
   appendActivityLog(rawAccount, '업로드', detail);
-
-  // 발주등록 요청 메일 첨부를 위해, 구글 드라이브 동기화 폴더(문서/<견적폴더명>/<파일명>)에 미러링한다.
-  // 브라우저는 HTTPS 페이지에서 http 사내 서버로 fetch할 수 없으므로, Apps Script가 Drive에서 읽도록 한다.
-  try {
-    const mirrorDir = join(MIRROR_DOCS_DIR, targetInfo.folderName);
-    mkdirSync(mirrorDir, { recursive: true });
-    copyFileSync(join(targetInfo.target, outputName), join(mirrorDir, outputName));
-  } catch (mirrorErr) {
-    console.error(`[업로드 미러링 실패] ${describeError(mirrorErr)}`);
-  }
 
   res.json({ success: true, fileName: outputName });
 });
