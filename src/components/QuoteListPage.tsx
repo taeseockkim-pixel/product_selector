@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import {
@@ -310,6 +310,31 @@ export default function QuoteListPage({
     setOrderEmailSelected(next);
   }
 
+  /** 모달 안 "업로드" 버튼이 열 업로드 페이지 URL (해당 견적 폴더 기준) */
+  function orderEmailUploadUrl(): string {
+    if (!orderEmailRow) return '#';
+    const quoteNumber = ledgerValue(headers, orderEmailRow, ['견적번호']).trim();
+    const company = ledgerValue(headers, orderEmailRow, ['업체명', '회사명']).trim();
+    if (!quoteNumber || !company) return '#';
+    const linkIndex = headers.findIndex((header) => header.includes('파일링크'));
+    const folderName = linkIndex >= 0 ? folderNameFromLink(orderEmailRow.links[linkIndex] ?? '') : '';
+    return uploadUrl(selectedYear, currentDepartment, quoteNumber, company, authorEmail, authorName, folderName);
+  }
+
+  // 업로드 탭에서 작업 후 모달로 돌아오면 파일 목록을 자동으로 갱신한다.
+  const loadOrderEmailFilesRef = useRef(loadOrderEmailFiles);
+  loadOrderEmailFilesRef.current = loadOrderEmailFiles;
+  useEffect(() => {
+    if (!orderEmailOpen || !orderEmailRow) return;
+    function onFocus() {
+      if (loadOrderEmailFilesRef.current && orderEmailRow) {
+        void loadOrderEmailFilesRef.current(orderEmailRow);
+      }
+    }
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [orderEmailOpen, orderEmailRow]);
+
   /** 모달에서 임시보관함 작성 → 발주 메일 초안 생성 + 발주 체크 반영 */
   async function handleOrderDraftSubmit() {
     if (orderEmailLoading) return;
@@ -559,10 +584,30 @@ export default function QuoteListPage({
 
               {/* 첨부 파일 선택 */}
               <div>
-                <span className="block text-xs font-medium text-[#555555] mb-1">
-                  {t(UI.quoteOrderAttachFiles)} <span className="text-red-500">*</span>
-                </span>
-                <p className="text-[11px] text-[#999999] mb-2">{t(UI.quoteOrderAttachHint)}</p>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-[#555555]">
+                    {t(UI.quoteOrderAttachFiles)} <span className="text-red-500">*</span>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <a
+                      href={orderEmailUploadUrl()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2 py-1 rounded border border-green-200 text-[11px] font-medium text-green-700 hover:bg-green-50"
+                    >
+                      {t(UI.quoteUploadBtn)}
+                    </a>
+                    <button
+                      type="button"
+                      disabled={orderEmailFetching}
+                      onClick={() => { if (orderEmailRow) void loadOrderEmailFiles(orderEmailRow); }}
+                      className="px-2 py-1 rounded border border-[#ddd9d2] text-[11px] text-[#555555] hover:bg-[#e6e2dc] disabled:opacity-50"
+                    >
+                      {t(UI.quoteRefresh)}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-[#999999] mb-2">{t(UI.quoteOrderAttachHint)} {t(UI.quoteOrderUploadRefreshHint)}</p>
                 {orderEmailFetching ? (
                   <p className="text-xs text-[#999999]">{t(UI.quoteListLoading)}</p>
                 ) : orderEmailFiles.length === 0 ? (

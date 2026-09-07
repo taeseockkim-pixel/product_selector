@@ -132,6 +132,7 @@ export const UI = {
   quoteOrderAddressPlaceholder: t('납품 주소를 입력해 주세요 (필수)', 'Enter the delivery address (required)'),
   quoteOrderAttachFiles: t('첨부 파일 선택 (발주서, 사업자등록증 등)', 'Select files to attach (PO, business registration, etc.)'),
   quoteOrderAttachHint: t('발주서·사업자등록증 등 메일에 첨부할 파일을 체크해 주세요.', 'Check the files to attach to the email.'),
+  quoteOrderUploadRefreshHint: t('파일 업로드 후 새로고침을 눌러 목록을 갱신하세요.', 'Upload files, then click Refresh to update the list.'),
   quoteOrderNoFiles: t('첨부 가능한 파일이 없습니다. 해당 견적 폴더에 파일을 먼저 업로드해 주세요.', 'No attachable files. Upload files to the quote folder first.'),
   quoteOrderFileLoadFailed: t('견적 폴더의 파일 목록을 불러오지 못했습니다.', 'Failed to load files from the quote folder.'),
   quoteOrderAddressRequired: t('납품 주소를 입력해야 발주 메일을 작성할 수 있습니다.', 'Enter the delivery address to create the email.'),
