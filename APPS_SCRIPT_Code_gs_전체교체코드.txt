@@ -36,8 +36,6 @@ const VERCEL_APP_URL = 'https://product-selector-two.vercel.app';
 // ※ 참조 주소에 대괄호([ ]) 등 특수문자가 들어간 표시명을 쓰면 Gmail 주소 파싱이 실패해 초안 생성 오류가 난다.
 //   (예: "김원중 [James Kim] 상무" → 실패 / "김원중 상무" → 정상)
 const ORDER_EMAIL_TO = '김유빈 대리 <yubin.kim@cimon.com>';
-// 보낸사람으로 설정할 주소 (현재 로그인 계정의 별칭일 때만 적용되고, 아니면 자동으로 기본 계정으로 폴백)
-const ORDER_EMAIL_FROM_ADDRESS = 'kyukwang.jo@cimon.com';
 const ORDER_EMAIL_CC = [
   '김태석 차장 <taeseock.kim@cimon.com>',
   '정성택 차장 <seongtaek.jeong@cimon.com>',
@@ -901,9 +899,14 @@ function createOrderDraftFromReact(payload) {
 
     const subject = `[발주서] ${clientName} ${productName}`.trim();
 
+    // &부서 표기: 기술영업→기술영업실, 영업→자동화영업실, 프로젝트→프로젝트사업실
+    const deptName = String((payload && payload.department) || access.author.department || '').trim();
+    const deptLabelMap = { '기술영업': '기술영업실', '영업': '자동화영업실', '프로젝트': '프로젝트사업실' };
+    const deptLabel = deptLabelMap[deptName] || (deptName ? deptName + '실' : '기술영업실');
+
     const body = [
       '안녕하세요,',
-      `기술영업실 ${access.author.name || ''}입니다.`,
+      `${deptLabel} ${access.author.name || ''}입니다.`,
       '',
       `${clientName} ${productName} 발주서를 공유드립니다.`,
       '',
@@ -918,15 +921,12 @@ function createOrderDraftFromReact(payload) {
       '감사합니다.'
     ].join('\n');
 
-    // 보낸사람을 조규광 이사로 설정을 시도한다. 현재 로그인 계정의 별칭이 아니면 실패하므로
-    // 그 경우 기본 계정(로그인 사용자)으로 초안을 만든다.
-    const draftOptions = { cc: ORDER_EMAIL_CC, attachments: attachments, name: 'CIMON' };
-    try {
-      GmailApp.createDraft(ORDER_EMAIL_TO, subject, body, Object.assign({ from: ORDER_EMAIL_FROM_ADDRESS }, draftOptions));
-    } catch (fromErr) {
-      Logger.log('보낸사람 지정 실패(별칭 아님) — 기본 계정으로 초안 생성: ' + fromErr.toString());
-      GmailApp.createDraft(ORDER_EMAIL_TO, subject, body, draftOptions);
-    }
+    // 본인(로그인 사용자) 계정으로 초안을 생성한다.
+    GmailApp.createDraft(ORDER_EMAIL_TO, subject, body, {
+      cc: ORDER_EMAIL_CC,
+      attachments: attachments,
+      name: 'CIMON'
+    });
 
     enqueueActivityLog_(
       access.author.email || access.author.name || '',
