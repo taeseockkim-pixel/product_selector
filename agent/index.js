@@ -196,6 +196,50 @@ function verifyRelativePathSignature(relativePath, signature) {
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
+// 서명은 통과했지만 정확한 경로에 파일이 없을 때(폴더명/업체명 표기 차이, 폴더 수동 수정 등)
+// 견적번호 접두사로 실제 폴더와 파일을 찾아 반환한다. 동일 쿼터 보안 영역(STORAGE_ROOT) 안에서만 동작한다.
+function resolveQuoteFileForClaim(relative) {
+  try {
+    const parts = String(relative).split('/').filter(Boolean);
+    if (parts.length < 4) return null;
+    const dept = parts[0];
+    const year = parts[1];
+    const folderRaw = parts[2];
+    const fileName = parts.slice(3).join('/');
+
+    const deptRoot = resolve(join(STORAGE_ROOT, dept));
+    const yearRoot = resolve(join(deptRoot, year));
+    if (!yearRoot.startsWith(deptRoot + sep) || !existsSync(yearRoot) || !statSync(yearRoot).isDirectory()) return null;
+
+    // 폴더명 "기술영업 2609-001_싸이몬" 형태 → 견적번호 접두사 "기술영업 2609-001"
+    const quoteNum = String(folderRaw).split('_')[0];
+    if (!quoteNum) return null;
+
+    const candidateDirs = readdirSync(yearRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name.startsWith(`${quoteNum}_`));
+    if (candidateDirs.length === 0) return null;
+
+    for (const dir of candidateDirs) {
+      const exact = resolve(join(yearRoot, dir.name, fileName));
+      if (exact.startsWith(yearRoot + sep) && existsSync(exact) && statSync(exact).isFile()) return exact;
+    }
+    // 파일명도 업체명 표기 차이로 다르면, 같은 폴더에서 견적번호를 포함하는 파일을 하나 찾는다.
+    for (const dir of candidateDirs) {
+      const dirPath = join(yearRoot, dir.name);
+      const matches = readdirSync(dirPath, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && !entry.name.startsWith('.') && entry.name.includes(quoteNum));
+      if (matches.length === 1) {
+        const found = resolve(join(dirPath, matches[0].name));
+        if (found.startsWith(yearRoot + sep)) return found;
+      }
+    }
+    return null;
+  } catch (err) {
+    console.error(`[파일 클레임 해석 실패] ${relative}: ${describeError(err)}`);
+    return null;
+  }
+}
+
 // ── 폴더 브라우저 세션/비밀번호 ────────────────────────────────────────────
 function safeEqualStr(a, b) {
   const bufA = Buffer.from(String(a), 'utf8');
@@ -699,28 +743,41 @@ function resolveQuoteFolder(session, values) {
   const yearRoot = resolve(join(departmentRoot, year));
   if (!yearRoot.startsWith(departmentRoot + sep) || !existsSync(yearRoot) || !statSync(yearRoot).isDirectory()) return null;
 
-  // 대장 파일링크에서 추출해 전달된 실제 폴더명이 있으면 최우선으로 사용한다.
-  // (업체명 표기 차이·같은 견적번호 폴더 다중 존재 시에도 폴더 탐색 실패를 막는다.)
+  const folderExists = (p) => p.startsWith(yearRoot + sep) && existsSync(p) && statSync(p).isDirectory();
+  const authorEmail = String(values.authorEmail || values.email || '').trim().toLowerCase();
+
+  // 1) 대장 파일링크에서 추출해 전달된 실제 폴더명이 있으면 최우선으로 사용한다.
   const providedFolder = safeSegment(values.folder);
   if (providedFolder) {
     const candidate = resolve(join(yearRoot, providedFolder));
-    if (candidate.startsWith(yearRoot + sep) && existsSync(candidate) && statSync(candidate).isDirectory()
-      && providedFolder.startsWith(`${quoteNumber}_`)) {
-      const authorEmail = String(values.authorEmail || values.email || '').trim().toLowerCase();
+    if (folderExists(candidate) && providedFolder.startsWith(`${quoteNumber}_`)) {
       return { department, year, quoteNumber, company, target: candidate, folderName: basename(candidate), authorEmail };
     }
   }
 
+  // 2) 대장 업체명으로 정확히 일치하는 폴더
   const exactTarget = resolve(join(yearRoot, `${quoteNumber}_${company}`));
-  let target = exactTarget;
-  if (!existsSync(target) || !statSync(target).isDirectory()) {
-    const candidates = readdirSync(yearRoot, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name.startsWith(`${quoteNumber}_`));
-    if (candidates.length !== 1) return null;
-    target = resolve(join(yearRoot, candidates[0].name));
+  if (folderExists(exactTarget)) {
+    return { department, year, quoteNumber, company, target: exactTarget, folderName: basename(exactTarget), authorEmail };
   }
-  if (!target.startsWith(yearRoot + sep) || !existsSync(target) || !statSync(target).isDirectory()) return null;
-  const authorEmail = String(values.authorEmail || values.email || '').trim().toLowerCase();
+
+  // 3) 같은 견적번호 접두사로 시작하는 폴더 후보들 → 업체명 포함 여부 기준으로 최선을 고른다.
+  //    (업체명 표기 차이·폴더명 수동 수정 등으로 정확히 일치하지 않아도 실패하지 않도록)
+  const candidates = readdirSync(yearRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name.startsWith(`${quoteNumber}_`));
+  if (candidates.length === 0) return null;
+
+  const candidateNames = candidates.map((entry) => entry.name);
+  const exactSuffix = `${quoteNumber}_${company}`;
+  const preferred = candidateNames.find((name) => name === exactSuffix);
+  const containsCompany = candidateNames.find((name) => name.includes(`_${company}`) || name.endsWith(`_${company}`));
+  const selectedName = preferred || containsCompany || candidateNames[0]; // 어느 쪽이든 목록에서 존재하는 폴더를 선택
+  const target = resolve(join(yearRoot, selectedName));
+  if (!folderExists(target)) return null;
+
+  if (candidateNames.length > 1) {
+    console.warn(`[업로드] 견적번호 "${quoteNumber}" 폴더 후보가 ${candidateNames.length}개 → "${selectedName}" 사용 (목록: ${candidateNames.join(' | ')})`);
+  }
   return { department, year, quoteNumber, company, target, folderName: basename(target), authorEmail };
 }
 
@@ -1033,7 +1090,14 @@ app.use('/files', (req, res) => {
       return res.status(403).send('Forbidden');
     }
     if (!existsSync(absolute) || !statSync(absolute).isFile()) {
-      return res.status(404).send('Not found');
+      // 폴더명·업체명 표기 차이 등으로 정확한 경로에 파일이 없으면, 견적번호 기준으로 실제 파일을 찾는다.
+      const resolved = resolveQuoteFileForClaim(relative);
+      if (!resolved) return res.status(404).send('Not found');
+      if (extname(resolved).toLowerCase() === '.xlsx') {
+        return res.download(resolved, basename(resolved));
+      }
+      res.sendFile(resolved);
+      return;
     }
     if (extname(absolute).toLowerCase() === '.xlsx') {
       return res.download(absolute, basename(absolute));
