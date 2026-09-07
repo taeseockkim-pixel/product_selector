@@ -176,6 +176,10 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
       };
     });
 
+    // 파일 생성이 완료 보고 반영보다 늦더라도, 목록 조회 시점에 누락된 파일링크를 즉시 복구한다.
+    // (비동기 완료 보고를 기다리지 않고, 매 조회마다 빈 링크 행만 스냅샷 기반으로 다시 채운다.)
+    repairEmptyLedgerLinks_(system, department, year, rows);
+
     return Object.assign({ headers: headers, rows: rows }, baseResult);
   } catch (err) {
     Logger.log('대장 조회 오류: ' + err.toString());
@@ -1221,17 +1225,120 @@ function diagnoseDriveConfig() {
   Logger.log('AUTHOR_DB_SHEET_ID = ' + CONFIG.AUTHOR_DB_SHEET_ID);
 }
 
+// ── 파일링크 생성 헬퍼 (공용) ───────────────────────────────────────────────
+// 견적 번호/업체명 → 대장 O열(파일링크)에 기록할 서명된 링크 목록을 만든다.
+
+function signedFileUrl_(dept, year, folderName, fileName) {
+  const publicBaseUrl = 'http://172.35.12.36:8790';
+  const fileLinkSecret = 'CIMON-FILES-2026-jR4wN8sQ2tVx7LmE';
+  const relPath = [dept, String(year), folderName, fileName].map(encodeURIComponent).join('/');
+  const sigBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(relPath), fileLinkSecret);
+  const sig = sigBytes.map(function(b) {
+    const v = (b < 0 ? b + 256 : b).toString(16);
+    return v.length === 1 ? '0' + v : v;
+  }).join('');
+  return `${publicBaseUrl}/files/${relPath}?k=${sig}`;
+}
+
+function buildRowLinkItems_(dept, year, quoteNumber, company, snapshotRows) {
+  const baseQuote = baseQuoteNumber_(quoteNumber);
+  const matchedSnapshots = snapshotRows.filter(function(row) {
+    return String(row[1] || '').trim() === baseQuote;
+  });
+
+  // 실제 폴더명에 사용된 업체명(스냅샷의 folderClientName)을 우선 사용한다.
+  let folderClientName = company;
+  for (let si = matchedSnapshots.length - 1; si >= 0; si--) {
+    try {
+      const stored = JSON.parse(String(matchedSnapshots[si][4] || '{}'));
+      const storedClient = String((stored.details && (stored.details.folderClientName || stored.details.clientName)) || '').trim();
+      if (storedClient) {
+        folderClientName = storedClient;
+        break;
+      }
+    } catch (err) { /* 다음 스냅샷 행으로 넘어간다 */ }
+  }
+
+  const folderName = `${baseQuote}_${folderClientName}`;
+  const linkItems = [];
+  const seenUrls = {};
+
+  const origFileName = `${baseQuote}_${folderClientName}_견적서.pdf`;
+  const origUrl = signedFileUrl_(dept, year, folderName, origFileName);
+  linkItems.push({ text: `원본: ${origFileName}`, url: origUrl });
+  seenUrls[origUrl] = true;
+
+  matchedSnapshots.forEach(function(row) {
+    const outNum = String(row[0] || '').trim();
+    const revMatch = outNum.match(/_Rev(\d+)$/i);
+    if (!revMatch) return;
+    const revNum = parseInt(revMatch[1], 10);
+    const revFileName = `${outNum}_${folderClientName}_견적서.pdf`;
+    const revUrl = signedFileUrl_(dept, year, folderName, revFileName);
+    if (seenUrls[revUrl]) return;
+    seenUrls[revUrl] = true;
+    linkItems.push({ text: `Rev${String(revNum).padStart(2, '0')}: ${revFileName}`, url: revUrl });
+  });
+
+  linkItems.sort(function(a, b) {
+    const aRev = a.text.match(/^Rev(\d+)/);
+    const bRev = b.text.match(/^Rev(\d+)/);
+    const aNum = aRev ? parseInt(aRev[1], 10) : 0;
+    const bNum = bRev ? parseInt(bRev[1], 10) : 0;
+    return aNum - bNum;
+  });
+  return linkItems;
+}
+
+function writeLinkItemsToCell_(sheet, rowIndex, linkItems) {
+  if (!linkItems || linkItems.length === 0) return;
+  const separator = ' | ';
+  const combinedText = linkItems.map(function(item) { return item.text; }).join(separator);
+  const builder = SpreadsheetApp.newRichTextValue().setText(combinedText);
+  let offset = 0;
+  linkItems.forEach(function(item) {
+    if (item.url) builder.setLinkUrl(offset, offset + item.text.length, item.url);
+    offset += item.text.length + separator.length;
+  });
+  sheet.getRange(rowIndex, LEDGER_COL.FILE_LINK).setRichTextValue(builder.build());
+}
+
+// 견적 목록 조회 시 누락된 파일링크를 "그 자리에서" 자동 복구한다.
+// 반환할 rows 배열에도 복구된 링크를 반영해서 화면에 즉시 보이게 한다.
+function repairEmptyLedgerLinks_(system, dept, year, rows) {
+  const sheet = system.ledgerSheet;
+  const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+  const snapshotRows = (snapshot && snapshot.getLastRow() >= 2)
+    ? snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues()
+    : [];
+  const linkCol = LEDGER_COL.FILE_LINK - 1;
+  const quoteCol = LEDGER_COL.QUOTE_NUMBER - 1;
+  const companyCol = LEDGER_COL.CLIENT_NAME - 1;
+  let repaired = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.links[linkCol]) continue; // 이미 링크가 있으면 건드리지 않는다.
+    const quoteNumber = String(row.values[quoteCol] || '').trim();
+    const company = String(row.values[companyCol] || '').trim();
+    if (!quoteNumber || !company) continue;
+    const linkItems = buildRowLinkItems_(dept, year, quoteNumber, company, snapshotRows);
+    if (!linkItems.length) continue;
+    writeLinkItemsToCell_(sheet, i + 2, linkItems);
+    row.links[linkCol] = linkItems[0].url; // 화면에 즉시 표시되도록 반환 데이터에 반영
+    repaired++;
+  }
+  if (repaired > 0) SpreadsheetApp.flush();
+  return repaired;
+}
+
 // ── 파일링크 복구 유틸리티 ──────────────────────────────────────────────────
 // 에이전트 큐 삭제나 동기화 지연 등으로 대장 파일링크가 누락된 모든 견적 행의 링크를
 // 스냅샷 기록을 바탕으로 자동 계산하여 대장에 복구한다.
 // 사용 방법: 편집기 상단 함수 드롭다운에서 autoRepairAllMissingLedgerLinks 선택 → [실행] 클릭
 function autoRepairAllMissingLedgerLinks() {
-  const publicBaseUrl = 'http://172.35.12.36:8790';
-  const fileLinkSecret = 'CIMON-FILES-2026-jR4wN8sQ2tVx7LmE';
-
+  const currentYear = new Date().getFullYear();
   for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
     const rootFolderId = CONFIG.DEPARTMENT_ROOTS[dept];
-    const currentYear = new Date().getFullYear();
     const system = getExistingYearSystem_(currentYear, rootFolderId);
     if (!system) continue;
 
@@ -1244,71 +1351,18 @@ function autoRepairAllMissingLedgerLinks() {
       ? snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues()
       : [];
 
+    let repaired = 0;
     for (let r = 2; r <= lastRow; r++) {
       const quoteNumber = String(sheet.getRange(r, LEDGER_COL.QUOTE_NUMBER).getDisplayValue() || '').trim();
       const company = String(sheet.getRange(r, LEDGER_COL.CLIENT_NAME).getDisplayValue() || '').trim();
       if (!quoteNumber || !company) continue;
-
-      // 이 견적(기본 견적번호)에 해당하는 스냅샷 행들을 모두 수집한다 (원본 + 각 리비전)
-      const baseQuote = baseQuoteNumber_(quoteNumber);
-      const matchedSnapshots = snapshotRows.filter(function(row) {
-        return String(row[1] || '').trim() === baseQuote;
-      });
-
-      // 등록할 링크 목록 구성: 원본 + 각 리비전
-      const linkItems = [];
-      const seenUrls = {};
-
-      // 1) 원본 링크
-      const origFolderName = `${baseQuote}_${company}`;
-      const origFileName = `${baseQuote}_${company}_견적서.pdf`;
-      const origRelPath = [dept, String(currentYear), origFolderName, origFileName].map(encodeURIComponent).join('/');
-      const origSigBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(origRelPath), fileLinkSecret);
-      const origSig = origSigBytes.map(function(b) { const v = (b < 0 ? b + 256 : b).toString(16); return v.length === 1 ? '0' + v : v; }).join('');
-      const origUrl = `${publicBaseUrl}/files/${origRelPath}?k=${origSig}`;
-      linkItems.push({ text: `원본: ${origFileName}`, url: origUrl });
-      seenUrls[origUrl] = true;
-
-      // 2) 리비전 링크들 (스냅샷에서 _RevNN 탐색)
-      matchedSnapshots.forEach(function(row) {
-        const outNum = String(row[0] || '').trim();
-        const revMatch = outNum.match(/_Rev(\d+)$/i);
-        if (!revMatch) return;
-        const revNum = parseInt(revMatch[1], 10);
-        const revFileName = `${outNum}_${company}_견적서.pdf`;
-        const revRelPath = [dept, String(currentYear), origFolderName, revFileName].map(encodeURIComponent).join('/');
-        const revSigBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(revRelPath), fileLinkSecret);
-        const revSig = revSigBytes.map(function(b) { const v = (b < 0 ? b + 256 : b).toString(16); return v.length === 1 ? '0' + v : v; }).join('');
-        const revUrl = `${publicBaseUrl}/files/${revRelPath}?k=${revSig}`;
-        if (!seenUrls[revUrl]) {
-          seenUrls[revUrl] = true;
-          linkItems.push({ text: `Rev${String(revNum).padStart(2, '0')}: ${revFileName}`, url: revUrl });
-        }
-      });
-
-      // 리비전 번호 순으로 정렬 (원본이 맨 앞)
-      linkItems.sort(function(a, b) {
-        const aRev = a.text.match(/^Rev(\d+)/);
-        const bRev = b.text.match(/^Rev(\d+)/);
-        const aNum = aRev ? parseInt(aRev[1], 10) : 0;
-        const bNum = bRev ? parseInt(bRev[1], 10) : 0;
-        return aNum - bNum;
-      });
-
-      // O열 셀에 RichText 멀티링크로 기록
-      const separator = ' | ';
-      const combinedText = linkItems.map(function(item) { return item.text; }).join(separator);
-      const builder = SpreadsheetApp.newRichTextValue().setText(combinedText);
-      let offset = 0;
-      linkItems.forEach(function(item) {
-        if (item.url) builder.setLinkUrl(offset, offset + item.text.length, item.url);
-        offset += item.text.length + separator.length;
-      });
-
-      sheet.getRange(r, LEDGER_COL.FILE_LINK).setRichTextValue(builder.build());
-      Logger.log(`[복구 완료] ${quoteNumber} (${company}) -> ${linkItems.length}개 링크 등록`);
+      const linkItems = buildRowLinkItems_(dept, currentYear, quoteNumber, company, snapshotRows);
+      if (!linkItems.length) continue;
+      writeLinkItemsToCell_(sheet, r, linkItems);
+      repaired++;
     }
     SpreadsheetApp.flush();
+    Logger.log(`[부서: ${dept}] 파일링크 복구 완료: ${repaired}행`);
   }
   Logger.log('전체 부서 파일링크 복구 작업 완료!');
 }
