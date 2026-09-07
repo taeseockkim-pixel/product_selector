@@ -957,7 +957,15 @@ function getQuoteFilesFromReact(payload) {
       return { success: true, files: [], message: '견적번호가 없습니다.' };
     }
 
-    const docsRoot = getAgentSubfolder_('문서');
+    let docsRoot;
+    try {
+      docsRoot = getAgentSubfolder_('문서');
+    } catch (driveErr) {
+      return {
+        success: false,
+        message: '구글 드라이브 공유 폴더(견적에이전트) 접근 권한이 없습니다. 관리자에게 공유 폴더 접근 권한을 요청해 주세요. (' + driveErr.toString() + ')'
+      };
+    }
     const folderName = `${baseQuoteNumber_(quoteNumber)}_${company}`;
     let docsFolder = null;
     const folderIter = docsRoot.getFoldersByName(folderName);
@@ -1671,4 +1679,55 @@ function diagnoseFileLinkHmac() {
   }).join('');
   Logger.log('Apps Script HMAC(인코딩 경로, hex): ' + hex);
   Logger.log('이 값이 에이전트가 URL로 검증하는 서명과 일치해야 합니다.');
+}
+
+// ── 사용자별 Drive 접근 권한 진단 ────────────────────────────────────────────
+// 실행한 "현재 로그인 계정" 기준으로, 시스템이 사용하는 공유 Drive 리소스에
+// 접근 가능한지 항목별로 확인한다. Apps Script 편집기에서 선택 → 실행 → 로그 확인.
+// 다른 작성자 계정이 "액세스가 거부됨: DriveApp" 오류를 겪을 때 원인 파악에 사용한다.
+function diagnoseUserDriveAccess() {
+  const email = String(Session.getActiveUser().getEmail() || '').trim();
+  Logger.log('=== 현재 실행 계정: ' + email + ' ===');
+  Logger.log('아래 항목이 모두 OK이어야 이 계정으로 견적 폴더 파일 목록 조회가 가능합니다.');
+  Logger.log('');
+
+  function check(label, fn) {
+    try {
+      const result = fn();
+      Logger.log('OK   ' + label + (result ? ' — ' + result : ''));
+    } catch (err) {
+      Logger.log('FAIL ' + label + ' — ' + err.toString());
+    }
+  }
+
+  check('작성자 DB 시트', function() {
+    const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+    return ss.getName();
+  });
+
+  for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
+    check('부서 폴더 [' + dept + ']', function() {
+      return DriveApp.getFolderById(CONFIG.DEPARTMENT_ROOTS[dept]).getName();
+    });
+  }
+
+  check('견적에이전트 폴더', function() {
+    return getAgentFolder_().getName();
+  });
+
+  check('견적에이전트/문서 폴더', function() {
+    return getAgentSubfolder_('문서').getName();
+  });
+
+  check('견적서 템플릿', function() {
+    return DriveApp.getFileById(CONFIG.TEMPLATE_ID).getName();
+  });
+
+  check('대장 템플릿', function() {
+    return DriveApp.getFileById(CONFIG.LEDGER_TEMPLATE_ID).getName();
+  });
+
+  Logger.log('');
+  Logger.log('FAIL이 있는 항목은 해당 계정에 공유(또는 편집) 권한이 없는 것입니다.');
+  Logger.log('관리자에게 해당 리소스를 이 계정(또는 작성자 그룹)과 공유해 달라고 요청하세요.');
 }
