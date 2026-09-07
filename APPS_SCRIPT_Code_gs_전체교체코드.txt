@@ -897,7 +897,7 @@ function createOrderDraftFromReact(payload) {
       return { success: false, message: '첨부 파일이 아직 구글 드라이브 동기화 전이거나 없습니다: ' + missing.join(', ') + ' — 잠시 후 다시 시도해 주세요.' };
     }
 
-    const subject = `[발주서] ${clientName} ${productName}`.trim();
+    const subject = `[발주서] ${clientName}- ${productName} 발주서 공유`.trim();
 
     // &부서 표기: 기술영업→기술영업실, 영업→자동화영업실, 프로젝트→프로젝트사업실
     const deptName = String((payload && payload.department) || access.author.department || '').trim();
