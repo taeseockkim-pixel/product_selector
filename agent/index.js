@@ -196,6 +196,17 @@ function verifyRelativePathSignature(relativePath, signature) {
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
+// 파일 링크 서명 검증 — URL 경로 표기 차이(공백 `%20` vs `+`, 혼합)까지 허용한다.
+function verifyFileLinkSignature(relative, signature) {
+  const given = Buffer.from(String(signature || ''), 'utf8');
+  const candidates = new Set([relative, relative.replace(/\+/g, ' ')]);
+  for (const candidate of candidates) {
+    const expected = Buffer.from(signRelativePath(candidate), 'utf8');
+    if (expected.length === given.length && timingSafeEqual(expected, given)) return true;
+  }
+  return false;
+}
+
 // 서명은 통과했지만 정확한 경로에 파일이 없을 때(폴더명/업체명 표기 차이, 폴더 수동 수정 등)
 // 견적번호 접두사로 실제 폴더와 파일을 찾아 반환한다. 동일 쿼터 보안 영역(STORAGE_ROOT) 안에서만 동작한다.
 function resolveQuoteFileForClaim(relative) {
@@ -1125,7 +1136,15 @@ app.use('/files', (req, res) => {
 
     // 부서 접근 제어: 대장에 기록된 서명된 링크만 허용한다 (경로 변조·상위 경로 접근 차단)
     const relative = decodeURIComponent(raw);
-    if (!verifyRelativePathSignature(relative, query.get('k'))) {
+    if (!verifyFileLinkSignature(relative, query.get('k'))) {
+      // 정확한 원인을 콘솔에 남겨 재현할 수 있게 한다 (서명 불일치 vs 경로 차이)
+      try {
+        console.error(
+          `[파일 링크 서명 불일치] raw=${raw}\n` +
+          `[파일 링크 서명 불일치] decoded=${relative}\n` +
+          `[파일 링크 서명 불일치] 받은서명=${String(query.get('k') || '').slice(0, 16)}... 예상서명=${signRelativePath(relative).slice(0, 16)}...`
+        );
+      } catch { /* noop */ }
       return res.status(403).send('Forbidden: 유효한 파일 링크가 아닙니다. 견적 목록의 링크를 이용해 주세요.');
     }
 
