@@ -856,7 +856,8 @@ function createOrderDraftFromReact(payload) {
       const base64 = String(file && file.base64 || '').replace(/[^A-Za-z0-9+/=]/g, '');
       if (!base64) throw new Error('첨부 파일 데이터가 비어 있습니다: ' + fileName);
       try {
-        const bytes = Utilities.parseUint8Array(base64, { isBase64: true });
+        // Apps Script는 parseUint8Array를 제공하지 않으므로 base64Decode로 Blob 바이트를 만든다.
+        const bytes = Utilities.base64Decode(base64);
         attachments.push(Utilities.newBlob(bytes, mimeType).setName(fileName));
       } catch (err) {
         throw new Error('첨부 파일 변환 실패(' + fileName + '): ' + err.toString());
