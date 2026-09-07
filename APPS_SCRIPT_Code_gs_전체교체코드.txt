@@ -122,60 +122,68 @@ function processQuoteFromReact(payload) {
 }
 
 function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
-  const access = getAuthorizedUserFromReact();
-  if (!access.success || !access.authorized || !access.author) {
-    return { success: false, message: '접속 권한이 없습니다.' };
-  }
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '접속 권한이 없습니다.' };
+    }
 
-  // 관리자는 모든 부서의 대장을 선택해 조회할 수 있다.
-  // 일반 사용자는 본인 등록 부서의 대장만 조회할 수 있다.
-  let department = access.author.department;
-  const targetDept = String(requestedDepartment || '').trim();
-  if (access.isAdmin && targetDept && CONFIG.DEPARTMENT_ROOTS[targetDept]) {
-    department = targetDept;
-  }
+    // 관리자는 모든 부서의 대장을 선택해 조회할 수 있다.
+    // 일반 사용자는 본인 등록 부서의 대장만 조회할 수 있다.
+    let department = access.author.department;
+    const targetDept = String(requestedDepartment || '').trim();
+    if (access.isAdmin && targetDept && CONFIG.DEPARTMENT_ROOTS[targetDept]) {
+      department = targetDept;
+    }
 
-  const rootFolderId = resolveRootFolderId({ authorDepartment: department });
-  const currentYear = new Date().getFullYear();
-  const parsedYear = Number(requestedYear);
-  const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
-    ? parsedYear
-    : currentYear;
-  const availableYears = getAvailableLedgerYears_(rootFolderId, currentYear);
-  const system = getExistingYearSystem_(year, rootFolderId);
-  const baseResult = {
-    success: true,
-    availableYears: availableYears,
-    department: department,
-    isAdmin: Boolean(access.isAdmin),
-    availableDepartments: Object.keys(CONFIG.DEPARTMENT_ROOTS)
-  };
-  if (!system) {
-    return Object.assign({ headers: [], rows: [] }, baseResult);
-  }
-  const sheet = system.ledgerSheet;
-  const lastRow = sheet.getLastRow();
-  const lastColumn = sheet.getLastColumn();
-
-  if (lastRow < 1 || lastColumn < 1) {
-    return Object.assign({ headers: [], rows: [] }, baseResult);
-  }
-
-  const range = sheet.getRange(1, 1, lastRow, lastColumn);
-  const displayValues = range.getDisplayValues();
-  const richTextValues = range.getRichTextValues();
-  const headers = displayValues[0];
-  const rows = displayValues.slice(1).map(function(values, rowIndex) {
-    return {
-      values: values,
-      links: values.map(function(_, columnIndex) {
-        const richText = richTextValues[rowIndex + 1][columnIndex];
-        return richText ? richText.getLinkUrl() : null;
-      })
+    const rootFolderId = resolveRootFolderId({ authorDepartment: department });
+    const currentYear = new Date().getFullYear();
+    const parsedYear = Number(requestedYear);
+    const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+      ? parsedYear
+      : currentYear;
+    const availableYears = getAvailableLedgerYears_(rootFolderId, currentYear);
+    const system = getExistingYearSystem_(year, rootFolderId);
+    const baseResult = {
+      success: true,
+      availableYears: availableYears,
+      department: department,
+      isAdmin: Boolean(access.isAdmin),
+      availableDepartments: Object.keys(CONFIG.DEPARTMENT_ROOTS)
     };
-  });
+    if (!system) {
+      return Object.assign({ headers: [], rows: [] }, baseResult);
+    }
+    const sheet = system.ledgerSheet;
+    const lastRow = sheet.getLastRow();
+    const lastColumn = sheet.getLastColumn();
 
-  return Object.assign({ headers: headers, rows: rows }, baseResult);
+    if (lastRow < 1 || lastColumn < 1) {
+      return Object.assign({ headers: [], rows: [] }, baseResult);
+    }
+
+    const range = sheet.getRange(1, 1, lastRow, lastColumn);
+    const displayValues = range.getDisplayValues();
+    const richTextValues = range.getRichTextValues();
+    const headers = displayValues[0];
+    const rows = displayValues.slice(1).map(function(values, rowIndex) {
+      return {
+        values: values,
+        links: values.map(function(_, columnIndex) {
+          const richText = richTextValues[rowIndex + 1][columnIndex];
+          return richText ? richText.getLinkUrl() : null;
+        })
+      };
+    });
+
+    return Object.assign({ headers: headers, rows: rows }, baseResult);
+  } catch (err) {
+    Logger.log('대장 조회 오류: ' + err.toString());
+    return {
+      success: false,
+      message: '해당 부서 대장을 조회하지 못했습니다: ' + err.toString()
+    };
+  }
 }
 
 function doPost(e) {
