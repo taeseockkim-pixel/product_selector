@@ -332,6 +332,7 @@ function processAgentResults() {
     if (result && result.ok && result.department && result.quoteNumber && result.fileUrl) {
       try {
         updateLedgerLink_(result);
+        Logger.log('대장 파일링크 갱신 완료(' + result.quoteNumber + '): ' + result.fileUrl);
       } catch (err) {
         // 파일은 이미 생성되었지만 대장 링크 갱신에 실패한 상태 — 결과를 지우면 영구히 유실되므로
         // resultsFailed 폴더에 원본을 보존하고, 매분 트리거가 같은 오류로 계속 재시도하지 않도록
@@ -346,6 +347,24 @@ function processAgentResults() {
         } catch (copyErr) {
           Logger.log('resultsFailed 보존 실패: ' + copyErr.toString());
         }
+      }
+    } else if (result && result.ok) {
+      // 성공 보고인데 필수 값이 빠진 경우에는 조용히 삭제하지 않는다.
+      // fileUrl이 비어 있으면 대장 링크를 만들 수 없으므로 원본 결과를 보존해야 한다.
+      const missing = [];
+      if (!result.department) missing.push('department');
+      if (!result.quoteNumber) missing.push('quoteNumber');
+      if (!result.fileUrl) missing.push('fileUrl');
+      const message = '완료 보고 필수 값 누락: ' + missing.join(', ');
+      Logger.log('대장 파일링크 갱신 보류(' + (result.quoteNumber || file.getName()) + '): ' + message);
+      try {
+        getAgentSubfolder_('resultsFailed').createFile(
+          `링크실패_${sanitizeDriveName(result.quoteNumber || file.getName())}_${Date.now()}.json`,
+          JSON.stringify({ result: result, error: message }),
+          MimeType.PLAIN_TEXT
+        );
+      } catch (copyErr) {
+        Logger.log('resultsFailed 보존 실패: ' + copyErr.toString());
       }
     } else if (result && result.ok === false) {
       movePendingToFailed_(result.quoteNumber, result.error || '알 수 없는 오류');

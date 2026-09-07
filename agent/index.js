@@ -46,7 +46,9 @@ try {
 const AGENT_FOLDER = resolve(String(config.agentFolderPath || ''));
 const STORAGE_ROOT = resolve(String(config.storageRoot || 'D:\\견적서'));
 const DEFAULT_DEPARTMENT = String(config.defaultDepartment || '기술영업');
-const PUBLIC_BASE_URL = String(config.publicBaseUrl || '').replace(/\/+$/, '');
+// 설정 누락으로 fileUrl이 빈 값이 되면 Apps Script가 완료 보고를 버릴 수 있으므로
+// 사내 파일 서버 기본 주소를 사용한다.
+const PUBLIC_BASE_URL = String(config.publicBaseUrl || 'http://172.35.12.36:8790').replace(/\/+$/, '');
 const HTTP_PORT = Number(config.httpPort || 8790);
 const FILE_LINK_SECRET = String(config.fileLinkSecret || '');
 // 부서별 폴더 브라우저 비밀번호: { 부서: 비밀번호 }. adminPassword가 설정되어 있으면
@@ -332,6 +334,8 @@ async function processJob(fileName) {
   const yearDir = join(STORAGE_ROOT, department, year);
   const folder = resolveExistingQuoteFolder_(yearDir, baseQuoteNumber, folderName);
   mkdirSync(folder, { recursive: true });
+  // 사람이 폴더명을 수정했거나 기존 폴더를 재사용한 경우에도 실제 폴더명으로 링크를 만든다.
+  const actualFolderName = basename(folder);
 
   const pdfFileNames = [];
   for (let partIndex = 0; partIndex < itemParts.length; partIndex += 1) {
@@ -388,7 +392,7 @@ async function processJob(fileName) {
     });
   }
 
-  const relativePath = [department, year, folderName, pdfFileNames[0]].map(encodeURIComponent).join('/');
+  const relativePath = [department, year, actualFolderName, pdfFileNames[0]].map(encodeURIComponent).join('/');
   const signature = signRelativePath(decodeURIComponent(relativePath));
   const fileUrl = PUBLIC_BASE_URL
     ? `${PUBLIC_BASE_URL}/files/${relativePath}?k=${signature}`
@@ -403,7 +407,7 @@ async function processJob(fileName) {
     ok: true,
     fileUrl,
     fileUrls: pdfFileNames.map((pdfFileName) => {
-      const partPath = [department, year, folderName, pdfFileName].map(encodeURIComponent).join('/');
+      const partPath = [department, year, actualFolderName, pdfFileName].map(encodeURIComponent).join('/');
       const partSignature = signRelativePath(decodeURIComponent(partPath));
       return PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/files/${partPath}?k=${partSignature}` : '';
     }),
