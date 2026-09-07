@@ -107,10 +107,11 @@ export interface AppsScriptBridgeResponse {
   error?: string;
 }
 
-/** 발주등록 요청 메일 초안 생성용 첨부 파일 */
-export interface OrderQuoteFile {
+/** 로컬 에이전트에서 읽어 메일에 첨부할 파일 */
+export interface OrderDraftFile {
   name: string;
-  size: number;
+  mimeType: string;
+  base64: string;
 }
 
 /** 발주등록 요청 메일 초안 생성 요청 */
@@ -124,8 +125,8 @@ export interface OrderDraftRequest {
   contactPhone: string;
   /** 납품 주소 — 필수 */
   deliveryAddress: string;
-  /** 구글 드라이브 '문서/<견적폴더명>'에 미러링된 첨부 파일명 목록 — 1개 이상 필수 */
-  fileNames: string[];
+  /** 로컬 에이전트가 읽어 전달한 첨부 파일 — 1개 이상 필수 */
+  files: OrderDraftFile[];
 }
 
 export interface OrderDraftResult {
@@ -137,7 +138,7 @@ export interface OrderDraftResult {
 export interface QuoteFilesResult {
   success: boolean;
   folder?: string;
-  files?: OrderQuoteFile[];
+  files?: Array<{ name: string; size: number }>;
   message?: string;
 }
 

@@ -821,12 +821,7 @@ function updateQuoteOrderFromReact(payload) {
 //   files: [ { name, mimeType, base64 } ]  // 1개 이상 필수 (발주서·사업자등록증 등)
 // }
 // 발주등록 요청 메일 초안 생성 (현재 로그인한 담당자의 Gmail 임시보관함에 저장)
-// payload: {
-//   year, department, quoteNumber,
-//   clientName, productName, contactName, contactPhone,
-//   deliveryAddress,   // 납품 주소 (필수)
-//   fileNames: [ ... ]  // '문서/<견적폴더명>/' 에 미러링된 첨부 파일명 목록 (1개 이상 필수)
-// }
+// payload.files는 로컬 에이전트 order-email 페이지가 읽어 postMessage로 전달한 base64 첨부 목록이다.
 function createOrderDraftFromReact(payload) {
   try {
     const access = getAuthorizedUserFromReact();
@@ -839,63 +834,34 @@ function createOrderDraftFromReact(payload) {
     const contactName = String((payload && payload.contactName) || '').trim();
     const contactPhone = String((payload && payload.contactPhone) || '').trim();
     const deliveryAddress = String((payload && payload.deliveryAddress) || '').trim();
-    const fileNames = Array.isArray(payload && payload.fileNames)
-      ? payload.fileNames.map(function(name) { return String(name || '').trim(); }).filter(Boolean)
+    const files = Array.isArray(payload && payload.files)
+      ? payload.files
       : [];
 
     if (!deliveryAddress) {
       return { success: false, message: '납품 주소를 입력해야 발주 메일을 작성할 수 있습니다.' };
     }
-    if (fileNames.length === 0) {
+    if (files.length === 0) {
       return { success: false, message: '첨부할 파일(발주서, 사업자등록증 등)을 1개 이상 선택해 주세요.' };
     }
-    if (fileNames.length > 10) {
+    if (files.length > 10) {
       return { success: false, message: '첨부 파일은 최대 10개까지 선택할 수 있습니다.' };
     }
 
-    // 미러링 폴더('문서/<견적폴더명>')에서 선택된 파일들을 DriveApp으로 읽어 첨부한다.
     const quoteNumber = String((payload && payload.quoteNumber) || '').trim();
-    const docsRoot = getAgentSubfolder_('문서');
-    const folderName = `${baseQuoteNumber_(quoteNumber)}_${clientName}`;
-    let docsFolder = null;
-    const folderIter = docsRoot.getFoldersByName(folderName);
-    if (folderIter.hasNext()) {
-      docsFolder = folderIter.next();
-    } else {
-      // 업체명 표기 차이 등으로 정확한 폴더명이 없으면 견적번호 접두사로 찾아본다.
-      const prefix = baseQuoteNumber_(quoteNumber) + '_';
-      const allFolders = docsRoot.getFolders();
-      while (allFolders.hasNext()) {
-        const candidate = allFolders.next();
-        if (String(candidate.getName() || '').startsWith(prefix)) {
-          docsFolder = candidate;
-          break;
-        }
-      }
-    }
-    if (!docsFolder) {
-      return { success: false, message: '메일 첨부용 문서 폴더를 찾을 수 없습니다. 해당 견적 폴더에 파일을 업로드해 주세요.' };
-    }
-
     const attachments = [];
-    const missing = [];
-    for (let fi = 0; fi < fileNames.length; fi++) {
-      const fileName = fileNames[fi];
-      const fileIter = docsFolder.getFilesByName(fileName);
-      if (!fileIter.hasNext()) {
-        missing.push(fileName);
-        continue;
-      }
-      const driveFile = fileIter.next();
+    files.forEach(function(file) {
+      const fileName = String(file && file.name || '첨부파일');
+      const mimeType = String(file && file.mimeType || 'application/octet-stream');
+      const base64 = String(file && file.base64 || '').replace(/[^A-Za-z0-9+/=]/g, '');
+      if (!base64) throw new Error('첨부 파일 데이터가 비어 있습니다: ' + fileName);
       try {
-        attachments.push(driveFile.getBlob().setName(fileName));
+        const bytes = Utilities.parseUint8Array(base64, { isBase64: true });
+        attachments.push(Utilities.newBlob(bytes, mimeType).setName(fileName));
       } catch (err) {
-        missing.push(fileName + '(읽기 실패)');
+        throw new Error('첨부 파일 변환 실패(' + fileName + '): ' + err.toString());
       }
-    }
-    if (missing.length > 0) {
-      return { success: false, message: '첨부 파일이 아직 구글 드라이브 동기화 전이거나 없습니다: ' + missing.join(', ') + ' — 잠시 후 다시 시도해 주세요.' };
-    }
+    });
 
     const subject = `[발주서] ${clientName}- ${productName} 발주서 공유`.trim();
 

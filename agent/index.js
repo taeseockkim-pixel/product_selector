@@ -816,6 +816,102 @@ function resolveQuoteFolder(session, values) {
   return { department, year, quoteNumber, company, target, folderName: basename(target), authorEmail };
 }
 
+function mimeTypeForFileName(name) {
+  const ext = extname(name).toLowerCase();
+  const types = {
+    '.pdf': 'application/pdf',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xls': 'application/vnd.ms-excel',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.doc': 'application/msword',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.zip': 'application/zip',
+  };
+  return types[ext] || 'application/octet-stream';
+}
+
+function orderEmailPageHtml(session, targetInfo, values) {
+  const departmentLabel = session.department === '*' ? `전체 부서 (관리자) / ${escHtml(targetInfo.department)}` : escHtml(session.department);
+  const entries = readdirSync(targetInfo.target, { withFileTypes: true })
+    .filter((entry) => !entry.isDirectory() && !entry.name.startsWith('.') && entry.name.toLowerCase() !== 'desktop.ini')
+    .filter((entry) => !BLOCKED_ATTACH_EXTENSIONS.has(extname(entry.name).toLowerCase()))
+    .map((entry) => {
+      const filePath = [targetInfo.department, targetInfo.year, targetInfo.folderName, entry.name].map(encodeURIComponent).join('/');
+      let size = 0;
+      try { size = statSync(join(targetInfo.target, entry.name)).size; } catch { /* noop */ }
+      return {
+        name: entry.name,
+        size,
+        mimeType: mimeTypeForFileName(entry.name),
+        url: `${PUBLIC_BASE_URL}/files/${filePath}?k=${signRelativePath(filePath)}`,
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  const orderData = JSON.stringify({
+    year: targetInfo.year,
+    department: targetInfo.department,
+    quoteNumber: targetInfo.quoteNumber,
+    clientName: targetInfo.company,
+    productName: String(values.productName || ''),
+    contactName: String(values.contactName || ''),
+    contactPhone: String(values.contactPhone || ''),
+    authorName: String(values.authorName || ''),
+    authorEmail: String(values.authorEmail || ''),
+  }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+  const filesJson = JSON.stringify(entries).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 발주등록 요청 메일</title>
+<style>${PAGE_STYLE} .hint{color:#777;font-size:12px;line-height:1.6;margin:10px 0 16px}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px}.required{color:#dc2626}.field{margin-top:16px}.field label{display:block;font-size:12px;font-weight:bold;color:#555;margin-bottom:6px}.field input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd9d2;border-radius:8px;font-size:14px}.files{max-height:280px;overflow:auto;border:1px solid #ddd9d2;border-radius:8px}.file-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid #eee;font-size:13px}.file-row:last-child{border-bottom:0}.file-row span.name{flex:1;min-width:0;overflow-wrap:anywhere}.file-row span.size{color:#999;font-size:11px}.submit{margin-top:18px}.submit button{background:#2563eb}.status{margin-top:10px;font-size:13px}.ok{color:#15803d}.err{color:#dc2626}@media(max-width:560px){.info{grid-template-columns:1fr}}</style></head>
+<body><div class="card">
+  <div class="top"><div><h1>발주등록 요청 메일 작성</h1><div class="sub">부서: ${departmentLabel}</div></div><a class="logout" href="/logout">로그아웃</a></div>
+  <div class="crumb">견적번호: ${escHtml(targetInfo.quoteNumber)} · 업체명: ${escHtml(targetInfo.company)}</div>
+  <div class="info"><span><b>제품명:</b> ${escHtml(String(values.productName || '-'))}</span><span><b>담당자:</b> ${escHtml(String(values.contactName || '-'))}</span><span><b>연락처:</b> ${escHtml(String(values.contactPhone || '-'))}</span><span><b>작성자:</b> ${escHtml(String(values.authorName || '-'))}</span></div>
+  <p class="hint">주소를 입력하고 발주서·사업자등록증·견적서 XLSX/PDF 등 첨부할 파일을 선택하세요.</p>
+  <div class="field"><label for="address">납품 주소 <span class="required">*</span></label><input id="address" type="text" placeholder="납품 주소를 입력해 주세요 (필수)" required></div>
+  <div class="field"><label>첨부 파일 선택 <span class="required">*</span></label>${entries.length ? `<div class="files" id="fileList">${entries.map((file) => `<label class="file-row"><input type="checkbox" value="${escHtml(file.name)}"><span class="name">${escHtml(file.name)}</span><span class="size">${file.size ? `${Math.max(1, Math.round(file.size / 1024)).toLocaleString('ko-KR')} KB` : ''}</span></label>`).join('')}</div>` : '<div class="hint">첨부 가능한 파일이 없습니다.</div>'}</div>
+  <div class="submit"><button id="submit" type="button" ${entries.length ? '' : 'disabled'}>임시보관함 작성</button><div id="status" class="status"></div></div>
+</div>
+<script>
+const orderData = ${orderData};
+const files = ${filesJson};
+const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
+const status = document.getElementById('status');
+function setStatus(text, cls = '') { status.className = 'status ' + cls; status.textContent = text; }
+function toBase64(buffer) { const bytes = new Uint8Array(buffer); let binary = ''; const chunk = 0x8000; for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length))); return btoa(binary); }
+document.getElementById('submit').addEventListener('click', async () => {
+  const address = document.getElementById('address').value.trim();
+  const selectedNames = [...document.querySelectorAll('#fileList input:checked')].map((input) => input.value);
+  if (!address) { setStatus('납품 주소를 입력해 주세요.', 'err'); return; }
+  if (!selectedNames.length) { setStatus('첨부 파일을 1개 이상 선택해 주세요.', 'err'); return; }
+  setStatus('선택한 파일을 읽는 중입니다. 잠시 기다려 주세요...');
+  try {
+    let totalBytes = 0; const attachments = [];
+    for (const name of selectedNames) {
+      const meta = files.find((file) => file.name === name); if (!meta) continue;
+      totalBytes += Number(meta.size || 0); if (totalBytes > MAX_TOTAL_BYTES) throw new Error('메일 첨부 파일 합계는 20MB 이하만 가능합니다.');
+      const response = await fetch(meta.url); if (!response.ok) throw new Error(name + ' 파일을 읽지 못했습니다.');
+      attachments.push({ name, mimeType: meta.mimeType, base64: toBase64(await response.arrayBuffer()) });
+    }
+    if (!window.opener) throw new Error('원래 견적 목록에서 열린 창이 아닙니다. 견적 목록에서 다시 시도해 주세요.');
+    window.opener.postMessage({ source: 'cimon-order-email-agent', type: 'ORDER_EMAIL_SUBMIT', payload: { ...orderData, deliveryAddress: address, files: attachments } }, '*');
+    document.getElementById('submit').disabled = true;
+    setStatus('메일 초안 작성 중입니다. 원래 견적 목록 화면을 확인해 주세요...');
+  } catch (error) { setStatus(String(error), 'err'); }
+});
+window.addEventListener('message', (event) => {
+  if (event.data?.source !== 'cimon-quote-app' || event.data.type !== 'ORDER_EMAIL_RESULT') return;
+  if (event.data.success) setStatus(event.data.message || '임시보관함에 메일 초안이 생성되었습니다. 이 창을 닫아 주세요.', 'ok');
+  else { document.getElementById('submit').disabled = false; setStatus(event.data.message || '메일 작성에 실패했습니다.', 'err'); }
+});
+</script></body></html>`;
+}
+
 function uploadPageHtml(session, targetInfo, message = '', isError = false) {
   const departmentLabel = session.department === '*' ? `전체 부서 (관리자) / ${escHtml(targetInfo.department)}` : escHtml(session.department);
   const statusClass = isError ? 'error' : 'success';
@@ -909,6 +1005,19 @@ app.post('/login', (req, res) => {
 app.get('/logout', (req, res) => {
   res.setHeader('Set-Cookie', 'session=; Path=/; Max-Age=0');
   res.redirect(safeNextPath(req.query.next));
+});
+
+app.get('/order-email', (req, res) => {
+  const session = readSession(req);
+  if (!session) return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
+  const mismatch = detectDepartmentMismatch(session, req.query);
+  if (mismatch) return res.status(403).type('html').send(departmentMismatchHtml(mismatch));
+  const targetInfo = resolveQuoteFolder(session, req.query);
+  if (!targetInfo) {
+    logUploadFolderFailure(req.query, session.department);
+    return res.status(404).type('html').send('견적 폴더를 찾을 수 없습니다. 견적번호와 업체명을 확인해 주세요.');
+  }
+  res.type('html').send(orderEmailPageHtml(session, targetInfo, req.query));
 });
 
 app.get('/upload', (req, res) => {

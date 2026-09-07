@@ -5,12 +5,13 @@ import {
   fetchLedger,
   createOrderDraft,
   fetchQuoteFiles,
-  type OrderQuoteFile,
+  type OrderDraftRequest,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
 import AiSearchPanel from './AiSearchPanel';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
+const FOLDER_BROWSER_ORIGIN = new URL(FOLDER_BROWSER_URL).origin;
 
 function fileNameFromLink(value: string) {
   try {
@@ -109,6 +110,33 @@ function folderNameFromLink(value: string): string {
   }
 }
 
+function orderEmailUrl(
+  year: number,
+  department: string,
+  quoteNumber: string,
+  company: string,
+  productName: string,
+  contactName: string,
+  contactPhone: string,
+  authorEmail?: string,
+  authorName?: string,
+  folderName?: string,
+) {
+  const params = new URLSearchParams({
+    year: String(year),
+    department,
+    quoteNumber,
+    company,
+    productName,
+    contactName,
+    contactPhone,
+  });
+  if (authorEmail) params.set('authorEmail', authorEmail);
+  if (authorName) params.set('authorName', authorName);
+  if (folderName) params.set('folder', folderName);
+  return `${FOLDER_BROWSER_URL}order-email?${params.toString()}`;
+}
+
 interface Props {
   onBack: () => void;
   onNewQuote: () => void;
@@ -152,13 +180,14 @@ export default function QuoteListPage({
 
   // ── 발주등록 요청 메일 작성 모달 상태 ──
   const [orderEmailOpen, setOrderEmailOpen] = useState(false);
-  const [orderEmailRow, setOrderEmailRow] = useState<LedgerRow | null>(null);
-  const [orderEmailFiles, setOrderEmailFiles] = useState<OrderQuoteFile[]>([]);
+  const [orderEmailRow] = useState<LedgerRow | null>(null);
+  const [orderEmailFiles, setOrderEmailFiles] = useState<Array<{ name: string; size: number }>>([]);
   const [orderEmailSelected, setOrderEmailSelected] = useState<Set<string>>(new Set());
   const [orderEmailAddress, setOrderEmailAddress] = useState('');
   const [orderEmailError, setOrderEmailError] = useState('');
   const [orderEmailLoading, setOrderEmailLoading] = useState(false);
   const [orderEmailFetching, setOrderEmailFetching] = useState(false);
+  const orderEmailProcessingRef = useRef(false);
 
   useEffect(() => {
     if (department && !isAdmin) {
@@ -201,6 +230,48 @@ export default function QuoteListPage({
     });
     setOrderStatus(nextStatus);
   }, [headers, rows]);
+
+  // 로컬 에이전트의 /order-email 페이지가 선택 파일을 postMessage로 반환하면,
+  // 현재 로그인 사용자의 Apps Script 세션에서 Gmail 초안을 만들고 발주 상태를 기록한다.
+  useEffect(() => {
+    function handleAgentOrderEmail(event: MessageEvent) {
+      if (event.origin !== FOLDER_BROWSER_ORIGIN) return;
+      if (event.data?.source !== 'cimon-order-email-agent' || event.data.type !== 'ORDER_EMAIL_SUBMIT') return;
+      if (orderEmailProcessingRef.current) return;
+      orderEmailProcessingRef.current = true;
+      const payload = event.data.payload as OrderDraftRequest;
+      void (async () => {
+        let message = '';
+        let success = false;
+        try {
+          const result = await createOrderDraft(payload);
+          if (!result.success) throw new Error(result.message || t(UI.quoteOrderCreateFailed));
+          await onOrderChange(payload.year, payload.quoteNumber, true, payload.department);
+          success = true;
+          message = result.message || '발주등록 요청 메일 초안이 생성되었습니다.';
+          await loadQuotes(payload.year, payload.department);
+          alert(message);
+          window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
+        } catch (err) {
+          message = `${t(UI.quoteOrderCreateFailed)}: ${String(err)}`;
+          alert(message);
+        } finally {
+          const source = event.source;
+          if (source) {
+            (source as Window).postMessage({
+              source: 'cimon-quote-app',
+              type: 'ORDER_EMAIL_RESULT',
+              success,
+              message,
+            }, event.origin);
+          }
+          orderEmailProcessingRef.current = false;
+        }
+      })();
+    }
+    window.addEventListener('message', handleAgentOrderEmail);
+    return () => window.removeEventListener('message', handleAgentOrderEmail);
+  }, [loadQuotes, onOrderChange, t]);
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('ko-KR');
   const searchedRows = rows
@@ -270,13 +341,28 @@ export default function QuoteListPage({
       return;
     }
     if (!window.confirm(t(UI.quoteOrderEmailAsk))) return;
-    setOrderEmailRow(row);
-    setOrderEmailAddress('');
-    setOrderEmailSelected(new Set());
-    setOrderEmailFiles([]);
-    setOrderEmailError('');
-    setOrderEmailOpen(true);
-    void loadOrderEmailFiles(row);
+    const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+    const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
+    const productName = ledgerValue(headers, row, ['제품명']).trim();
+    const contactName = ledgerValue(headers, row, ['고객명', '담당자']).trim();
+    const contactPhone = ledgerValue(headers, row, ['연락처']).trim();
+    const linkIndex = headers.findIndex((header) => header.includes('파일링크'));
+    const folderName = linkIndex >= 0 ? folderNameFromLink(row.links[linkIndex] ?? '') : '';
+    const url = orderEmailUrl(
+      selectedYear,
+      currentDepartment,
+      quoteNumber,
+      company,
+      productName,
+      contactName,
+      contactPhone,
+      authorEmail,
+      authorName,
+      folderName,
+    );
+    // opener가 있어야 에이전트 페이지가 선택 파일을 postMessage로 반환할 수 있다.
+    const popup = window.open(url, '_blank');
+    if (!popup) alert('발주등록 메일 작성 창을 열 수 없습니다. 브라우저의 팝업 차단을 해제해 주세요.');
   }
 
   /** 견적 폴더(구글 드라이브 미러 '문서')에서 발주 메일 첨부용 파일 목록을 가져온다 */
@@ -358,12 +444,6 @@ export default function QuoteListPage({
       const contactName = ledgerValue(headers, row, ['고객명', '담당자']).trim();
       const contactPhone = ledgerValue(headers, row, ['연락처']).trim();
 
-      // 첨부 파일은 브라우저가 사내 서버를 직접 읽을 수 없으므로(HTTPS→HTTP 차단),
-      // 업로드 시 구글 드라이브 '문서' 폴더에 미러링된 파일명만 전달한다 (Apps Script가 Drive에서 읽어 첨부).
-      const fileNames = orderEmailFiles
-        .filter((file) => orderEmailSelected.has(file.name))
-        .map((file) => file.name);
-
       const result = await createOrderDraft({
         year: selectedYear,
         department: currentDepartment,
@@ -373,7 +453,7 @@ export default function QuoteListPage({
         contactName,
         contactPhone,
         deliveryAddress: address,
-        fileNames,
+        files: [],
       });
       if (!result.success) throw new Error(result.message || t(UI.quoteOrderCreateFailed));
 
