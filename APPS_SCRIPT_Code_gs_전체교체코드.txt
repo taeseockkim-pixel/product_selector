@@ -1436,7 +1436,9 @@ function signedFileUrl_(dept, year, folderName, fileName) {
   const publicBaseUrl = 'http://172.35.12.36:8790';
   const fileLinkSecret = 'CIMON-FILES-2026-jR4wN8sQ2tVx7LmE';
   const relPath = [dept, String(year), folderName, fileName].map(encodeURIComponent).join('/');
-  const sigBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(relPath), fileLinkSecret);
+  // 한글(멀티바이트)이 들어간 경로를 그대로 서명하면 Apps Script와 Node가 문자열→바이트 처리가
+  // 달라 서명이 어긋난다. URL 인코딩된 ASCII 경로로 서명하면 양쪽 HMAC이 정확히 일치한다.
+  const sigBytes = Utilities.computeHmacSha256Signature(relPath, fileLinkSecret);
   const sig = sigBytes.map(function(b) {
     const v = (b < 0 ? b + 256 : b).toString(16);
     return v.length === 1 ? '0' + v : v;
@@ -1647,19 +1649,19 @@ function resetAllTestQuotes() {
 // Apps Script가 내는 서명과 Node(에이전트)가 내는 서명이 일치하는지 확인할 수 있다.
 // 실행 후 왼쪽 "실행(Executions)"에서 로그 확인.
 function diagnoseFileLinkHmac() {
-  const path = '기술영업/2026/기술영업 2609-001_test1/기술영업 2609-001_test1_견적서.pdf';
   const secret = 'CIMON-FILES-2026-jR4wN8sQ2tVx7LmE';
 
   const url = signedFileUrl_('기술영업', 2026, '기술영업 2609-001_test1', '기술영업 2609-001_test1_견적서.pdf');
   Logger.log('생성 URL: ' + url);
 
-  // 직접 HMAC도 계산해 signedFileUrl_과 비교
-  const bytes = Utilities.computeHmacSha256Signature(path, secret);
+  // URL 인코딩된 ASCII 경로로 서명한 값 (에이전트가 검증하는 방식과 동일)
+  const relPath = ['기술영업', '2026', '기술영업 2609-001_test1', '기술영업 2609-001_test1_견적서.pdf']
+    .map(encodeURIComponent).join('/');
+  const bytes = Utilities.computeHmacSha256Signature(relPath, secret);
   const hex = bytes.map(function(b) {
     const v = (b < 0 ? b + 256 : b).toString(16);
     return v.length === 1 ? '0' + v : v;
   }).join('');
-  Logger.log('Apps Script HMAC(hex): ' + hex);
-  Logger.log('기대(Node) HMAC(hex): 04c3d7a398504e39... (같으면 정상)');
-  Logger.log('바이트 개수: ' + bytes.length);
+  Logger.log('Apps Script HMAC(인코딩 경로, hex): ' + hex);
+  Logger.log('이 값이 에이전트가 URL로 검증하는 서명과 일치해야 합니다.');
 }

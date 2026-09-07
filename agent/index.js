@@ -196,10 +196,18 @@ function verifyRelativePathSignature(relativePath, signature) {
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
 
-// 파일 링크 서명 검증 — URL 경로 표기 차이(공백 `%20` vs `+`, 혼합)까지 허용한다.
-function verifyFileLinkSignature(relative, signature) {
+// 파일 링크 서명 검증.
+// 한글 경로는 Apps Script와 Node의 문자열→바이트 처리가 달라 HMAC이 어긋나므로,
+// 새 링크는 URL 인코딩된 ASCII 경로로 서명하고, 구 링크(디코딩 경로 서명)도 함께 허용한다.
+function verifyFileLinkSignature(rawEncodedPath, signature) {
   const given = Buffer.from(String(signature || ''), 'utf8');
-  const candidates = new Set([relative, relative.replace(/\+/g, ' ')]);
+  let decoded = '';
+  try { decoded = decodeURIComponent(rawEncodedPath); } catch { decoded = rawEncodedPath; }
+  const candidates = new Set([
+    rawEncodedPath,                 // 새 방식: URL 인코딩된 ASCII 경로 서명 (Apps Script·에이전트 공통)
+    decoded,                        // 구 방식: 디코딩된 경로 서명 (기존 에이전트 생성 링크)
+    decoded.replace(/ /g, '+'),     // 공백 + 변형
+  ]);
   for (const candidate of candidates) {
     const expected = Buffer.from(signRelativePath(candidate), 'utf8');
     if (expected.length === given.length && timingSafeEqual(expected, given)) return true;
@@ -462,7 +470,9 @@ async function processJob(fileName) {
   }
 
   const relativePath = [department, year, actualFolderName, pdfFileNames[0]].map(encodeURIComponent).join('/');
-  const signature = signRelativePath(decodeURIComponent(relativePath));
+  // URL 인코딩된 ASCII 경로로 서명한다 — Apps Script의 signedFileUrl_과 동일한 방식으로,
+  // 한글 경로의 멀티바이트 처리 차이로 인한 서명 불일치를 방지한다.
+  const signature = signRelativePath(relativePath);
   const fileUrl = PUBLIC_BASE_URL
     ? `${PUBLIC_BASE_URL}/files/${relativePath}?k=${signature}`
     : '';
@@ -477,7 +487,7 @@ async function processJob(fileName) {
     fileUrl,
     fileUrls: pdfFileNames.map((pdfFileName) => {
       const partPath = [department, year, actualFolderName, pdfFileName].map(encodeURIComponent).join('/');
-      const partSignature = signRelativePath(decodeURIComponent(partPath));
+      const partSignature = signRelativePath(partPath);
       return PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/files/${partPath}?k=${partSignature}` : '';
     }),
     localPath: folder,
@@ -1136,13 +1146,13 @@ app.use('/files', (req, res) => {
 
     // 부서 접근 제어: 대장에 기록된 서명된 링크만 허용한다 (경로 변조·상위 경로 접근 차단)
     const relative = decodeURIComponent(raw);
-    if (!verifyFileLinkSignature(relative, query.get('k'))) {
+    if (!verifyFileLinkSignature(raw, query.get('k'))) {
       // 정확한 원인을 콘솔에 남겨 재현할 수 있게 한다 (서명 불일치 vs 경로 차이)
       try {
         console.error(
           `[파일 링크 서명 불일치] raw=${raw}\n` +
           `[파일 링크 서명 불일치] decoded=${relative}\n` +
-          `[파일 링크 서명 불일치] 받은서명=${String(query.get('k') || '').slice(0, 16)}... 예상서명=${signRelativePath(relative).slice(0, 16)}...`
+          `[파일 링크 서명 불일치] 받은서명=${String(query.get('k') || '').slice(0, 16)}... 예상서명=${signRelativePath(raw).slice(0, 16)}...`
         );
       } catch { /* noop */ }
       return res.status(403).send('Forbidden: 유효한 파일 링크가 아닙니다. 견적 목록의 링크를 이용해 주세요.');
