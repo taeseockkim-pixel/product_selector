@@ -1291,3 +1291,70 @@ function autoRepairAllMissingLedgerLinks() {
 function repairMissingLedgerLink() {
   autoRepairAllMissingLedgerLinks();
 }
+
+// ── 전체 테스트 견적 초기화 유틸리티 (정식 오픈 전 1회 실행) ────────────────
+// 3개 부서(기술영업, 영업, 프로젝트)의 대장 및 스냅샷 시트 데이터를 깨끗이 비우고,
+// 큐 폴더의 잔여 파일을 정리하여 다음 견적이 001번부터 새로 시작하도록 초기화한다.
+// 실행 방법: Apps Script 편집기 상단 드롭다운에서 resetAllTestQuotes 선택 → [실행] 클릭
+function resetAllTestQuotes() {
+  const currentYear = new Date().getFullYear();
+
+  // 1. 모든 부서의 대장 및 스냅샷 시트 행 비우기 (1행 헤더는 안전하게 보존)
+  for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
+    const rootFolderId = CONFIG.DEPARTMENT_ROOTS[dept];
+    const system = getExistingYearSystem_(currentYear, rootFolderId);
+    if (!system) {
+      Logger.log(`[부서: ${dept}] ${currentYear}년 대장이 없어 건너뜁니다.`);
+      continue;
+    }
+
+    // 1-1. 대장 시트(견적관리대장) 행 비우기 (2행부터 마지막 행까지 삭제)
+    const ledgerSheet = system.ledgerSheet;
+    const ledgerLastRow = ledgerSheet.getLastRow();
+    if (ledgerLastRow >= 2) {
+      ledgerSheet.deleteRows(2, ledgerLastRow - 1);
+      Logger.log(`[부서: ${dept}] 견적관리대장 ${ledgerLastRow - 1}개 행 삭제 완료`);
+    } else {
+      Logger.log(`[부서: ${dept}] 견적관리대장이 이미 비어 있습니다.`);
+    }
+
+    // 1-2. 스냅샷 시트(견적원본데이터) 행 비우기 (2행부터 마지막 행까지 삭제)
+    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+    if (snapshot) {
+      const snapLastRow = snapshot.getLastRow();
+      if (snapLastRow >= 2) {
+        snapshot.deleteRows(2, snapLastRow - 1);
+        Logger.log(`[부서: ${dept}] 견적원본데이터(스냅샷) ${snapLastRow - 1}개 행 삭제 완료`);
+      } else {
+        Logger.log(`[부서: ${dept}] 견적원본데이터 시트가 이미 비어 있습니다.`);
+      }
+    }
+    SpreadsheetApp.flush();
+  }
+
+  // 2. 에이전트 큐 폴더 안의 잔여 파일들만 삭제 (폴더 자체는 보존!)
+  try {
+    ['pending', 'results', 'delivery', 'failed', 'resultsFailed'].forEach(function(subName) {
+      try {
+        const subFolder = getAgentSubfolder_(subName);
+        const files = subFolder.getFiles();
+        let deletedCount = 0;
+        while (files.hasNext()) {
+          const file = files.next();
+          permanentlyDeleteFile_(file.getId());
+          deletedCount++;
+        }
+        Logger.log(`[큐 폴더: ${subName}] 잔여 파일 ${deletedCount}개 정리 완료`);
+      } catch (err) {
+        Logger.log(`[큐 폴더: ${subName}] 정리 실패: ${err.toString()}`);
+      }
+    });
+  } catch (agentErr) {
+    Logger.log(`에이전트 큐 정리 오류: ${agentErr.toString()}`);
+  }
+
+  Logger.log('====================================================');
+  Logger.log('전체 부서(기술영업/영업/프로젝트) 초기화가 완료되었습니다!');
+  Logger.log('이제 각 부서의 첫 견적서는 001번부터 정상 채번됩니다.');
+  Logger.log('====================================================');
+}
