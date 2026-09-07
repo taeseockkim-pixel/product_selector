@@ -363,6 +363,8 @@ function AppInner() {
           department={authAuthor?.department ?? '기술영업'}
           isAdmin={isAdmin}
           availableDepartments={availableDepartments}
+          authorEmail={authAuthor?.email}
+          authorName={authAuthor?.name}
         />
         {toast && <Toast msg={toast} />}
       </div>

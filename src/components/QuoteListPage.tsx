@@ -69,14 +69,35 @@ function columnWidth(header: string) {
 
 const ACTION_COLUMN_WIDTH = 144;
 
-function uploadUrl(year: number, department: string, quoteNumber: string, company: string) {
+function uploadUrl(
+  year: number,
+  department: string,
+  quoteNumber: string,
+  company: string,
+  authorEmail?: string,
+  authorName?: string,
+) {
   const params = new URLSearchParams({
     year: String(year),
     department,
     quoteNumber,
     company,
   });
+  if (authorEmail) params.set('authorEmail', authorEmail);
+  if (authorName) params.set('authorName', authorName);
   return `${FOLDER_BROWSER_URL}upload?${params.toString()}`;
+}
+
+function sendActivityLog(account: string, eventType: string, detail: string) {
+  try {
+    void fetch(`${FOLDER_BROWSER_URL}api/log`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ account, eventType, detail }),
+    }).catch(() => { /* 로깅 실패가 주요 기능 동작을 방해하지 않음 */ });
+  } catch {
+    // noop
+  }
 }
 
 interface Props {
@@ -87,6 +108,8 @@ interface Props {
   department: string;
   isAdmin?: boolean;
   availableDepartments?: string[];
+  authorEmail?: string;
+  authorName?: string;
 }
 
 export default function QuoteListPage({
@@ -97,6 +120,8 @@ export default function QuoteListPage({
   department,
   isAdmin,
   availableDepartments,
+  authorEmail,
+  authorName,
 }: Props) {
   const t = useT();
   const currentYear = new Date().getFullYear();
@@ -209,6 +234,11 @@ export default function QuoteListPage({
     setOrderUpdatingKey(key);
     try {
       await onOrderChange(selectedYear, quoteNumber, ordered, currentDepartment);
+      sendActivityLog(
+        authorEmail || authorName || currentDepartment,
+        '발주',
+        `견적번호: ${quoteNumber} | 상태: ${ordered ? '발주 완료(체크)' : '발주 취소(체크 해제)'} | 부서: ${currentDepartment}`,
+      );
     } catch (err) {
       setOrderStatus((current) => ({ ...current, [key]: previous }));
       alert(`${t(UI.quoteOrderUpdateFailed)}: ${String(err)}`);
@@ -468,7 +498,7 @@ export default function QuoteListPage({
                           {t(UI.quoteEditBtn)}
                         </button>
                         <a
-                          href={quoteNumber && company ? uploadUrl(selectedYear, currentDepartment, quoteNumber, company) : '#'}
+                          href={quoteNumber && company ? uploadUrl(selectedYear, currentDepartment, quoteNumber, company, authorEmail, authorName) : '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}

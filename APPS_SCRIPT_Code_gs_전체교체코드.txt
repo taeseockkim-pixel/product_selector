@@ -276,10 +276,16 @@ function getAgentSubfolder_(name) {
   return root.createFolder(name);
 }
 
-function enqueueLocalSave_(details, items, vatTotal) {
+function enqueueLocalSave_(details, items, vatTotal, createDraft, customSubject) {
   const pending = getAgentSubfolder_('pending');
   const fileName = `${sanitizeDriveName(details.quoteNumber)}.json`;
-  const payload = JSON.stringify({ details: details, items: items || [], vatTotal: vatTotal });
+  const payload = JSON.stringify({
+    details: details,
+    items: items || [],
+    vatTotal: vatTotal,
+    createDraft: Boolean(createDraft),
+    customSubject: customSubject || ''
+  });
   pending.createFile(fileName, payload, MimeType.PLAIN_TEXT);
   ensureAgentTrigger_();
 }
@@ -857,7 +863,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
     // 대장 반영을 먼저 확정한 뒤에만 로컬 파일 생성을 대기열에 등록한다.
     // (수정 대상 행을 못 찾는 등 대장 반영이 실패하면 파일을 만들지 않는다.)
     saveToLedgerSheet(system.ledgerSheet, details, items, finalVatPrice, '');
-    enqueueLocalSave_(details, items, finalVatPrice);
+    enqueueLocalSave_(details, items, finalVatPrice, createDraft, customSubject);
 
     // 대장 사본(XLSX)을 에이전트 전달 폴더에 내보낸다. 에이전트가 견적 연도 폴더에 복사한다.
     exportLedgerToAgent_(system, currentYear, realQuoteNumber);

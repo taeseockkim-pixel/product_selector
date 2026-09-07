@@ -266,6 +266,12 @@ NNN은 **대장 NO열(A열)에서 비어 있는 가장 작은 번호**다 (`getN
 `agent/index.js`의 `uploadJsonParser` limit도 함께 늘려야 한다.)
 
 
+**활동 로그 (LOG)**: 로컬 저장 루트 아래 `LOG/{계정}/{YYYY-MM-DD}.log` 및 `LOG/전체_{YYYY-MM-DD}.log`에
+사용자별 활동 내역이 일자별로 영구 기록된다. 신규 견적 저장(`[저장]`), 리비전 수정(`[수정]`),
+서류 업로드(`[업로드]`), Gmail 초안 작성(`[이메일 송부]`), 발주 상태 변경(`[발주]`) 등 모든 주요 작업이
+정확한 타임스탬프와 함께 자동으로 남는다.
+
+
 ### 작성자 부서별 Drive 경로 분기 (`resolveRootFolderId`)
 
 프론트엔드는 작성자 DB 시트에서 읽어온 목록으로 드롭다운을 채우고, 선택된 작성자의 부서를 `QuoteAuthor.department`에 담아 Apps Script로 보낸다. `Code.gs`의 `resolveRootFolderId(details)`가 이 값을 보고 `CONFIG.DEPARTMENT_ROOTS[부서]`를 반환하며, `processQuote()`는 이 값을 `getNextQuoteNumber()`/`getYearSystem()`에 그대로 넘긴다. 그 결과 부서별로 폴더·대장·견적번호 시퀀스가 완전히 분리된다(견적번호는 `부서 YYMM-NNN` 형식이며 각자 자기 대장 안에서만 카운트되므로, 부서 간 동일한 번호가 존재할 수 있다 — 의도된 동작).

@@ -14,7 +14,7 @@
  * 요구: Node.js 18+, Windows + Excel(이 PC), Google Drive 데스크톱(로그인), 상시 가동 권장
  */
 
-import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync, appendFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { join, dirname, resolve, sep, basename, extname } from 'path';
 import { fileURLToPath } from 'url';
@@ -63,6 +63,49 @@ const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
 const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
+const LOG_ROOT = join(STORAGE_ROOT, 'LOG');
+try {
+  mkdirSync(LOG_ROOT, { recursive: true });
+} catch { /* noop */ }
+
+/**
+ * 계정별·일자별 활동 로그 기록
+ * 저장 경로: {STORAGE_ROOT}/LOG/{계정}/{YYYY-MM-DD}.log
+ * 통합 경로: {STORAGE_ROOT}/LOG/전체_{YYYY-MM-DD}.log
+ */
+function appendActivityLog(account, eventType, detailText) {
+  try {
+    const rawAccount = String(account || 'unknown').trim().toLowerCase();
+    const safeAccount = safeSegment(rawAccount) || 'unknown';
+    const accountDir = join(LOG_ROOT, safeAccount);
+    mkdirSync(accountDir, { recursive: true });
+
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const ss = String(now.getSeconds()).padStart(2, '0');
+    const timeStr = `${dateStr} ${hh}:${min}:${ss}`;
+
+    const line = `[${timeStr}] [${eventType}] [${rawAccount}] ${detailText}\n`;
+
+    // 1. 계정별 폴더 안의 일자별 로그 파일에 기록
+    const accountLogPath = join(accountDir, `${dateStr}.log`);
+    appendFileSync(accountLogPath, line, 'utf8');
+
+    // 2. LOG 폴더 루트의 날짜별 전체 통합 로그에도 기록
+    const allLogPath = join(LOG_ROOT, `전체_${dateStr}.log`);
+    appendFileSync(allLogPath, line, 'utf8');
+
+    console.log(`[로그] [${eventType}] [${rawAccount}] ${detailText}`);
+  } catch (err) {
+    console.error(`[로그 기록 실패] ${describeError(err)}`);
+  }
+}
 
 if (!AGENT_FOLDER) {
   console.error('[에이전트] config.json에 agentFolderPath를 입력해 주세요 (Drive 동기화된 견적에이전트 폴더 경로).');
@@ -368,6 +411,27 @@ async function processJob(fileName) {
   };
   writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber)}.json`), JSON.stringify(result), 'utf8');
   unlinkSync(jsonPath);
+
+  // ── 활동 로그 기록 (저장 / 수정 / 이메일 송부) ──
+  const account = details.authorEmail || details.authorName || 'unknown';
+  const isRevision = Number(details.revisionNumber || 0) > 0;
+  const totalPriceNum = Number(payload.vatTotal || vatTotalForItems(items));
+  const amountStr = Number.isFinite(totalPriceNum) ? `${totalPriceNum.toLocaleString('ko-KR')}원` : '-';
+
+  if (isRevision) {
+    const revStr = `Rev${String(details.revisionNumber).padStart(2, '0')}`;
+    const detail = `견적번호: ${details.quoteNumber || ''} (${revStr}) | 원본번호: ${details.baseQuoteNumber || ''} | 업체명: ${details.clientName || ''} | 부서: ${department} | 작성자: ${details.authorName || ''} | 금액: ${amountStr} | 파일수: ${pdfFileNames.length}개`;
+    appendActivityLog(account, '수정', detail);
+  } else {
+    const detail = `견적번호: ${details.quoteNumber || ''} | 업체명: ${details.clientName || ''} | 부서: ${department} | 작성자: ${details.authorName || ''} | 품목수: ${items.length}건 | 금액: ${amountStr} | 파일수: ${pdfFileNames.length}개`;
+    appendActivityLog(account, '저장', detail);
+  }
+
+  if (payload.createDraft) {
+    const subject = payload.customSubject || `[CIMON] ${details.clientName} - 제품 견적서 송부 드립니다.`;
+    const detail = `견적번호: ${details.quoteNumber || ''} | 수신: ${details.clientEmail || ''} | 제목: ${subject}`;
+    appendActivityLog(account, '이메일 송부', detail);
+  }
 }
 
 function reportJobFailure(fileName, payload, errorMessage) {
@@ -602,7 +666,8 @@ function resolveQuoteFolder(session, values) {
     target = resolve(join(yearRoot, candidates[0].name));
   }
   if (!target.startsWith(yearRoot + sep) || !existsSync(target) || !statSync(target).isDirectory()) return null;
-  return { department, year, quoteNumber, company, target, folderName: basename(target) };
+  const authorEmail = String(values.authorEmail || values.email || '').trim().toLowerCase();
+  return { department, year, quoteNumber, company, target, folderName: basename(target), authorEmail };
 }
 
 function uploadPageHtml(session, targetInfo, message = '', isError = false) {
@@ -624,6 +689,7 @@ function uploadPageHtml(session, targetInfo, message = '', isError = false) {
     <input type="hidden" id="uploadDepartment" value="${escHtml(targetInfo.department)}">
     <input type="hidden" id="uploadQuoteNumber" value="${escHtml(targetInfo.quoteNumber)}">
     <input type="hidden" id="uploadCompany" value="${escHtml(targetInfo.company)}">
+    <input type="hidden" id="uploadAuthorEmail" value="${escHtml(targetInfo.authorEmail || '')}">
     <input id="fileInput" type="file" required>
     <button type="submit">업로드</button>
     <div id="status" class="${statusClass}">${escHtml(message)}</div>
@@ -657,6 +723,7 @@ function uploadPageHtml(session, targetInfo, message = '', isError = false) {
           department: document.getElementById('uploadDepartment').value,
           quoteNumber: document.getElementById('uploadQuoteNumber').value,
           company: document.getElementById('uploadCompany').value,
+          authorEmail: document.getElementById('uploadAuthorEmail').value,
           fileName: file.name,
           content,
         }),
@@ -759,7 +826,29 @@ app.post('/upload', (req, res, next) => {
     console.error(`[업로드] 파일 저장 실패: ${describeError(err)}`);
     return res.status(500).json({ success: false, message: '파일 저장에 실패했습니다.' });
   }
+
+  const rawAccount = String(req.body?.authorEmail || targetInfo.authorEmail || session.department || 'unknown').trim().toLowerCase();
+  const detail = `파일명: ${outputName} (${Math.max(1, Math.round(buffer.length / 1024))} KB) | 대상 견적: ${targetInfo.quoteNumber}_${targetInfo.company} | 부서: ${targetInfo.department}`;
+  appendActivityLog(rawAccount, '업로드', detail);
+
   res.json({ success: true, fileName: outputName });
+});
+
+app.options('/api/log', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.sendStatus(200);
+});
+
+app.post('/api/log', express.json(), (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const { account, eventType, detail } = req.body || {};
+  if (!eventType || !detail) {
+    return res.status(400).json({ success: false, message: 'eventType과 detail이 필요합니다.' });
+  }
+  appendActivityLog(account, eventType, detail);
+  res.json({ success: true });
 });
 
 // 세션 부서의 폴더 안에 있는지 검사하고 실제 경로를 반환한다
