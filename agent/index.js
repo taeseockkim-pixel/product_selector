@@ -70,6 +70,14 @@ try {
   mkdirSync(LOG_ROOT, { recursive: true });
 } catch { /* noop */ }
 
+// 메일 첨부 · 업로드 공통 차단 확장자 (실행/스크립트 파일)
+const BLOCKED_ATTACH_EXTENSIONS = new Set([
+  '.exe', '.bat', '.cmd', '.com', '.scr', '.msi', '.msp', '.mst', '.jar',
+  '.vb', '.vbs', '.vbe', '.js', '.jse', '.ws', '.wsf', '.wsh', '.ps1', '.psm1',
+  '.sh', '.dll', '.cpl', '.reg', '.hta', '.gadget', '.lnk', '.scf', '.apk',
+  '.html', '.htm', '.svg',
+]);
+
 /**
  * 계정별·일자별 활동 로그 기록
  * 저장 경로: {STORAGE_ROOT}/LOG/{계정}/{YYYY-MM-DD}.log
@@ -796,18 +804,10 @@ app.post('/upload', (req, res, next) => {
   const extension = extname(fileName).toLowerCase();
   const stem = basename(fileName, extension);
   const reservedNames = new Set(['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9']);
-  // 확장자는 허용 목록이 아니라 차단 목록으로 관리한다 — pptx 등 문서 형식은 모두 허용하고,
-  // 다른 직원이 나중에 내려받아 실행했을 때 위험할 수 있는 실행/스크립트 파일만 막는다.
-  const blockedExtensions = new Set([
-    '.exe', '.bat', '.cmd', '.com', '.scr', '.msi', '.msp', '.mst', '.jar',
-    '.vb', '.vbs', '.vbe', '.js', '.jse', '.ws', '.wsf', '.wsh', '.ps1', '.psm1',
-    '.sh', '.dll', '.cpl', '.reg', '.hta', '.gadget', '.lnk', '.scf', '.apk',
-    '.html', '.htm', '.svg',
-  ]);
   if (!fileName || fileName !== rawFileName || basename(fileName) !== fileName || fileName === 'desktop.ini' || fileName.toLowerCase() === 'desktop.ini' || reservedNames.has(stem.toUpperCase())) {
     return res.status(400).json({ success: false, message: '파일명이 올바르지 않습니다.' });
   }
-  if (!extension || blockedExtensions.has(extension)) {
+  if (!extension || BLOCKED_ATTACH_EXTENSIONS.has(extension)) {
     return res.status(400).json({ success: false, message: '보안상 이 파일 형식(실행 파일 등)은 업로드할 수 없습니다.' });
   }
   if (!content || content.length > Math.ceil(MAX_UPLOAD_BYTES * 4 / 3) + 8 || !/^[A-Za-z0-9+/]*={0,2}$/.test(content)) {
@@ -836,6 +836,36 @@ app.post('/upload', (req, res, next) => {
   appendActivityLog(rawAccount, '업로드', detail);
 
   res.json({ success: true, fileName: outputName });
+});
+
+// 발주등록 요청 메일 첨부용 파일 목록 조회 (견적 폴더 내 첨부 가능한 파일 + 서명 URL)
+// 사용: GET /api/files?year=&department=&quoteNumber=&company=
+app.get('/api/files', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const pseudoSession = { department: '*' };
+  const targetInfo = resolveQuoteFolder(pseudoSession, req.query);
+  if (!targetInfo) {
+    return res.status(404).json({ success: false, message: '견적 폴더를 찾을 수 없습니다.' });
+  }
+  try {
+    const files = readdirSync(targetInfo.target, { withFileTypes: true })
+      .filter((entry) => !entry.isDirectory() && !entry.name.startsWith('.') && entry.name.toLowerCase() !== 'desktop.ini')
+      .filter((entry) => {
+        const ext = extname(entry.name).toLowerCase();
+        return ext && !BLOCKED_ATTACH_EXTENSIONS.has(ext);
+      })
+      .map((entry) => {
+        let size = 0;
+        try { size = statSync(join(targetInfo.target, entry.name)).size; } catch { /* noop */ }
+        const relative = [targetInfo.department, targetInfo.year, targetInfo.folderName, entry.name].map(encodeURIComponent).join('/');
+        const url = `${PUBLIC_BASE_URL}/files/${relative}?k=${signRelativePath(decodeURIComponent(relative))}`;
+        return { name: entry.name, size, url };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    res.json({ success: true, folder: targetInfo.folderName, files });
+  } catch (err) {
+    res.status(500).json({ success: false, message: String(err.message || err) });
+  }
 });
 
 app.options('/api/log', (req, res) => {

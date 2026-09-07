@@ -107,6 +107,33 @@ export interface AppsScriptBridgeResponse {
   error?: string;
 }
 
+/** 발주등록 요청 메일 초안 생성용 첨부 파일 */
+export interface OrderDraftFile {
+  name: string;
+  mimeType: string;
+  base64: string;
+}
+
+/** 발주등록 요청 메일 초안 생성 요청 */
+export interface OrderDraftRequest {
+  year: number;
+  department: string;
+  quoteNumber: string;
+  clientName: string;
+  productName: string;
+  contactName: string;
+  contactPhone: string;
+  /** 납품 주소 — 필수 */
+  deliveryAddress: string;
+  /** 발주서·사업자등록증 등 첨부 파일 목록 — 1개 이상 필수 */
+  files: OrderDraftFile[];
+}
+
+export interface OrderDraftResult {
+  success: boolean;
+  message?: string;
+}
+
 export interface QuoteEditBridgeResponse {
   source?: string;
   type?: string;
@@ -144,6 +171,7 @@ declare global {
               getQuoteLedgerFromReact: (year?: number, department?: string) => void;
               getQuoteForEditFromReact: (year: number, quoteNumber: string, department?: string) => void;
               updateQuoteOrderFromReact: (payload: unknown) => void;
+              createOrderDraftFromReact: (payload: unknown) => void;
             };
           };
         };
@@ -175,8 +203,8 @@ function callAppsScriptFn<T>(
 }
 
 function callAppsScriptFnViaParentBridge<T>(
-  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT',
-  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER',
+  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT',
+  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT',
   timeoutMs: number,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
@@ -207,7 +235,7 @@ function callAppsScriptFnViaParentBridge<T>(
 }
 
 function callAppsScriptPayload<T>(
-  fnName: 'updateQuoteOrderFromReact',
+  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact',
   payload: unknown,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -277,6 +305,19 @@ export function updateQuoteOrder(year: number, quoteNumber: string, ordered: boo
     );
   }
   return callAppsScriptPayload<QuoteProcessResult>('updateQuoteOrderFromReact', payload);
+}
+
+/** 발주등록 요청 메일 초안을 현재 로그인한 담당자의 Gmail 임시보관함에 생성한다 */
+export function createOrderDraft(request: OrderDraftRequest): Promise<OrderDraftResult> {
+  if (window.parent && window.parent !== window) {
+    return callAppsScriptFnViaParentBridge<OrderDraftResult>(
+      'CREATE_ORDER_DRAFT_RESULT',
+      'CREATE_ORDER_DRAFT',
+      60000,
+      { payload: request },
+    );
+  }
+  return callAppsScriptPayload<OrderDraftResult>('createOrderDraftFromReact', request);
 }
 
 /** 앱 진입 시 접속 계정의 견적 기능 사용 권한을 확인한다 (fetchAuthorization 별칭) */

@@ -1,10 +1,55 @@
 import { useCallback, useEffect, useState, type KeyboardEvent } from 'react';
 import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
-import { fetchLedger, type LedgerRow } from '../utils/appsScriptBridge';
+import {
+  fetchLedger,
+  createOrderDraft,
+  type OrderDraftFile,
+  type LedgerRow,
+} from '../utils/appsScriptBridge';
 import AiSearchPanel from './AiSearchPanel';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
+
+interface OrderEmailFile {
+  name: string;
+  size: number;
+  url: string;
+}
+
+function mimeForFile(name: string) {
+  const ext = String(name).split('.').pop()?.toLowerCase() ?? '';
+  const map: Record<string, string> = {
+    pdf: 'application/pdf',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    xls: 'application/vnd.ms-excel',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    doc: 'application/msword',
+    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ppt: 'application/vnd.ms-powerpoint',
+    hwp: 'application/x-hwp',
+    hwpx: 'application/x-hwp',
+    zip: 'application/zip',
+  };
+  return map[ext] ?? 'application/octet-stream';
+}
+
+async function fetchFileBase64(url: string): Promise<string> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`파일 다운로드 실패 (HTTP ${res.status})`);
+  const buffer = await res.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunkSize, bytes.length)));
+  }
+  return btoa(binary);
+}
 
 function fileNameFromLink(value: string) {
   try {
@@ -141,6 +186,16 @@ export default function QuoteListPage({
   const [orderStatus, setOrderStatus] = useState<Record<string, boolean>>({});
   const [orderUpdatingKey, setOrderUpdatingKey] = useState<string | null>(null);
 
+  // ── 발주등록 요청 메일 작성 모달 상태 ──
+  const [orderEmailOpen, setOrderEmailOpen] = useState(false);
+  const [orderEmailRow, setOrderEmailRow] = useState<LedgerRow | null>(null);
+  const [orderEmailFiles, setOrderEmailFiles] = useState<OrderEmailFile[]>([]);
+  const [orderEmailSelected, setOrderEmailSelected] = useState<Set<string>>(new Set());
+  const [orderEmailAddress, setOrderEmailAddress] = useState('');
+  const [orderEmailError, setOrderEmailError] = useState('');
+  const [orderEmailLoading, setOrderEmailLoading] = useState(false);
+  const [orderEmailFetching, setOrderEmailFetching] = useState(false);
+
   useEffect(() => {
     if (department && !isAdmin) {
       setCurrentDepartment(department);
@@ -225,7 +280,8 @@ export default function QuoteListPage({
     if (matches.length > 1) setSearchPickerRows(matches);
   }
 
-  async function handleOrderChange(row: LedgerRow, ordered: boolean) {
+  /** 발주 상태를 실제로 기록/해제하고 활동 로그를 남긴다 */
+  async function applyOrderChange(row: LedgerRow, ordered: boolean) {
     const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
     if (!quoteNumber) return;
     const key = quoteRowKey(headers, row);
@@ -244,6 +300,118 @@ export default function QuoteListPage({
       alert(`${t(UI.quoteOrderUpdateFailed)}: ${String(err)}`);
     } finally {
       setOrderUpdatingKey(null);
+    }
+  }
+
+  /** 발주 체크박스 토글: 미발주 → 메일 작성 확인/모달, 발주됨 → 해제 확인 */
+  function handleOrderToggle(row: LedgerRow, checked: boolean) {
+    if (!checked) {
+      if (!window.confirm(t(UI.quoteOrderReleaseAsk))) return;
+      void applyOrderChange(row, false);
+      return;
+    }
+    if (!window.confirm(t(UI.quoteOrderEmailAsk))) return;
+    setOrderEmailRow(row);
+    setOrderEmailAddress('');
+    setOrderEmailSelected(new Set());
+    setOrderEmailFiles([]);
+    setOrderEmailError('');
+    setOrderEmailOpen(true);
+    void loadOrderEmailFiles(row);
+  }
+
+  /** 견적 폴더에서 발주 메일 첨부용 파일 목록을 가져온다 */
+  async function loadOrderEmailFiles(row: LedgerRow) {
+    const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+    const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
+    if (!quoteNumber || !company) return;
+    setOrderEmailFetching(true);
+    setOrderEmailError('');
+    try {
+      const params = new URLSearchParams({
+        year: String(selectedYear),
+        department: currentDepartment,
+        quoteNumber,
+        company,
+      });
+      const res = await fetch(`${FOLDER_BROWSER_URL}api/files?${params.toString()}`);
+      let data: { success: boolean; files?: OrderEmailFile[]; message?: string } = { success: false };
+      try { data = (await res.json()) as typeof data; } catch { /* noop */ }
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || '파일 목록 조회 실패');
+      }
+      setOrderEmailFiles(data.files ?? []);
+    } catch (err) {
+      setOrderEmailFiles([]);
+      setOrderEmailError(`${t(UI.quoteOrderFileLoadFailed)}: ${String(err)}`);
+    } finally {
+      setOrderEmailFetching(false);
+    }
+  }
+
+  function toggleOrderEmailFile(name: string) {
+    const next = new Set(orderEmailSelected);
+    if (next.has(name)) next.delete(name);
+    else next.add(name);
+    setOrderEmailSelected(next);
+  }
+
+  /** 모달에서 임시보관함 작성 → 발주 메일 초안 생성 + 발주 체크 반영 */
+  async function handleOrderDraftSubmit() {
+    if (orderEmailLoading) return;
+    const address = orderEmailAddress.trim();
+    if (!address) {
+      alert(t(UI.quoteOrderAddressRequired));
+      return;
+    }
+    if (orderEmailSelected.size === 0) {
+      alert(t(UI.quoteOrderFileRequired));
+      return;
+    }
+    const row = orderEmailRow;
+    if (!row) return;
+    setOrderEmailLoading(true);
+    setOrderEmailError('');
+    try {
+      const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+      const clientName = ledgerValue(headers, row, ['업체명', '회사명']).trim();
+      const productName = ledgerValue(headers, row, ['제품명']).trim();
+      const contactName = ledgerValue(headers, row, ['고객명', '담당자']).trim();
+      const contactPhone = ledgerValue(headers, row, ['연락처']).trim();
+
+      const files: OrderDraftFile[] = [];
+      for (const file of orderEmailFiles) {
+        if (!orderEmailSelected.has(file.name)) continue;
+        const base64 = await fetchFileBase64(file.url);
+        files.push({ name: file.name, mimeType: mimeForFile(file.name), base64 });
+      }
+
+      const result = await createOrderDraft({
+        year: selectedYear,
+        department: currentDepartment,
+        quoteNumber,
+        clientName,
+        productName,
+        contactName,
+        contactPhone,
+        deliveryAddress: address,
+        files,
+      });
+      if (!result.success) throw new Error(result.message || t(UI.quoteOrderCreateFailed));
+
+      setOrderEmailOpen(false);
+      await applyOrderChange(row, true);
+      sendActivityLog(
+        authorEmail || authorName || currentDepartment,
+        '발주 메일',
+        `견적번호: ${quoteNumber} | 업체명: ${clientName} | 주소: ${address} | 첨부 ${files.length}개 | 임시보관함 초안 생성`,
+      );
+      alert(result.message || '발주등록 요청 메일 초안이 생성되었습니다.');
+      window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setOrderEmailError(`${t(UI.quoteOrderCreateFailed)}: ${String(err)}`);
+    } finally {
+      setOrderEmailLoading(false);
     }
   }
 
@@ -398,6 +566,104 @@ export default function QuoteListPage({
         </div>
       )}
 
+      {orderEmailOpen && orderEmailRow && (
+        <div className="fixed inset-0 bg-black/50 z-[70] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-blue-600 text-white">
+              <div>
+                <h2 className="text-sm font-bold">{t(UI.quoteOrderEmailTitle)}</h2>
+                <p className="text-xs text-blue-100 mt-1">
+                  {ledgerValue(headers, orderEmailRow, ['견적번호']) || '-'} · {ledgerValue(headers, orderEmailRow, ['업체명', '회사명']) || '-'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOrderEmailOpen(false)}
+                className="text-blue-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* 고객 정보 요약 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <span><strong className="text-[#555555]">{t(UI.quoteCompany)}:</strong> {ledgerValue(headers, orderEmailRow, ['업체명', '회사명']) || '-'}</span>
+                <span><strong className="text-[#555555]">{t(UI.quoteProductName)}:</strong> {ledgerValue(headers, orderEmailRow, ['제품명']) || '-'}</span>
+                <span><strong className="text-[#555555]">{t(UI.quoteContact)}:</strong> {ledgerValue(headers, orderEmailRow, ['고객명', '담당자']) || '-'}</span>
+                <span><strong className="text-[#555555]">{t(UI.quoteOrderAddress)}:</strong> {orderEmailAddress || '-'}</span>
+              </div>
+
+              {/* 주소 입력 (필수) */}
+              <label className="block">
+                <span className="block text-xs font-medium text-[#555555] mb-1">
+                  {t(UI.quoteOrderAddress)} <span className="text-red-500">*</span>
+                </span>
+                <input
+                  type="text"
+                  value={orderEmailAddress}
+                  onChange={(event) => setOrderEmailAddress(event.target.value)}
+                  placeholder={t(UI.quoteOrderAddressPlaceholder)}
+                  className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
+                />
+              </label>
+
+              {/* 첨부 파일 선택 */}
+              <div>
+                <span className="block text-xs font-medium text-[#555555] mb-1">
+                  {t(UI.quoteOrderAttachFiles)} <span className="text-red-500">*</span>
+                </span>
+                <p className="text-[11px] text-[#999999] mb-2">{t(UI.quoteOrderAttachHint)}</p>
+                {orderEmailFetching ? (
+                  <p className="text-xs text-[#999999]">{t(UI.quoteListLoading)}</p>
+                ) : orderEmailFiles.length === 0 ? (
+                  <p className="text-xs text-[#999999]">{orderEmailError || t(UI.quoteOrderNoFiles)}</p>
+                ) : (
+                  <div className="max-h-56 overflow-y-auto border border-[#ddd9d2] rounded-lg">
+                    {orderEmailFiles.map((file) => (
+                      <label key={file.name} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-[#f0ede8]">
+                        <input
+                          type="checkbox"
+                          checked={orderEmailSelected.has(file.name)}
+                          onChange={() => toggleOrderEmailFile(file.name)}
+                        />
+                        <span className="truncate flex-1 text-[#333333]">{file.name}</span>
+                        <span className="text-[11px] text-[#999999]">
+                          {file.size > 0 ? `${Math.max(1, Math.round(file.size / 1024)).toLocaleString('ko-KR')} KB` : ''}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {orderEmailError && orderEmailFiles.length > 0 && (
+                <p className="text-red-500 text-xs">{orderEmailError}</p>
+              )}
+            </div>
+
+            <div className="flex justify-end px-5 py-4 bg-[#f0ede8] border-t border-[#ddd9d2] gap-2">
+              <button
+                type="button"
+                onClick={() => setOrderEmailOpen(false)}
+                className="px-4 py-2 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-white transition-colors"
+              >
+                {t(UI.quoteOrderModalCancel)}
+              </button>
+              <button
+                type="button"
+                disabled={orderEmailLoading || orderEmailFetching}
+                onClick={() => void handleOrderDraftSubmit()}
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {orderEmailLoading ? t(UI.quoteOrderCreating) : t(UI.quoteOrderCreateDraft)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading && (
         <div className="bg-[#f0ede8] rounded-xl border border-[#ddd9d2] p-16 text-center">
           <p className="text-[#999999] text-sm">{t(UI.quoteListLoading)}</p>
@@ -475,7 +741,7 @@ export default function QuoteListPage({
                                 type="checkbox"
                                 checked={checked}
                                 disabled={!quoteNumber || orderUpdatingKey === rowKey}
-                                onChange={(event) => void handleOrderChange(row, event.target.checked)}
+                                onChange={(event) => handleOrderToggle(row, event.target.checked)}
                               />
                               <span>{checked ? t(UI.quoteOrderMarked) : t(UI.quoteOrder)}</span>
                             </label>

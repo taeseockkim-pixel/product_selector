@@ -32,6 +32,17 @@ const CONFIG = {
 
 const VERCEL_APP_URL = 'https://product-selector-two.vercel.app';
 
+// 발주등록 요청 메일(임시보관함 초안) 수신자·참조 고정 목록
+const ORDER_EMAIL_TO = '김유빈 대리 <yubin.kim@cimon.com>';
+const ORDER_EMAIL_CC = [
+  '김태석 차장 <taeseock.kim@cimon.com>',
+  '정성택 차장 <seongtaek.jeong@cimon.com>',
+  '한진희 차장 <jinhee.han@cimon.com>',
+  'jaesuk.chang@cimon.com',
+  '김원중 [James Kim] 상무 <james.kim@cimon.com>',
+  '부서 제어기기영업팀 <dept-36339@cimon.com>'
+].join(', ');
+
 const CELL_MAP = {
   clientName: 'C3',
   clientContactPerson: 'C4',
@@ -780,6 +791,84 @@ function updateQuoteOrderFromReact(payload) {
     return { success: true, message: '발주 여부가 기록되었습니다.' };
   } catch (err) {
     return { success: false, message: '발주 상태 기록 실패: ' + err.toString() };
+  }
+}
+
+// 발주등록 요청 메일 초안 생성 (현재 로그인한 담당자의 Gmail 임시보관함에 저장)
+// payload: {
+//   year, department, quoteNumber,
+//   clientName, productName, contactName, contactPhone,
+//   deliveryAddress,   // 납품 주소 (필수)
+//   files: [ { name, mimeType, base64 } ]  // 1개 이상 필수 (발주서·사업자등록증 등)
+// }
+function createOrderDraftFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '발주등록 요청 메일 작성 권한이 없습니다.' };
+    }
+
+    const clientName = String((payload && payload.clientName) || '').trim();
+    const productName = String((payload && payload.productName) || '').trim();
+    const contactName = String((payload && payload.contactName) || '').trim();
+    const contactPhone = String((payload && payload.contactPhone) || '').trim();
+    const deliveryAddress = String((payload && payload.deliveryAddress) || '').trim();
+    const files = Array.isArray(payload && payload.files) ? payload.files : [];
+
+    if (!deliveryAddress) {
+      return { success: false, message: '납품 주소를 입력해야 발주 메일을 작성할 수 있습니다.' };
+    }
+    if (files.length === 0) {
+      return { success: false, message: '첨부할 파일(발주서, 사업자등록증 등)을 1개 이상 선택해 주세요.' };
+    }
+    if (files.length > 10) {
+      return { success: false, message: '첨부 파일은 최대 10개까지 선택할 수 있습니다.' };
+    }
+
+    const subject = `[발주서] ${clientName} ${productName}`.trim();
+
+    const body = [
+      '안녕하세요,',
+      `기술영업실 ${access.author.name || ''}입니다.`,
+      '',
+      `${clientName} ${productName} 발주서를 공유드립니다.`,
+      '',
+      '<납품정보>',
+      '',
+      `주소: ${deliveryAddress}`,
+      `수령인: ${contactName}`,
+      `연락처: ${contactPhone}`,
+      '',
+      '필요하신 추가 사항이 있으시면 연락 또는 회신 부탁드립니다.',
+      '',
+      '감사합니다.'
+    ].join('\n');
+
+    const attachments = files.map(function(file) {
+      const fileName = String(file.name || '첨부파일');
+      const mimeType = String(file.mimeType || 'application/octet-stream');
+      const base64 = String(file.base64 || '').replace(/[^A-Za-z0-9+/=]/g, '');
+      if (!base64) throw new Error('첨부 파일 데이터가 비어 있습니다: ' + fileName);
+      try {
+        const bytes = Utilities.parseUint8Array(base64, { isBase64: true });
+        return Utilities.newBlob(bytes, mimeType).setName(fileName);
+      } catch (err) {
+        throw new Error('첨부 파일 변환 실패(' + fileName + '): ' + err.toString());
+      }
+    });
+
+    GmailApp.createDraft(ORDER_EMAIL_TO, subject, body, {
+      cc: ORDER_EMAIL_CC,
+      attachments: attachments,
+      name: 'CIMON'
+    });
+
+    return {
+      success: true,
+      message: '발주등록 요청 메일 초안이 임시보관함에 생성되었습니다. 최종 확인 후 발송해 주세요.'
+    };
+  } catch (err) {
+    return { success: false, message: '발주등록 요청 메일 작성 실패: ' + err.toString() };
   }
 }
 
