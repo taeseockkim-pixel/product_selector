@@ -1641,3 +1641,25 @@ function resetAllTestQuotes() {
   Logger.log('이제 각 부서의 첫 견적서는 001번부터 정상 채번됩니다.');
   Logger.log('====================================================');
 }
+
+// ── 파일링크 서명 진단 (일회용) ──────────────────────────────────────────────
+// Apps Script 편집기에서 diagnoseFileLinkHmac 선택 → 실행 → 로그를 보면
+// Apps Script가 내는 서명과 Node(에이전트)가 내는 서명이 일치하는지 확인할 수 있다.
+// 실행 후 왼쪽 "실행(Executions)"에서 로그 확인.
+function diagnoseFileLinkHmac() {
+  const path = '기술영업/2026/기술영업 2609-001_test1/기술영업 2609-001_test1_견적서.pdf';
+  const secret = 'CIMON-FILES-2026-jR4wN8sQ2tVx7LmE';
+
+  const url = signedFileUrl_('기술영업', 2026, '기술영업 2609-001_test1', '기술영업 2609-001_test1_견적서.pdf');
+  Logger.log('생성 URL: ' + url);
+
+  // 직접 HMAC도 계산해 signedFileUrl_과 비교
+  const bytes = Utilities.computeHmacSha256Signature(path, secret);
+  const hex = bytes.map(function(b) {
+    const v = (b < 0 ? b + 256 : b).toString(16);
+    return v.length === 1 ? '0' + v : v;
+  }).join('');
+  Logger.log('Apps Script HMAC(hex): ' + hex);
+  Logger.log('기대(Node) HMAC(hex): 04c3d7a398504e39... (같으면 정상)');
+  Logger.log('바이트 개수: ' + bytes.length);
+}
