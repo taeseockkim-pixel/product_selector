@@ -699,6 +699,18 @@ function resolveQuoteFolder(session, values) {
   const yearRoot = resolve(join(departmentRoot, year));
   if (!yearRoot.startsWith(departmentRoot + sep) || !existsSync(yearRoot) || !statSync(yearRoot).isDirectory()) return null;
 
+  // 대장 파일링크에서 추출해 전달된 실제 폴더명이 있으면 최우선으로 사용한다.
+  // (업체명 표기 차이·같은 견적번호 폴더 다중 존재 시에도 폴더 탐색 실패를 막는다.)
+  const providedFolder = safeSegment(values.folder);
+  if (providedFolder) {
+    const candidate = resolve(join(yearRoot, providedFolder));
+    if (candidate.startsWith(yearRoot + sep) && existsSync(candidate) && statSync(candidate).isDirectory()
+      && providedFolder.startsWith(`${quoteNumber}_`)) {
+      const authorEmail = String(values.authorEmail || values.email || '').trim().toLowerCase();
+      return { department, year, quoteNumber, company, target: candidate, folderName: basename(candidate), authorEmail };
+    }
+  }
+
   const exactTarget = resolve(join(yearRoot, `${quoteNumber}_${company}`));
   let target = exactTarget;
   if (!existsSync(target) || !statSync(target).isDirectory()) {
@@ -732,6 +744,7 @@ function uploadPageHtml(session, targetInfo, message = '', isError = false) {
     <input type="hidden" id="uploadQuoteNumber" value="${escHtml(targetInfo.quoteNumber)}">
     <input type="hidden" id="uploadCompany" value="${escHtml(targetInfo.company)}">
     <input type="hidden" id="uploadAuthorEmail" value="${escHtml(targetInfo.authorEmail || '')}">
+    <input type="hidden" id="uploadFolder" value="${escHtml(targetInfo.folderName)}">
     <input id="fileInput" type="file" required>
     <button type="submit">업로드</button>
     <div id="status" class="${statusClass}">${escHtml(message)}</div>
@@ -766,6 +779,7 @@ function uploadPageHtml(session, targetInfo, message = '', isError = false) {
           quoteNumber: document.getElementById('uploadQuoteNumber').value,
           company: document.getElementById('uploadCompany').value,
           authorEmail: document.getElementById('uploadAuthorEmail').value,
+          folder: document.getElementById('uploadFolder').value,
           fileName: file.name,
           content,
         }),
@@ -811,9 +825,35 @@ app.get('/upload', (req, res) => {
     return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
   }
   const targetInfo = resolveQuoteFolder(session, req.query);
-  if (!targetInfo) return res.status(404).type('html').send('견적 폴더를 찾을 수 없습니다. 견적번호와 업체명을 확인해 주세요.');
+  if (!targetInfo) {
+    logUploadFolderFailure(req.query, session.department);
+    return res.status(404).type('html').send('견적 폴더를 찾을 수 없습니다. 견적번호와 업체명을 확인해 주세요.');
+  }
   res.type('html').send(uploadPageHtml(session, targetInfo));
 });
+
+function logUploadFolderFailure(values, sessionDepartment) {
+  try {
+    const year = String(values.year || '').trim();
+    const department = sessionDepartment === '*' ? String(values.department || '') : String(sessionDepartment || '');
+    const quoteNumber = String(values.quoteNumber || '').trim();
+    console.error(
+      `[업로드 폴더 탐색 실패] dept=${department} year=${year} quote=${quoteNumber} company=${String(values.company || '')} folder=${String(values.folder || '')}`
+    );
+    const departmentRoot = resolve(join(String(config.storageRoot || ''), department));
+    const yearRoot = resolve(join(departmentRoot, year));
+    if (existsSync(yearRoot)) {
+      const names = readdirSync(yearRoot, { withFileTypes: true })
+        .filter((e) => e.isDirectory())
+        .map((e) => e.name);
+      console.error(`[업로드 폴더 탐색 실패] ${yearRoot} 목록: ${names.join(' | ')}`);
+    } else {
+      console.error(`[업로드 폴더 탐색 실패] 연도 폴더 없음: ${yearRoot}`);
+    }
+  } catch (err) {
+    console.error(`[업로드 폴더 탐색 진단 오류] ${describeError(err)}`);
+  }
+}
 
 app.post('/upload', (req, res, next) => {
   // 세션 쿠키가 없는 요청은 굳이 대용량 JSON 본문을 파싱하지 않고 즉시 거부한다.
@@ -824,7 +864,10 @@ app.post('/upload', (req, res, next) => {
   if (!session) return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
 
   const targetInfo = resolveQuoteFolder(session, req.body || {});
-  if (!targetInfo) return res.status(404).json({ success: false, message: '견적 폴더를 찾을 수 없습니다.' });
+  if (!targetInfo) {
+    logUploadFolderFailure(req.body || {}, session.department);
+    return res.status(404).json({ success: false, message: '견적 폴더를 찾을 수 없습니다.' });
+  }
 
   const rawFileName = String(req.body?.fileName || '').trim();
   const content = String(req.body?.content || '');

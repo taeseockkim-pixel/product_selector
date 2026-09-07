@@ -82,6 +82,7 @@ function uploadUrl(
   company: string,
   authorEmail?: string,
   authorName?: string,
+  folderName?: string,
 ) {
   const params = new URLSearchParams({
     year: String(year),
@@ -91,7 +92,21 @@ function uploadUrl(
   });
   if (authorEmail) params.set('authorEmail', authorEmail);
   if (authorName) params.set('authorName', authorName);
+  // 대장 파일링크에서 추출한 실제 폴더명이 있으면 함께 전달해 폴더 탐색 실패를 방지한다.
+  if (folderName) params.set('folder', folderName);
   return `${FOLDER_BROWSER_URL}upload?${params.toString()}`;
+}
+
+/** 대장 파일링크 URL에서 실제 견적 폴더명을 추출한다 (예: /files/기술영업/2026/기술영업 2609-001_싸이몬/...pdf → 기술영업 2609-001_싸이몬) */
+function folderNameFromLink(value: string): string {
+  try {
+    const url = new URL(value);
+    const parts = url.pathname.split('/').filter(Boolean);
+    const folder = parts.length >= 2 ? parts[parts.length - 2] : '';
+    return folder ? decodeURIComponent(folder) : '';
+  } catch {
+    return '';
+  }
 }
 
 interface Props {
@@ -655,6 +670,9 @@ export default function QuoteListPage({
                 const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
                 const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
                 const rowKey = quoteRowKey(headers, row);
+                const linkIndex = headers.findIndex((header) => header.includes('파일링크'));
+                const linkValue = linkIndex >= 0 ? (row.links[linkIndex] ?? '') : '';
+                const quoteFolderName = folderNameFromLink(linkValue);
                 return (
                   <tr key={`${row.values.join('|')}-${rowIndex}`} className="border-t border-[#f0ede8] hover:bg-[#fafaf9]">
                     {headers.map((header, cellIndex) => {
@@ -697,7 +715,7 @@ export default function QuoteListPage({
                           {t(UI.quoteEditBtn)}
                         </button>
                         <a
-                          href={quoteNumber && company ? uploadUrl(selectedYear, currentDepartment, quoteNumber, company, authorEmail, authorName) : '#'}
+                          href={quoteNumber && company ? uploadUrl(selectedYear, currentDepartment, quoteNumber, company, authorEmail, authorName, quoteFolderName) : '#'}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}
