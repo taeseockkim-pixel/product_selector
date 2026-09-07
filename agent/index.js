@@ -871,15 +871,20 @@ app.post('/login', (req, res) => {
   res.redirect(safeNextPath(req.body?.next));
 });
 
-app.get('/logout', (_req, res) => {
+app.get('/logout', (req, res) => {
   res.setHeader('Set-Cookie', 'session=; Path=/; Max-Age=0');
-  res.redirect('/');
+  res.redirect(safeNextPath(req.query.next));
 });
 
 app.get('/upload', (req, res) => {
   const session = readSession(req);
   if (!session) {
     return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
+  }
+  // 로그인된 부서와 요청한 견적 부서가 다르면, 폴더를 못 찾는 게 아니라 세션 문제임을 명확히 안내한다.
+  const mismatch = detectDepartmentMismatch(session, req.query);
+  if (mismatch) {
+    return res.status(403).type('html').send(departmentMismatchHtml(mismatch));
   }
   const targetInfo = resolveQuoteFolder(session, req.query);
   if (!targetInfo) {
@@ -888,6 +893,36 @@ app.get('/upload', (req, res) => {
   }
   res.type('html').send(uploadPageHtml(session, targetInfo));
 });
+
+// 로그인된 부서와 요청된 견적 부서가 다른지 검사한다.
+// (파일 서버 세션은 자체 비밀번호 기반이라, 견적 앱의 관리자 부서 전환과는 별개로 동작한다.)
+function detectDepartmentMismatch(session, values) {
+  if (!session || session.department === '*') return null;
+  const requestedDept = safeSegment(values.department);
+  if (!requestedDept) return null;
+  const validDepartments = new Set([DEFAULT_DEPARTMENT, ...Object.keys(FOLDER_PASSWORDS)]);
+  if (!validDepartments.has(requestedDept)) return null;
+  if (requestedDept === session.department) return null;
+  return { sessionDepartment: session.department, requestedDepartment: requestedDept };
+}
+
+function departmentMismatchHtml(mismatch) {
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>부서 불일치</title>
+<style>${PAGE_STYLE}</style></head>
+<body><div class="card">
+  <h1>로그인 부서와 견적 부서가 다릅니다</h1>
+  <div class="sub">
+    현재 파일 서버에는 <strong>${escHtml(mismatch.sessionDepartment)}</strong> 부서로 로그인되어 있습니다.<br>
+    요청하신 견적은 <strong>${escHtml(mismatch.requestedDepartment)}</strong> 부서의 견적입니다.<br><br>
+    부서를 전환해서 보시려면 <strong>관리자 비밀번호</strong>로 로그인해 주세요.<br>
+    관리자로 로그인하면 모든 부서의 견적 폴더를 열람·업로드할 수 있습니다.
+  </div>
+  <a class="btn-action btn-view" href="/logout?next=/browse" style="margin-right:6px;">로그아웃 후 다시 로그인</a>
+  <a class="btn-action btn-down" href="/browse">파일 열람으로</a>
+</div></body></html>`;
+}
 
 function logUploadFolderFailure(values, sessionDepartment) {
   try {
@@ -919,6 +954,15 @@ app.post('/upload', (req, res, next) => {
 }, uploadJsonParser, async (req, res) => {
   const session = readSession(req);
   if (!session) return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
+
+  // 로그인된 부서와 요청한 견적 부서가 다르면 명확히 안내한다.
+  const mismatch = detectDepartmentMismatch(session, req.body || {});
+  if (mismatch) {
+    return res.status(403).json({
+      success: false,
+      message: `로그인된 부서(${mismatch.sessionDepartment})와 요청한 견적 부서(${mismatch.requestedDepartment})가 다릅니다. 관리자 비밀번호로 다시 로그인해 주세요.`,
+    });
+  }
 
   const targetInfo = resolveQuoteFolder(session, req.body || {});
   if (!targetInfo) {
