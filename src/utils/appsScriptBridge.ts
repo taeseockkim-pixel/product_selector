@@ -108,10 +108,9 @@ export interface AppsScriptBridgeResponse {
 }
 
 /** 발주등록 요청 메일 초안 생성용 첨부 파일 */
-export interface OrderDraftFile {
+export interface OrderQuoteFile {
   name: string;
-  mimeType: string;
-  base64: string;
+  size: number;
 }
 
 /** 발주등록 요청 메일 초안 생성 요청 */
@@ -125,12 +124,20 @@ export interface OrderDraftRequest {
   contactPhone: string;
   /** 납품 주소 — 필수 */
   deliveryAddress: string;
-  /** 발주서·사업자등록증 등 첨부 파일 목록 — 1개 이상 필수 */
-  files: OrderDraftFile[];
+  /** 구글 드라이브 '문서/<견적폴더명>'에 미러링된 첨부 파일명 목록 — 1개 이상 필수 */
+  fileNames: string[];
 }
 
 export interface OrderDraftResult {
   success: boolean;
+  message?: string;
+}
+
+/** 발주등록 요청 메일 첨부용 파일 목록 조회 결과 */
+export interface QuoteFilesResult {
+  success: boolean;
+  folder?: string;
+  files?: OrderQuoteFile[];
   message?: string;
 }
 
@@ -172,6 +179,7 @@ declare global {
               getQuoteForEditFromReact: (year: number, quoteNumber: string, department?: string) => void;
               updateQuoteOrderFromReact: (payload: unknown) => void;
               createOrderDraftFromReact: (payload: unknown) => void;
+              getQuoteFilesFromReact: (payload: unknown) => void;
             };
           };
         };
@@ -203,8 +211,8 @@ function callAppsScriptFn<T>(
 }
 
 function callAppsScriptFnViaParentBridge<T>(
-  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT',
-  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT',
+  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT' | 'GET_QUOTE_FILES_RESULT',
+  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT' | 'GET_QUOTE_FILES',
   timeoutMs: number,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
@@ -235,7 +243,7 @@ function callAppsScriptFnViaParentBridge<T>(
 }
 
 function callAppsScriptPayload<T>(
-  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact',
+  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact' | 'getQuoteFilesFromReact',
   payload: unknown,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -318,6 +326,19 @@ export function createOrderDraft(request: OrderDraftRequest): Promise<OrderDraft
     );
   }
   return callAppsScriptPayload<OrderDraftResult>('createOrderDraftFromReact', request);
+}
+
+/** 발주등록 요청 메일 첨부용 견적 폴더 파일 목록을 조회한다 */
+export function fetchQuoteFiles(payload: { year: number; department: string; quoteNumber: string; company: string }): Promise<QuoteFilesResult> {
+  if (window.parent && window.parent !== window) {
+    return callAppsScriptFnViaParentBridge<QuoteFilesResult>(
+      'GET_QUOTE_FILES_RESULT',
+      'GET_QUOTE_FILES',
+      30000,
+      { payload },
+    );
+  }
+  return callAppsScriptPayload<QuoteFilesResult>('getQuoteFilesFromReact', payload);
 }
 
 /** 앱 진입 시 접속 계정의 견적 기능 사용 권한을 확인한다 (fetchAuthorization 별칭) */

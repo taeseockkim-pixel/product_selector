@@ -65,6 +65,10 @@ const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
 const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
+// 구글 드라이브 동기화 폴더에 업로드 문서를 미러링하는 전용 폴더 (Apps Script가 읽어 메일 첨부로 사용)
+const MIRROR_DOCS_DIR = join(AGENT_FOLDER, '문서');
+// Apps Script가 로컬 LOG에 남기고 싶은 활동 로그를 큐잉하는 폴더 (Drive 동기화 → 에이전트가 LOG 폴더로 복사)
+const LOG_QUEUE_DIR = join(AGENT_FOLDER, 'logs');
 const LOG_ROOT = join(STORAGE_ROOT, 'LOG');
 try {
   mkdirSync(LOG_ROOT, { recursive: true });
@@ -127,6 +131,8 @@ try {
   mkdirSync(PENDING_DIR, { recursive: true });
   mkdirSync(RESULTS_DIR, { recursive: true });
   mkdirSync(DELIVERY_DIR, { recursive: true });
+  // 업로드 문서(발주서, 사업자등록증 등) 미러 전용 — Apps Script가 목록/첨부를 읽도록 Drive 동기화 폴더 사용
+  mkdirSync(LOG_QUEUE_DIR, { recursive: true });
 } catch (err) {
   console.error(`[에이전트] pending/results 폴더를 생성하지 못했습니다: ${describeError(err)}`);
   process.exit(1);
@@ -475,6 +481,7 @@ async function pollPending() {
   processing = true;
   try {
     await processDeferredLedgerCopies();
+    processLogQueue();
     let fileNames = [];
     try {
       fileNames = readdirSync(PENDING_DIR).filter((f) => !f.startsWith('.') && f !== 'desktop.ini');
@@ -523,6 +530,29 @@ async function pollPending() {
     }
   } finally {
     processing = false;
+  }
+}
+
+// Apps Script(구글 클라우드)가 남긴 활동 로그 큐 파일을 LOG 폴더로 복사한다.
+// 브라우저는 HTTPS 페이지에서 사내 http 서버로 fetch할 수 없으므로, Drive 동기화 폴더를 경유한다.
+function processLogQueue() {
+  try {
+    if (!existsSync(LOG_QUEUE_DIR)) return;
+    const files = readdirSync(LOG_QUEUE_DIR).filter((f) => f.endsWith('.json') && !f.startsWith('.'));
+    for (const fileName of files) {
+      try {
+        const payload = JSON.parse(readFileSync(join(LOG_QUEUE_DIR, fileName), 'utf8'));
+        if (payload && payload.eventType) {
+          appendActivityLog(payload.account, payload.eventType, String(payload.detail || ''));
+        }
+      } catch (err) {
+        console.error(`[로그 큐 처리 실패] ${fileName}: ${describeError(err)}`);
+      } finally {
+        try { unlinkSync(join(LOG_QUEUE_DIR, fileName)); } catch { /* noop */ }
+      }
+    }
+  } catch (err) {
+    console.error(`[로그 큐 스캔 실패] ${describeError(err)}`);
   }
 }
 
@@ -835,54 +865,17 @@ app.post('/upload', (req, res, next) => {
   const detail = `파일명: ${outputName} (${Math.max(1, Math.round(buffer.length / 1024))} KB) | 대상 견적: ${targetInfo.quoteNumber}_${targetInfo.company} | 부서: ${targetInfo.department}`;
   appendActivityLog(rawAccount, '업로드', detail);
 
-  res.json({ success: true, fileName: outputName });
-});
-
-// 발주등록 요청 메일 첨부용 파일 목록 조회 (견적 폴더 내 첨부 가능한 파일 + 서명 URL)
-// 사용: GET /api/files?year=&department=&quoteNumber=&company=
-app.get('/api/files', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  const pseudoSession = { department: '*' };
-  const targetInfo = resolveQuoteFolder(pseudoSession, req.query);
-  if (!targetInfo) {
-    return res.status(404).json({ success: false, message: '견적 폴더를 찾을 수 없습니다.' });
-  }
+  // 발주등록 요청 메일 첨부를 위해, 구글 드라이브 동기화 폴더(문서/<견적폴더명>/<파일명>)에 미러링한다.
+  // 브라우저는 HTTPS 페이지에서 http 사내 서버로 fetch할 수 없으므로, Apps Script가 Drive에서 읽도록 한다.
   try {
-    const files = readdirSync(targetInfo.target, { withFileTypes: true })
-      .filter((entry) => !entry.isDirectory() && !entry.name.startsWith('.') && entry.name.toLowerCase() !== 'desktop.ini')
-      .filter((entry) => {
-        const ext = extname(entry.name).toLowerCase();
-        return ext && !BLOCKED_ATTACH_EXTENSIONS.has(ext);
-      })
-      .map((entry) => {
-        let size = 0;
-        try { size = statSync(join(targetInfo.target, entry.name)).size; } catch { /* noop */ }
-        const relative = [targetInfo.department, targetInfo.year, targetInfo.folderName, entry.name].map(encodeURIComponent).join('/');
-        const url = `${PUBLIC_BASE_URL}/files/${relative}?k=${signRelativePath(decodeURIComponent(relative))}`;
-        return { name: entry.name, size, url };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    res.json({ success: true, folder: targetInfo.folderName, files });
-  } catch (err) {
-    res.status(500).json({ success: false, message: String(err.message || err) });
+    const mirrorDir = join(MIRROR_DOCS_DIR, targetInfo.folderName);
+    mkdirSync(mirrorDir, { recursive: true });
+    copyFileSync(join(targetInfo.target, outputName), join(mirrorDir, outputName));
+  } catch (mirrorErr) {
+    console.error(`[업로드 미러링 실패] ${describeError(mirrorErr)}`);
   }
-});
 
-app.options('/api/log', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.sendStatus(200);
-});
-
-app.post('/api/log', express.json(), (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  const { account, eventType, detail } = req.body || {};
-  if (!eventType || !detail) {
-    return res.status(400).json({ success: false, message: 'eventType과 detail이 필요합니다.' });
-  }
-  appendActivityLog(account, eventType, detail);
-  res.json({ success: true });
+  res.json({ success: true, fileName: outputName });
 });
 
 // 세션 부서의 폴더 안에 있는지 검사하고 실제 경로를 반환한다

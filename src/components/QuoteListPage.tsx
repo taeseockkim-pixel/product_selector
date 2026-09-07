@@ -4,52 +4,13 @@ import { UI } from '../i18n/ui';
 import {
   fetchLedger,
   createOrderDraft,
-  type OrderDraftFile,
+  fetchQuoteFiles,
+  type OrderQuoteFile,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
 import AiSearchPanel from './AiSearchPanel';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
-
-interface OrderEmailFile {
-  name: string;
-  size: number;
-  url: string;
-}
-
-function mimeForFile(name: string) {
-  const ext = String(name).split('.').pop()?.toLowerCase() ?? '';
-  const map: Record<string, string> = {
-    pdf: 'application/pdf',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    gif: 'image/gif',
-    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    xls: 'application/vnd.ms-excel',
-    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    doc: 'application/msword',
-    pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    ppt: 'application/vnd.ms-powerpoint',
-    hwp: 'application/x-hwp',
-    hwpx: 'application/x-hwp',
-    zip: 'application/zip',
-  };
-  return map[ext] ?? 'application/octet-stream';
-}
-
-async function fetchFileBase64(url: string): Promise<string> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`파일 다운로드 실패 (HTTP ${res.status})`);
-  const buffer = await res.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunkSize, bytes.length)));
-  }
-  return btoa(binary);
-}
 
 function fileNameFromLink(value: string) {
   try {
@@ -133,18 +94,6 @@ function uploadUrl(
   return `${FOLDER_BROWSER_URL}upload?${params.toString()}`;
 }
 
-function sendActivityLog(account: string, eventType: string, detail: string) {
-  try {
-    void fetch(`${FOLDER_BROWSER_URL}api/log`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ account, eventType, detail }),
-    }).catch(() => { /* 로깅 실패가 주요 기능 동작을 방해하지 않음 */ });
-  } catch {
-    // noop
-  }
-}
-
 interface Props {
   onBack: () => void;
   onNewQuote: () => void;
@@ -189,7 +138,7 @@ export default function QuoteListPage({
   // ── 발주등록 요청 메일 작성 모달 상태 ──
   const [orderEmailOpen, setOrderEmailOpen] = useState(false);
   const [orderEmailRow, setOrderEmailRow] = useState<LedgerRow | null>(null);
-  const [orderEmailFiles, setOrderEmailFiles] = useState<OrderEmailFile[]>([]);
+  const [orderEmailFiles, setOrderEmailFiles] = useState<OrderQuoteFile[]>([]);
   const [orderEmailSelected, setOrderEmailSelected] = useState<Set<string>>(new Set());
   const [orderEmailAddress, setOrderEmailAddress] = useState('');
   const [orderEmailError, setOrderEmailError] = useState('');
@@ -290,11 +239,6 @@ export default function QuoteListPage({
     setOrderUpdatingKey(key);
     try {
       await onOrderChange(selectedYear, quoteNumber, ordered, currentDepartment);
-      sendActivityLog(
-        authorEmail || authorName || currentDepartment,
-        '발주',
-        `견적번호: ${quoteNumber} | 상태: ${ordered ? '발주 완료(체크)' : '발주 취소(체크 해제)'} | 부서: ${currentDepartment}`,
-      );
     } catch (err) {
       setOrderStatus((current) => ({ ...current, [key]: previous }));
       alert(`${t(UI.quoteOrderUpdateFailed)}: ${String(err)}`);
@@ -320,7 +264,7 @@ export default function QuoteListPage({
     void loadOrderEmailFiles(row);
   }
 
-  /** 견적 폴더에서 발주 메일 첨부용 파일 목록을 가져온다 */
+  /** 견적 폴더(구글 드라이브 미러 '문서')에서 발주 메일 첨부용 파일 목록을 가져온다 */
   async function loadOrderEmailFiles(row: LedgerRow) {
     const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
     const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
@@ -328,19 +272,14 @@ export default function QuoteListPage({
     setOrderEmailFetching(true);
     setOrderEmailError('');
     try {
-      const params = new URLSearchParams({
-        year: String(selectedYear),
+      const result = await fetchQuoteFiles({
+        year: selectedYear,
         department: currentDepartment,
         quoteNumber,
         company,
       });
-      const res = await fetch(`${FOLDER_BROWSER_URL}api/files?${params.toString()}`);
-      let data: { success: boolean; files?: OrderEmailFile[]; message?: string } = { success: false };
-      try { data = (await res.json()) as typeof data; } catch { /* noop */ }
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || '파일 목록 조회 실패');
-      }
-      setOrderEmailFiles(data.files ?? []);
+      if (!result.success) throw new Error(result.message || '파일 목록 조회 실패');
+      setOrderEmailFiles(result.files ?? []);
     } catch (err) {
       setOrderEmailFiles([]);
       setOrderEmailError(`${t(UI.quoteOrderFileLoadFailed)}: ${String(err)}`);
@@ -379,12 +318,11 @@ export default function QuoteListPage({
       const contactName = ledgerValue(headers, row, ['고객명', '담당자']).trim();
       const contactPhone = ledgerValue(headers, row, ['연락처']).trim();
 
-      const files: OrderDraftFile[] = [];
-      for (const file of orderEmailFiles) {
-        if (!orderEmailSelected.has(file.name)) continue;
-        const base64 = await fetchFileBase64(file.url);
-        files.push({ name: file.name, mimeType: mimeForFile(file.name), base64 });
-      }
+      // 첨부 파일은 브라우저가 사내 서버를 직접 읽을 수 없으므로(HTTPS→HTTP 차단),
+      // 업로드 시 구글 드라이브 '문서' 폴더에 미러링된 파일명만 전달한다 (Apps Script가 Drive에서 읽어 첨부).
+      const fileNames = orderEmailFiles
+        .filter((file) => orderEmailSelected.has(file.name))
+        .map((file) => file.name);
 
       const result = await createOrderDraft({
         year: selectedYear,
@@ -395,17 +333,12 @@ export default function QuoteListPage({
         contactName,
         contactPhone,
         deliveryAddress: address,
-        files,
+        fileNames,
       });
       if (!result.success) throw new Error(result.message || t(UI.quoteOrderCreateFailed));
 
       setOrderEmailOpen(false);
       await applyOrderChange(row, true);
-      sendActivityLog(
-        authorEmail || authorName || currentDepartment,
-        '발주 메일',
-        `견적번호: ${quoteNumber} | 업체명: ${clientName} | 주소: ${address} | 첨부 ${files.length}개 | 임시보관함 초안 생성`,
-      );
       alert(result.message || '발주등록 요청 메일 초안이 생성되었습니다.');
       window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
     } catch (err) {

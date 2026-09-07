@@ -169,6 +169,28 @@
         return;
       }
 
+      if (message.type === 'GET_QUOTE_FILES') {
+        google.script.run
+          .withSuccessHandler((result) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'GET_QUOTE_FILES_RESULT',
+              requestId: message.requestId,
+              result,
+            }, appOrigin);
+          })
+          .withFailureHandler((error) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'GET_QUOTE_FILES_RESULT',
+              requestId: message.requestId,
+              error: String(error),
+            }, appOrigin);
+          })
+          .getQuoteFilesFromReact(message.payload);
+        return;
+      }
+
       if (message.type === 'CREATE_ORDER_DRAFT') {
         google.script.run
           .withSuccessHandler((result) => {
