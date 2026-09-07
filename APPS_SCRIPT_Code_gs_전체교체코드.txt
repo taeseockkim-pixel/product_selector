@@ -1197,37 +1197,97 @@ function diagnoseDriveConfig() {
 }
 
 // ── 파일링크 복구 유틸리티 ──────────────────────────────────────────────────
-// 에이전트 큐 삭제 등으로 대장 파일링크가 누락된 견적 행에 서명된 링크를 직접 채워넣는다.
-// 사용 방법: 편집기 상단 함수 드롭다운에서 repairMissingLedgerLink 선택 → [실행] 클릭
-function repairMissingLedgerLink() {
-  const quoteNumber = '기술영업 2609-001'; // 복구할 견적번호
-  const year = 2026;
-  const department = '기술영업';
-  const company = '싸이몬';
+// 에이전트 큐 삭제나 동기화 지연 등으로 대장 파일링크가 누락된 모든 견적 행의 링크를
+// 스냅샷 기록을 바탕으로 자동 계산하여 대장에 복구한다.
+// 사용 방법: 편집기 상단 함수 드롭다운에서 autoRepairAllMissingLedgerLinks 선택 → [실행] 클릭
+function autoRepairAllMissingLedgerLinks() {
   const publicBaseUrl = 'http://172.35.12.36:8790';
   const fileLinkSecret = 'CIMON-FILES-2026-jR4wN8sQ2tVx7LmE';
 
-  const folderName = `${quoteNumber}_${company}`;
-  const fileName = `${quoteNumber}_${company}_견적서.pdf`;
-  const relativePath = [department, String(year), folderName, fileName].map(encodeURIComponent).join('/');
+  for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
+    const rootFolderId = CONFIG.DEPARTMENT_ROOTS[dept];
+    const currentYear = new Date().getFullYear();
+    const system = getExistingYearSystem_(currentYear, rootFolderId);
+    if (!system) continue;
 
-  const signatureBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(relativePath), fileLinkSecret);
-  const signature = signatureBytes.map(function(b) {
-    const v = (b < 0 ? b + 256 : b).toString(16);
-    return v.length === 1 ? '0' + v : v;
-  }).join('');
-  const fileUrl = `${publicBaseUrl}/files/${relativePath}?k=${signature}`;
+    const sheet = system.ledgerSheet;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) continue;
 
-  const result = {
-    quoteNumber: quoteNumber,
-    ledgerQuoteNumber: quoteNumber,
-    revisionNumber: 0,
-    department: department,
-    year: year,
-    ok: true,
-    fileUrl: fileUrl
-  };
+    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+    const snapshotRows = (snapshot && snapshot.getLastRow() >= 2)
+      ? snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues()
+      : [];
 
-  updateLedgerLink_(result);
-  Logger.log('복구 완료! 대장에 파일링크가 성공적으로 등록되었습니다: ' + fileUrl);
+    for (let r = 2; r <= lastRow; r++) {
+      const quoteNumber = String(sheet.getRange(r, LEDGER_COL.QUOTE_NUMBER).getDisplayValue() || '').trim();
+      const company = String(sheet.getRange(r, LEDGER_COL.CLIENT_NAME).getDisplayValue() || '').trim();
+      if (!quoteNumber || !company) continue;
+
+      // 이 견적(기본 견적번호)에 해당하는 스냅샷 행들을 모두 수집한다 (원본 + 각 리비전)
+      const baseQuote = baseQuoteNumber_(quoteNumber);
+      const matchedSnapshots = snapshotRows.filter(function(row) {
+        return String(row[1] || '').trim() === baseQuote;
+      });
+
+      // 등록할 링크 목록 구성: 원본 + 각 리비전
+      const linkItems = [];
+      const seenUrls = {};
+
+      // 1) 원본 링크
+      const origFolderName = `${baseQuote}_${company}`;
+      const origFileName = `${baseQuote}_${company}_견적서.pdf`;
+      const origRelPath = [dept, String(currentYear), origFolderName, origFileName].map(encodeURIComponent).join('/');
+      const origSigBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(origRelPath), fileLinkSecret);
+      const origSig = origSigBytes.map(function(b) { const v = (b < 0 ? b + 256 : b).toString(16); return v.length === 1 ? '0' + v : v; }).join('');
+      const origUrl = `${publicBaseUrl}/files/${origRelPath}?k=${origSig}`;
+      linkItems.push({ text: `원본: ${origFileName}`, url: origUrl });
+      seenUrls[origUrl] = true;
+
+      // 2) 리비전 링크들 (스냅샷에서 _RevNN 탐색)
+      matchedSnapshots.forEach(function(row) {
+        const outNum = String(row[0] || '').trim();
+        const revMatch = outNum.match(/_Rev(\d+)$/i);
+        if (!revMatch) return;
+        const revNum = parseInt(revMatch[1], 10);
+        const revFileName = `${outNum}_${company}_견적서.pdf`;
+        const revRelPath = [dept, String(currentYear), origFolderName, revFileName].map(encodeURIComponent).join('/');
+        const revSigBytes = Utilities.computeHmacSha256Signature(decodeURIComponent(revRelPath), fileLinkSecret);
+        const revSig = revSigBytes.map(function(b) { const v = (b < 0 ? b + 256 : b).toString(16); return v.length === 1 ? '0' + v : v; }).join('');
+        const revUrl = `${publicBaseUrl}/files/${revRelPath}?k=${revSig}`;
+        if (!seenUrls[revUrl]) {
+          seenUrls[revUrl] = true;
+          linkItems.push({ text: `Rev${String(revNum).padStart(2, '0')}: ${revFileName}`, url: revUrl });
+        }
+      });
+
+      // 리비전 번호 순으로 정렬 (원본이 맨 앞)
+      linkItems.sort(function(a, b) {
+        const aRev = a.text.match(/^Rev(\d+)/);
+        const bRev = b.text.match(/^Rev(\d+)/);
+        const aNum = aRev ? parseInt(aRev[1], 10) : 0;
+        const bNum = bRev ? parseInt(bRev[1], 10) : 0;
+        return aNum - bNum;
+      });
+
+      // O열 셀에 RichText 멀티링크로 기록
+      const separator = ' | ';
+      const combinedText = linkItems.map(function(item) { return item.text; }).join(separator);
+      const builder = SpreadsheetApp.newRichTextValue().setText(combinedText);
+      let offset = 0;
+      linkItems.forEach(function(item) {
+        if (item.url) builder.setLinkUrl(offset, offset + item.text.length, item.url);
+        offset += item.text.length + separator.length;
+      });
+
+      sheet.getRange(r, LEDGER_COL.FILE_LINK).setRichTextValue(builder.build());
+      Logger.log(`[복구 완료] ${quoteNumber} (${company}) -> ${linkItems.length}개 링크 등록`);
+    }
+    SpreadsheetApp.flush();
+  }
+  Logger.log('전체 부서 파일링크 복구 작업 완료!');
+}
+
+function repairMissingLedgerLink() {
+  autoRepairAllMissingLedgerLinks();
 }
