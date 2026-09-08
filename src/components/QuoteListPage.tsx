@@ -522,7 +522,7 @@ export default function QuoteListPage({
           )}
         </div>
         <div className="flex flex-wrap justify-end gap-2">
-          {isAdmin && onDashboard && (
+          {onDashboard && (
             <button
               type="button"
               onClick={onDashboard}

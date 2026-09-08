@@ -359,7 +359,7 @@ function AppInner() {
         <QuoteListPage
           onBack={() => setViewMode('main')}
           onNewQuote={handleGoToQuoteCreate}
-          onDashboard={isAdmin ? () => setViewMode('dashboard') : undefined}
+          onDashboard={() => setViewMode('dashboard')}
           onEditQuote={handleEditQuote}
           onOrderChange={handleOrderChange}
           department={authAuthor?.department ?? '기술영업'}
@@ -398,6 +398,8 @@ function AppInner() {
         <DashboardPage
           onBack={() => setViewMode('quotelist')}
           departments={availableDepartments}
+          department={authAuthor?.department ?? '기술영업'}
+          isAdmin={isAdmin}
         />
         {toast && <Toast msg={toast} />}
       </div>
