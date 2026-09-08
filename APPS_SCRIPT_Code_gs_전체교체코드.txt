@@ -1656,6 +1656,77 @@ function diagnoseFileLinkHmac() {
   Logger.log('이 값이 에이전트가 URL로 검증하는 서명과 일치해야 합니다.');
 }
 
+// ── 대장만 있고 로컬 파일이 없는 견적 재처리 유틸리티 ────────────────────────
+// Apps Script가 대장은 저장했지만 pending 큐 기록/Drive 동기화가 실패한 경우,
+// 견적원본데이터 스냅샷에서 원본/리비전 작업을 다시 만들어 로컬 에이전트에 전달한다.
+// 실행 방법: 함수 선택 → requeueMissingLocalQuoteJobs → 실행
+function requeueMissingLocalQuoteJobs() {
+  let queued = 0;
+  const currentYear = new Date().getFullYear();
+
+  for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
+    const rootFolderId = CONFIG.DEPARTMENT_ROOTS[dept];
+    const years = getAvailableLedgerYears_(rootFolderId, currentYear);
+
+    for (const year of years) {
+      const system = getExistingYearSystem_(year, rootFolderId);
+      if (!system) continue;
+
+      const sheet = system.ledgerSheet;
+      const lastRow = sheet.getLastRow();
+      if (lastRow < 2) continue;
+
+      const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+      if (!snapshot || snapshot.getLastRow() < 2) continue;
+      const snapshotRows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
+
+      for (let rowIndex = 2; rowIndex <= lastRow; rowIndex++) {
+        const quoteNumber = String(sheet.getRange(rowIndex, LEDGER_COL.QUOTE_NUMBER).getDisplayValue() || '').trim();
+        const fileLink = String(sheet.getRange(rowIndex, LEDGER_COL.FILE_LINK).getDisplayValue() || '').trim();
+        if (!quoteNumber || fileLink) continue;
+
+        const baseQuote = baseQuoteNumber_(quoteNumber);
+        const matchingSnapshots = snapshotRows.filter(function(row) {
+          return String(row[1] || '').trim() === baseQuote;
+        });
+        if (matchingSnapshots.length === 0) {
+          Logger.log(`[재처리 건너뜀] ${dept}/${year}/${baseQuote}: 원본 스냅샷 없음`);
+          continue;
+        }
+
+        for (const snapshotRow of matchingSnapshots) {
+          let stored;
+          try {
+            stored = JSON.parse(String(snapshotRow[4] || '{}'));
+          } catch (err) {
+            Logger.log(`[재처리 실패] ${baseQuote}: 스냅샷 JSON 해석 실패`);
+            continue;
+          }
+          const details = stored.details || {};
+          const outputNumber = String(snapshotRow[0] || details.quoteNumber || '').trim();
+          if (!outputNumber) continue;
+
+          details.authorDepartment = dept;
+          details.year = year;
+          details.quoteNumber = outputNumber;
+          if (baseQuote !== outputNumber && !details.baseQuoteNumber) details.baseQuoteNumber = baseQuote;
+
+          const pending = getAgentSubfolder_('pending');
+          const pendingName = `${sanitizeDriveName(outputNumber)}.json`;
+          const existing = pending.getFilesByName(pendingName);
+          if (existing.hasNext()) continue;
+
+          enqueueLocalSave_(details, stored.items || [], Number(stored.totalPrice || 0), false, '');
+          queued++;
+          Logger.log(`[재처리 큐 등록] ${dept}/${year}/${outputNumber}`);
+        }
+      }
+    }
+  }
+
+  Logger.log(`대장 누락 파일 재처리 큐 등록 완료: ${queued}건`);
+}
+
 // ── 사용자별 Drive 접근 권한 진단 ────────────────────────────────────────────
 // 실행한 "현재 로그인 계정" 기준으로, 시스템이 사용하는 공유 Drive 리소스에
 // 접근 가능한지 항목별로 확인한다. Apps Script 편집기에서 선택 → 실행 → 로그 확인.
