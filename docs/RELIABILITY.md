@@ -195,15 +195,15 @@ Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배�
 통해 파일을 주고받는다** (인증·토큰·별도 배포 불필요).
 
 ```
-저장하기 → Apps Script: 번호 발급 + 대장 기록
-                + "견적에이전트/pending" 폴더에 견적 JSON 생성 (Drive에 파일 생성 안 함)
-                      ↓ Google Drive 데스크톱 동기화 (회사 허용 정식 앱, 양방향)
+저장하기 → Apps Script: 번호 예약
+                 + "견적에이전트/pending" 폴더에 견적 JSON 생성 (대장 행은 아직 생성하지 않음)
+                       ↓ Google Drive 데스크톱 동기화 (회사 허용 정식 앱, 양방향)
 agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
     ├─ pending 폴더 감시(10초) → fillTemplate.js로 XLSX 생성 → Excel COM으로 PDF 변환
     ├─ {storageRoot}\{부서}\{연도}\{번호_업체명}\ 저장
     ├─ results 폴더에 완료 보고 JSON 기록 (성공 1회 실패 시 재시도 3회 후 실패 보고)
     └─ HTTP 파일 서버(8790 포트)로 사내에서 견적 파일 다운로드 제공
-[Apps Script] 1분 트리거 processAgentResults → 대장 파일링크를 사내 URL로 갱신 + 잔여 파일 정리
+[Apps Script] 1분 트리거 processAgentResults → 성공 보고 확인 후 대장 행/스냅샷 기록 → 파일링크를 사내 URL로 갱신
 ```
 
 - 대기/완료 JSON은 KB 단위 텍스트라 Drive 용량 영향이 미미하며, 처리 후 즉시 삭제된다
@@ -212,7 +212,7 @@ agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
   `agent/config.example.json`을 `agent/config.json`으로 복사해 값 입력
   (`agentFolderPath`는 Drive 동기화된 `견적에이전트` 폴더의 로컬 경로 — 첫 저장 1회 후 자동 생성됨)
   → `start-agent.bat` 실행
-- 저장 직후 견적 목록의 파일링크는 비어 있고, 에이전트 완료 보고가 반영되면(통상 1~3분) 채워진다
+- 저장 직후에는 견적번호만 예약되고 목록 행은 아직 없을 수 있다. 에이전트가 XLSX/PDF 생성에 성공한 뒤(통상 1~3분) 대장 행과 파일링크가 함께 생성된다. 실패 시 대장에 파일 없는 행이 남지 않는다.
 - **폴더 브라우저 비밀번호 접속**: `http://172.35.12.36:8790` 접속 시 부서 비밀번호를 입력하면
   자기 부서 폴더만 웹에서 탐색·다운로드할 수 있다 (`config.json`의 `folderPasswords`,
   모든 부서를 열람하는 `adminPassword`는 선택). 세션 쿠키는 12시간 유지되며 HTTP 평문이므로 사내망 전용
@@ -281,4 +281,3 @@ NNN은 **대장 NO열(A열)에서 비어 있는 가장 작은 번호**다 (`getN
 `getAvailableLedgerYears_()`가 해당 부서 폴더에 실제로 `{연도}_견적관리대장` 파일이 존재하는 연도만 반환하며, 없는
 연도를 선택해도 폴더/대장을 새로 만들지 않는다. 견적 목록에 표시되는 부서 배지(`quoteDepartment`)도
 선택된 부서를 반영하며, 관리자일 때는 Admin 배지가 함께 표시된다.
-

@@ -489,6 +489,10 @@ async function processJob(fileName) {
     revisionNumber: Number(details.revisionNumber) || 0,
     department,
     year,
+    // 파일 생성 성공 후 Apps Script가 대장 행을 기록할 때 사용하는 원본 데이터
+    details,
+    items,
+    vatTotal: Number(payload.vatTotal || vatTotalForItems(items)),
     ok: true,
     fileUrl,
     fileUrls: pdfFileNames.map((pdfFileName) => {
