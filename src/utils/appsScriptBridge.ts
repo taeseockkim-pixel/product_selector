@@ -166,6 +166,8 @@ export interface DashboardStatsRecord {
   items: DashboardStatsItem[];
   folderName: string;
   fileName: string;
+  /** 견적에 발주 체크가 되어 있으면 true (통계 JSON이 없는 경우 기본 false) */
+  ordered?: boolean;
 }
 
 /** 대시보드 통계 조회 결과 */

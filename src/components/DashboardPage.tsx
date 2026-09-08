@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
-import { fetchLedger, fetchDashboardStats, type DashboardStatsRecord, type LedgerRow } from '../utils/appsScriptBridge';
+import {
+  fetchLedger,
+  fetchDashboardStats,
+  type DashboardStatsRecord,
+  type LedgerRow,
+} from '../utils/appsScriptBridge';
 
 type DashboardTab = 'quotes' | 'orders';
 type Metric = 'count' | 'amount';
@@ -23,6 +28,7 @@ interface QuoteRecord {
   category: string;
   amount: number;
   ordered: boolean;
+  authorName: string;
 }
 
 interface AggregatedItem {
@@ -72,6 +78,7 @@ function buildRecords(department: string, year: number, headers: string[], rows:
   const categoryIndex = findColumn(headers, ['제품 항목', '제품군', '카테고리']);
   const amountIndex = findColumn(headers, ['견적 금액', '견적금액', '총 견적금액', '금액']);
   const orderIndex = findColumn(headers, ['발주']);
+  const authorIndex = findColumn(headers, ['작성자', '작성자이메일', '이메일']);
 
   return rows.map((row) => {
     const month = Number(valueAt(row, monthIndex).replace(/\D/g, ''));
@@ -85,11 +92,12 @@ function buildRecords(department: string, year: number, headers: string[], rows:
       category: normalizeCategory(valueAt(row, categoryIndex)),
       amount: parseAmount(valueAt(row, amountIndex)),
       ordered: orderedValue(valueAt(row, orderIndex)),
+      authorName: authorIndex >= 0 ? valueAt(row, authorIndex).trim() : '',
     };
   }).filter((record) => record.quoteNumber || record.company !== '미입력');
 }
 
-function aggregate(records: QuoteRecord[], key: 'company' | 'product' | 'category') {
+function aggregate(records: QuoteRecord[], key: 'company' | 'product' | 'category' | 'authorName') {
   const map = new Map<string, AggregatedItem>();
   records.forEach((record) => {
     const label = record[key] || '미입력';
@@ -112,8 +120,8 @@ function linePoints(values: number[], width = 760, height = 230) {
   return values.map((value, index) => {
     const x = left + (index * (width - left - right)) / Math.max(values.length - 1, 1);
     const y = height - bottom - (value / max) * (height - top - bottom);
-    return `${x},${y}`;
-  }).join(' ');
+    return { x, y, value };
+  });
 }
 
 function monthTotals(records: QuoteRecord[], metric: Metric) {
@@ -124,6 +132,22 @@ function monthTotals(records: QuoteRecord[], metric: Metric) {
 
 function teamColor(index: number) {
   return ['#2563eb', '#0f766e', '#c2410c', '#7c3aed'][index % 4];
+}
+
+/** 통계 JSON 품목 상세 — 수량·단가·금액을 견적별로 집계 */
+function buildItemAnalysisFromStats(statsRecords: DashboardStatsRecord[]) {
+  const map = new Map<string, { name: string; count: number; quantity: number; amount: number }>();
+  statsRecords.forEach((record) => {
+    (record.items || []).forEach((item) => {
+      const key = item.name || '미입력';
+      const prev = map.get(key) ?? { name: key, count: 0, quantity: 0, amount: 0 };
+      prev.count += 1;
+      prev.quantity += Number(item.quantity) || 0;
+      prev.amount += Number(item.totalPrice) || 0;
+      map.set(key, prev);
+    });
+  });
+  return [...map.values()].sort((a, b) => b.amount - a.amount);
 }
 
 export default function DashboardPage({ onBack, departments, department, isAdmin }: Props) {
@@ -140,6 +164,8 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   const [statsRecords, setStatsRecords] = useState<DashboardStatsRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; label: string; value: string } | null>(null);
+  const trendSvgRef = useRef<SVGSVGElement | null>(null);
 
   const targetDepartments = useMemo(
     () => (selectedDepartment === '전체' ? departments : [selectedDepartment]),
@@ -181,6 +207,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     } catch (err) {
       setRecords([]);
       setHistory([]);
+      setStatsRecords([]);
       setError(String(err));
     } finally {
       setLoading(false);
@@ -189,22 +216,30 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
 
   useEffect(() => { void loadDashboard(); }, [loadDashboard]);
 
-  const filteredRecords = useMemo(() => records.filter((record) => categories.includes(record.category)), [categories, records]);
-  const totalAmount = filteredRecords.reduce((sum, record) => sum + record.amount, 0);
-  const orderedRecords = filteredRecords.filter((record) => record.ordered);
-  const monthly = monthTotals(filteredRecords, metric);
-  const rankedCompanies = [...aggregate(filteredRecords, 'company')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8);
-  const rankedProducts = [...aggregate(filteredRecords, 'product')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8);
-  const rankedCategories = [...aggregate(filteredRecords, 'category')].sort((a, b) => b.amount - a.amount);
+  // 발주 분석 탭: 발주 완료 견적만, 금액 기준
+  const activeRecords = useMemo(
+    () => records.filter((record) => categories.includes(record.category)),
+    [categories, records],
+  );
+  const ordersFiltered = useMemo(() => activeRecords.filter((record) => record.ordered), [activeRecords]);
+
+  const currentRecords = activeTab === 'quotes' ? activeRecords : ordersFiltered;
+  const totalAmount = currentRecords.reduce((sum, record) => sum + record.amount, 0);
+  const totalCount = currentRecords.length;
+  const monthly = monthTotals(currentRecords, metric);
+  const rankedCompanies = [...aggregate(currentRecords, 'company')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8);
+  const rankedProducts = [...aggregate(currentRecords, 'product')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8);
+  const rankedCategories = [...aggregate(currentRecords, 'category')].sort((a, b) => b.amount - a.amount);
+  const rankedAuthors = [...aggregate(currentRecords, 'authorName')].filter((item) => item.label && item.label !== '미입력').sort((a, b) => b.amount - a.amount);
 
   const teamRows = departments.map((team) => {
-    const teamRecords = filteredRecords.filter((record) => record.department === team);
+    const teamRecords = currentRecords.filter((record) => record.department === team);
     const teamOrders = teamRecords.filter((record) => record.ordered);
     return { team, count: teamRecords.length, amount: teamRecords.reduce((sum, record) => sum + record.amount, 0), orders: teamOrders.length };
   });
 
   const dormantClients = useMemo(() => {
-    const currentCompanies = new Set(filteredRecords.map((record) => record.company));
+    const currentCompanies = new Set(currentRecords.map((record) => record.company));
     const allCompanies = new Set(history.map((record) => record.company));
     return [...allCompanies]
       .filter((company) => !currentCompanies.has(company))
@@ -215,37 +250,38 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       })
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 8);
-  }, [filteredRecords, history]);
+  }, [currentRecords, history]);
+
+  const itemAnalysis = useMemo(() => buildItemAnalysisFromStats(statsRecords), [statsRecords]);
+  const maxItemAmount = Math.max(...itemAnalysis.map((item) => item.amount), 1);
 
   function toggleCategory(category: string) {
     setCategories((current) => current.includes(category) ? current.filter((item) => item !== category) : [...current, category]);
   }
 
-  // 통계 JSON의 품목 상세(items)를 제품명 기준으로 집계한다.
-  // 대장의 요약 제품명만으로는 알 수 없는 총 수량·평균 단가·총 금액을 제공한다.
-  const itemAnalysis = useMemo(() => {
-    const statsFiltered = statsRecords.filter((record) => {
-      if (selectedDepartment !== '전체' && record.quoteNumber.startsWith(selectedDepartment) === false) {
-        // 견적번호가 부서명으로 시작하지 않으면 해당 부서로 간주하지 않는다.
-        // (대시보드는 부서별로 stats/<부서>.json을 불러오므로 이미 부서별로 분리되어 있다.)
-      }
-      return true;
-    });
-    const map = new Map<string, { name: string; count: number; quantity: number; amount: number }>();
-    statsFiltered.forEach((record) => {
-      (record.items || []).forEach((item) => {
-        const key = item.name || '미입력';
-        const prev = map.get(key) ?? { name: key, count: 0, quantity: 0, amount: 0 };
-        prev.count += 1;
-        prev.quantity += Number(item.quantity) || 0;
-        prev.amount += Number(item.totalPrice) || 0;
-        map.set(key, prev);
-      });
-    });
-    return [...map.values()].sort((a, b) => b.amount - a.amount);
-  }, [statsRecords, selectedDepartment]);
+  const monthlyPoints = linePoints(monthly);
 
-  const maxItemAmount = Math.max(...itemAnalysis.map((item) => item.amount), 1);
+  function handleTrendHover(event: React.MouseEvent<SVGSVGElement, MouseEvent>) {
+    const svg = trendSvgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const mouseX = event.clientX - rect.left;
+    const scaleX = 760 / rect.width;
+    const svgX = mouseX * scaleX;
+    // 가장 가까운 포인트 찾기
+    let closest = monthlyPoints[0];
+    let closestDist = Infinity;
+    monthlyPoints.forEach((point) => {
+      const dist = Math.abs(point.x - svgX);
+      if (dist < closestDist) { closest = point; closestDist = dist; }
+    });
+    const monthIndex = monthlyPoints.findIndex((point) => point.x === closest.x);
+    setHoverPoint({
+      x: closest.x, y: closest.y,
+      label: `${monthIndex + 1}월`,
+      value: metric === 'amount' ? formatWon(closest.value) : `${closest.value}건`,
+    });
+  }
 
   return (
     <div className="min-h-screen bg-[#f5f7fa] px-3 sm:px-6 py-5">
@@ -269,8 +305,23 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
         </div>
 
         <section className="rounded-2xl border border-[#e3e7ee] bg-white p-4 mb-4 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold text-[#8a94a6]">필터 조합</p><p className="text-xs text-[#a4acb8] mt-1">제품군과 지표를 조합해 영업 현황을 확인하세요.</p></div><div className="flex items-center gap-1 rounded-lg bg-[#f1f4f8] p-1"><button type="button" onClick={() => setMetric('count')} className={`rounded-md px-3 py-1 text-xs font-bold ${metric === 'count' ? 'bg-white text-blue-700 shadow-sm' : 'text-[#7c8796]'}`}>견적 건수</button><button type="button" onClick={() => setMetric('amount')} className={`rounded-md px-3 py-1 text-xs font-bold ${metric === 'amount' ? 'bg-white text-blue-700 shadow-sm' : 'text-[#7c8796]'}`}>금액</button></div></div>
-          <div className="flex flex-wrap gap-2 mt-3">{CATEGORY_OPTIONS.map((category) => <label key={category} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold cursor-pointer ${categories.includes(category) ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-[#e1e5eb] text-[#9aa3af]'}`}><input type="checkbox" checked={categories.includes(category)} onChange={() => toggleCategory(category)} />{category}</label>)}</div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-[#8a94a6]">필터 조합</p>
+              <p className="text-xs text-[#a4acb8] mt-1">제품군과 지표를 조합해 영업 현황을 확인하세요.</p>
+            </div>
+            <div className="flex items-center gap-1 rounded-lg bg-[#f1f4f8] p-1">
+              <button type="button" onClick={() => setMetric('count')} className={`rounded-md px-3 py-1 text-xs font-bold ${metric === 'count' ? 'bg-white text-blue-700 shadow-sm' : 'text-[#7c8796]'}`}>견적 건수</button>
+              <button type="button" onClick={() => setMetric('amount')} className={`rounded-md px-3 py-1 text-xs font-bold ${metric === 'amount' ? 'bg-white text-blue-700 shadow-sm' : 'text-[#7c8796]'}`}>금액</button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mt-3">
+            {CATEGORY_OPTIONS.map((category) => (
+              <label key={category} className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold cursor-pointer ${categories.includes(category) ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-[#e1e5eb] text-[#9aa3af]'}`}>
+                <input type="checkbox" checked={categories.includes(category)} onChange={() => toggleCategory(category)} />{category}
+              </label>
+            ))}
+          </div>
         </section>
 
         {loading && <div className="rounded-2xl border border-[#e3e7ee] bg-white p-12 text-center text-sm text-[#888]">{t(UI.quoteDashboardLoading)}</div>}
@@ -278,52 +329,162 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
 
         {!loading && !error && <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            {[['견적 건수', `${filteredRecords.length.toLocaleString('ko-KR')}건`], ['견적 금액', formatWon(totalAmount)], ['발주 완료', `${orderedRecords.length.toLocaleString('ko-KR')}건`], ['발주율', `${filteredRecords.length ? Math.round((orderedRecords.length / filteredRecords.length) * 100) : 0}%`]].map(([label, value], index) => <div key={label} className="rounded-2xl border border-[#e3e7ee] bg-white p-4 shadow-sm"><p className="text-xs font-semibold text-[#8a94a6]">{label}</p><p className={`mt-2 text-xl sm:text-2xl font-bold ${index === 2 ? 'text-emerald-700' : index === 3 ? 'text-violet-700' : 'text-[#191919]'}`}>{value}</p></div>)}
+            {[['견적 건수', `${totalCount.toLocaleString('ko-KR')}건`], ['견적 금액', formatWon(totalAmount)], ['발주 완료', `${ordersFiltered.length.toLocaleString('ko-KR')}건`], ['발주율', `${totalCount ? Math.round((ordersFiltered.length / totalCount) * 100) : 0}%`]].map(([label, value], index) => (
+              <div key={label} className="rounded-2xl border border-[#e3e7ee] bg-white p-4 shadow-sm">
+                <p className="text-xs font-semibold text-[#8a94a6]">{label}</p>
+                <p className={`mt-2 text-xl sm:text-2xl font-bold ${index === 2 ? 'text-emerald-700' : index === 3 ? 'text-violet-700' : 'text-[#191919]'}`}>{value}</p>
+              </div>
+            ))}
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mb-4">
-            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm"><div className="flex justify-between items-center mb-3"><h2 className="font-bold text-[#242b36]">월별 {metric === 'amount' ? '견적 금액' : '견적 건수'} 추이</h2><span className="text-xs text-[#9aa3af]">{selectedYear}년</span></div><div className="overflow-x-auto"><svg viewBox="0 0 760 250" className="w-full min-w-[620px] h-60"><polyline fill="none" stroke={activeTab === 'orders' ? '#059669' : '#2563eb'} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={linePoints(activeTab === 'orders' ? monthTotals(filteredRecords.filter((record) => record.ordered), metric) : monthly)} />{Array.from({ length: 12 }, (_, index) => { const values = activeTab === 'orders' ? monthTotals(filteredRecords.filter((record) => record.ordered), metric) : monthly; const max = Math.max(...values, 1); const x = 28 + (index * 714) / 11; const y = 218 - (values[index] / max) * 190; return <g key={index}><circle cx={x} cy={y} r="4" fill="white" stroke={activeTab === 'orders' ? '#059669' : '#2563eb'} strokeWidth="2"/><text x={x} y="242" textAnchor="middle" fontSize="11" fill="#8a94a6">{index + 1}월</text></g>; })}</svg></div></section>
-            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm"><h2 className="font-bold text-[#242b36] mb-4">팀별 {activeTab === 'orders' ? '발주' : '견적'} 비교</h2><div className="space-y-4">{teamRows.map((item, index) => { const max = Math.max(...teamRows.map((row) => metric === 'amount' ? row.amount : row.count), 1); const value = metric === 'amount' ? item.amount : item.count; return <div key={item.team}><div className="flex justify-between text-xs mb-1"><span className="font-bold text-[#4b5563]">{item.team}</span><span className="text-[#697386]">{metric === 'amount' ? formatWon(value) : `${value}건`} · 발주 {item.orders}건</span></div><div className="h-4 rounded-full bg-[#edf1f5] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, backgroundColor: teamColor(index) }}/></div></div>; })}</div></section>
+            {/* 월별 추이 (호버로 상세 수치 표시) */}
+            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="font-bold text-[#242b36]">월별 {metric === 'amount' ? '견적 금액' : '견적 건수'} 추이</h2>
+                <span className="text-xs text-[#9aa3af]">{selectedYear}년</span>
+              </div>
+              <div className="overflow-x-auto relative">
+                <svg ref={trendSvgRef} viewBox="0 0 760 250" className="w-full min-w-[620px] h-60 cursor-crosshair" onMouseMove={handleTrendHover} onMouseLeave={() => setHoverPoint(null)}>
+                  <polyline fill="none" stroke={activeTab === 'orders' ? '#059669' : '#2563eb'} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" points={monthlyPoints.map((p) => `${p.x},${p.y}`).join(' ')} />
+                  {monthlyPoints.map((point, index) => (
+                    <g key={index}>
+                      <circle cx={point.x} cy={point.y} r="4" fill="white" stroke={activeTab === 'orders' ? '#059669' : '#2563eb'} strokeWidth="2" />
+                      <text x={point.x} y="242" textAnchor="middle" fontSize="11" fill="#8a94a6">{index + 1}월</text>
+                    </g>
+                  ))}
+                </svg>
+                {hoverPoint && (
+                  <div className="pointer-events-none absolute rounded-lg bg-[#191919] px-2.5 py-1.5 text-xs font-semibold text-white shadow-lg" style={{ left: `${hoverPoint.x}px`, top: `${hoverPoint.y}px`, transform: 'translate(-50%, -120%)' }}>
+                    {hoverPoint.label}: {hoverPoint.value}
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* 팀별 비교 */}
+            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm">
+              <h2 className="font-bold text-[#242b36] mb-4">팀별 {activeTab === 'orders' ? '발주' : '견적'} 비교</h2>
+              <div className="space-y-4">
+                {teamRows.map((item, index) => {
+                  const max = Math.max(...teamRows.map((row) => metric === 'amount' ? row.amount : row.count), 1);
+                  const value = metric === 'amount' ? item.amount : item.count;
+                  return (
+                    <div key={item.team}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-bold text-[#4b5563]">{item.team}</span>
+                        <span className="text-[#697386]">{metric === 'amount' ? formatWon(value) : `${value}건`} · 발주 {item.orders}건</span>
+                      </div>
+                      <div className="h-4 rounded-full bg-[#edf1f5] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${(value / max) * 100}%`, backgroundColor: teamColor(index) }} /></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm"><h2 className="font-bold text-[#242b36] mb-4">카테고리별 {metric === 'amount' ? '금액' : '견적 건수'}</h2><div className="space-y-3">{rankedCategories.map((item, index) => { const max = Math.max(...rankedCategories.map((row) => metricValue(row, metric)), 1); return <div key={item.label}><div className="flex justify-between text-xs"><span><b className="mr-2 text-blue-600">{index + 1}</b>{item.label}</span><span>{metric === 'amount' ? formatWon(item.amount) : `${item.count}건`}</span></div><div className="mt-1 h-2 rounded-full bg-[#edf1f5]"><div className="h-full rounded-full bg-blue-500" style={{ width: `${(metricValue(item, metric) / max) * 100}%` }}/></div></div>; })}</div></section>
-            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm"><h2 className="font-bold text-[#242b36] mb-4">상위 업체 ({metric === 'amount' ? '견적 금액' : '견적 건수'})</h2><div className="space-y-2">{rankedCompanies.map((item, index) => <div key={item.label} className="flex justify-between gap-3 border-b border-[#f1f3f6] pb-2 text-xs"><span className="truncate"><b className="mr-2 text-violet-600">{String(index + 1).padStart(2, '0')}</b>{item.label}</span><span className="shrink-0 text-[#697386]">{metric === 'amount' ? formatWon(item.amount) : `${item.count}건`}</span></div>)}</div></section>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm"><h2 className="font-bold text-[#242b36] mb-4">상위 제품 ({metric === 'amount' ? '견적 금액' : '견적 건수'})</h2><div className="space-y-2">{rankedProducts.map((item, index) => <div key={item.label} className="flex justify-between gap-3 border-b border-[#f1f3f6] pb-2 text-xs"><span className="truncate"><b className="mr-2 text-cyan-600">{String(index + 1).padStart(2, '0')}</b>{item.label}</span><span className="shrink-0 text-[#697386]">{metric === 'amount' ? formatWon(item.amount) : `${item.count}건`}</span></div>)}</div></section>
-            <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm"><h2 className="font-bold text-amber-900 mb-1">최근 활동이 없는 업체</h2><p className="text-[11px] text-amber-800 mb-4">이전 연도에 견적이 있었지만 {selectedYear}년에 견적이 없는 업체</p><div className="space-y-2">{dormantClients.length ? dormantClients.map((item) => <div key={item.company} className="flex justify-between gap-3 border-b border-amber-100 pb-2 text-xs"><span className="truncate font-semibold text-amber-900">{item.company}</span><span className="shrink-0 text-amber-800">마지막 {item.lastYear}.{item.lastMonth} · {formatWon(item.amount)}</span></div>) : <p className="text-xs text-amber-800">해당 업체가 없습니다.</p>}</div></section>
-          </div>
-
-          {/* 통계 시트 기반 품목 상세 분석 — 견적 파일의 품목 수준 데이터 */}
-          {statsRecords.length > 0 && (
-            <div className="mt-4">
-              <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-1">
-                  <h2 className="font-bold text-[#242b36]">품목 상세 분석</h2>
-                  <span className="text-xs text-[#9aa3af]">견적서 품목 기준</span>
-                </div>
-                <p className="text-[11px] text-[#a4acb8] mb-4">견적서 안의 각 품목(제품명·수량·단가)을 집계한 분석입니다. 대장의 요약 제품명보다 정확합니다.</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {itemAnalysis.slice(0, 9).map((item) => (
-                    <div key={item.name} className="rounded-xl border border-[#edf1f5] bg-[#fafbfc] p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-xs font-semibold text-[#242b36] truncate">{item.name}</span>
-                        <span className="text-[10px] text-[#9aa3af] shrink-0">{item.count}건</span>
+            {/* 카테고리별 */}
+            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm">
+              <h2 className="font-bold text-[#242b36] mb-4">카테고리별 {metric === 'amount' ? '금액' : '견적 건수'}</h2>
+              <div className="space-y-3">
+                {rankedCategories.map((item, index) => {
+                  const max = Math.max(...rankedCategories.map((row) => metricValue(row, metric)), 1);
+                  return (
+                    <div key={item.label}>
+                      <div className="flex justify-between text-xs">
+                        <span><b className="mr-2 text-blue-600">{index + 1}</b>{item.label}</span>
+                        <span>{metric === 'amount' ? formatWon(item.amount) : `${item.count}건`}</span>
                       </div>
-                      <div className="mt-2 flex items-end justify-between">
-                        <span className="text-sm font-bold text-[#191919]">{formatWon(item.amount)}</span>
-                        <span className="text-[11px] text-[#9aa3af]">수량 {item.quantity.toLocaleString('ko-KR')}</span>
-                      </div>
-                      <div className="mt-1.5 h-1.5 rounded-full bg-[#edf1f5] overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600" style={{ width: `${(item.amount / maxItemAmount) * 100}%` }} /></div>
-                      {item.quantity > 0 && <p className="mt-1 text-[10px] text-[#a4acb8]">평균 단가 {formatWon(item.amount / item.quantity)}</p>}
+                      <div className="mt-1 h-2 rounded-full bg-[#edf1f5]"><div className="h-full rounded-full bg-blue-500" style={{ width: `${(metricValue(item, metric) / max) * 100}%` }} /></div>
                     </div>
-                  ))}
-                </div>
-              </section>
-            </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* 상위 업체 */}
+            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm">
+              <h2 className="font-bold text-[#242b36] mb-4">상위 업체 ({metric === 'amount' ? '견적 금액' : '견적 건수'})</h2>
+              <div className="space-y-2">
+                {rankedCompanies.map((item, index) => (
+                  <div key={item.label} className="flex justify-between gap-3 border-b border-[#f1f3f6] pb-2 text-xs">
+                    <span className="truncate"><b className="mr-2 text-violet-600">{String(index + 1).padStart(2, '0')}</b>{item.label}</span>
+                    <span className="shrink-0 text-[#697386]">{metric === 'amount' ? formatWon(item.amount) : `${item.count}건`}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            {/* 작성자별 */}
+            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm">
+              <h2 className="font-bold text-[#242b36] mb-4">작성자별 견적 ({metric === 'amount' ? '금액' : '건수'})</h2>
+              <div className="space-y-2">
+                {rankedAuthors.length > 0 ? rankedAuthors.map((item, index) => (
+                  <div key={item.label} className="flex justify-between gap-3 border-b border-[#f1f3f6] pb-2 text-xs">
+                    <span className="truncate"><b className="mr-2 text-indigo-600">{String(index + 1).padStart(2, '0')}</b>{item.label}</span>
+                    <span className="shrink-0 text-[#697386]">{metric === 'amount' ? formatWon(item.amount) : `${item.count}건`}</span>
+                  </div>
+                )) : <p className="text-sm text-[#999]">작성자 정보가 없습니다.</p>}
+              </div>
+            </section>
+
+            {/* 상위 제품 */}
+            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm">
+              <h2 className="font-bold text-[#242b36] mb-4">상위 제품 ({metric === 'amount' ? '견적 금액' : '견적 건수'})</h2>
+              <div className="space-y-2">
+                {rankedProducts.map((item, index) => (
+                  <div key={item.label} className="flex justify-between gap-3 border-b border-[#f1f3f6] pb-2 text-xs">
+                    <span className="truncate"><b className="mr-2 text-cyan-600">{String(index + 1).padStart(2, '0')}</b>{item.label}</span>
+                    <span className="shrink-0 text-[#697386]">{metric === 'amount' ? formatWon(item.amount) : `${item.count}건`}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* 품목 상세 분석 (통계 JSON 기반) */}
+          {statsRecords.length > 0 && (
+            <section className="rounded-2xl border border-[#e3e7ee] bg-white p-5 shadow-sm mb-4">
+              <div className="flex justify-between items-center mb-1">
+                <h2 className="font-bold text-[#242b36]">품목 상세 분석</h2>
+                <span className="text-xs text-[#9aa3af]">견적서 품목 기준</span>
+              </div>
+              <p className="text-[11px] text-[#a4acb8] mb-4">견적서 안의 각 품목(제품명·수량·단가)을 집계한 분석입니다. 대장의 요약 제품명보다 정확합니다.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {itemAnalysis.slice(0, 9).map((item) => (
+                  <div key={item.name} className="rounded-xl border border-[#edf1f5] bg-[#fafbfc] p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-xs font-semibold text-[#242b36] truncate">{item.name}</span>
+                      <span className="text-[10px] text-[#9aa3af] shrink-0">{item.count}건</span>
+                    </div>
+                    <div className="mt-2 flex items-end justify-between">
+                      <span className="text-sm font-bold text-[#191919]">{formatWon(item.amount)}</span>
+                      <span className="text-[11px] text-[#9aa3af]">수량 {item.quantity.toLocaleString('ko-KR')}</span>
+                    </div>
+                    <div className="mt-1.5 h-1.5 rounded-full bg-[#edf1f5] overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600" style={{ width: `${(item.amount / maxItemAmount) * 100}%` }} /></div>
+                    {item.quantity > 0 && <p className="mt-1 text-[10px] text-[#a4acb8]">평균 단가 {formatWon(item.amount / item.quantity)}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
           )}
+
+          {/* 휴면 업체 */}
+          <section className="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
+            <h2 className="font-bold text-amber-900 mb-1">최근 활동이 없는 업체</h2>
+            <p className="text-[11px] text-amber-800 mb-4">이전 연도에 견적이 있었지만 {selectedYear}년에 견적이 없는 업체</p>
+            <div className="space-y-2">
+              {dormantClients.length ? dormantClients.map((item) => (
+                <div key={item.company} className="flex justify-between gap-3 border-b border-amber-100 pb-2 text-xs">
+                  <span className="truncate font-semibold text-amber-900">{item.company}</span>
+                  <span className="shrink-0 text-amber-800">마지막 {item.lastYear}.{item.lastMonth} · {formatWon(item.amount)}</span>
+                </div>
+              )) : <p className="text-xs text-amber-800">해당 업체가 없습니다.</p>}
+            </div>
+          </section>
         </>}
       </div>
     </div>
