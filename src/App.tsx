@@ -11,6 +11,7 @@ import CartPage from './components/CartPage';
 import ComparePage from './components/ComparePage';
 import QuoteFormPage from './components/QuoteFormPage';
 import QuoteListPage from './components/QuoteListPage';
+import DashboardPage from './components/DashboardPage';
 import SearchOverlay from './components/SearchOverlay';
 import {
   checkQuoteAccess,
@@ -23,7 +24,7 @@ import SpecModal from './components/SpecModal';
 import { LangProvider, useLang, useT } from './context/LangContext';
 import { UI } from './i18n/ui';
 
-type ViewMode = 'main' | 'cart' | 'compare' | 'quotecreate' | 'quotelist';
+type ViewMode = 'main' | 'cart' | 'compare' | 'quotecreate' | 'quotelist' | 'dashboard';
 
 const CATEGORY_LABELS: Record<CategoryId, string> = {
   PLC: 'PLC',
@@ -358,6 +359,7 @@ function AppInner() {
         <QuoteListPage
           onBack={() => setViewMode('main')}
           onNewQuote={handleGoToQuoteCreate}
+          onDashboard={isAdmin ? () => setViewMode('dashboard') : undefined}
           onEditQuote={handleEditQuote}
           onOrderChange={handleOrderChange}
           department={authAuthor?.department ?? '기술영업'}
@@ -382,6 +384,20 @@ function AppInner() {
           onRemove={handleCartToggle} onClear={() => setCartList([])}
           onBack={() => setViewMode('main')}
           onGoToQuote={handleGoToQuoteCreate}
+        />
+        {toast && <Toast msg={toast} />}
+      </div>
+    );
+  }
+
+  if (viewMode === 'dashboard') {
+    if (!isAdmin) return null;
+    return (
+      <div className="min-h-screen bg-[#f7f8fa]">
+        <div className="sticky top-0 z-50"><AppHeader {...headerProps} /></div>
+        <DashboardPage
+          onBack={() => setViewMode('quotelist')}
+          departments={availableDepartments}
         />
         {toast && <Toast msg={toast} />}
       </div>

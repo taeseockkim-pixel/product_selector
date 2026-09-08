@@ -140,6 +140,7 @@ function orderEmailUrl(
 interface Props {
   onBack: () => void;
   onNewQuote: () => void;
+  onDashboard?: () => void;
   onEditQuote: (year: number, quoteNumber: string, department?: string) => void;
   onOrderChange: (year: number, quoteNumber: string, ordered: boolean, department?: string) => Promise<void>;
   department: string;
@@ -152,6 +153,7 @@ interface Props {
 export default function QuoteListPage({
   onBack,
   onNewQuote,
+  onDashboard,
   onEditQuote,
   onOrderChange,
   department,
@@ -520,6 +522,15 @@ export default function QuoteListPage({
           )}
         </div>
         <div className="flex flex-wrap justify-end gap-2">
+          {isAdmin && onDashboard && (
+            <button
+              type="button"
+              onClick={onDashboard}
+              className="px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+            >
+              {t(UI.quoteDashboard)}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setAiSearchOpen((open) => !open)}
