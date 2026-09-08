@@ -240,11 +240,18 @@ function resolveQuoteFileForClaim(relative) {
       const exact = resolve(join(yearRoot, dir.name, fileName));
       if (exact.startsWith(yearRoot + sep) && existsSync(exact) && statSync(exact).isFile()) return exact;
     }
-    // 파일명도 업체명 표기 차이로 다르면, 같은 폴더에서 견적번호를 포함하는 파일을 하나 찾는다.
-    for (const dir of candidateDirs) {
+    // URL에 적힌 폴더가 후보 중 하나라면 그 폴더를 우선 검색한다.
+    // 파일명은 업체명/분할 번호 차이를 고려해 같은 확장자와 견적번호를 기준으로 찾는다.
+    const exactDir = candidateDirs.find((entry) => entry.name === folderRaw);
+    const dirsToSearch = exactDir ? [exactDir] : candidateDirs;
+    const requestedExt = extname(fileName).toLowerCase();
+    for (const dir of dirsToSearch) {
       const dirPath = join(yearRoot, dir.name);
       const matches = readdirSync(dirPath, { withFileTypes: true })
-        .filter((entry) => entry.isFile() && !entry.name.startsWith('.') && entry.name.includes(quoteNum));
+        .filter((entry) => entry.isFile()
+          && !entry.name.startsWith('.')
+          && extname(entry.name).toLowerCase() === requestedExt
+          && entry.name.includes(quoteNum));
       if (matches.length === 1) {
         const found = resolve(join(dirPath, matches[0].name));
         if (found.startsWith(yearRoot + sep)) return found;
@@ -1262,7 +1269,10 @@ app.use('/files', (req, res) => {
     if (!existsSync(absolute) || !statSync(absolute).isFile()) {
       // 폴더명·업체명 표기 차이 등으로 정확한 경로에 파일이 없으면, 견적번호 기준으로 실제 파일을 찾는다.
       const resolved = resolveQuoteFileForClaim(relative);
-      if (!resolved) return res.status(404).send('Not found');
+      if (!resolved) {
+        console.error(`[파일 링크 파일 없음] decoded=${relative} | storageRoot=${STORAGE_ROOT}`);
+        return res.status(404).send('Not found');
+      }
       if (extname(resolved).toLowerCase() === '.xlsx') {
         return res.download(resolved, basename(resolved));
       }
