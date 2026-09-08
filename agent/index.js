@@ -65,6 +65,7 @@ const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
 const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
+const FAILED_JOBS_DIR = join(__dirname, 'failed-jobs');
 // Apps Script가 로컬 LOG에 남기고 싶은 활동 로그를 큐잉하는 폴더 (Drive 동기화 → 에이전트가 LOG 폴더로 복사)
 const LOG_QUEUE_DIR = join(AGENT_FOLDER, 'logs');
 const LOG_ROOT = join(STORAGE_ROOT, 'LOG');
@@ -525,7 +526,7 @@ async function processJob(fileName) {
 function reportJobFailure(fileName, payload, errorMessage) {
   const details = payload?.details || {};
   // 원본 데이터 유실 방지를 위해 로컬 백업을 먼저 남긴다
-  const backupDir = join(__dirname, 'failed-jobs');
+  const backupDir = FAILED_JOBS_DIR;
   mkdirSync(backupDir, { recursive: true });
   writeFileSync(join(backupDir, fileName), JSON.stringify(payload, null, 2), 'utf8');
 
@@ -586,14 +587,14 @@ async function pollPending() {
       } catch (err) {
         const attempts = (jobAttempts.get(jobFileName) || 0) + 1;
         jobAttempts.set(jobFileName, attempts);
-        console.error(`[에이전트] 저장 실패 (${attempts}/${MAX_JOB_ATTEMPTS}) ${payload.details.quoteNumber}: ${err.message}`);
+        console.error(`[에이전트] 저장 실패 (${attempts}/${MAX_JOB_ATTEMPTS}) ${payload.details.quoteNumber}: ${describeError(err)}`);
         if (attempts >= MAX_JOB_ATTEMPTS) {
           jobAttempts.delete(jobFileName);
           try {
             reportJobFailure(jobFileName, payload, err.message);
             console.error(`[에이전트] ${MAX_JOB_ATTEMPTS}회 실패 — 실패 보고를 기록했습니다. (로컬 백업: agent\\failed-jobs\\${fileName})`);
           } catch (reportErr) {
-            console.error(`[에이전트] 실패 보고 기록 실패: ${reportErr.message} — 원본은 pending에 유지되며 백업은 agent\\failed-jobs\\에 있습니다.`);
+            console.error(`[에이전트] 실패 보고 기록 실패: ${describeError(reportErr)} — 원본은 pending에 유지되며 백업은 agent\\failed-jobs\\에 있습니다.`);
           }
         }
       }
@@ -1154,6 +1155,39 @@ function resolveInsideDepartment(session, relative) {
   if (target !== deptRoot && !target.startsWith(deptRoot + sep)) return null;
   return { deptRoot, target };
 }
+
+function retryFailedJobs() {
+  if (!existsSync(FAILED_JOBS_DIR)) return [];
+  mkdirSync(PENDING_DIR, { recursive: true });
+  const requeued = [];
+  for (const fileName of readdirSync(FAILED_JOBS_DIR)) {
+    if (!fileName.endsWith('.json') || fileName.startsWith('.')) continue;
+    const source = join(FAILED_JOBS_DIR, fileName);
+    const target = join(PENDING_DIR, fileName);
+    if (!existsSync(source) || existsSync(target)) continue;
+    copyFileSync(source, target);
+    requeued.push(fileName);
+  }
+  return requeued;
+}
+
+app.get('/retry-failed', (req, res) => {
+  const session = readSession(req);
+  if (!session) return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
+  if (session.department !== '*') return res.status(403).send('관리자 비밀번호로 로그인해야 실패 작업을 재처리할 수 있습니다.');
+  const files = existsSync(FAILED_JOBS_DIR)
+    ? readdirSync(FAILED_JOBS_DIR).filter((name) => name.endsWith('.json'))
+    : [];
+  res.type('html').send(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>실패 견적 재처리</title><style>${PAGE_STYLE}</style></head><body><div class="card"><h1>실패 견적 재처리</h1><p class="sub">재처리 대상: ${files.length}건</p><p class="hint">대장에만 기록되고 로컬 파일이 생성되지 않은 작업을 다시 처리합니다. 같은 파일명이 있으면 덮어쓰지 않습니다.</p><form method="POST" action="/retry-failed"><button type="submit">실패 작업 다시 처리</button></form><p><a href="/browse">파일 열람으로 돌아가기</a></p></div></body></html>`);
+});
+
+app.post('/retry-failed', (req, res) => {
+  const session = readSession(req);
+  if (!session) return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
+  if (session.department !== '*') return res.status(403).send('관리자 비밀번호로 로그인해야 실패 작업을 재처리할 수 있습니다.');
+  const files = retryFailedJobs();
+  res.type('html').send(`<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>재처리 완료</title><style>${PAGE_STYLE}</style></head><body><div class="card"><h1>재처리 요청 완료</h1><p>${files.length}건을 대기열에 다시 등록했습니다. 에이전트가 순서대로 처리합니다.</p><p><a href="/retry-failed">상태 새로고침</a> · <a href="/browse">파일 열람</a></p></div></body></html>`);
+});
 
 app.get('/browse', (req, res) => {
   const session = readSession(req);
