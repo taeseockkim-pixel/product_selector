@@ -14,7 +14,7 @@
  * 요구: Node.js 18+, Windows + Excel(이 PC), Google Drive 데스크톱(로그인), 상시 가동 권장
  */
 
-import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync, appendFileSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync, appendFileSync, rmSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { join, dirname, resolve, sep, basename, extname } from 'path';
 import { fileURLToPath } from 'url';
@@ -403,6 +403,33 @@ function resolveExistingQuoteFolder_(yearDir, baseQuoteNumber, computedFolderNam
   return computedPath;
 }
 
+// 견적 폴더 삭제 작업 — pending의 delete_<견적번호>.json을 처리해 로컬 폴더를 영구 삭제한다.
+function processDeleteJob(fileName, payload) {
+  const department = safeDepartmentSegment(payload.department || DEFAULT_DEPARTMENT);
+  const year = String(payload.year || new Date().getFullYear());
+  const baseQuoteNumber = safeSegment(payload.quoteNumber);
+  if (!baseQuoteNumber) throw new Error('삭제할 견적번호가 없습니다.');
+
+  const yearDir = join(STORAGE_ROOT, department, year);
+  if (!existsSync(yearDir)) {
+    unlinkSync(join(PENDING_DIR, fileName));
+    return;
+  }
+  // 견적번호로 시작하는 폴더를 찾아 삭제한다 (업체명 표기 차이·폴더명 수동 수정 대응).
+  const candidates = readdirSync(yearDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name.startsWith(`${baseQuoteNumber}_`));
+  for (const candidate of candidates) {
+    const target = join(yearDir, candidate.name);
+    try {
+      rmSync(target, { recursive: true, force: true });
+      console.log(`[에이전트] 삭제: ${target}`);
+    } catch (err) {
+      console.error(`[에이전트] 폴더 삭제 실패: ${target}: ${describeError(err)}`);
+    }
+  }
+  unlinkSync(join(PENDING_DIR, fileName));
+}
+
 async function processJob(fileName) {
   const jsonPath = join(PENDING_DIR, fileName);
   const payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
@@ -574,6 +601,18 @@ async function pollPending() {
         // Drive 동기화가 아직 완료되지 않았을 수 있음 — 다음 폴링에서 재시도
         continue;
       }
+
+      // 견적 폴더 삭제 작업 (영구삭제 요청)
+      if (payload?.action === 'deleteQuote') {
+        try {
+          processDeleteJob(fileName, payload);
+          console.log(`[에이전트] 견적 폴더 삭제 완료: ${payload.quoteNumber ?? fileName}`);
+        } catch (err) {
+          console.error(`[에이전트] 견적 폴더 삭제 실패: ${payload.quoteNumber ?? fileName}: ${describeError(err)}`);
+        }
+        continue;
+      }
+
       if (!payload?.details) continue;
       if (!fileName.endsWith('.json')) {
         // 확장자 없이 동기화된 경우에도 처리 가능하도록 원본을 .json으로 복제해 처리한다

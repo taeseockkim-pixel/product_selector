@@ -5,6 +5,8 @@ import {
   fetchLedger,
   createOrderDraft,
   fetchQuoteFiles,
+  deleteQuote,
+  restoreQuote,
   type OrderDraftRequest,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
@@ -67,14 +69,14 @@ function columnWidth(header: string) {
   if (header.includes('연락처')) return 104;
   if (header.includes('이메일')) return 148;
   if (header.includes('제품 항목') || header.includes('제품군')) return 106;
-  if (header.includes('제품명')) return 160;
-  if (header.includes('견적 금액') || header.includes('금액')) return 112;
+  if (header.includes('제품명')) return 130;
+  if (header.includes('견적 금액') || header.includes('금액')) return 104;
   if (header.includes('비고')) return 130;
   if (header.includes('파일링크')) return 220;
   return 110;
 }
 
-const ACTION_COLUMN_WIDTH = 144;
+const ACTION_COLUMN_WIDTH = 200;
 
 function uploadUrl(
   year: number,
@@ -179,6 +181,11 @@ export default function QuoteListPage({
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState<Record<string, boolean>>({});
   const [orderUpdatingKey, setOrderUpdatingKey] = useState<string | null>(null);
+
+  // ── 견적 삭제 다이얼로그 상태 ──
+  const [deleteDialogRow, setDeleteDialogRow] = useState<LedgerRow | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [restoreLoadingKey, setRestoreLoadingKey] = useState<string | null>(null);
 
   // ── 발주등록 요청 메일 작성 모달 상태 ──
   const [orderEmailOpen, setOrderEmailOpen] = useState(false);
@@ -365,6 +372,43 @@ export default function QuoteListPage({
     // opener가 있어야 에이전트 페이지가 선택 파일을 postMessage로 반환할 수 있다.
     const popup = window.open(url, '_blank');
     if (!popup) alert('발주등록 메일 작성 창을 열 수 없습니다. 브라우저의 팝업 차단을 해제해 주세요.');
+  }
+
+  /** 견적 삭제 실행 (영구삭제 또는 라인삭제) */
+  async function handleDeleteQuote(mode: 'permanent' | 'strikethrough') {
+    const row = deleteDialogRow;
+    if (!row) return;
+    const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+    if (!quoteNumber) return;
+    setDeleteLoading(true);
+    try {
+      const result = await deleteQuote({ year: selectedYear, department: currentDepartment, quoteNumber, mode });
+      if (!result.success) throw new Error(result.message || t(UI.quoteDeleteFailed));
+      setDeleteDialogRow(null);
+      await loadQuotes(selectedYear, currentDepartment);
+      alert(result.message || '삭제되었습니다.');
+    } catch (err) {
+      alert(`${t(UI.quoteDeleteFailed)}: ${String(err)}`);
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
+  /** 라인삭제(취소선) 해제 */
+  async function handleRestoreQuote(row: LedgerRow) {
+    const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+    if (!quoteNumber) return;
+    const key = quoteRowKey(headers, row);
+    setRestoreLoadingKey(key);
+    try {
+      const result = await restoreQuote({ year: selectedYear, department: currentDepartment, quoteNumber });
+      if (!result.success) throw new Error(result.message || t(UI.quoteRestoreFailed));
+      await loadQuotes(selectedYear, currentDepartment);
+    } catch (err) {
+      alert(`${t(UI.quoteRestoreFailed)}: ${String(err)}`);
+    } finally {
+      setRestoreLoadingKey(null);
+    }
   }
 
   /** 견적 폴더(구글 드라이브 미러 '문서')에서 발주 메일 첨부용 파일 목록을 가져온다 */
@@ -630,6 +674,58 @@ export default function QuoteListPage({
         </div>
       )}
 
+      {/* 견적 삭제 방식 선택 다이얼로그 */}
+      {deleteDialogRow && (
+        <div className="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-red-600 text-white">
+              <h2 className="text-sm font-bold">{t(UI.quoteDeleteTitle)}</h2>
+              <button
+                type="button"
+                onClick={() => setDeleteDialogRow(null)}
+                className="text-red-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                x
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <p className="text-sm text-[#555555]">
+                <strong>{ledgerValue(headers, deleteDialogRow, ['견적번호']) || '-'}</strong> · {ledgerValue(headers, deleteDialogRow, ['업체명', '회사명']) || '-'}
+              </p>
+              <p className="text-xs text-[#999999]">{t(UI.quoteDeleteConfirm)}</p>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={() => void handleDeleteQuote('permanent')}
+                className="w-full rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-left hover:bg-red-100 disabled:opacity-50 transition-colors"
+              >
+                <span className="block text-sm font-bold text-red-700">{t(UI.quoteDeletePermanent)}</span>
+                <span className="block text-[11px] text-red-500 mt-0.5">{t(UI.quoteDeletePermanentHint)}</span>
+              </button>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={() => void handleDeleteQuote('strikethrough')}
+                className="w-full rounded-lg border border-[#ddd9d2] bg-[#f7f6f3] px-4 py-3 text-left hover:bg-[#eee] disabled:opacity-50 transition-colors"
+              >
+                <span className="block text-sm font-bold text-[#333333]">{t(UI.quoteDeleteLine)}</span>
+                <span className="block text-[11px] text-[#999999] mt-0.5">{t(UI.quoteDeleteLineHint)}</span>
+              </button>
+            </div>
+            <div className="flex justify-end px-5 py-4 bg-[#f0ede8] border-t border-[#ddd9d2]">
+              <button
+                type="button"
+                onClick={() => setDeleteDialogRow(null)}
+                className="px-4 py-2 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-white transition-colors"
+              >
+                {t(UI.quoteDeleteCancel)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {orderEmailOpen && orderEmailRow && (
         <div className="fixed inset-0 bg-black/50 z-[70] flex items-start justify-center overflow-y-auto py-10 px-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
@@ -810,7 +906,7 @@ export default function QuoteListPage({
                 const linkValue = linkIndex >= 0 ? (row.links[linkIndex] ?? '') : '';
                 const quoteFolderName = folderNameFromLink(linkValue);
                 return (
-                  <tr key={`${row.values.join('|')}-${rowIndex}`} className="border-t border-[#f0ede8] hover:bg-[#fafaf9]">
+                  <tr key={`${row.values.join('|')}-${rowIndex}`} className={`border-t border-[#f0ede8] hover:bg-[#fafaf9] ${row.struck ? 'opacity-60' : ''}`}>
                     {headers.map((header, cellIndex) => {
                       const value = row.values[cellIndex] ?? '';
                       const link = row.links[cellIndex];
@@ -821,7 +917,7 @@ export default function QuoteListPage({
                       const isAmountColumn = header.includes('금액');
                       const checked = orderStatus[rowKey] ?? isOrderMarked(value);
                       return (
-                        <td key={cellIndex} className={`${isAmountColumn ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 text-[#555555] ${isYearColumn ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
+                        <td key={cellIndex} className={`${isAmountColumn ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 text-[#555555] ${isYearColumn ? 'whitespace-nowrap' : 'whitespace-normal break-words'} ${row.struck ? 'line-through decoration-[#333333] decoration-2' : ''}`}>
                           {isOrderColumn ? (
                             <label className="inline-flex items-center gap-1.5 font-medium text-[#555555]">
                               <input
@@ -860,6 +956,25 @@ export default function QuoteListPage({
                         >
                           {t(UI.quoteUploadBtn)}
                         </a>
+                        {row.struck ? (
+                          <button
+                            type="button"
+                            disabled={!quoteNumber || restoreLoadingKey === rowKey}
+                            onClick={() => void handleRestoreQuote(row)}
+                            className="w-14 rounded border border-amber-200 px-1 py-1 text-[11px] font-medium text-amber-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
+                          >
+                            {restoreLoadingKey === rowKey ? '...' : t(UI.quoteRestoreBtn)}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={!quoteNumber}
+                            onClick={() => setDeleteDialogRow(row)}
+                            className="w-14 rounded border border-red-200 px-1 py-1 text-[11px] font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
+                          >
+                            {t(UI.quoteDeleteBtn)}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

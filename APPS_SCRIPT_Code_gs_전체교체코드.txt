@@ -180,13 +180,17 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
     const displayValues = range.getDisplayValues();
     const richTextValues = range.getRichTextValues();
     const headers = displayValues[0];
+    // 견적번호 열의 폰트 취소선을 읽어 라인삭제(struck) 상태를 프론트에 전달한다.
+    const quoteCol = LEDGER_COL.QUOTE_NUMBER;
+    const fontLines = lastRow >= 2 ? sheet.getRange(2, quoteCol, lastRow - 1, 1).getFontLines() : [];
     const rows = displayValues.slice(1).map(function(values, rowIndex) {
       return {
         values: values,
         links: values.map(function(_, columnIndex) {
           const richText = richTextValues[rowIndex + 1][columnIndex];
           return richText ? richText.getLinkUrl() : null;
-        })
+        }),
+        struck: fontLines[rowIndex] && fontLines[rowIndex][0] === 'line-through'
       };
     });
 
@@ -1049,27 +1053,131 @@ function getNextQuoteNumber(rootFolderId, department) {
     const yearPrefix = `${departmentName} ${Utilities.formatDate(today, Session.getScriptTimeZone(), 'yy')}`;
     const lastRow = sheet.getLastRow();
 
-    // 대장 행은 파일 생성 완료 후 기록되므로, Script Properties로 번호를 먼저 예약한다.
-    // 그렇지 않으면 동시에 저장한 두 작업이 같은 번호를 받을 수 있다.
+    // 영구삭제로 생긴 빈 번호는 가장 작은 빈 번호로 재사용한다.
+    // processQuote의 LockService가 동시 저장을 직렬화하므로 같은 번호 중복은 발생하지 않는다.
     let seq = 1;
     if (lastRow > 1) {
       const nos = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      const usedNumbers = {};
       nos.forEach(function(row) {
         const value = Number(row[0]);
-        if (Number.isInteger(value) && value >= seq) seq = value + 1;
+        if (Number.isInteger(value) && value > 0) usedNumbers[value] = true;
       });
+      while (usedNumbers[seq]) seq += 1;
     }
-
-    const reservationKey = `QUOTE_SEQ_${sanitizeDriveName(departmentName)}_${today.getFullYear()}`;
-    const properties = PropertiesService.getScriptProperties();
-    const reservedNext = Number(properties.getProperty(reservationKey) || 1);
-    if (Number.isInteger(reservedNext) && reservedNext > seq) seq = reservedNext;
-    properties.setProperty(reservationKey, String(seq + 1));
 
     const seqStr = String(seq).padStart(3, '0');
     return `${yearPrefix}${Utilities.formatDate(today, Session.getScriptTimeZone(), 'MM')}-${seqStr}`;
   } catch (err) {
     throw new Error('견적번호 생성 실패: ' + err.toString());
+  }
+}
+
+// 견적 삭제 — mode: 'permanent'(영구삭제, 행+스냅샷+로컬 파일 삭제, 빈 번호 재사용)
+//                'strikethrough'(라인삭제, 대장에 검은 취소선, 견적번호 유지)
+// payload: { year, department, quoteNumber, mode }
+function deleteQuoteFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '견적 삭제 권한이 없습니다.' };
+    }
+    const currentYear = new Date().getFullYear();
+    const parsedYear = Number(payload && payload.year);
+    const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+      ? parsedYear : currentYear;
+    const baseQuoteNumber = baseQuoteNumber_(payload && payload.quoteNumber);
+    const mode = String((payload && payload.mode) || 'strikethrough');
+    if (!baseQuoteNumber) return { success: false, message: '삭제할 견적번호가 없습니다.' };
+
+    const prefixDept = String(baseQuoteNumber).trim().split(/\s+/)[0];
+    let department = access.author.department;
+    if (CONFIG.DEPARTMENT_ROOTS[prefixDept]) {
+      department = prefixDept;
+    } else if (access.isAdmin && payload && payload.department && CONFIG.DEPARTMENT_ROOTS[String(payload.department).trim()]) {
+      department = String(payload.department).trim();
+    }
+
+    const rootFolderId = resolveRootFolderId({ authorDepartment: department });
+    const system = getExistingYearSystem_(year, rootFolderId);
+    if (!system) return { success: false, message: '삭제할 견적 대장을 찾을 수 없습니다.' };
+    const sheet = system.ledgerSheet;
+    const row = findLedgerRow_(sheet, baseQuoteNumber);
+    if (row < 2) return { success: false, message: '삭제할 견적을 대장에서 찾을 수 없습니다.' };
+
+    if (mode === 'permanent') {
+      // 대장 행 삭제
+      sheet.deleteRow(row);
+      // 스냅샷 삭제
+      const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+      if (snapshot && snapshot.getLastRow() >= 2) {
+        const snapRows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 2).getValues();
+        for (let i = snapRows.length - 1; i >= 0; i--) {
+          if (String(snapRows[i][1] || '').trim() === baseQuoteNumber) {
+            snapshot.deleteRow(i + 2);
+          }
+        }
+      }
+      // 로컬 파일 폴더 삭제 요청 (에이전트가 실제 폴더를 찾아 삭제)
+      enqueueLocalDelete_(department, year, baseQuoteNumber);
+      enqueueActivityLog_(access.author.email || access.author.name || '', '삭제', `견적번호: ${baseQuoteNumber} | 영구삭제 | 부서: ${department}`);
+      return { success: true, message: '견적이 영구 삭제되었습니다. 다음 견적은 빈 번호로 발행됩니다.' };
+    }
+
+    // 라인삭제: 대장 행 전체에 검은 취소선 (견적번호는 유지)
+    sheet.getRange(row, 1, 1, sheet.getLastColumn()).setFontLine('line-through');
+    enqueueActivityLog_(access.author.email || access.author.name || '', '삭제', `견적번호: ${baseQuoteNumber} | 라인삭제(취소선) | 부서: ${department}`);
+    return { success: true, message: '견적에 취소선이 표시되었습니다. 견적번호는 유지됩니다.' };
+  } catch (err) {
+    return { success: false, message: '견적 삭제 실패: ' + err.toString() };
+  }
+}
+
+// 라인삭제 해제 — 취소선 제거
+function restoreQuoteFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '견적 복원 권한이 없습니다.' };
+    }
+    const currentYear = new Date().getFullYear();
+    const parsedYear = Number(payload && payload.year);
+    const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+      ? parsedYear : currentYear;
+    const baseQuoteNumber = baseQuoteNumber_(payload && payload.quoteNumber);
+    if (!baseQuoteNumber) return { success: false, message: '복원할 견적번호가 없습니다.' };
+
+    const prefixDept = String(baseQuoteNumber).trim().split(/\s+/)[0];
+    let department = access.author.department;
+    if (CONFIG.DEPARTMENT_ROOTS[prefixDept]) department = prefixDept;
+
+    const rootFolderId = resolveRootFolderId({ authorDepartment: department });
+    const system = getExistingYearSystem_(year, rootFolderId);
+    if (!system) return { success: false, message: '대장을 찾을 수 없습니다.' };
+    const sheet = system.ledgerSheet;
+    const row = findLedgerRow_(sheet, baseQuoteNumber);
+    if (row < 2) return { success: false, message: '복원할 견적을 찾을 수 없습니다.' };
+    sheet.getRange(row, 1, 1, sheet.getLastColumn()).setFontLine('none');
+    return { success: true, message: '취소선이 해제되었습니다.' };
+  } catch (err) {
+    return { success: false, message: '견적 복원 실패: ' + err.toString() };
+  }
+}
+
+// 로컬 에이전트에 견적 폴더 삭제 요청을 pending 큐에 등록한다.
+function enqueueLocalDelete_(department, year, baseQuoteNumber) {
+  try {
+    const pending = getAgentSubfolder_('pending');
+    const fileName = `delete_${sanitizeDriveName(baseQuoteNumber)}.json`;
+    pending.createFile(fileName, JSON.stringify({
+      action: 'deleteQuote',
+      department: department,
+      year: year,
+      quoteNumber: baseQuoteNumber,
+    }), MimeType.PLAIN_TEXT);
+    ensureAgentTrigger_();
+  } catch (err) {
+    Logger.log('로컬 파일 삭제 요청 실패: ' + err.toString());
   }
 }
 
