@@ -142,6 +142,41 @@ export interface QuoteFilesResult {
   message?: string;
 }
 
+/** 대시보드 통계용 견적 품목 */
+export interface DashboardStatsItem {
+  name: string;
+  spec: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+/** 대시보드 통계용 견적 레코드 (에이전트가 stats/<부서>.json으로 기록) */
+export interface DashboardStatsRecord {
+  quoteNumber: string;
+  quoteDate: string;
+  year: number;
+  company: string;
+  contact: string;
+  phone: string;
+  email: string;
+  authorName: string;
+  authorEmail: string;
+  amount: number;
+  items: DashboardStatsItem[];
+  folderName: string;
+  fileName: string;
+}
+
+/** 대시보드 통계 조회 결과 */
+export interface DashboardStatsResult {
+  success: boolean;
+  department?: string;
+  generatedAt?: string;
+  records?: DashboardStatsRecord[];
+  message?: string;
+}
+
 export interface QuoteEditBridgeResponse {
   source?: string;
   type?: string;
@@ -181,6 +216,7 @@ declare global {
               updateQuoteOrderFromReact: (payload: unknown) => void;
               createOrderDraftFromReact: (payload: unknown) => void;
               getQuoteFilesFromReact: (payload: unknown) => void;
+              getDashboardStatsFromReact: (payload: unknown) => void;
             };
           };
         };
@@ -212,8 +248,8 @@ function callAppsScriptFn<T>(
 }
 
 function callAppsScriptFnViaParentBridge<T>(
-  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT' | 'GET_QUOTE_FILES_RESULT',
-  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT' | 'GET_QUOTE_FILES',
+  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT' | 'GET_QUOTE_FILES_RESULT' | 'GET_DASHBOARD_STATS_RESULT',
+  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT' | 'GET_QUOTE_FILES' | 'GET_DASHBOARD_STATS',
   timeoutMs: number,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
@@ -244,7 +280,7 @@ function callAppsScriptFnViaParentBridge<T>(
 }
 
 function callAppsScriptPayload<T>(
-  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact' | 'getQuoteFilesFromReact',
+  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact' | 'getQuoteFilesFromReact' | 'getDashboardStatsFromReact',
   payload: unknown,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -340,6 +376,19 @@ export function fetchQuoteFiles(payload: { year: number; department: string; quo
     );
   }
   return callAppsScriptPayload<QuoteFilesResult>('getQuoteFilesFromReact', payload);
+}
+
+/** 대시보드 통계 데이터를 조회한다 (에이전트가 기록한 stats/<부서>.json) */
+export function fetchDashboardStats(department: string): Promise<DashboardStatsResult> {
+  if (window.parent && window.parent !== window) {
+    return callAppsScriptFnViaParentBridge<DashboardStatsResult>(
+      'GET_DASHBOARD_STATS_RESULT',
+      'GET_DASHBOARD_STATS',
+      30000,
+      { payload: { department } },
+    );
+  }
+  return callAppsScriptPayload<DashboardStatsResult>('getDashboardStatsFromReact', { department });
 }
 
 /** 앱 진입 시 접속 계정의 견적 기능 사용 권한을 확인한다 (fetchAuthorization 별칭) */

@@ -1007,6 +1007,39 @@ function getQuoteFilesFromReact(payload) {
   }
 }
 
+// 대시보드 통계 데이터 조회 — 에이전트가 Drive '견적에이전트/stats/<부서>.json'에 기록한
+// 경량 통계 JSON을 읽어 프론트에 반환한다. (견적 원본 파일은 Drive에 올리지 않음)
+// payload: { department } — 빈 문자열이면 본인 부서, 관리자는 특정 부서 선택 가능
+function getDashboardStatsFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '대시보드 사용 권한이 없습니다.' };
+    }
+    let department = access.author.department || CONFIG.DEFAULT_DEPARTMENT;
+    const requestedDept = String((payload && payload.department) || '').trim();
+    if (access.isAdmin && requestedDept && CONFIG.DEPARTMENT_ROOTS[requestedDept]) {
+      department = requestedDept;
+    }
+
+    const statsRoot = getAgentSubfolder_('stats');
+    const fileIter = statsRoot.getFilesByName(`${department}.json`);
+    if (!fileIter.hasNext()) {
+      return { success: true, department, generatedAt: '', records: [] };
+    }
+    const file = fileIter.next();
+    const parsed = JSON.parse(file.getBlob().getDataAsString('utf8'));
+    return {
+      success: true,
+      department,
+      generatedAt: String(parsed.generatedAt || ''),
+      records: Array.isArray(parsed.records) ? parsed.records : [],
+    };
+  } catch (err) {
+    return { success: false, message: '대시보드 통계 조회 실패: ' + err.toString() };
+  }
+}
+
 function getNextQuoteNumber(rootFolderId, department) {
   try {
     const today = new Date();

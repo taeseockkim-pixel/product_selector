@@ -22,6 +22,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import express from 'express';
 import { fillQuoteTemplate } from '../server/fillTemplate.js';
 import { excelToPdf } from '../server/excelToPdf.js';
+import { appendQuoteToStatsJson, refreshDepartmentStats } from './quoteStats.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -588,6 +589,12 @@ async function pollPending() {
         jobAttempts.delete(jobFileName);
         jobAttempts.delete(fileName);
         console.log(`[에이전트] 저장 완료: ${payload.details.quoteNumber}`);
+        // 저장 완료 직후 부서 통계 JSON에 반영한다 (대시보드·AI 분석용).
+        appendQuoteToStatsJson(AGENT_FOLDER, safeDepartmentSegment(payload.details.authorDepartment || DEFAULT_DEPARTMENT), {
+          ...payload.details,
+          year: quoteYear(payload.details),
+          items: payload.items || [],
+        });
       } catch (err) {
         const attempts = (jobAttempts.get(jobFileName) || 0) + 1;
         jobAttempts.set(jobFileName, attempts);
@@ -1347,3 +1354,15 @@ console.log(`[에이전트] 저장 루트: ${STORAGE_ROOT}`);
 console.log(`[에이전트] 템플릿: ${TEMPLATE_PATH}`);
 console.log(`[에이전트] 폴링 주기: ${POLL_INTERVAL_MS}ms`);
 startPolling();
+
+// 시작 시 기존 견적서를 스캔해 부서별 통계 Workbook(XLSX)과 JSON을 생성/갱신한다.
+// 기존 데이터가 많으면 시간이 걸리므로 폴링과 병렬로 실행한다.
+const statsDepartments = [DEFAULT_DEPARTMENT, ...Object.keys(FOLDER_PASSWORDS)]
+  .filter((dept, index, arr) => arr.indexOf(dept) === index);
+console.log(`[통계] 기존 견적서 스캔 시작 (부서: ${statsDepartments.join(', ')})`);
+void (async () => {
+  for (const dept of statsDepartments) {
+    await refreshDepartmentStats(STORAGE_ROOT, AGENT_FOLDER, dept);
+  }
+  console.log('[통계] 초기 스캔 완료');
+})();
