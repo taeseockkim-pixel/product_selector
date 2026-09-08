@@ -568,6 +568,36 @@ async function processQuoteRequest(
   return result;
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+/** 파일 생성 완료 및 대장 파일링크 반영까지 기다린다. */
+async function waitForLedgerFileLink(year: number, department: string, quoteNumber: string, timeoutMs = 240000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const result = await fetchLedger(year, department);
+      if (result.success) {
+        const quoteIndex = (result.headers ?? []).findIndex((header) => header.includes('견적번호'));
+        const fileIndex = (result.headers ?? []).findIndex((header) => header.includes('파일링크'));
+        const baseQuoteNumber = quoteNumber.replace(/_Rev\d+$/i, '');
+        const completed = (result.rows ?? []).some((row) => {
+          const rowQuoteNumber = quoteIndex >= 0 ? String(row.values[quoteIndex] ?? '').trim() : '';
+          const rowBaseNumber = rowQuoteNumber.replace(/_Rev\d+$/i, '');
+          const link = fileIndex >= 0 ? row.links[fileIndex] : null;
+          return rowBaseNumber === baseQuoteNumber && Boolean(link);
+        });
+        if (completed) return;
+      }
+    } catch {
+      // 에이전트/트리거 처리 중 일시적인 조회 실패는 다음 주기에 재시도한다.
+    }
+    await wait(3000);
+  }
+  throw new Error('파일 생성 또는 견적관리대장 반영 시간이 초과되었습니다. 에이전트 상태를 확인한 뒤 견적 목록에서 다시 확인해 주세요.');
+}
+
 function findProductForItem(item: ItemRow): Product | null {
   if (item.product) return item.product;
 
@@ -627,6 +657,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [notes, setNotes] = useState(initialDraft?.notes ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [emailing, setEmailing] = useState(false);
+  const [waitingForCompletion, setWaitingForCompletion] = useState(false);
+  const [processingMessage, setProcessingMessage] = useState('');
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(null);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -998,6 +1030,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     if (!validateForSubmit()) return;
     if (createDraft) setEmailing(true);
     else setSubmitting(true);
+    setProcessingMessage(createDraft ? '메일 초안을 준비하고 있습니다...' : '견적서를 저장하고 있습니다...');
     try {
       const quote = previewQuote ?? buildDraftQuote();
       const revisionOf = editQuote?.baseQuoteNumber || editQuote?.quoteNumber || '';
@@ -1013,22 +1046,27 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         quoteNumber: result.newQuoteNumber ?? quote.quoteNumber,
       };
       saveQuote(finalQuote);
-      // 수정(editQuote) 세션은 애초에 공용 "새 견적" 초안 키에 저장한 적이 없으므로 지우지 않는다 —
-      // 그렇지 않으면 사용자가 별도로 진행 중이던 새 견적 초안이 함께 삭제된다.
-      if (!editQuote) clearQuoteFormDraft(draftStorageKey);
       setPreviewQuote(finalQuote);
 
-      alert(result.message ?? `${t(UI.quoteSaved)}\n${t(UI.quoteNumber)}: ${finalQuote.quoteNumber}`);
-      const openUrl = result.pdfUrl ?? result.url ?? result.folderUrl ?? result.sheetUrl;
-      if (openUrl) window.open(openUrl, '_blank', 'noopener,noreferrer');
-      if (createDraft) window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
+      setWaitingForCompletion(true);
+      setProcessingMessage('견적서 파일을 생성하고 견적관리대장에 반영하는 중입니다...');
+      const targetDepartment = revisionDepartment || department || quote.author.department || '';
+      const targetQuoteNumber = result.baseQuoteNumber || result.newQuoteNumber || finalQuote.quoteNumber;
+      const targetYear = revisionYear || Number(String(quote.details.quoteDate || '').match(/\d{4}/)?.[0]) || new Date().getFullYear();
+      await waitForLedgerFileLink(targetYear, targetDepartment, targetQuoteNumber);
 
+      // 수정(editQuote) 세션은 애초에 공용 "새 견적" 초안 키에 저장한 적이 없으므로 지우지 않는다.
+      if (!editQuote) clearQuoteFormDraft(draftStorageKey);
+      if (createDraft) window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
+      // 모든 파일 생성 및 대장 반영이 끝난 뒤 견적 목록으로 이동한다.
       onSuccess();
     } catch (err) {
       alert(`${t(UI.quoteSaveFailed)}: ${String(err)}`);
     } finally {
       setSubmitting(false);
       setEmailing(false);
+      setWaitingForCompletion(false);
+      setProcessingMessage('');
     }
   }
 
@@ -1041,8 +1079,20 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     void processGoogleQuote(true, emailSubject, emailBody);
   }
 
+  const isProcessing = submitting || emailing || waitingForCompletion;
+
   return (
     <>
+      {isProcessing && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 px-5" role="dialog" aria-modal="true" aria-busy="true">
+          <div className="w-full max-w-md rounded-2xl bg-white px-6 py-7 text-center shadow-2xl">
+            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
+            <h2 className="text-base font-bold text-[#191919]">견적 처리 중입니다</h2>
+            <p className="mt-2 text-sm leading-6 text-[#666]">{processingMessage || '잠시만 기다려 주세요.'}</p>
+            <p className="mt-3 text-xs text-[#999]">처리 완료 전에는 화면을 조작할 수 없습니다.</p>
+          </div>
+        </div>
+      )}
       {previewQuote && (
         <QuotePrintView
           quote={previewQuote}
