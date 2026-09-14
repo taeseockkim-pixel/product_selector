@@ -177,7 +177,7 @@ function buildItemAnalysisFromStats(
 export default function DashboardPage({ onBack, departments, department, isAdmin }: Props) {
   const t = useT();
   const currentYear = new Date().getFullYear();
-  const [selectedDepartment, setSelectedDepartment] = useState(isAdmin ? '전체' : department);
+  const [selectedDepartment, setSelectedDepartment] = useState(isAdmin ? '전체' : (department || '기술영업'));
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<DashboardTab>('quotes');
@@ -191,9 +191,15 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; label: string; value: string } | null>(null);
   const trendSvgRef = useRef<SVGSVGElement | null>(null);
 
+  useEffect(() => {
+    if (!isAdmin && department) {
+      setSelectedDepartment(department);
+    }
+  }, [department, isAdmin]);
+
   const targetDepartments = useMemo(
-    () => (selectedDepartment === '전체' ? departments : [selectedDepartment]),
-    [departments, selectedDepartment],
+    () => (isAdmin && selectedDepartment === '전체' ? departments : [selectedDepartment]),
+    [departments, isAdmin, selectedDepartment],
   );
 
   const loadDashboard = useCallback(async () => {
@@ -202,10 +208,18 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     try {
       const years = new Set<number>();
       const selectedResults = await Promise.all(targetDepartments.map(async (target) => {
-        const result = await fetchLedger(selectedYear, target);
-        if (!result.success) throw new Error(`${target}: ${result.message || '대장을 불러오지 못했습니다.'}`);
-        (result.availableYears ?? []).forEach((year) => years.add(year));
-        return { department: target, result };
+        try {
+          const result = await fetchLedger(selectedYear, target);
+          if (result && result.success) {
+            (result.availableYears ?? []).forEach((year) => years.add(year));
+            return { department: target, result };
+          }
+          console.warn(`대장 조회 경고 (${target}):`, result?.message);
+          return { department: target, result: { success: false, headers: [], rows: [] } };
+        } catch (err) {
+          console.warn(`대장 로드 예외 (${target}):`, err);
+          return { department: target, result: { success: false, headers: [], rows: [] } };
+        }
       }));
 
       const currentRecords = selectedResults.flatMap(({ department: target, result }) =>
@@ -218,7 +232,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       const statsResults = await Promise.all(targetDepartments.map(async (target) => {
         try {
           const result = await fetchDashboardStats(target);
-          return result.success && result.records ? result.records : [];
+          return result && result.success && result.records ? result.records : [];
         } catch {
           return [];
         }
@@ -229,8 +243,12 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       const historicalYears = [...years].filter((year) => year < selectedYear).slice(0, 5);
       const historicalResults = await Promise.all(historicalYears.flatMap((year) =>
         targetDepartments.map(async (target) => {
-          const result = await fetchLedger(year, target);
-          return { department: target, year, result };
+          try {
+            const result = await fetchLedger(year, target);
+            return { department: target, year, result };
+          } catch {
+            return { department: target, year, result: { success: false, headers: [], rows: [] } };
+          }
         }),
       ));
       setHistory(historicalResults.flatMap(({ department: target, year, result }) =>
@@ -315,9 +333,14 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     [currentRecords, metric],
   );
 
-  // 팀별 영업 성과 비교 행
+  // 팀별 영업 성과 비교 행 (관리자: 전체 부서 비교 / 일반: 본인 부서 표시)
+  const displayDepartments = useMemo(
+    () => (isAdmin && selectedDepartment === '전체' ? departments : [selectedDepartment]),
+    [departments, isAdmin, selectedDepartment],
+  );
+
   const teamRows = useMemo(() => {
-    return departments.map((team) => {
+    return displayDepartments.map((team) => {
       const teamAll = categoryRecords.filter((record) => record.department === team);
       const teamWon = teamAll.filter((record) => record.ordered);
       const teamActive = activeTab === 'quotes' ? teamAll : teamWon;
@@ -326,7 +349,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       const winRate = teamAll.length > 0 ? Math.round((teamWon.length / teamAll.length) * 100) : 0;
       return { team, count, amount, winCount: teamWon.length, winAmount: teamWon.reduce((sum, r) => sum + r.amount, 0), winRate };
     });
-  }, [activeTab, categoryRecords, departments]);
+  }, [activeTab, categoryRecords, displayDepartments]);
 
   // 견적 탭: 진행 중인 고액 영업 기회 (미수주 견적 파이프라인 상위)
   const openPipelineQuotes = useMemo(() => {

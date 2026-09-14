@@ -391,7 +391,6 @@ function AppInner() {
   }
 
   if (viewMode === 'dashboard') {
-    if (!isAdmin) return null;
     return (
       <div className="min-h-screen bg-[#f7f8fa]">
         <div className="sticky top-0 z-50"><AppHeader {...headerProps} /></div>
