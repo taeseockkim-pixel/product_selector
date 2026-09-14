@@ -10,6 +10,7 @@ import {
 
 type DashboardTab = 'quotes' | 'orders';
 type Metric = 'count' | 'amount';
+type PeriodMode = 'all' | 'month' | 'custom';
 
 interface Props {
   onBack: () => void;
@@ -22,6 +23,8 @@ interface QuoteRecord {
   department: string;
   year: number;
   month: number;
+  day: number;
+  dateStr: string; // "YYYY-MM-DD"
   quoteNumber: string;
   company: string;
   product: string;
@@ -35,6 +38,15 @@ interface AggregatedItem {
   label: string;
   count: number;
   amount: number;
+}
+
+interface HoverTooltipState {
+  x: number;
+  y: number;
+  label: string;
+  value: string;
+  flipDown: boolean;
+  align: 'left' | 'center' | 'right';
 }
 
 const CATEGORY_OPTIONS = ['PLC', 'IPC / IAC', 'SCADA', 'XPANEL'];
@@ -90,6 +102,7 @@ function buildRecords(department: string, year: number, headers: string[], rows:
   const quoteIndex = findColumn(headers, ['견적번호']);
   const yearIndex = findColumn(headers, ['연도', '년도']);
   const monthIndex = findColumn(headers, ['월']);
+  const dayIndex = findColumn(headers, ['일', '일자', '견적일']);
   const companyIndex = findColumn(headers, ['업체명', '회사명']);
   const productIndex = findColumn(headers, ['제품명', '품명', '모델명']);
   const categoryIndex = findColumn(headers, ['제품 항목', '제품군', '카테고리']);
@@ -100,11 +113,21 @@ function buildRecords(department: string, year: number, headers: string[], rows:
   return rows
     .filter((row) => !row.struck) // 취소선(라인삭제)된 건은 통계 집계에서 제외
     .map((row) => {
+      const recYear = Number(valueAt(row, yearIndex)) || year;
       const month = Number(valueAt(row, monthIndex).replace(/\D/g, ''));
+      const rawDay = Number(valueAt(row, dayIndex).replace(/\D/g, ''));
+      const day = rawDay >= 1 && rawDay <= 31 ? rawDay : 1;
+      const validMonth = month >= 1 && month <= 12 ? month : 0;
+      const dateStr = validMonth > 0
+        ? `${recYear}-${String(validMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+        : '';
+
       return {
         department,
-        year: Number(valueAt(row, yearIndex)) || year,
-        month: month >= 1 && month <= 12 ? month : 0,
+        year: recYear,
+        month: validMonth,
+        day,
+        dateStr,
         quoteNumber: valueAt(row, quoteIndex).trim(),
         company: valueAt(row, companyIndex).trim() || '미입력',
         product: valueAt(row, productIndex).trim() || '미입력',
@@ -131,11 +154,12 @@ function metricValue(item: AggregatedItem, metric: Metric) {
   return metric === 'amount' ? item.amount : item.count;
 }
 
-function linePoints(values: number[], width = 760, height = 230) {
+/** 포인트 좌표 계산 — top 패딩 48px 확보하여 피크점 호버 시 툴팁 상단 짤림 원천 방지 */
+function linePoints(values: number[], width = 760, height = 240) {
   const max = Math.max(...values, 1);
-  const left = 32;
-  const right = 24;
-  const top = 20;
+  const left = 36;
+  const right = 28;
+  const top = 48; // 천장과 충분한 거리 유지
   const bottom = 32;
   return values.map((value, index) => {
     const x = left + (index * (width - left - right)) / Math.max(values.length - 1, 1);
@@ -147,6 +171,12 @@ function linePoints(values: number[], width = 760, height = 230) {
 function monthTotals(records: QuoteRecord[], metric: Metric) {
   return Array.from({ length: 12 }, (_, index) => records
     .filter((record) => record.month === index + 1)
+    .reduce((sum, record) => sum + (metric === 'amount' ? record.amount : 1), 0));
+}
+
+function dayTotals(records: QuoteRecord[], daysInMonth: number, metric: Metric) {
+  return Array.from({ length: daysInMonth }, (_, index) => records
+    .filter((record) => record.day === index + 1)
     .reduce((sum, record) => sum + (metric === 'amount' ? record.amount : 1), 0));
 }
 
@@ -183,12 +213,24 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   const [activeTab, setActiveTab] = useState<DashboardTab>('quotes');
   const [metric, setMetric] = useState<Metric>('amount');
   const [categories, setCategories] = useState<string[]>(CATEGORY_OPTIONS);
+
+  // ── [신규] 사용자(작성자)별 필터 ──
+  const [selectedAuthor, setSelectedAuthor] = useState('전체');
+
+  // ── [신규] 일자/기간별 필터 ──
+  const [periodMode, setPeriodMode] = useState<PeriodMode>('all');
+  const [selectedMonth, setSelectedMonth] = useState<number>(0);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   const [records, setRecords] = useState<QuoteRecord[]>([]);
   const [history, setHistory] = useState<QuoteRecord[]>([]);
   const [statsRecords, setStatsRecords] = useState<DashboardStatsRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hoverPoint, setHoverPoint] = useState<{ x: number; y: number; label: string; value: string } | null>(null);
+
+  // 툴팁 상태 객체 (위치 반전 및 정렬 포함)
+  const [hoverPoint, setHoverPoint] = useState<HoverTooltipState | null>(null);
   const trendSvgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
@@ -268,11 +310,34 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     void loadDashboard();
   }, [loadDashboard]);
 
-  // 카테고리 필터링된 기본 레코드 (전체 견적 파이프라인)
-  const categoryRecords = useMemo(
-    () => records.filter((record) => categories.includes(record.category)),
-    [categories, records],
-  );
+  // 해당 부서/연도의 고유 담당자(작성자) 목록 추출
+  const availableAuthors = useMemo(() => {
+    const set = new Set<string>();
+    records.forEach((r) => {
+      if (r.authorName && r.authorName !== '미입력') {
+        set.add(r.authorName);
+      }
+    });
+    return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
+  }, [records]);
+
+  // ── [다단계 필터링: 제품군 + 담당자 + 일자/기간] ──
+  const categoryRecords = useMemo(() => {
+    return records.filter((record) => {
+      // 1. 제품군 필터
+      if (!categories.includes(record.category)) return false;
+      // 2. 담당자 필터
+      if (selectedAuthor !== '전체' && record.authorName !== selectedAuthor) return false;
+      // 3. 기간 필터
+      if (periodMode === 'month') {
+        if (selectedMonth > 0 && record.month !== selectedMonth) return false;
+      } else if (periodMode === 'custom') {
+        if (startDate && record.dateStr && record.dateStr < startDate) return false;
+        if (endDate && record.dateStr && record.dateStr > endDate) return false;
+      }
+      return true;
+    });
+  }, [categories, endDate, periodMode, records, selectedAuthor, selectedMonth, startDate]);
 
   // 발주 완료된 레코드 (수주 실적 데이터)
   const orderRecords = useMemo(
@@ -293,13 +358,11 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   const currentRecords = activeTab === 'quotes' ? categoryRecords : orderRecords;
 
   // ── [영업 KPI 산출] ──
-  // 견적 지표
   const totalQuoteAmount = useMemo(() => categoryRecords.reduce((sum, r) => sum + r.amount, 0), [categoryRecords]);
   const totalQuoteCount = categoryRecords.length;
   const avgQuoteAmount = totalQuoteCount > 0 ? totalQuoteAmount / totalQuoteCount : 0;
   const uniqueQuotedClients = useMemo(() => new Set(categoryRecords.map((r) => r.company).filter(Boolean)).size, [categoryRecords]);
 
-  // 수주 지표
   const totalOrderAmount = useMemo(() => orderRecords.reduce((sum, r) => sum + r.amount, 0), [orderRecords]);
   const totalOrderCount = orderRecords.length;
   const avgOrderAmount = totalOrderCount > 0 ? totalOrderAmount / totalOrderCount : 0;
@@ -309,9 +372,27 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   const winRateCount = totalQuoteCount > 0 ? Math.round((totalOrderCount / totalQuoteCount) * 1000) / 10 : 0;
   const winRateAmount = totalQuoteAmount > 0 ? Math.round((totalOrderAmount / totalQuoteAmount) * 1000) / 10 : 0;
 
-  // 월별 추이 데이터
-  const monthly = useMemo(() => monthTotals(currentRecords, metric), [currentRecords, metric]);
-  const monthlyPoints = useMemo(() => linePoints(monthly), [monthly]);
+  // ── [스마트 추이 차트: 월별 추이 vs 일별 추이] ──
+  const isDailyChart = periodMode === 'month' && selectedMonth > 0;
+  const daysInSelectedMonth = useMemo(() => {
+    if (!isDailyChart) return 0;
+    return new Date(selectedYear, selectedMonth, 0).getDate();
+  }, [isDailyChart, selectedMonth, selectedYear]);
+
+  const chartData = useMemo(() => {
+    if (isDailyChart) {
+      const values = dayTotals(currentRecords, daysInSelectedMonth, metric);
+      const labels = Array.from({ length: daysInSelectedMonth }, (_, i) => `${i + 1}일`);
+      return { values, labels, isDaily: true };
+    }
+    const values = monthTotals(currentRecords, metric);
+    const labels = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
+    return { values, labels, isDaily: false };
+  }, [currentRecords, daysInSelectedMonth, isDailyChart, metric]);
+
+  const chartWidth = isDailyChart && daysInSelectedMonth > 28 ? 840 : 760;
+  const chartHeight = 240;
+  const chartPoints = useMemo(() => linePoints(chartData.values, chartWidth, chartHeight), [chartData.values, chartWidth]);
 
   // 차원별 집계 및 랭킹
   const rankedCompanies = useMemo(
@@ -363,6 +444,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     return [...orderRecords]
       .sort((a, b) => {
         if (b.month !== a.month) return b.month - a.month;
+        if (b.day !== a.day) return b.day - a.day;
         return b.amount - a.amount;
       })
       .slice(0, 8);
@@ -371,7 +453,6 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   // 고객 분석: 견적 탭(견적 문의 중단) vs 발주 탭(실제 발주 이탈 우려 거래처)
   const customerRetentionList = useMemo(() => {
     if (activeTab === 'quotes') {
-      // 견적 문의 중단: 이전 연도 견적이 있었으나 금년 견적 요청이 없는 거래처
       const currentClients = new Set(categoryRecords.map((r) => r.company));
       const pastClients = new Set(history.map((r) => r.company));
       return [...pastClients]
@@ -390,7 +471,6 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
         .sort((a, b) => b.totalAmount - a.totalAmount)
         .slice(0, 8);
     } else {
-      // 발주 이탈 우려: 이전 연도 실제 '발주' 이력이 있었으나 금년 '발주'가 0건인 핵심 거래선
       const currentOrderClients = new Set(orderRecords.map((r) => r.company));
       const pastOrderRecords = history.filter((r) => r.ordered);
       const pastOrderClients = new Set(pastOrderRecords.map((r) => r.company));
@@ -412,7 +492,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     }
   }, [activeTab, categoryRecords, history, orderRecords]);
 
-  // 통계 JSON 기반 품목 상세 (견적 탭: 전체 견적 품목 / 발주 탭: 실제 발주된 품목만 필터링)
+  // 통계 JSON 기반 품목 상세
   const itemAnalysis = useMemo(() => {
     return buildItemAnalysisFromStats(
       statsRecords,
@@ -428,39 +508,50 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     );
   }
 
+  // ── [툴팁 호버 감지 개선: 천장 근처 flipDown 반전 + 좌우 클램핑 + 부모 클리핑 방지] ──
   function handleTrendHover(event: React.MouseEvent<SVGSVGElement, MouseEvent>) {
     const svg = trendSvgRef.current;
-    if (!svg) return;
+    if (!svg || chartPoints.length === 0) return;
     const rect = svg.getBoundingClientRect();
     const mouseX = event.clientX - rect.left;
-    const scaleX = 760 / rect.width;
+    const scaleX = chartWidth / rect.width;
     const svgX = mouseX * scaleX;
-    let closest = monthlyPoints[0];
+
+    let closestIndex = 0;
     let closestDist = Infinity;
-    monthlyPoints.forEach((point) => {
+    chartPoints.forEach((point, idx) => {
       const dist = Math.abs(point.x - svgX);
       if (dist < closestDist) {
-        closest = point;
+        closestIndex = idx;
         closestDist = dist;
       }
     });
-    const monthIndex = monthlyPoints.findIndex((point) => point.x === closest.x);
+
+    const closest = chartPoints[closestIndex];
+    if (!closest) return;
+
+    // 천장 근처(y < 85)면 툴팁을 포인트 아래로 반전(flipDown)
+    const flipDown = closest.y < 85;
+    const align: 'left' | 'center' | 'right' =
+      closest.x < 110 ? 'left' : closest.x > chartWidth - 110 ? 'right' : 'center';
+
     setHoverPoint({
       x: closest.x,
       y: closest.y,
-      label: `${monthIndex + 1}월`,
+      label: chartData.labels[closestIndex] ?? '',
       value: metric === 'amount' ? formatWonFull(closest.value) : `${closest.value.toLocaleString('ko-KR')}건`,
+      flipDown,
+      align,
     });
   }
 
-  // 활성 탭 테마 색상 정의
   const isQuotes = activeTab === 'quotes';
   const themeMainColor = isQuotes ? '#2563eb' : '#059669';
   const themeGradientId = isQuotes ? 'quoteGradient' : 'orderGradient';
 
   return (
     <div className="min-h-screen bg-[#f5f7fa] px-3 sm:px-6 py-6 font-sans">
-      <div className="max-w-[1680px] mx-auto space-y-5">
+      <div className="max-w-[1680px] mx-auto space-y-4">
         {/* 상단 네비게이션 및 글로벌 필터 바 */}
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#e3e7ee] bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
@@ -575,68 +666,192 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
           </div>
         </div>
 
-        {/* 제품군 및 지표 컨트롤 필터 바 */}
-        <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-[#64748b] mr-1">제품군 필터:</span>
-            {CATEGORY_OPTIONS.map((category) => {
-              const active = categories.includes(category);
-              return (
+        {/* ── [필터 바: 1줄: 제품군 + 담당자 + 지표 / 2줄: 기간/일자 선택] ── */}
+        <section className="rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-sm space-y-3">
+          {/* 1줄: 제품군 필터 + 담당자 필터 + 금액/건수 지표 토글 */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f1f5f9] pb-3">
+            {/* 제품군 칩 */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-[#64748b]">제품군:</span>
+              {CATEGORY_OPTIONS.map((category) => {
+                const active = categories.includes(category);
+                return (
+                  <button
+                    type="button"
+                    key={category}
+                    onClick={() => toggleCategory(category)}
+                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition-colors ${
+                      active
+                        ? isQuotes
+                          ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-xs'
+                          : 'border-emerald-300 bg-emerald-50 text-emerald-700 shadow-xs'
+                        : 'border-[#e2e8f0] bg-[#f8fafc] text-[#94a3b8] hover:bg-[#f1f5f9]'
+                    }`}
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full ${active ? (isQuotes ? 'bg-blue-600' : 'bg-emerald-600') : 'bg-[#cbd5e1]'}`} />
+                    {category}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                onClick={() => setCategories(categories.length === CATEGORY_OPTIONS.length ? [] : [...CATEGORY_OPTIONS])}
+                className="text-[11px] font-medium text-[#64748b] underline ml-1 hover:text-[#1e293b]"
+              >
+                {categories.length === CATEGORY_OPTIONS.length ? '해제' : '전체'}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* 사용자(담당자) 필터 드롭다운 */}
+              <div className="flex items-center gap-1.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] px-3 py-1.5 text-xs">
+                <span className="font-bold text-[#64748b]">{t(UI.quoteDashboardFilterAuthor)}:</span>
+                <select
+                  value={selectedAuthor}
+                  onChange={(e) => setSelectedAuthor(e.target.value)}
+                  className="bg-transparent font-extrabold text-[#0f172a] outline-none cursor-pointer"
+                >
+                  <option value="전체">{t(UI.quoteDashboardAllAuthors)}</option>
+                  {availableAuthors.map((name) => (
+                    <option key={name} value={name}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 지표 토글 */}
+              <div className="flex items-center gap-1 rounded-xl bg-[#f1f5f9] p-1 border border-[#e2e8f0]">
                 <button
                   type="button"
-                  key={category}
-                  onClick={() => toggleCategory(category)}
-                  className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-bold transition-colors ${
-                    active
+                  onClick={() => setMetric('amount')}
+                  className={`rounded-lg px-3 py-1 text-xs font-extrabold transition-all ${
+                    metric === 'amount'
                       ? isQuotes
-                        ? 'border-blue-300 bg-blue-50 text-blue-700 shadow-xs'
-                        : 'border-emerald-300 bg-emerald-50 text-emerald-700 shadow-xs'
-                      : 'border-[#e2e8f0] bg-[#f8fafc] text-[#94a3b8] hover:bg-[#f1f5f9]'
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-[#64748b] hover:text-[#0f172a]'
                   }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${active ? (isQuotes ? 'bg-blue-600' : 'bg-emerald-600') : 'bg-[#cbd5e1]'}`} />
-                  {category}
+                  {isQuotes ? '견적 금액' : '수주 금액'}
                 </button>
-              );
-            })}
-            <button
-              type="button"
-              onClick={() => setCategories(categories.length === CATEGORY_OPTIONS.length ? [] : [...CATEGORY_OPTIONS])}
-              className="text-[11px] font-medium text-[#64748b] underline ml-2 hover:text-[#1e293b]"
-            >
-              {categories.length === CATEGORY_OPTIONS.length ? '선택 해제' : '전체 선택'}
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setMetric('count')}
+                  className={`rounded-lg px-3 py-1 text-xs font-extrabold transition-all ${
+                    metric === 'count'
+                      ? isQuotes
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-[#64748b] hover:text-[#0f172a]'
+                  }`}
+                >
+                  {isQuotes ? t(UI.quoteDashboardMetricQuotes) : t(UI.quoteDashboardMetricOrders)}
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* 지표 토글 (견적 탭 vs 발주 탭 용어 철저 분리) */}
-          <div className="flex items-center gap-1.5 rounded-xl bg-[#f1f5f9] p-1.5 border border-[#e2e8f0]">
-            <span className="text-[11px] font-bold text-[#64748b] px-2">지표 선택:</span>
-            <button
-              type="button"
-              onClick={() => setMetric('amount')}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-extrabold transition-all ${
-                metric === 'amount'
-                  ? isQuotes
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-[#64748b] hover:text-[#0f172a]'
-              }`}
-            >
-              {isQuotes ? '견적 금액' : '수주 금액'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMetric('count')}
-              className={`rounded-lg px-3.5 py-1.5 text-xs font-extrabold transition-all ${
-                metric === 'count'
-                  ? isQuotes
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-[#64748b] hover:text-[#0f172a]'
-              }`}
-            >
-              {isQuotes ? t(UI.quoteDashboardMetricQuotes) : t(UI.quoteDashboardMetricOrders)}
-            </button>
+          {/* 2줄: 기간/일자 선택 컨트롤 */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-[#64748b] mr-1">{t(UI.quoteDashboardFilterPeriod)}:</span>
+              <div className="inline-flex rounded-xl bg-[#f1f5f9] p-1 border border-[#e2e8f0]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPeriodMode('all');
+                    setSelectedMonth(0);
+                  }}
+                  className={`rounded-lg px-3 py-1 font-bold transition-all ${
+                    periodMode === 'all' ? 'bg-white text-blue-700 shadow-xs' : 'text-[#64748b]'
+                  }`}
+                >
+                  {t(UI.quoteDashboardPeriodAll)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPeriodMode('month');
+                    if (selectedMonth === 0) setSelectedMonth(new Date().getMonth() + 1);
+                  }}
+                  className={`rounded-lg px-3 py-1 font-bold transition-all ${
+                    periodMode === 'month' ? 'bg-white text-blue-700 shadow-xs' : 'text-[#64748b]'
+                  }`}
+                >
+                  {t(UI.quoteDashboardPeriodMonth)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPeriodMode('custom')}
+                  className={`rounded-lg px-3 py-1 font-bold transition-all ${
+                    periodMode === 'custom' ? 'bg-white text-blue-700 shadow-xs' : 'text-[#64748b]'
+                  }`}
+                >
+                  {t(UI.quoteDashboardPeriodCustom)}
+                </button>
+              </div>
+
+              {/* 월별 모드일 때: 1~12월 선택 칩 */}
+              {periodMode === 'month' && (
+                <div className="flex flex-wrap items-center gap-1 ml-2">
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                    <button
+                      type="button"
+                      key={m}
+                      onClick={() => setSelectedMonth(m)}
+                      className={`h-7 w-7 rounded-lg text-xs font-bold transition-colors ${
+                        selectedMonth === m
+                          ? isQuotes
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-emerald-600 text-white'
+                          : 'bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] hover:bg-[#edf2f7]'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                  <span className="text-[11px] text-[#94a3b8] ml-1">월</span>
+                </div>
+              )}
+
+              {/* 일자 지정 모드일 때: 시작일 ~ 종료일 달력 인풋 */}
+              {periodMode === 'custom' && (
+                <div className="flex items-center gap-1.5 ml-2">
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="rounded-lg border border-[#cbd5e1] bg-white px-2.5 py-1 text-xs font-medium text-[#1e293b]"
+                  />
+                  <span className="text-[#94a3b8]">~</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="rounded-lg border border-[#cbd5e1] bg-white px-2.5 py-1 text-xs font-medium text-[#1e293b]"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* 활성 필터 초기화 */}
+            {(selectedAuthor !== '전체' || periodMode !== 'all' || categories.length !== CATEGORY_OPTIONS.length) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedAuthor('전체');
+                  setPeriodMode('all');
+                  setSelectedMonth(0);
+                  setStartDate('');
+                  setEndDate('');
+                  setCategories([...CATEGORY_OPTIONS]);
+                }}
+                className="text-[11px] font-bold text-red-600 hover:underline"
+              >
+                필터 초기화 ↺
+              </button>
+            )}
           </div>
         </section>
 
@@ -677,7 +892,9 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                     <p className="mt-2 text-xl sm:text-2xl font-black text-[#0f172a] tracking-tight">
                       {totalQuoteCount.toLocaleString('ko-KR')}건
                     </p>
-                    <p className="text-[11px] text-[#64748b] mt-1">총 영업 제안 건수</p>
+                    <p className="text-[11px] text-[#64748b] mt-1">
+                      {selectedAuthor !== '전체' ? `${selectedAuthor} 제안 건수` : '총 영업 제안 건수'}
+                    </p>
                   </div>
 
                   <div className="rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-sm">
@@ -726,7 +943,9 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                     <p className="mt-2 text-xl sm:text-2xl font-black text-[#0f172a] tracking-tight">
                       {totalOrderCount.toLocaleString('ko-KR')}건
                     </p>
-                    <p className="text-[11px] text-[#64748b] mt-1">확정 계약 건수</p>
+                    <p className="text-[11px] text-[#64748b] mt-1">
+                      {selectedAuthor !== '전체' ? `${selectedAuthor} 수주 건수` : '확정 계약 건수'}
+                    </p>
                   </div>
 
                   <div className="rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-sm">
@@ -759,32 +978,47 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
               )}
             </div>
 
-            {/* ── [차트 섹션: 월별 추이 & 영업팀별 비교] ── */}
+            {/* ── [차트 섹션: 스마트 추이 차트 & 영업팀별 비교] ── */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-              {/* 월별 실적 추이 라인 차트 */}
+              {/* 스마트 실적 추이 라인 차트 (월별 또는 일별) */}
               <section className="xl:col-span-7 rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <div>
                     <h2 className="text-base font-bold text-[#0f172a]">
-                      {isQuotes ? t(UI.quoteDashboardMonthlyQuotes) : t(UI.quoteDashboardMonthlyOrders)}
+                      {isDailyChart
+                        ? `${selectedYear}년 ${selectedMonth}월 ${isQuotes ? '일별 견적 발행 추이' : '일별 수주(발주) 실적 추이'}`
+                        : isQuotes
+                        ? t(UI.quoteDashboardMonthlyQuotes)
+                        : t(UI.quoteDashboardMonthlyOrders)}
                     </h2>
                     <p className="text-xs text-[#64748b] mt-0.5">
-                      {selectedYear}년도 {metric === 'amount' ? '금액(원)' : '건수(건)'} 기준 월별 추이
+                      {isDailyChart ? `${selectedMonth}월 1일~${daysInSelectedMonth}일` : `${selectedYear}년도`}{' '}
+                      {metric === 'amount' ? '금액(원)' : '건수(건)'} 기준{' '}
+                      {isDailyChart ? '일별' : '월별'} 추이
+                      {selectedAuthor !== '전체' && ` · ${selectedAuthor}`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="flex items-center gap-1.5 text-xs font-medium text-[#475569]">
                       <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: themeMainColor }} />
-                      {isQuotes ? (metric === 'amount' ? '견적 금액' : '견적 건수') : (metric === 'amount' ? '수주 금액' : '수주 건수')}
+                      {isQuotes
+                        ? metric === 'amount'
+                          ? '견적 금액'
+                          : '견적 건수'
+                        : metric === 'amount'
+                        ? '수주 금액'
+                        : '수주 건수'}
                     </span>
                   </div>
                 </div>
 
-                <div className="overflow-x-auto relative pt-2">
+                {/* 차트 영역 컨테이너 — 상단 툴팁 잘림 방지용 pt-8 및 overflow 제어 */}
+                <div className="overflow-x-auto relative pt-8 pb-2">
                   <svg
                     ref={trendSvgRef}
-                    viewBox="0 0 760 250"
-                    className="w-full min-w-[620px] h-60 cursor-crosshair select-none"
+                    viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                    className="w-full h-64 cursor-crosshair select-none"
+                    style={{ minWidth: isDailyChart ? '720px' : '580px' }}
                     onMouseMove={handleTrendHover}
                     onMouseLeave={() => setHoverPoint(null)}
                   >
@@ -796,15 +1030,15 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                     </defs>
 
                     {/* 배경 보조 가이드라인 */}
-                    <line x1="32" y1="40" x2="736" y2="40" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3" />
-                    <line x1="32" y1="100" x2="736" y2="100" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3" />
-                    <line x1="32" y1="160" x2="736" y2="160" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3" />
-                    <line x1="32" y1="218" x2="736" y2="218" stroke="#e2e8f0" strokeWidth="1" />
+                    <line x1="36" y1="48" x2={chartWidth - 28} y2="48" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3" />
+                    <line x1="36" y1="105" x2={chartWidth - 28} y2="105" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3" />
+                    <line x1="36" y1="162" x2={chartWidth - 28} y2="162" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="3 3" />
+                    <line x1="36" y1="208" x2={chartWidth - 28} y2="208" stroke="#e2e8f0" strokeWidth="1" />
 
                     {/* 곡선 아래 면 채우기 */}
                     <polygon
                       fill={`url(#${themeGradientId})`}
-                      points={`32,218 ${monthlyPoints.map((p) => `${p.x},${p.y}`).join(' ')} ${monthlyPoints[monthlyPoints.length - 1].x},218`}
+                      points={`36,208 ${chartPoints.map((p) => `${p.x},${p.y}`).join(' ')} ${chartPoints[chartPoints.length - 1].x},208`}
                     />
 
                     {/* 라인 추이선 */}
@@ -814,47 +1048,79 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                       strokeWidth="3.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      points={monthlyPoints.map((p) => `${p.x},${p.y}`).join(' ')}
+                      points={chartPoints.map((p) => `${p.x},${p.y}`).join(' ')}
                     />
 
-                    {/* 데이터 포인트 점 및 월 라벨 */}
-                    {monthlyPoints.map((point, index) => (
-                      <g key={index}>
-                        <circle
-                          cx={point.x}
-                          cy={point.y}
-                          r="4.5"
-                          fill="white"
-                          stroke={themeMainColor}
-                          strokeWidth="2.5"
-                        />
-                        <text
-                          x={point.x}
-                          y="238"
-                          textAnchor="middle"
-                          fontSize="11"
-                          fontWeight="600"
-                          fill="#64748b"
-                        >
-                          {index + 1}월
-                        </text>
-                      </g>
-                    ))}
+                    {/* 데이터 포인트 점 및 라벨 */}
+                    {chartPoints.map((point, index) => {
+                      const showLabel =
+                        !isDailyChart ||
+                        daysInSelectedMonth <= 15 ||
+                        index === 0 ||
+                        index === daysInSelectedMonth - 1 ||
+                        (index + 1) % 5 === 0;
+
+                      return (
+                        <g key={index}>
+                          {/* 마우스 호버 감지 히트박스 (넓은 반경) */}
+                          <circle cx={point.x} cy={point.y} r="14" fill="transparent" />
+                          <circle
+                            cx={point.x}
+                            cy={point.y}
+                            r="4.5"
+                            fill="white"
+                            stroke={themeMainColor}
+                            strokeWidth="2.5"
+                          />
+                          {showLabel && (
+                            <text
+                              x={point.x}
+                              y="228"
+                              textAnchor="middle"
+                              fontSize={isDailyChart ? '10' : '11'}
+                              fontWeight="600"
+                              fill="#64748b"
+                            >
+                              {chartData.labels[index]}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    })}
                   </svg>
 
-                  {/* 호버 툴팁 */}
+                  {/* ── [호버 툴팁: 상단 짤림 방지 스마트 반전 및 정확한 배치] ── */}
                   {hoverPoint && (
                     <div
-                      className="pointer-events-none absolute rounded-xl bg-[#0f172a] px-3 py-2 text-xs font-bold text-white shadow-xl border border-slate-700"
+                      className="pointer-events-none absolute z-30 rounded-xl bg-[#0f172a] px-3.5 py-2 text-xs font-bold text-white shadow-2xl border border-slate-700 transition-all duration-75"
                       style={{
-                        left: `${hoverPoint.x}px`,
-                        top: `${hoverPoint.y}px`,
-                        transform: 'translate(-50%, -125%)',
+                        left: `${(hoverPoint.x / chartWidth) * 100}%`,
+                        top: `${hoverPoint.y + 32}px`, // pt-8 (32px) 오프셋 보정
+                        transform: hoverPoint.flipDown
+                          ? hoverPoint.align === 'left'
+                            ? 'translate(0%, 18px)'
+                            : hoverPoint.align === 'right'
+                            ? 'translate(-100%, 18px)'
+                            : 'translate(-50%, 18px)'
+                          : hoverPoint.align === 'left'
+                          ? 'translate(0%, -125%)'
+                          : hoverPoint.align === 'right'
+                          ? 'translate(-100%, -125%)'
+                          : 'translate(-50%, -125%)',
                       }}
                     >
                       <div className="flex items-center gap-1.5 text-blue-300">
-                        <span>●</span>
-                        <span>{hoverPoint.label} 실적</span>
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                        <span>
+                          {hoverPoint.label}{' '}
+                          {isQuotes
+                            ? metric === 'amount'
+                              ? '견적 금액'
+                              : '견적 건수'
+                            : metric === 'amount'
+                            ? '수주 금액'
+                            : '수주 건수'}
+                        </span>
                       </div>
                       <div className="mt-0.5 text-sm font-black text-white">{hoverPoint.value}</div>
                     </div>
@@ -1038,7 +1304,6 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                 <div className="space-y-2">
                   {rankedAuthors.length > 0 ? (
                     rankedAuthors.map((item, index) => {
-                      // 발주 탭일 경우 해당 담당자의 전체 견적 대비 수주율 계산
                       const authorTotalQuotes = categoryRecords.filter((r) => r.authorName === item.label);
                       const repWinRate =
                         authorTotalQuotes.length > 0
@@ -1201,7 +1466,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                           {isQuotes ? '견적 금액' : '수주 금액'}
                         </th>
                         <th className="py-2.5 px-3 font-semibold">담당자</th>
-                        <th className="py-2.5 px-3 font-semibold text-center">시기</th>
+                        <th className="py-2.5 px-3 font-semibold text-center">일자</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#f1f5f9]">
@@ -1215,8 +1480,8 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                             {formatWonFull(record.amount)}
                           </td>
                           <td className="py-2.5 px-3 text-[#64748b]">{record.authorName || '-'}</td>
-                          <td className="py-2.5 px-3 text-center text-[#94a3b8] font-medium">
-                            {record.month ? `${record.month}월` : '-'}
+                          <td className="py-2.5 px-3 text-center text-[#94a3b8] font-medium whitespace-nowrap">
+                            {record.dateStr ? record.dateStr : record.month ? `${record.month}월` : '-'}
                           </td>
                         </tr>
                       ))}
