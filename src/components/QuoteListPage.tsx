@@ -184,6 +184,7 @@ export default function QuoteListPage({
 
   // ── 견적 삭제 다이얼로그 상태 ──
   const [deleteDialogRow, setDeleteDialogRow] = useState<LedgerRow | null>(null);
+  const [deleteMode, setDeleteMode] = useState<'permanent' | 'strikethrough'>('strikethrough');
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [restoreLoadingKey, setRestoreLoadingKey] = useState<string | null>(null);
 
@@ -392,6 +393,24 @@ export default function QuoteListPage({
     } finally {
       setDeleteLoading(false);
     }
+  }
+
+  /** 모달의 확인 버튼 클릭 시 "삭제하시겠습니까?" 팝업을 띄우고 재확인 후 실행 */
+  function onConfirmDeleteClick() {
+    const row = deleteDialogRow;
+    if (!row) return;
+    const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+    const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
+    const modeLabel = deleteMode === 'permanent' ? t(UI.quoteDeletePermanent) : t(UI.quoteDeleteLine);
+    const modeDetail = deleteMode === 'permanent'
+      ? t(UI.quoteDeletePermanentHint)
+      : t(UI.quoteDeleteLineHint);
+
+    const askMessage = `[${quoteNumber} - ${company}]\n\n삭제 방식: ${modeLabel}\n(${modeDetail})\n\n${t(UI.quoteDeleteAskPopup)}`;
+    if (!window.confirm(askMessage)) {
+      return;
+    }
+    void handleDeleteQuote(deleteMode);
   }
 
   /** 라인삭제(취소선) 해제 */
@@ -690,36 +709,76 @@ export default function QuoteListPage({
               </button>
             </div>
             <div className="p-5 space-y-3">
-              <p className="text-sm text-[#555555]">
-                <strong>{ledgerValue(headers, deleteDialogRow, ['견적번호']) || '-'}</strong> · {ledgerValue(headers, deleteDialogRow, ['업체명', '회사명']) || '-'}
+              <div className="rounded-lg bg-[#f8fafc] border border-[#e2e8f0] p-3 text-xs">
+                <span className="font-bold text-[#0f172a] text-sm block">
+                  {ledgerValue(headers, deleteDialogRow, ['견적번호']) || '-'}
+                </span>
+                <span className="text-[#64748b] mt-0.5 block">
+                  {ledgerValue(headers, deleteDialogRow, ['업체명', '회사명']) || '-'}
+                </span>
+              </div>
+
+              <p className="text-xs font-semibold text-[#64748b] pt-1">
+                {t(UI.quoteDeleteSelectHint)}
               </p>
-              <p className="text-xs text-[#999999]">{t(UI.quoteDeleteConfirm)}</p>
+
+              {/* 옵션 1: 라인삭제 (기본 권장) */}
               <button
                 type="button"
-                disabled={deleteLoading}
-                onClick={() => void handleDeleteQuote('permanent')}
-                className="w-full rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-left hover:bg-red-100 disabled:opacity-50 transition-colors"
+                onClick={() => setDeleteMode('strikethrough')}
+                className={`w-full rounded-xl border p-3.5 text-left transition-all flex items-start gap-3 ${
+                  deleteMode === 'strikethrough'
+                    ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-300'
+                    : 'border-[#e2e8f0] bg-white hover:bg-[#f8fafc]'
+                }`}
               >
-                <span className="block text-sm font-bold text-red-700">{t(UI.quoteDeletePermanent)}</span>
-                <span className="block text-[11px] text-red-500 mt-0.5">{t(UI.quoteDeletePermanentHint)}</span>
+                <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                  deleteMode === 'strikethrough' ? 'border-amber-600 bg-amber-600 text-white' : 'border-[#cbd5e1]'
+                }`}>
+                  {deleteMode === 'strikethrough' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                </span>
+                <div>
+                  <span className="block text-sm font-bold text-[#1e293b]">{t(UI.quoteDeleteLine)}</span>
+                  <span className="block text-[11px] text-[#64748b] mt-0.5">{t(UI.quoteDeleteLineHint)}</span>
+                </div>
               </button>
+
+              {/* 옵션 2: 영구삭제 */}
               <button
                 type="button"
-                disabled={deleteLoading}
-                onClick={() => void handleDeleteQuote('strikethrough')}
-                className="w-full rounded-lg border border-[#ddd9d2] bg-[#f7f6f3] px-4 py-3 text-left hover:bg-[#eee] disabled:opacity-50 transition-colors"
+                onClick={() => setDeleteMode('permanent')}
+                className={`w-full rounded-xl border p-3.5 text-left transition-all flex items-start gap-3 ${
+                  deleteMode === 'permanent'
+                    ? 'border-red-500 bg-red-50/70 ring-2 ring-red-300'
+                    : 'border-[#e2e8f0] bg-white hover:bg-[#f8fafc]'
+                }`}
               >
-                <span className="block text-sm font-bold text-[#333333]">{t(UI.quoteDeleteLine)}</span>
-                <span className="block text-[11px] text-[#999999] mt-0.5">{t(UI.quoteDeleteLineHint)}</span>
+                <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                  deleteMode === 'permanent' ? 'border-red-600 bg-red-600 text-white' : 'border-[#cbd5e1]'
+                }`}>
+                  {deleteMode === 'permanent' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                </span>
+                <div>
+                  <span className="block text-sm font-bold text-red-700">{t(UI.quoteDeletePermanent)}</span>
+                  <span className="block text-[11px] text-red-600 mt-0.5">{t(UI.quoteDeletePermanentHint)}</span>
+                </div>
               </button>
             </div>
-            <div className="flex justify-end px-5 py-4 bg-[#f0ede8] border-t border-[#ddd9d2]">
+            <div className="flex items-center justify-end gap-2 px-5 py-4 bg-[#f8fafc] border-t border-[#e2e8f0]">
               <button
                 type="button"
                 onClick={() => setDeleteDialogRow(null)}
-                className="px-4 py-2 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-white transition-colors"
+                className="px-4 py-2 rounded-lg border border-[#cbd5e1] text-sm font-semibold text-[#475569] hover:bg-white transition-colors"
               >
                 {t(UI.quoteDeleteCancel)}
+              </button>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={onConfirmDeleteClick}
+                className="px-5 py-2 rounded-lg bg-red-600 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {deleteLoading ? '...' : t(UI.quoteDeleteConfirmBtn)}
               </button>
             </div>
           </div>
@@ -969,7 +1028,10 @@ export default function QuoteListPage({
                           <button
                             type="button"
                             disabled={!quoteNumber}
-                            onClick={() => setDeleteDialogRow(row)}
+                            onClick={() => {
+                              setDeleteMode('strikethrough');
+                              setDeleteDialogRow(row);
+                            }}
                             className="w-14 rounded border border-red-200 px-1 py-1 text-[11px] font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
                           >
                             {t(UI.quoteDeleteBtn)}
