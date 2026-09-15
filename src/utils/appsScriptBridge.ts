@@ -44,6 +44,12 @@ export interface QuoteEditItem {
   totalPrice?: number;
 }
 
+export interface QuoteEditVersion {
+  quoteNumber: string;
+  label: string;
+  date?: string;
+}
+
 export interface QuoteEditData {
   quoteNumber: string;
   baseQuoteNumber: string;
@@ -53,6 +59,8 @@ export interface QuoteEditData {
   department: string;
   details: QuoteEditDetails;
   items: QuoteEditItem[];
+  /** 해당 견적 폴더에 존재하는 기존 파일 버전 목록 (덮어쓰기 대상 선택용) */
+  existingVersions?: QuoteEditVersion[];
 }
 
 export interface QuoteEditResult {

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, type DragEvent } from 'react';
+import { useState, useCallback, useEffect, useMemo, type DragEvent } from 'react';
 import type { Product } from '../types';
 import type { Quote, QuoteItem, AuthorInfo } from '../types/quote';
 import { useT, useLang, type Lang } from '../context/LangContext';
@@ -18,6 +18,7 @@ import {
   fetchLedger,
   type QuoteProcessResult,
   type QuoteEditData,
+  type QuoteEditVersion,
   type AppsScriptBridgeResponse,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
@@ -321,6 +322,8 @@ interface AppsScriptPayload {
   revisionYear?: number;
   /** 원본 견적이 저장된 부서 — 폼의 작성자 드롭다운과 무관하게 수정본을 원본과 같은 폴더/대장에 저장한다 */
   revisionDepartment?: string;
+  saveMode?: 'newRevision' | 'overwrite';
+  overwriteTargetNumber?: string;
 }
 
 function createKey(prefix: string) {
@@ -447,6 +450,8 @@ function quoteToAppsScriptPayload(
   revisionOf = '',
   revisionYear?: number,
   revisionDepartment = '',
+  saveMode?: 'newRevision' | 'overwrite',
+  overwriteTargetNumber?: string,
 ): AppsScriptPayload {
   return {
     details: {
@@ -482,6 +487,8 @@ function quoteToAppsScriptPayload(
     revisionOf: revisionOf || undefined,
     revisionYear: Number.isFinite(revisionYear) ? revisionYear : undefined,
     revisionDepartment: revisionDepartment || undefined,
+    saveMode,
+    overwriteTargetNumber: overwriteTargetNumber || undefined,
   };
 }
 
@@ -545,8 +552,20 @@ async function processQuoteRequest(
   revisionOf = '',
   revisionYear?: number,
   revisionDepartment = '',
+  saveMode?: 'newRevision' | 'overwrite',
+  overwriteTargetNumber?: string,
 ): Promise<QuoteProcessResult> {
-  const appsScriptPayload = quoteToAppsScriptPayload(quote, createDraft, subject, body, revisionOf, revisionYear, revisionDepartment);
+  const appsScriptPayload = quoteToAppsScriptPayload(
+    quote,
+    createDraft,
+    subject,
+    body,
+    revisionOf,
+    revisionYear,
+    revisionDepartment,
+    saveMode,
+    overwriteTargetNumber,
+  );
 
   if (window.parent && window.parent !== window) {
     return processQuoteViaParentBridge(appsScriptPayload);
@@ -559,7 +578,17 @@ async function processQuoteRequest(
   const res = await fetch('/api/google/quote', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ quote, createDraft, subject, body, revisionOf, revisionYear, revisionDepartment }),
+    body: JSON.stringify({
+      quote,
+      createDraft,
+      subject,
+      body,
+      revisionOf,
+      revisionYear,
+      revisionDepartment,
+      saveMode,
+      overwriteTargetNumber,
+    }),
   });
   const result = await readJsonResponse<QuoteProcessResult>(res);
   if (!res.ok) {
@@ -692,6 +721,33 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [emailModalOpen, setEmailModalOpen] = useState(false);
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
+
+  // ── 견적 수정 시 저장 방식 선택 모달 상태 ──
+  const [revisionModalOpen, setRevisionModalOpen] = useState(false);
+  const [revisionSaveMode, setRevisionSaveMode] = useState<'newRevision' | 'overwrite'>('newRevision');
+  const [overwriteTarget, setOverwriteTarget] = useState<string>('');
+  const [pendingDraftAction, setPendingDraftAction] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (editQuote) {
+      setOverwriteTarget(editQuote.quoteNumber || editQuote.baseQuoteNumber);
+    }
+  }, [editQuote]);
+
+  const versionOptions = useMemo(() => {
+    if (!editQuote) return [];
+    if (editQuote.existingVersions && editQuote.existingVersions.length > 0) {
+      return editQuote.existingVersions;
+    }
+    const list = [
+      { quoteNumber: editQuote.baseQuoteNumber, label: `원본 (${editQuote.baseQuoteNumber})` },
+    ];
+    if (editQuote.quoteNumber && editQuote.quoteNumber !== editQuote.baseQuoteNumber) {
+      list.push({ quoteNumber: editQuote.quoteNumber, label: `현재 수정본 (${editQuote.quoteNumber})` });
+    }
+    return list;
+  }, [editQuote]);
+
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [selectedSheet, setSelectedSheet] = useState(initialDraft?.selectedSheet || firstCatalogGroup?.sheet || '');
   const [selectedProductId, setSelectedProductId] = useState(initialDraft?.selectedProductId || firstCatalogGroup?.items[0]?.id || '');
@@ -1053,7 +1109,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setEmailModalOpen(true);
   }
 
-  async function processGoogleQuote(createDraft: boolean, subject = '', body = '') {
+  async function processGoogleQuote(
+    createDraft: boolean,
+    subject = '',
+    body = '',
+    saveMode: 'newRevision' | 'overwrite' = 'newRevision',
+    overwriteTargetNumber = '',
+  ) {
     if (!validateForSubmit()) return;
     if (createDraft) setEmailing(true);
     else setSubmitting(true);
@@ -1063,7 +1125,17 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       const revisionOf = editQuote?.baseQuoteNumber || editQuote?.quoteNumber || '';
       const revisionYear = revisionOf ? editQuote?.year : undefined;
       const revisionDepartment = revisionOf ? (editQuote?.department || '') : '';
-      const result = await processQuoteRequest(quote, createDraft, subject, body, revisionOf, revisionYear, revisionDepartment);
+      const result = await processQuoteRequest(
+        quote,
+        createDraft,
+        subject,
+        body,
+        revisionOf,
+        revisionYear,
+        revisionDepartment,
+        saveMode,
+        overwriteTargetNumber,
+      );
       if (!result.success) {
         throw new Error(result.message ?? t(UI.quoteGoogleConfigMissing));
       }
@@ -1098,12 +1170,33 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   }
 
   function handleSave() {
+    if (editQuote) {
+      setPendingDraftAction(false);
+      setRevisionModalOpen(true);
+      return;
+    }
     void processGoogleQuote(false);
   }
 
   function handleEmailDraft() {
     setEmailModalOpen(false);
+    if (editQuote) {
+      setPendingDraftAction(true);
+      setRevisionModalOpen(true);
+      return;
+    }
     void processGoogleQuote(true, emailSubject, emailBody);
+  }
+
+  function handleConfirmRevisionSave() {
+    setRevisionModalOpen(false);
+    void processGoogleQuote(
+      pendingDraftAction,
+      pendingDraftAction ? emailSubject : '',
+      pendingDraftAction ? emailBody : '',
+      revisionSaveMode,
+      revisionSaveMode === 'overwrite' ? overwriteTarget : '',
+    );
   }
 
   const isProcessing = submitting || emailing || waitingForCompletion;
@@ -1180,6 +1273,140 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
           </div>
         </div>
       )}
+
+      {/* 견적 수정 시 저장 방식 선택 모달 (덮어쓰기 or 다른 이름으로 저장) */}
+      {revisionModalOpen && editQuote && (
+        <div className="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-blue-600 text-white">
+              <h2 className="text-sm font-bold">{t(UI.quoteEditSaveMethodTitle)}</h2>
+              <button
+                type="button"
+                onClick={() => setRevisionModalOpen(false)}
+                className="text-blue-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                x
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="rounded-lg bg-[#f8fafc] border border-[#e2e8f0] p-3 text-xs">
+                <span className="font-bold text-[#0f172a] text-sm block">
+                  {editQuote.baseQuoteNumber}
+                </span>
+                <span className="text-[#64748b] mt-0.5 block">
+                  {company || previewQuote?.client.company || '-'} · {t(UI.quoteEditModeNotice)}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {/* 옵션 1: 다른 이름으로 저장 (새 리비전 _Rev 생성) */}
+                <button
+                  type="button"
+                  onClick={() => setRevisionSaveMode('newRevision')}
+                  className={`w-full rounded-xl border p-3.5 text-left transition-all flex items-start gap-3 ${
+                    revisionSaveMode === 'newRevision'
+                      ? 'border-blue-500 bg-blue-50/70 ring-2 ring-blue-300'
+                      : 'border-[#e2e8f0] bg-white hover:bg-[#f8fafc]'
+                  }`}
+                >
+                  <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                    revisionSaveMode === 'newRevision' ? 'border-blue-600 bg-blue-600 text-white' : 'border-[#cbd5e1]'
+                  }`}>
+                    {revisionSaveMode === 'newRevision' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                  </span>
+                  <div>
+                    <span className="block text-sm font-bold text-[#1e293b]">
+                      {t(UI.quoteSaveAsNewRevision)}
+                    </span>
+                    <span className="block text-[11px] text-[#64748b] mt-0.5">
+                      {t(UI.quoteSaveAsNewRevisionHint)}
+                    </span>
+                  </div>
+                </button>
+
+                {/* 옵션 2: 덮어쓰기 (기존 파일 대체) */}
+                <button
+                  type="button"
+                  onClick={() => setRevisionSaveMode('overwrite')}
+                  className={`w-full rounded-xl border p-3.5 text-left transition-all flex items-start gap-3 ${
+                    revisionSaveMode === 'overwrite'
+                      ? 'border-amber-500 bg-amber-50/70 ring-2 ring-amber-300'
+                      : 'border-[#e2e8f0] bg-white hover:bg-[#f8fafc]'
+                  }`}
+                >
+                  <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                    revisionSaveMode === 'overwrite' ? 'border-amber-600 bg-amber-600 text-white' : 'border-[#cbd5e1]'
+                  }`}>
+                    {revisionSaveMode === 'overwrite' && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                  </span>
+                  <div className="w-full">
+                    <span className="block text-sm font-bold text-amber-900">
+                      {t(UI.quoteSaveOverwrite)}
+                    </span>
+                    <span className="block text-[11px] text-amber-700 mt-0.5">
+                      {t(UI.quoteSaveOverwriteHint)}
+                    </span>
+
+                    {/* 덮어쓰기 선택 시: 덮어쓸 파일 버전 선택 라디오 리스트 */}
+                    {revisionSaveMode === 'overwrite' && versionOptions.length > 0 && (
+                      <div className="mt-3 space-y-1.5 border-t border-amber-200/80 pt-2.5">
+                        <p className="text-[11px] font-bold text-amber-950 mb-1">
+                          {t(UI.quoteSelectOverwriteTarget)}:
+                        </p>
+                        {versionOptions.map((ver: QuoteEditVersion) => (
+                          <label
+                            key={ver.quoteNumber}
+                            className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs cursor-pointer transition-colors ${
+                              overwriteTarget === ver.quoteNumber
+                                ? 'border-amber-400 bg-white font-bold text-amber-950 shadow-xs'
+                                : 'border-transparent bg-amber-100/50 text-amber-800 hover:bg-amber-100'
+                            }`}
+                          >
+                            <span className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="overwriteTarget"
+                                value={ver.quoteNumber}
+                                checked={overwriteTarget === ver.quoteNumber}
+                                onChange={() => setOverwriteTarget(ver.quoteNumber)}
+                              />
+                              <span>{ver.label}</span>
+                            </span>
+                            {ver.date && (
+                              <span className="text-[10px] text-amber-600 font-normal">
+                                {ver.date}
+                              </span>
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 px-5 py-4 bg-[#f8fafc] border-t border-[#e2e8f0]">
+              <button
+                type="button"
+                onClick={() => setRevisionModalOpen(false)}
+                className="px-4 py-2 rounded-lg border border-[#cbd5e1] text-sm font-semibold text-[#475569] hover:bg-white transition-colors"
+              >
+                {t(UI.quoteCancel)}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmRevisionSave}
+                className="px-5 py-2 rounded-lg bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                {t(UI.quoteDeleteConfirmBtn)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {customerPicker && (
         <div className="fixed inset-0 bg-black/50 z-[65] flex items-start justify-center overflow-y-auto py-10 px-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">

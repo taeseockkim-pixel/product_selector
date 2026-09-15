@@ -4,6 +4,7 @@ import { UI } from '../i18n/ui';
 import {
   fetchLedger,
   fetchDashboardStats,
+  fetchAuthors,
   type DashboardStatsRecord,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
@@ -98,7 +99,14 @@ function normalizeCategory(value: string) {
   return value.trim() || '기타';
 }
 
-function buildRecords(department: string, year: number, headers: string[], rows: LedgerRow[]): QuoteRecord[] {
+function buildRecords(
+  department: string,
+  year: number,
+  headers: string[],
+  rows: LedgerRow[],
+  quoteAuthorMap?: Map<string, string>,
+  emailAuthorMap?: Map<string, string>,
+): QuoteRecord[] {
   const quoteIndex = findColumn(headers, ['견적번호']);
   const yearIndex = findColumn(headers, ['연도', '년도']);
   const monthIndex = findColumn(headers, ['월']);
@@ -108,7 +116,8 @@ function buildRecords(department: string, year: number, headers: string[], rows:
   const categoryIndex = findColumn(headers, ['제품 항목', '제품군', '카테고리']);
   const amountIndex = findColumn(headers, ['견적 금액', '견적금액', '총 견적금액', '금액']);
   const orderIndex = findColumn(headers, ['발주']);
-  const authorIndex = findColumn(headers, ['작성자', '작성자이메일', '이메일']);
+  // 대장의 10열 '이메일'은 고객사 이메일이므로 절대 '이메일'을 검색어로 넣지 않는다!
+  const authorIndex = findColumn(headers, ['작성자명', '작성자', '담당영업', '영업담당', '작성자 성명']);
 
   return rows
     .filter((row) => !row.struck) // 취소선(라인삭제)된 건은 통계 집계에서 제외
@@ -122,19 +131,28 @@ function buildRecords(department: string, year: number, headers: string[], rows:
         ? `${recYear}-${String(validMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
         : '';
 
+      const quoteNumber = valueAt(row, quoteIndex).trim();
+      let authorName = authorIndex >= 0 ? valueAt(row, authorIndex).trim() : '';
+      if (!authorName && quoteAuthorMap) {
+        authorName = quoteAuthorMap.get(quoteNumber) || quoteAuthorMap.get(quoteNumber.replace(/_Rev\d+$/i, '')) || '';
+      }
+      if (authorName.includes('@') && emailAuthorMap) {
+        authorName = emailAuthorMap.get(authorName.toLowerCase()) || authorName.split('@')[0];
+      }
+
       return {
         department,
         year: recYear,
         month: validMonth,
         day,
         dateStr,
-        quoteNumber: valueAt(row, quoteIndex).trim(),
+        quoteNumber,
         company: valueAt(row, companyIndex).trim() || '미입력',
         product: valueAt(row, productIndex).trim() || '미입력',
         category: normalizeCategory(valueAt(row, categoryIndex)),
         amount: parseAmount(valueAt(row, amountIndex)),
         ordered: orderedValue(valueAt(row, orderIndex)),
-        authorName: authorIndex >= 0 ? valueAt(row, authorIndex).trim() : '',
+        authorName,
       };
     })
     .filter((record) => record.quoteNumber || record.company !== '미입력');
@@ -248,6 +266,43 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     setLoading(true);
     setError(null);
     try {
+      // 1. 통계 JSON (품목 상세 및 실제 작성자 정보)을 먼저 조회하여 작성자 매핑 맵 구축
+      const statsResults = await Promise.all(targetDepartments.map(async (target) => {
+        try {
+          const result = await fetchDashboardStats(target);
+          return result && result.success && result.records ? result.records : [];
+        } catch {
+          return [];
+        }
+      }));
+      const flatStats = statsResults.flat();
+      setStatsRecords(flatStats);
+
+      // 2. 작성자 DB 조회 (이메일 -> 작성자 이름 매핑용)
+      let authorsList: Array<{ name: string; email: string }> = [];
+      try {
+        const authorsResult = await fetchAuthors();
+        if (authorsResult.success && authorsResult.authors) {
+          authorsList = authorsResult.authors;
+        }
+      } catch { /* 실패 시 건너뜀 */ }
+
+      const quoteAuthorMap = new Map<string, string>();
+      flatStats.forEach((s) => {
+        if (s.quoteNumber && s.authorName) {
+          quoteAuthorMap.set(s.quoteNumber, s.authorName);
+          quoteAuthorMap.set(s.quoteNumber.replace(/_Rev\d+$/i, ''), s.authorName);
+        }
+      });
+
+      const emailAuthorMap = new Map<string, string>();
+      authorsList.forEach((a) => {
+        if (a.email && a.name) {
+          emailAuthorMap.set(a.email.toLowerCase(), a.name);
+        }
+      });
+
+      // 3. 대장 조회
       const years = new Set<number>();
       const selectedResults = await Promise.all(targetDepartments.map(async (target) => {
         try {
@@ -265,23 +320,12 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       }));
 
       const currentRecords = selectedResults.flatMap(({ department: target, result }) =>
-        buildRecords(target, selectedYear, result.headers ?? [], result.rows ?? []),
+        buildRecords(target, selectedYear, result.headers ?? [], result.rows ?? [], quoteAuthorMap, emailAuthorMap),
       );
       setRecords(currentRecords);
       setAvailableYears([...years].filter((year) => year >= 2000 && year <= currentYear).sort((a, b) => b - a));
 
-      // 통계 JSON (품목 상세) 조회
-      const statsResults = await Promise.all(targetDepartments.map(async (target) => {
-        try {
-          const result = await fetchDashboardStats(target);
-          return result && result.success && result.records ? result.records : [];
-        } catch {
-          return [];
-        }
-      }));
-      setStatsRecords(statsResults.flat());
-
-      // 과거 연도 대장 읽기 (이탈/재구매 분석용)
+      // 4. 과거 연도 대장 읽기 (이탈/재구매 분석용)
       const historicalYears = [...years].filter((year) => year < selectedYear).slice(0, 5);
       const historicalResults = await Promise.all(historicalYears.flatMap((year) =>
         targetDepartments.map(async (target) => {
@@ -294,7 +338,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
         }),
       ));
       setHistory(historicalResults.flatMap(({ department: target, year, result }) =>
-        buildRecords(target, year, result.headers ?? [], result.rows ?? []),
+        buildRecords(target, year, result.headers ?? [], result.rows ?? [], quoteAuthorMap, emailAuthorMap),
       ));
     } catch (err) {
       setRecords([]);
@@ -310,12 +354,13 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     void loadDashboard();
   }, [loadDashboard]);
 
-  // 해당 부서/연도의 고유 담당자(작성자) 목록 추출
+  // 해당 부서/연도의 고유 담당자(작성자) 목록 추출 (이메일 주소 형태나 미입력 제외)
   const availableAuthors = useMemo(() => {
     const set = new Set<string>();
     records.forEach((r) => {
-      if (r.authorName && r.authorName !== '미입력') {
-        set.add(r.authorName);
+      const name = r.authorName?.trim();
+      if (name && name !== '미입력' && !name.includes('@')) {
+        set.add(name);
       }
     });
     return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
@@ -409,7 +454,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   );
   const rankedAuthors = useMemo(
     () => [...aggregate(currentRecords, 'authorName')]
-      .filter((item) => item.label && item.label !== '미입력')
+      .filter((item) => item.label && item.label !== '미입력' && !item.label.includes('@'))
       .sort((a, b) => metricValue(b, metric) - metricValue(a, metric)),
     [currentRecords, metric],
   );
