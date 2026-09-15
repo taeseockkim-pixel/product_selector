@@ -487,21 +487,17 @@ async function processJob(fileName) {
     pdfFileNames.push(pdfFileName);
   }
 
-  // 견적 연도 폴더에 최신 견적관리대장 사본을 함께 유지한다 (Drive의 대장과 동일한 레이아웃)
+  // 견적 연도 폴더에 최신 견적관리대장 사본을 비동기로 동기화하기 위해 지연 대기열에 등록한다.
+  // 완료 보고(results/)를 먼저 즉시 기록해야 Apps Script가 대장 행을 커밋하고 링크를 완성할 수 있으므로,
+  // 여기서 대장 사본 도착을 동기(45초)로 기다리지 않고 즉시 완료 보고를 올려 딜레이를 완전히 제거한다.
   const yearFolder = dirname(folder);
-  const ledgerCopy = await waitForLedgerCopy(safeSegment(details.quoteNumber), yearFolder, year);
-  if (ledgerCopy) {
-    console.log(`[에이전트] 대장 사본 갱신: ${ledgerCopy}`);
-  } else {
-    console.warn(`[에이전트] 대장 사본 미수신 — 도착 시 자동 복사하도록 대기열에 등록합니다 (${year}년)`);
-    deferredLedgerCopies.set(safeSegment(details.quoteNumber), {
-      quoteNumber: details.quoteNumber ?? '',
-      yearFolder,
-      year,
-      attempts: 0,
-      firstAt: Date.now(),
-    });
-  }
+  deferredLedgerCopies.set(safeSegment(details.quoteNumber), {
+    quoteNumber: details.quoteNumber ?? '',
+    yearFolder,
+    year,
+    attempts: 0,
+    firstAt: Date.now(),
+  });
 
   const relativePath = [department, year, actualFolderName, pdfFileNames[0]].map(encodeURIComponent).join('/');
   // URL 인코딩된 ASCII 경로로 서명한다 — Apps Script의 signedFileUrl_과 동일한 방식으로,

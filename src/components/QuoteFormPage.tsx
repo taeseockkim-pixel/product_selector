@@ -618,8 +618,8 @@ async function waitForLedgerFileLink(
       // 에이전트/트리거 처리 중 일시적인 조회 실패는 다음 주기에 재시도한다.
     }
 
-    // 초반 12초간은 1.5초 간격으로 빠르게 폴링하여 에이전트 생성 즉시 감지, 이후 2.5초 간격
-    const pollDelay = elapsed < 12000 ? 1500 : 2500;
+    // 초반 15초간은 1초 간격으로 초고속 폴링하여 에이전트 파일링크 생성 즉시 감지, 이후 2초 간격
+    const pollDelay = elapsed < 15000 ? 1000 : 2000;
     await wait(pollDelay);
   }
   throw new Error('파일 생성 또는 견적관리대장 반영 시간이 초과되었습니다. 에이전트 상태를 확인한 뒤 견적 목록에서 다시 확인해 주세요.');
