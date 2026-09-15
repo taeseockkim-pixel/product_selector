@@ -786,15 +786,34 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     return () => { cancelled = true; };
   }, [authorLocked, defaultAuthorName]);
 
-  // 현재 접속 계정의 부서 대장에서 기존 고객 정보를 읽어온다.
+  const [ledgerNextSeq, setLedgerNextSeq] = useState<number | null>(null);
+
+  // 현재 접속 계정의 부서 대장에서 기존 고객 정보 및 최신 견적 일련번호를 읽어온다.
   useEffect(() => {
     let cancelled = false;
     fetchLedger().then((result) => {
       if (!cancelled && result.success) {
         setCustomerRecords(customerRecordsFromLedger(result.headers ?? [], result.rows ?? []));
+
+        // 대장의 A열(NO) 또는 F열(견적번호)에서 가장 큰 일련번호를 찾아 미리보기 번호로 동기화
+        const quoteIndex = (result.headers ?? []).findIndex((h) => h.includes('견적번호'));
+        let maxNo = 0;
+        (result.rows ?? []).forEach((row) => {
+          const noVal = Number(row.values[0]);
+          if (Number.isInteger(noVal) && noVal > maxNo) maxNo = noVal;
+          if (quoteIndex >= 0) {
+            const qStr = String(row.values[quoteIndex] || '');
+            const m = qStr.match(/-(\d+)(?:_Rev\d+)?$/i);
+            if (m) {
+              const parsed = parseInt(m[1], 10);
+              if (parsed > maxNo) maxNo = parsed;
+            }
+          }
+        });
+        if (maxNo > 0) setLedgerNextSeq(maxNo + 1);
       }
     }).catch((err) => {
-      console.warn('기존 고객 정보 조회 실패:', err);
+      console.warn('기존 고객 정보 및 대장 번호 조회 실패:', err);
     });
     return () => { cancelled = true; };
   }, []);
@@ -1040,7 +1059,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
   function buildDraftQuote(): Quote {
     const yymm = nextQuoteYymm();
-    const previewSeq = getSeq(yymm) + 1;
+    const previewSeq = ledgerNextSeq ?? (getSeq(yymm) + 1);
     return {
       id: 'preview',
       quoteNumber: `${authorDepartment || '기술영업'} ${yymm}-${String(previewSeq).padStart(3, '0')}`,
