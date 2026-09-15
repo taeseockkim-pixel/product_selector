@@ -184,6 +184,9 @@ export default function QuoteListPage({
   const [orderStatus, setOrderStatus] = useState<Record<string, boolean>>({});
   const [orderUpdatingKey, setOrderUpdatingKey] = useState<string | null>(null);
 
+  const [pageSize, setPageSize] = useState<number>(50);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   // ── 견적 삭제 다이얼로그 상태 ──
   const [deleteDialogRow, setDeleteDialogRow] = useState<LedgerRow | null>(null);
   const [deleteMode, setDeleteMode] = useState<'permanent' | 'strikethrough'>('strikethrough');
@@ -292,14 +295,22 @@ export default function QuoteListPage({
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('ko-KR');
   const searchedRows = rows
-    .filter((row) => !normalizedSearch || row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch)))
-  const visibleRows = [...searchedRows]
+    .filter((row) => !normalizedSearch || row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch)));
+  const sortedRows = [...searchedRows]
     .sort((left, right) => {
       if (sortIndex === null) return 0;
       const compared = compareCellValues(left.values[sortIndex] ?? '', right.values[sortIndex] ?? '');
       return sortDirection === 'asc' ? compared : -compared;
     })
     .filter((row) => !searchPickerRows || searchPickerRows.includes(row));
+
+  // 페이징 계산: 440건 이상일 때도 50건씩 렌더링하여 DOM 폭발 및 렌더링 랙 완전 제거
+  const totalItems = sortedRows.length;
+  const totalPages = pageSize === 0 ? 1 : Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const visibleRows = pageSize === 0
+    ? sortedRows
+    : sortedRows.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
 
   function handleSort(index: number) {
     if (sortIndex === index) {
@@ -313,17 +324,20 @@ export default function QuoteListPage({
   function handleSearchChange(value: string) {
     setSearchTerm(value);
     setSearchPickerRows(null);
+    setCurrentPage(1);
   }
 
   function handleYearChange(year: number) {
     setSelectedYear(year);
     setSearchPickerRows(null);
+    setCurrentPage(1);
   }
 
   function handleDepartmentChange(nextDept: string) {
     if (nextDept === currentDepartment) return;
     setCurrentDepartment(nextDept);
     setSearchPickerRows(null);
+    setCurrentPage(1);
   }
 
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -1192,6 +1206,55 @@ export default function QuoteListPage({
             </tbody>
           </table>
           </div>
+
+          {/* 440건 이상일 때도 가볍게 탐색할 수 있는 페이징 및 행 수 컨트롤러 */}
+          {rows.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-[#faf9f7] border-t border-[#ddd9d2] text-xs text-[#666]">
+              <div className="flex items-center gap-2">
+                <span>총 <strong className="text-[#191919]">{totalItems.toLocaleString('ko-KR')}</strong>건</span>
+                {searchTerm && <span className="text-[#999]">(검색 필터 적용됨)</span>}
+                <span className="text-[#ccc]">|</span>
+                <span>페이지당:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded border border-[#ccc] bg-white px-2 py-0.5 text-xs text-[#333] font-medium"
+                >
+                  <option value={30}>30건씩</option>
+                  <option value={50}>50건씩</option>
+                  <option value={100}>100건씩</option>
+                  <option value={0}>전체 보기</option>
+                </select>
+              </div>
+
+              {pageSize > 0 && totalPages > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded border border-[#ddd9d2] bg-white text-xs font-semibold hover:bg-[#f0ede8] disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    이전
+                  </button>
+                  <span className="px-2 text-xs font-bold text-[#333]">
+                    {safeCurrentPage} / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={safeCurrentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-2.5 py-1 rounded border border-[#ddd9d2] bg-white text-xs font-semibold hover:bg-[#f0ede8] disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    다음
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
