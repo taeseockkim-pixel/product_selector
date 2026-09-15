@@ -57,7 +57,7 @@ const FILE_LINK_SECRET = String(config.fileLinkSecret || '');
 const FOLDER_PASSWORDS = config.folderPasswords && typeof config.folderPasswords === 'object' ? config.folderPasswords : {};
 const ADMIN_PASSWORD = String(config.adminPassword || '');
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 로그인 유지 12시간
-const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 10000);
+const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 2000);
 const TEMPLATE_PATH = resolve(__dirname, String(config.templatePath || 'templates/견적서 샘플.xlsx'));
 const MAX_JOB_ATTEMPTS = 3;
 const ITEMS_PER_FILE = 14;

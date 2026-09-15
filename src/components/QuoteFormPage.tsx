@@ -573,27 +573,54 @@ function wait(ms: number) {
 }
 
 /** 파일 생성 완료 및 대장 파일링크 반영까지 기다린다. */
-async function waitForLedgerFileLink(year: number, department: string, quoteNumber: string, timeoutMs = 240000) {
+async function waitForLedgerFileLink(
+  year: number,
+  department: string,
+  quoteNumber: string,
+  onProgress?: (msg: string) => void,
+  timeoutMs = 240000,
+) {
   const startedAt = Date.now();
+  const baseQuoteNumber = quoteNumber.replace(/_Rev\d+$/i, '').trim();
+
   while (Date.now() - startedAt < timeoutMs) {
+    const elapsed = Date.now() - startedAt;
+
+    if (onProgress) {
+      if (elapsed < 6000) {
+        onProgress('견적서 PDF 및 엑셀 파일을 생성하고 있습니다...');
+      } else if (elapsed < 14000) {
+        onProgress('생성된 견적서 PDF를 견적관리대장에 반영하고 있습니다...');
+      } else {
+        onProgress('견적관리대장 파일링크 완료를 확인하는 중입니다...');
+      }
+    }
+
     try {
       const result = await fetchLedger(year, department);
-      if (result.success) {
+      if (result.success && result.rows) {
         const quoteIndex = (result.headers ?? []).findIndex((header) => header.includes('견적번호'));
         const fileIndex = (result.headers ?? []).findIndex((header) => header.includes('파일링크'));
-        const baseQuoteNumber = quoteNumber.replace(/_Rev\d+$/i, '');
-        const completed = (result.rows ?? []).some((row) => {
+
+        const completed = result.rows.some((row) => {
           const rowQuoteNumber = quoteIndex >= 0 ? String(row.values[quoteIndex] ?? '').trim() : '';
-          const rowBaseNumber = rowQuoteNumber.replace(/_Rev\d+$/i, '');
+          const rowBaseNumber = rowQuoteNumber.replace(/_Rev\d+$/i, '').trim();
           const link = fileIndex >= 0 ? row.links[fileIndex] : null;
-          return rowBaseNumber === baseQuoteNumber && Boolean(link);
+
+          // 견적번호 또는 기본 견적번호가 일치하고 파일링크가 존재하면 완료!
+          const isMatch = (rowQuoteNumber === quoteNumber || rowBaseNumber === baseQuoteNumber);
+          return isMatch && Boolean(link && String(link).trim());
         });
+
         if (completed) return;
       }
     } catch {
       // 에이전트/트리거 처리 중 일시적인 조회 실패는 다음 주기에 재시도한다.
     }
-    await wait(3000);
+
+    // 초반 12초간은 1.5초 간격으로 빠르게 폴링하여 에이전트 생성 즉시 감지, 이후 2.5초 간격
+    const pollDelay = elapsed < 12000 ? 1500 : 2500;
+    await wait(pollDelay);
   }
   throw new Error('파일 생성 또는 견적관리대장 반영 시간이 초과되었습니다. 에이전트 상태를 확인한 뒤 견적 목록에서 다시 확인해 주세요.');
 }
@@ -1049,11 +1076,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       setPreviewQuote(finalQuote);
 
       setWaitingForCompletion(true);
-      setProcessingMessage('견적서 파일을 생성하고 견적관리대장에 반영하는 중입니다...');
+      setProcessingMessage('견적서 PDF 및 엑셀 파일을 생성하고 있습니다...');
       const targetDepartment = revisionDepartment || department || quote.author.department || '';
       const targetQuoteNumber = result.baseQuoteNumber || result.newQuoteNumber || finalQuote.quoteNumber;
       const targetYear = revisionYear || Number(String(quote.details.quoteDate || '').match(/\d{4}/)?.[0]) || new Date().getFullYear();
-      await waitForLedgerFileLink(targetYear, targetDepartment, targetQuoteNumber);
+      await waitForLedgerFileLink(targetYear, targetDepartment, targetQuoteNumber, (msg) => setProcessingMessage(msg));
 
       // 수정(editQuote) 세션은 애초에 공용 "새 견적" 초안 키에 저장한 적이 없으므로 지우지 않는다.
       if (!editQuote) clearQuoteFormDraft(draftStorageKey);

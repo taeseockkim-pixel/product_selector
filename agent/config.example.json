@@ -4,7 +4,7 @@
   "defaultDepartment": "기술영업",
   "publicBaseUrl": "http://172.35.12.36:8790",
   "httpPort": 8790,
-  "pollIntervalMs": 10000,
+  "pollIntervalMs": 2000,
   "fileLinkSecret": "CIMON-FILES-2026-jR4wN8sQ2tVx7LmE",
   "folderPasswords": {
     "기술영업": "기술영업접속비밀번호",

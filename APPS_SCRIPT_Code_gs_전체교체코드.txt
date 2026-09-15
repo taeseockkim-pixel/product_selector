@@ -137,6 +137,13 @@ function processQuoteFromReact(payload) {
 
 function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
   try {
+    // 1분 주기 트리거를 기다리지 않고, 에이전트 완료 보고(results/)가 있으면 즉시 대장에 반영한다.
+    try {
+      processAgentResults();
+    } catch (agentErr) {
+      Logger.log('대장 조회 중 에이전트 완료 보고 반영 예외: ' + agentErr.toString());
+    }
+
     const access = getAuthorizedUserFromReact();
     if (!access.success || !access.authorized || !access.author) {
       return { success: false, message: '접속 권한이 없습니다.' };
