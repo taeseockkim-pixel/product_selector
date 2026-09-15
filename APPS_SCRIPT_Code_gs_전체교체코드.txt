@@ -187,14 +187,34 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
     const displayValues = range.getDisplayValues();
     const richTextValues = range.getRichTextValues();
     const headers = displayValues[0];
+
+    // 대장에 '적용현장' 열이 없으면 대장 시트의 마지막 열에 '적용현장' 헤더를 자동 추가한다.
+    let siteCol = headers.findIndex(function(h) {
+      return /적용\s*현장|현장명|^현장$/.test(String(h || '').trim());
+    });
+    if (siteCol < 0 && lastColumn >= 1) {
+      try {
+        sheet.getRange(1, lastColumn + 1).setValue('적용현장');
+        headers.push('적용현장');
+        siteCol = headers.length - 1;
+        SpreadsheetApp.flush();
+      } catch (colErr) {
+        headers.push('적용현장');
+      }
+    }
+
     // 견적번호 열의 폰트 취소선을 읽어 라인삭제(struck) 상태를 프론트에 전달한다.
     const quoteCol = LEDGER_COL.QUOTE_NUMBER;
     const fontLines = lastRow >= 2 ? sheet.getRange(2, quoteCol, lastRow - 1, 1).getFontLines() : [];
     const rows = displayValues.slice(1).map(function(values, rowIndex) {
+      const paddedValues = values.slice();
+      while (paddedValues.length < headers.length) {
+        paddedValues.push('');
+      }
       return {
-        values: values,
-        links: values.map(function(_, columnIndex) {
-          const richText = richTextValues[rowIndex + 1][columnIndex];
+        values: paddedValues,
+        links: paddedValues.map(function(_, columnIndex) {
+          const richText = (richTextValues[rowIndex + 1] && richTextValues[rowIndex + 1][columnIndex]);
           return richText ? richText.getLinkUrl() : null;
         }),
         struck: fontLines[rowIndex] && fontLines[rowIndex][0] === 'line-through'
@@ -859,6 +879,66 @@ function updateQuoteOrderFromReact(payload) {
     return { success: true, message: '발주 여부가 기록되었습니다.' };
   } catch (err) {
     return { success: false, message: '발주 상태 기록 실패: ' + err.toString() };
+  }
+}
+
+// 적용 현장 명칭 기록 (대장 시트의 '적용현장' 열에 저장)
+// payload: { year, department, quoteNumber, siteName }
+function updateQuoteSiteFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '적용 현장을 변경할 권한이 없습니다.' };
+    }
+    const currentYear = new Date().getFullYear();
+    const parsedYear = Number(payload && payload.year);
+    const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+      ? parsedYear
+      : currentYear;
+
+    const baseQuoteNumber = baseQuoteNumber_(payload && payload.quoteNumber);
+    const prefixDept = String(baseQuoteNumber || '').trim().split(/\s+/)[0];
+    let department = access.author.department;
+    if (CONFIG.DEPARTMENT_ROOTS[prefixDept]) {
+      department = prefixDept;
+    } else if (access.isAdmin && payload && payload.department && CONFIG.DEPARTMENT_ROOTS[String(payload.department).trim()]) {
+      department = String(payload.department).trim();
+    }
+
+    const rootFolderId = resolveRootFolderId({ authorDepartment: department });
+    const system = getExistingYearSystem_(year, rootFolderId);
+    if (!system || !baseQuoteNumber) {
+      return { success: false, message: '적용 현장을 기록할 견적을 찾을 수 없습니다.' };
+    }
+    const sheet = system.ledgerSheet;
+    const row = findLedgerRow_(sheet, baseQuoteNumber);
+    if (row < 2) return { success: false, message: '적용 현장을 기록할 견적을 찾을 수 없습니다.' };
+
+    const lastCol = sheet.getLastColumn();
+    const headers = sheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
+    let siteCol = headers.findIndex(function(h) {
+      return /적용\s*현장|현장명|^현장$/.test(String(h || '').trim());
+    });
+
+    if (siteCol < 0) {
+      const newColIndex = lastCol + 1;
+      sheet.getRange(1, newColIndex).setValue('적용현장');
+      siteCol = newColIndex - 1;
+      SpreadsheetApp.flush();
+    }
+
+    const siteName = String((payload && payload.siteName) || '').trim();
+    sheet.getRange(row, siteCol + 1).setValue(siteName);
+    SpreadsheetApp.flush();
+
+    enqueueActivityLog_(
+      access.author.email || access.author.name || department,
+      '적용현장',
+      `견적번호: ${baseQuoteNumber} | 적용현장: ${siteName || '(삭제)'} | 부서: ${department}`
+    );
+    return { success: true, message: '적용 현장이 저장되었습니다.', siteName: siteName };
+  } catch (err) {
+    return { success: false, message: '적용 현장 저장 실패: ' + err.toString() };
   }
 }
 

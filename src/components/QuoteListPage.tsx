@@ -7,6 +7,7 @@ import {
   fetchQuoteFiles,
   deleteQuote,
   restoreQuote,
+  updateQuoteSite,
   type OrderDraftRequest,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
@@ -70,6 +71,7 @@ function columnWidth(header: string) {
   if (header.includes('이메일')) return 148;
   if (header.includes('제품 항목') || header.includes('제품군')) return 106;
   if (header.includes('제품명')) return 130;
+  if (header.includes('적용현장') || header.includes('현장')) return 140;
   if (header.includes('견적 금액') || header.includes('금액')) return 104;
   if (header.includes('비고')) return 130;
   if (header.includes('파일링크')) return 220;
@@ -187,6 +189,11 @@ export default function QuoteListPage({
   const [deleteMode, setDeleteMode] = useState<'permanent' | 'strikethrough'>('strikethrough');
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [restoreLoadingKey, setRestoreLoadingKey] = useState<string | null>(null);
+
+  // ── 적용 현장 수정 모달 상태 ──
+  const [siteModalRow, setSiteModalRow] = useState<LedgerRow | null>(null);
+  const [siteInputValue, setSiteInputValue] = useState('');
+  const [siteSaving, setSiteSaving] = useState(false);
 
   // ── 발주등록 요청 메일 작성 모달 상태 ──
   const [orderEmailOpen, setOrderEmailOpen] = useState(false);
@@ -427,6 +434,50 @@ export default function QuoteListPage({
       alert(`${t(UI.quoteRestoreFailed)}: ${String(err)}`);
     } finally {
       setRestoreLoadingKey(null);
+    }
+  }
+
+  /** 적용 현장 수정 모달 열기 */
+  function openSiteModal(row: LedgerRow, currentValue: string) {
+    setSiteModalRow(row);
+    setSiteInputValue(currentValue);
+  }
+
+  /** 적용 현장 저장 실행 (확인 클릭 시 대장에 기록) */
+  async function handleSaveSite() {
+    const row = siteModalRow;
+    if (!row) return;
+    const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
+    if (!quoteNumber) return;
+
+    if (!window.confirm(t(UI.quoteSiteConfirmAsk))) {
+      return;
+    }
+
+    setSiteSaving(true);
+    try {
+      const siteText = siteInputValue.trim();
+      const result = await updateQuoteSite({
+        year: selectedYear,
+        department: currentDepartment,
+        quoteNumber,
+        siteName: siteText,
+      });
+      if (!result.success) throw new Error(result.message || t(UI.quoteSiteSaveFailed));
+
+      // 화면에 즉시 반영
+      const siteColIndex = headers.findIndex((h) => /적용\s*현장|현장명|^현장$/.test(h.trim()));
+      if (siteColIndex >= 0) {
+        row.values[siteColIndex] = siteText;
+        setRows([...rows]);
+      } else {
+        await loadQuotes(selectedYear, currentDepartment);
+      }
+      setSiteModalRow(null);
+    } catch (err) {
+      alert(`${t(UI.quoteSiteSaveFailed)}: ${String(err)}`);
+    } finally {
+      setSiteSaving(false);
     }
   }
 
@@ -785,6 +836,69 @@ export default function QuoteListPage({
         </div>
       )}
 
+      {/* 적용 현장 작성/수정 모달 */}
+      {siteModalRow && (
+        <div className="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-blue-600 text-white">
+              <h2 className="text-sm font-bold">{t(UI.quoteSiteModalTitle)}</h2>
+              <button
+                type="button"
+                onClick={() => setSiteModalRow(null)}
+                className="text-blue-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                x
+              </button>
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); void handleSaveSite(); }}>
+              <div className="p-5 space-y-3.5">
+                <div className="rounded-lg bg-[#f8fafc] border border-[#e2e8f0] p-3 text-xs">
+                  <span className="font-bold text-[#0f172a] text-sm block">
+                    {ledgerValue(headers, siteModalRow, ['견적번호']) || '-'}
+                  </span>
+                  <span className="text-[#64748b] mt-0.5 block">
+                    {ledgerValue(headers, siteModalRow, ['업체명', '회사명']) || '-'} · {ledgerValue(headers, siteModalRow, ['제품명']) || '-'}
+                  </span>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#334155] mb-1.5">
+                    {t(UI.quoteSite)}
+                  </label>
+                  <input
+                    type="text"
+                    value={siteInputValue}
+                    onChange={(e) => setSiteInputValue(e.target.value)}
+                    placeholder={t(UI.quoteSiteInputPlaceholder)}
+                    className="w-full rounded-lg border border-[#cbd5e1] px-3.5 py-2.5 text-xs text-[#1e293b] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    autoFocus
+                  />
+                  <p className="mt-1.5 text-[11px] text-[#94a3b8]">
+                    확인을 누르면 견적관리대장에 즉시 저장됩니다.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 px-5 py-4 bg-[#f8fafc] border-t border-[#e2e8f0]">
+                <button
+                  type="button"
+                  onClick={() => setSiteModalRow(null)}
+                  className="px-4 py-2 rounded-lg border border-[#cbd5e1] text-sm font-semibold text-[#475569] hover:bg-white transition-colors"
+                >
+                  {t(UI.quoteDeleteCancel)}
+                </button>
+                <button
+                  type="submit"
+                  disabled={siteSaving}
+                  className="px-5 py-2 rounded-lg bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50 transition-colors shadow-sm"
+                >
+                  {siteSaving ? '저장 중...' : t(UI.quoteDeleteConfirmBtn)}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {orderEmailOpen && orderEmailRow && (
         <div className="fixed inset-0 bg-black/50 z-[70] flex items-start justify-center overflow-y-auto py-10 px-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
@@ -972,6 +1086,7 @@ export default function QuoteListPage({
                       const href = link ?? (/^https?:\/\//i.test(value) ? value : null);
                       const displayValue = href ? fileNameFromLink(href) : value;
                       const isOrderColumn = header.includes('발주');
+                      const isSiteColumn = /적용\s*현장|현장명|^현장$/.test(header.trim());
                       const isYearColumn = header.includes('연도') || header.includes('년도');
                       const isAmountColumn = header.includes('금액');
                       const checked = orderStatus[rowKey] ?? isOrderMarked(value);
@@ -987,6 +1102,31 @@ export default function QuoteListPage({
                               />
                               <span>{checked ? t(UI.quoteOrderMarked) : t(UI.quoteOrder)}</span>
                             </label>
+                          ) : isSiteColumn ? (
+                            <div className="flex items-center">
+                              {value ? (
+                                <button
+                                  type="button"
+                                  disabled={!quoteNumber}
+                                  onClick={() => openSiteModal(row, value)}
+                                  className="text-left font-medium text-[#1e293b] hover:text-blue-600 hover:underline flex items-center gap-1 group transition-colors"
+                                  title="클릭하여 적용 현장 수정"
+                                >
+                                  <span className="truncate max-w-[130px]">{value}</span>
+                                  <span className="text-[10px] text-gray-400 opacity-50 group-hover:opacity-100">✎</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={!quoteNumber}
+                                  onClick={() => openSiteModal(row, '')}
+                                  className="text-left text-[#94a3b8] hover:text-blue-600 hover:border-blue-400 border border-dashed border-[#cbd5e1] rounded px-2 py-0.5 text-[11px] transition-colors"
+                                  title="클릭하여 적용 현장 작성"
+                                >
+                                  {t(UI.quoteSiteAddBtn)}
+                                </button>
+                              )}
+                            </div>
                           ) : href ? (
                             <a href={href} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline break-all" title={displayValue}>
                               {displayValue || '열기'}
