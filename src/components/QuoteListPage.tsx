@@ -178,7 +178,7 @@ export default function QuoteListPage({
   const [ledgerYears, setLedgerYears] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortIndex, setSortIndex] = useState<number | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [searchPickerRows, setSearchPickerRows] = useState<LedgerRow[] | null>(null);
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState<Record<string, boolean>>({});
@@ -186,6 +186,9 @@ export default function QuoteListPage({
 
   const [pageSize, setPageSize] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // ── 발주 처리 방식 선택 모달 상태 ──
+  const [orderActionRow, setOrderActionRow] = useState<LedgerRow | null>(null);
 
   // ── 견적 삭제 다이얼로그 상태 ──
   const [deleteDialogRow, setDeleteDialogRow] = useState<LedgerRow | null>(null);
@@ -296,11 +299,16 @@ export default function QuoteListPage({
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('ko-KR');
   const searchedRows = rows
     .filter((row) => !normalizedSearch || row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch)));
+
+  const quoteColIndex = headers.findIndex((h) => h.includes('견적번호'));
+  const activeSortIndex = sortIndex !== null ? sortIndex : (quoteColIndex >= 0 ? quoteColIndex : null);
+  const activeSortDirection = sortIndex !== null ? sortDirection : 'desc';
+
   const sortedRows = [...searchedRows]
     .sort((left, right) => {
-      if (sortIndex === null) return 0;
-      const compared = compareCellValues(left.values[sortIndex] ?? '', right.values[sortIndex] ?? '');
-      return sortDirection === 'asc' ? compared : -compared;
+      if (activeSortIndex === null) return 0;
+      const compared = compareCellValues(left.values[activeSortIndex] ?? '', right.values[activeSortIndex] ?? '');
+      return activeSortDirection === 'asc' ? compared : -compared;
     })
     .filter((row) => !searchPickerRows || searchPickerRows.includes(row));
 
@@ -313,8 +321,11 @@ export default function QuoteListPage({
     : sortedRows.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
 
   function handleSort(index: number) {
-    if (sortIndex === index) {
-      setSortDirection((direction) => direction === 'asc' ? 'desc' : 'asc');
+    const currentActiveIndex = sortIndex !== null ? sortIndex : quoteColIndex;
+    const currentActiveDir = sortIndex !== null ? sortDirection : 'desc';
+    if (currentActiveIndex === index) {
+      setSortIndex(index);
+      setSortDirection(currentActiveDir === 'asc' ? 'desc' : 'asc');
     } else {
       setSortIndex(index);
       setSortDirection('asc');
@@ -364,14 +375,19 @@ export default function QuoteListPage({
     }
   }
 
-  /** 발주 체크박스 토글: 미발주 → 메일 작성 확인/모달, 발주됨 → 해제 확인 */
+  /** 발주 체크박스 토글: 미발주 → 처리 방식 선택 모달(메일 작성 vs 메일 없이 등록), 발주됨 → 해제 확인 */
   function handleOrderToggle(row: LedgerRow, checked: boolean) {
     if (!checked) {
       if (!window.confirm(t(UI.quoteOrderReleaseAsk))) return;
       void applyOrderChange(row, false);
       return;
     }
-    if (!window.confirm(t(UI.quoteOrderEmailAsk))) return;
+    setOrderActionRow(row);
+  }
+
+  /** 발주등록 요청 메일 작성 창 열기 */
+  function handleOrderWithEmail(row: LedgerRow) {
+    setOrderActionRow(null);
     const quoteNumber = ledgerValue(headers, row, ['견적번호']).trim();
     const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
     const productName = ledgerValue(headers, row, ['제품명']).trim();
@@ -394,6 +410,12 @@ export default function QuoteListPage({
     // opener가 있어야 에이전트 페이지가 선택 파일을 postMessage로 반환할 수 있다.
     const popup = window.open(url, '_blank');
     if (!popup) alert('발주등록 메일 작성 창을 열 수 없습니다. 브라우저의 팝업 차단을 해제해 주세요.');
+  }
+
+  /** 메일 발송 없이 대장에 발주 완료만 즉시 등록 */
+  function handleOrderDirect(row: LedgerRow) {
+    setOrderActionRow(null);
+    void applyOrderChange(row, true);
   }
 
   /** 견적 삭제 실행 (영구삭제 또는 라인삭제) */
@@ -913,6 +935,87 @@ export default function QuoteListPage({
         </div>
       )}
 
+      {/* 발주 처리 방식 선택 모달 */}
+      {orderActionRow && (
+        <div className="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-blue-600 text-white">
+              <h2 className="text-sm font-bold">{t(UI.quoteOrderActionTitle)}</h2>
+              <button
+                type="button"
+                onClick={() => setOrderActionRow(null)}
+                className="text-blue-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                x
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <div className="rounded-lg bg-[#f8fafc] border border-[#e2e8f0] p-3 text-xs">
+                <span className="font-bold text-[#0f172a] text-sm block">
+                  {ledgerValue(headers, orderActionRow, ['견적번호']) || '-'}
+                </span>
+                <span className="text-[#64748b] mt-0.5 block">
+                  {ledgerValue(headers, orderActionRow, ['업체명', '회사명']) || '-'} · {ledgerValue(headers, orderActionRow, ['제품명']) || '-'}
+                </span>
+              </div>
+
+              <p className="text-xs text-[#64748b] pt-1">
+                발주 처리 방식을 선택해 주세요.
+              </p>
+
+              {/* 옵션 1: 발주등록 요청 메일 작성 */}
+              <button
+                type="button"
+                onClick={() => handleOrderWithEmail(orderActionRow)}
+                className="w-full rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 text-left hover:bg-blue-100/80 transition-all flex items-start gap-3 group"
+              >
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-xs font-bold">
+                  ✉
+                </span>
+                <div>
+                  <span className="block text-sm font-bold text-blue-900 group-hover:text-blue-950">
+                    {t(UI.quoteOrderActionEmailBtn)}
+                  </span>
+                  <span className="block text-[11px] text-blue-700 mt-0.5">
+                    {t(UI.quoteOrderActionEmailHint)}
+                  </span>
+                </div>
+              </button>
+
+              {/* 옵션 2: 메일 발송 없이 발주만 등록 */}
+              <button
+                type="button"
+                onClick={() => handleOrderDirect(orderActionRow)}
+                className="w-full rounded-xl border border-[#e2e8f0] bg-[#f8fafc] p-3.5 text-left hover:bg-[#edf2f7] transition-all flex items-start gap-3 group"
+              >
+                <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white text-xs font-bold">
+                  ✓
+                </span>
+                <div>
+                  <span className="block text-sm font-bold text-[#1e293b] group-hover:text-emerald-800">
+                    {t(UI.quoteOrderActionDirectBtn)}
+                  </span>
+                  <span className="block text-[11px] text-[#64748b] mt-0.5">
+                    {t(UI.quoteOrderActionDirectHint)}
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            <div className="flex justify-end px-5 py-3.5 bg-[#f8fafc] border-t border-[#e2e8f0]">
+              <button
+                type="button"
+                onClick={() => setOrderActionRow(null)}
+                className="px-4 py-2 rounded-lg border border-[#cbd5e1] text-sm font-semibold text-[#475569] hover:bg-white transition-colors"
+              >
+                {t(UI.quoteDeleteCancel)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {orderEmailOpen && orderEmailRow && (
         <div className="fixed inset-0 bg-black/50 z-[70] flex items-start justify-center overflow-y-auto py-10 px-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
@@ -1069,12 +1172,12 @@ export default function QuoteListPage({
                       type="button"
                       onClick={() => handleSort(index)}
                       className={`inline-flex w-full items-center gap-1 hover:text-[#191919] ${header.includes('금액') ? 'justify-end text-right' : 'text-left'}`}
-                      title={sortIndex === index && sortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}
-                      aria-label={`${header} ${sortIndex === index && sortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}`}
+                      title={activeSortIndex === index && activeSortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}
+                      aria-label={`${header} ${activeSortIndex === index && activeSortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}`}
                     >
                       <span>{header}</span>
-                      <span className="text-[#999999]" aria-hidden="true">
-                        {sortIndex === index ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                      <span className={activeSortIndex === index ? 'text-blue-600 font-bold' : 'text-[#999999]'} aria-hidden="true">
+                        {activeSortIndex === index ? (activeSortDirection === 'asc' ? '↑' : '↓') : '↕'}
                       </span>
                     </button>
                   </th>
