@@ -835,11 +835,13 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber, requestedDepartmen
       ? parsedYear
       : currentYear;
 
-    // 수정 대상 부서 결정:
-    // 1) 견적번호 접두사(예: "기술영업 2609-001" -> "기술영업")가 유효 부서이면 최우선 사용
-    // 2) 관리자가 전달한 requestedDepartment가 유효하면 사용
-    // 3) 그 외에는 본인 등록 부서 사용
-    const prefixDept = String(quoteNumber || '').trim().split(/\s+/)[0];
+    const rawQuoteNum = String(quoteNumber || '').trim();
+    if (!rawQuoteNum) {
+      return { success: false, message: '수정할 견적번호가 비어 있습니다.' };
+    }
+
+    const baseQuoteNumber = baseQuoteNumber_(rawQuoteNum);
+    const prefixDept = rawQuoteNum.split(/\s+/)[0];
     let department = access.author.department;
     if (CONFIG.DEPARTMENT_ROOTS[prefixDept]) {
       department = prefixDept;
@@ -849,59 +851,148 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber, requestedDepartmen
 
     const rootFolderId = resolveRootFolderId({ authorDepartment: department });
     const system = getExistingYearSystem_(year, rootFolderId);
-    const baseQuoteNumber = baseQuoteNumber_(quoteNumber);
-    if (!system || !baseQuoteNumber) {
-      return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도와 부서를 확인해 주세요.' };
+    if (!system) {
+      return { success: false, message: `수정할 ${year}년 ${department} 대장을 찾을 수 없습니다.` };
     }
-    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
-    if (!snapshot || snapshot.getLastRow() < 2) {
-      return { success: false, message: '이 견적에는 수정 가능한 원본 데이터가 없습니다.' };
-    }
-    const rows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
 
-    // 해당 견적의 모든 기존 버전 목록 수집 (덮어쓰기 대상 선택용)
+    const sheet = system.ledgerSheet;
+    const ledgerRowIdx = findLedgerRow_(sheet, baseQuoteNumber);
+
+    // 정규화 키 함수 (공백, 하이픈, 언더바 제거)
+    function normKey(str) {
+      return String(str || '').replace(/[\s\-_]/g, '').toLowerCase();
+    }
+    const baseNorm = normKey(baseQuoteNumber);
+
     const existingVersions = [];
     const seenVerNumbers = {};
-    for (let j = 0; j < rows.length; j++) {
-      if (String(rows[j][1] || '').trim() !== baseQuoteNumber) continue;
-      const verNum = String(rows[j][0] || '').trim();
-      if (!verNum || seenVerNumbers[verNum]) continue;
-      seenVerNumbers[verNum] = true;
-      const isRev = /_Rev(\d+)$/i.test(verNum);
-      const revTag = isRev ? verNum.match(/_Rev(\d+)$/i)[0].replace(/^_/, '') : '원본';
-      const dateStr = rows[j][2] ? Utilities.formatDate(new Date(rows[j][2]), 'GMT+9', 'yyyy-MM-dd HH:mm') : '';
-      existingVersions.push({
-        quoteNumber: verNum,
-        label: `${revTag} (${verNum})`,
-        date: dateStr
-      });
-    }
-    if (!seenVerNumbers[baseQuoteNumber]) {
-      existingVersions.unshift({
-        quoteNumber: baseQuoteNumber,
-        label: `원본 (${baseQuoteNumber})`,
-        date: ''
-      });
+
+    // 1. 스냅샷 시트(견적원본데이터)에서 정밀 품목 데이터 탐색
+    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+    if (snapshot && snapshot.getLastRow() >= 2) {
+      const rows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
+
+      // 기존 버전 목록 수집
+      for (let j = 0; j < rows.length; j++) {
+        const q0 = String(rows[j][0] || '').trim();
+        const q1 = String(rows[j][1] || '').trim();
+        if (normKey(q1) !== baseNorm && normKey(q0).indexOf(baseNorm) === -1) continue;
+        const verNum = q0 || q1;
+        if (!verNum || seenVerNumbers[verNum]) continue;
+        seenVerNumbers[verNum] = true;
+        const isRev = /_Rev(\d+)$/i.test(verNum);
+        const revTag = isRev ? verNum.match(/_Rev(\d+)$/i)[0].replace(/^_/, '') : '원본';
+        const dateStr = rows[j][2] ? Utilities.formatDate(new Date(rows[j][2]), 'GMT+9', 'yyyy-MM-dd HH:mm') : '';
+        existingVersions.push({
+          quoteNumber: verNum,
+          label: `${revTag} (${verNum})`,
+          date: dateStr
+        });
+      }
+
+      // 최신 스냅샷 데이터 탐색 (역순)
+      for (let i = rows.length - 1; i >= 0; i--) {
+        const q0 = String(rows[i][0] || '').trim();
+        const q1 = String(rows[i][1] || '').trim();
+        if (normKey(q1) !== baseNorm && normKey(q0).indexOf(baseNorm) === -1) continue;
+
+        try {
+          const stored = JSON.parse(String(rows[i][4] || '{}'));
+          if (stored && (stored.details || stored.items)) {
+            if (!seenVerNumbers[baseQuoteNumber]) {
+              existingVersions.unshift({
+                quoteNumber: baseQuoteNumber,
+                label: `원본 (${baseQuoteNumber})`,
+                date: ''
+              });
+            }
+            return {
+              success: true,
+              quote: {
+                quoteNumber: q0 || stored.details?.quoteNumber || baseQuoteNumber,
+                baseQuoteNumber: baseQuoteNumber,
+                year: year,
+                department: department,
+                details: stored.details || {},
+                items: Array.isArray(stored.items) ? stored.items : [],
+                existingVersions: existingVersions
+              }
+            };
+          }
+        } catch (parseErr) {
+          Logger.log('스냅샷 파싱 실패: ' + parseErr.toString());
+        }
+      }
     }
 
-    for (let i = rows.length - 1; i >= 0; i--) {
-      if (String(rows[i][1] || '').trim() !== baseQuoteNumber) continue;
-      const stored = JSON.parse(String(rows[i][4] || '{}'));
+    // 2. [Fallback 복원] 스냅샷이 없는 경우(과거 수동 작성 440건 등):
+    // 대장 시트의 해당 행 데이터로부터 기본 견적 정보 및 품목을 복원하여 열어준다!
+    if (ledgerRowIdx >= 2) {
+      const rowValues = sheet.getRange(ledgerRowIdx, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
+      const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
+
+      function colVal(labels, fallbackCol) {
+        const idx = headers.findIndex(function(h) {
+          return labels.some(function(l) { return String(h || '').indexOf(l) !== -1; });
+        });
+        return idx >= 0 ? String(rowValues[idx] || '').trim() : (fallbackCol ? String(rowValues[fallbackCol - 1] || '').trim() : '');
+      }
+
+      const clientName = colVal(['업체명', '회사명'], LEDGER_COL.CLIENT_NAME);
+      const contactPerson = colVal(['고객명', '담당자'], LEDGER_COL.CLIENT_CONTACT);
+      const clientPhone = colVal(['연락처', '전화'], LEDGER_COL.CLIENT_PHONE);
+      const clientEmail = colVal(['이메일', '메일'], LEDGER_COL.CLIENT_EMAIL);
+      const productName = colVal(['제품명'], LEDGER_COL.PRODUCT_NAME);
+      const categories = colVal(['제품 항목', '제품군'], LEDGER_COL.CATEGORIES);
+      const rawPrice = colVal(['견적 금액', '금액'], LEDGER_COL.TOTAL_PRICE);
+      const totalPrice = Number(rawPrice.replace(/[^\d.-]/g, '')) || 0;
+      const notes = colVal(['비고'], LEDGER_COL.NOTES);
+      const quoteDate = `${rowValues[LEDGER_COL.YEAR - 1]}.${rowValues[LEDGER_COL.MONTH - 1]}.${rowValues[LEDGER_COL.DAY - 1]}`;
+
+      existingVersions.push({
+        quoteNumber: baseQuoteNumber,
+        label: `원본 (${baseQuoteNumber})`,
+        date: quoteDate
+      });
+
       return {
         success: true,
         quote: {
-          quoteNumber: String(rows[i][0] || stored.details?.quoteNumber || baseQuoteNumber),
+          quoteNumber: baseQuoteNumber,
           baseQuoteNumber: baseQuoteNumber,
           year: year,
-          // 수정 저장 시 폴더/대장 조회는 반드시 이 부서(원본이 실제로 저장된 부서)를 사용해야 한다.
           department: department,
-          details: stored.details || {},
-          items: Array.isArray(stored.items) ? stored.items : [],
+          details: {
+            quoteNumber: baseQuoteNumber,
+            quoteDate: quoteDate,
+            clientName: clientName,
+            clientContactPerson: contactPerson,
+            clientPhone: clientPhone,
+            clientEmail: clientEmail,
+            notes: notes,
+            authorName: access.author.name || '',
+            authorPhone: access.author.phone || '',
+            authorEmail: access.author.email || '',
+            authorDepartment: department
+          },
+          items: [{
+            type: categories || '기타',
+            name: productName || '견적 제품',
+            spec: '',
+            quantity: 1,
+            unitPrice: totalPrice,
+            multiplier: 1,
+            totalPrice: totalPrice
+          }],
           existingVersions: existingVersions
         }
       };
     }
-    return { success: false, message: '수정할 견적 원본을 찾을 수 없습니다. 연도와 부서를 확인해 주세요.' };
+
+    return {
+      success: false,
+      message: `수정할 견적 원본을 찾을 수 없습니다(견적번호: ${baseQuoteNumber}, 연도: ${year}, 부서: ${department}).`
+    };
   } catch (err) {
     return { success: false, message: '견적 원본 조회 실패: ' + err.toString() };
   }
