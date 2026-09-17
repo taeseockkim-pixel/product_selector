@@ -70,7 +70,7 @@ function columnWidth(header: string) {
   if (header.includes('연락처')) return 104;
   if (header.includes('이메일')) return 148;
   if (header.includes('제품 항목') || header.includes('제품군')) return 106;
-  if (header.includes('제품명')) return 130;
+  if (header.includes('제품명')) return 180;
   if (header.includes('적용현장') || header.includes('현장')) return 140;
   if (header.includes('견적 금액') || header.includes('금액')) return 104;
   if (header.includes('비고')) return 130;
@@ -297,8 +297,12 @@ export default function QuoteListPage({
   }, [loadQuotes, onOrderChange, t]);
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('ko-KR');
-  const searchedRows = rows
-    .filter((row) => !normalizedSearch || row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch)));
+  const searchedRows = rows.filter((row) => {
+    if (!normalizedSearch) return true;
+    const matchValue = row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
+    const matchAuthor = Boolean(row.authorName && row.authorName.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
+    return matchValue || matchAuthor;
+  });
 
   const quoteColIndex = headers.findIndex((h) => h.includes('견적번호'));
   const activeSortIndex = sortIndex !== null ? sortIndex : (quoteColIndex >= 0 ? quoteColIndex : null);
@@ -353,7 +357,11 @@ export default function QuoteListPage({
 
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== 'Enter' || !normalizedSearch) return;
-    const matches = rows.filter((row) => !normalizedSearch || row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch)));
+    const matches = rows.filter((row) => {
+      const matchVal = row.values.some((v) => v.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
+      const matchAuthor = Boolean(row.authorName && row.authorName.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
+      return matchVal || matchAuthor;
+    });
     if (matches.length > 1) setSearchPickerRows(matches);
   }
 
@@ -762,6 +770,7 @@ export default function QuoteListPage({
                     <span><strong className="text-[#555555]">{t(UI.quoteNumber)}:</strong> {ledgerValue(headers, row, ['견적번호']) || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteCompany)}:</strong> {ledgerValue(headers, row, ['업체명', '회사명']) || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteContact)}:</strong> {ledgerValue(headers, row, ['고객명', '담당자']) || '-'}</span>
+                    <span><strong className="text-[#555555]">작성자:</strong> {row.authorName || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteDate)}:</strong> {ledgerValue(headers, row, ['견적일자', '일']) || '-'}</span>
                   </div>
                 </button>

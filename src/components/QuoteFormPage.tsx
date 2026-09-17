@@ -83,6 +83,8 @@ interface ItemRow {
   multiplier: string;
   catalogItem?: QuoteCatalogItem;
   product?: Product;
+  /** 사용자가 직접 수기 작성한 품목 (기술지원비, 출장비 등) */
+  isCustom?: boolean;
 }
 
 interface CustomerRecord {
@@ -91,6 +93,7 @@ interface CustomerRecord {
   contact: string;
   phone: string;
   email: string;
+  quoteNumber?: string;
 }
 
 interface StoredQuoteItem {
@@ -103,6 +106,7 @@ interface StoredQuoteItem {
   multiplier: string;
   productId?: string;
   catalogItemId?: string;
+  isCustom?: boolean;
 }
 
 interface QuoteFormDraft {
@@ -150,6 +154,7 @@ function storedItemFromRow(item: ItemRow): StoredQuoteItem {
     multiplier: item.multiplier,
     productId: item.product?.id,
     catalogItemId: item.catalogItem?.id,
+    isCustom: item.isCustom,
   };
 }
 
@@ -167,7 +172,7 @@ function itemRowFromStored(value: unknown, index: number): ItemRow | null {
 
   return {
     key: stringValue(value.key, `draft-item-${index}`),
-    type: stringValue(value.type),
+    type: stringValue(value.type, '기타'),
     name: value.name,
     spec: stringValue(value.spec),
     qty: Math.max(1, Math.trunc(numberValue(value.qty, 1))),
@@ -175,6 +180,7 @@ function itemRowFromStored(value: unknown, index: number): ItemRow | null {
     multiplier: stringValue(value.multiplier, '1'),
     product,
     catalogItem,
+    isCustom: Boolean(value.isCustom || (!catalogItem && !product)),
   };
 }
 
@@ -264,6 +270,7 @@ function customerRecordsFromLedger(headers: string[], rows: LedgerRow[]): Custom
   const contactIndex = findLedgerColumn(headers, ['고객명', '담당자']);
   const phoneIndex = findLedgerColumn(headers, ['연락처', '전화', '휴대폰']);
   const emailIndex = findLedgerColumn(headers, ['이메일', '메일']);
+  const quoteNumberIndex = findLedgerColumn(headers, ['견적번호']);
 
   const seen = new Set<string>();
   const records: CustomerRecord[] = [];
@@ -275,6 +282,7 @@ function customerRecordsFromLedger(headers: string[], rows: LedgerRow[]): Custom
     const contact = (contactIndex >= 0 ? row.values[contactIndex] ?? '' : '').trim();
     const phone = (phoneIndex >= 0 ? row.values[phoneIndex] ?? '' : '').trim();
     const email = (emailIndex >= 0 ? row.values[emailIndex] ?? '' : '').trim();
+    const quoteNumber = (quoteNumberIndex >= 0 ? row.values[quoteNumberIndex] ?? '' : '').trim();
 
     if (!company && !contact) continue;
 
@@ -290,6 +298,7 @@ function customerRecordsFromLedger(headers: string[], rows: LedgerRow[]): Custom
       contact,
       phone,
       email,
+      quoteNumber,
     });
   }
 
@@ -408,6 +417,7 @@ function draftFromQuoteEdit(editQuote: QuoteEditData): QuoteFormDraft {
       multiplier: String(validMultiplier(item.multiplier)),
       productId: product?.id,
       catalogItemId: catalogItem?.id,
+      isCustom: Boolean(!catalogItem && !product),
     };
   });
   const firstItem = items[0];
@@ -964,6 +974,28 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setItems((prev) => prev.filter((_, i) => i !== idx));
   }, []);
 
+  const updateItemName = useCallback((idx: number, name: string) => {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, name, isCustom: true } : item)));
+  }, []);
+
+  const updateItemSpec = useCallback((idx: number, spec: string) => {
+    setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, spec, isCustom: true } : item)));
+  }, []);
+
+  const handleAddCustomItem = useCallback((customName = '', customSpec = '', customPrice: number | null = 0) => {
+    const newItem: ItemRow = {
+      key: createKey('custom'),
+      type: '기타',
+      name: customName || '기술지원비',
+      spec: customSpec || '엔지니어링 기술료 (기존 시스템 데이터/프로젝트 백업 및 신규 장비 이관 세팅)',
+      qty: 1,
+      unitPrice: customPrice,
+      multiplier: '1',
+      isCustom: true,
+    };
+    setItems((prev) => [...prev, newItem]);
+  }, []);
+
   function handleDragStart(idx: number, event: DragEvent<HTMLButtonElement>) {
     setDraggedIndex(idx);
     event.dataTransfer.effectAllowed = 'move';
@@ -1518,13 +1550,23 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   onClick={() => applyCustomerRecord(record)}
                   className="w-full text-left rounded-lg border border-[#ddd9d2] px-4 py-3 hover:bg-blue-50 hover:border-blue-200 transition-colors"
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                    <span><strong className="text-xs text-[#777777] mr-1">{t(UI.quoteCompany)}:</strong>{record.company || '-'}</span>
-                    <span><strong className="text-xs text-[#777777] mr-1">{t(UI.quoteContact)}:</strong>{record.contact || '-'}</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <strong className="text-xs text-[#777777]">{t(UI.quoteCompany)}:</strong>
+                      <span className="font-bold text-sm text-[#0f172a]">{record.company || '-'}</span>
+                    </div>
+                    {record.quoteNumber && (
+                      <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
+                        {record.quoteNumber}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-[#999999]">
-                    <span><strong className="text-[#777777] mr-1">{t(UI.quotePhone)}:</strong>{record.phone || '-'}</span>
-                    <span><strong className="text-[#777777] mr-1">{t(UI.quoteEmail)}:</strong>{record.email || '-'}</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                    <span><strong className="text-xs text-[#777777] mr-1">{t(UI.quoteContact)}:</strong>{record.contact || '-'}</span>
+                    <span><strong className="text-xs text-[#777777] mr-1">{t(UI.quotePhone)}:</strong>{record.phone || '-'}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-[#777777]">
+                    <strong className="text-[#777777] mr-1">{t(UI.quoteEmail)}:</strong>{record.email || '-'}
                   </div>
                 </button>
               ))}
@@ -1754,7 +1796,33 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                 <h3 className="text-xs font-semibold text-[#999999] uppercase tracking-wider">{t(UI.quoteProductQty)}</h3>
               </div>
               <div className="px-5 py-4 border-b border-[#ddd9d2] bg-white">
-                <h4 className="text-sm font-bold text-blue-700 mb-3">{t(UI.quoteProductAdd)}</h4>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                  <h4 className="text-sm font-bold text-blue-700">{t(UI.quoteProductAdd)}</h4>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-[#64748b]">수기 항목:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleAddCustomItem('기술지원비', '엔지니어링 기술료 (기존 시스템 데이터/프로젝트 백업 및 신규 장비 이관 세팅)', 58000)}
+                      className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      + 기술지원비
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddCustomItem('기술지원(방문)', '현장 방문 기술지원', 250000)}
+                      className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      + 출장비
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddCustomItem('', '', 0)}
+                      className="rounded-lg border border-[#cbd5e1] bg-white px-2.5 py-1 text-xs font-bold text-[#334155] hover:bg-[#f1f5f9] transition-colors"
+                    >
+                      + 직접 작성
+                    </button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_120px_150px] gap-3">
                   <select
                     value={selectedSheet}
@@ -1869,13 +1937,36 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <p className="font-medium text-[#191919] text-xs">
-                              <span className="text-[#777777] mr-1">{idx + 1}.</span>
-                              {item.name}
-                            </p>
-                            <p className="text-[#999999] text-xs mt-0.5 line-clamp-2">
-                              {displaySpec(item, lang)}
-                            </p>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="text-[#777777] text-xs font-bold shrink-0">{idx + 1}.</span>
+                              {item.isCustom && (
+                                <span className="inline-block text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded shrink-0">
+                                  수기작성
+                                </span>
+                              )}
+                              <input
+                                type="text"
+                                value={item.name}
+                                onChange={(e) => updateItemName(idx, e.target.value)}
+                                placeholder="품명/제품명 직접 입력"
+                                className={`w-full font-bold text-xs rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                  item.isCustom
+                                    ? 'border border-indigo-300 text-indigo-950 bg-indigo-50/20'
+                                    : 'border border-transparent hover:border-[#cbd5e1] focus:border-blue-500 text-[#191919]'
+                                }`}
+                              />
+                            </div>
+                            <textarea
+                              rows={item.isCustom || (item.spec && item.spec.length > 40) ? 2 : 1}
+                              value={item.spec}
+                              onChange={(e) => updateItemSpec(idx, e.target.value)}
+                              placeholder="규격/사양 상세 내용 직접 작성"
+                              className={`w-full text-xs rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none ${
+                                item.isCustom
+                                  ? 'border border-indigo-200 text-indigo-900 bg-indigo-50/10'
+                                  : 'border border-transparent hover:border-[#cbd5e1] focus:border-blue-500 text-[#666]'
+                              }`}
+                            />
                             {tiered && <p className="text-[10px] text-blue-500 mt-0.5">{t(UI.quoteTieredHint)}</p>}
                           </td>
                           <td className="px-3 py-3 text-center">

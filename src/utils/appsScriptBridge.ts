@@ -96,6 +96,8 @@ export interface LedgerRow {
   links: Array<string | null>;
   /** 라인삭제(취소선) 상태 — true면 대장에 검은 취소선이 표시된 견적 */
   struck?: boolean;
+  /** 견적 작성자 이름 (대장 검색용) */
+  authorName?: string;
 }
 
 export interface LedgerResult {

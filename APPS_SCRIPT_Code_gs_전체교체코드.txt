@@ -211,6 +211,44 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
       }
     }
 
+    // 각 견적번호별 작성자 이름 맵 구축 (대장 검색에서 작성자 이름 검색 지원용)
+    const authorMap = {};
+    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+    if (snapshot && snapshot.getLastRow() >= 2) {
+      const snapRows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
+      snapRows.forEach(function(sRow) {
+        const q0 = String(sRow[0] || '').trim();
+        const q1 = String(sRow[1] || '').trim();
+        let name = '';
+        try {
+          const parsed = JSON.parse(String(sRow[4] || '{}'));
+          name = String((parsed.details && parsed.details.authorName) || '').trim();
+        } catch (e) { /* noop */ }
+        if (!name && sRow[3]) {
+          name = String(sRow[3]).split('@')[0];
+        }
+        if (name) {
+          if (q0) authorMap[q0] = name;
+          if (q1) authorMap[q1] = name;
+        }
+      });
+    }
+
+    // 작성자 DB의 이메일->이름 맵으로 보정
+    try {
+      const authorRows = readAuthorRows_();
+      const emailToName = {};
+      authorRows.forEach(function(ar) {
+        if (ar.email && ar.name) emailToName[String(ar.email).toLowerCase()] = ar.name;
+      });
+      Object.keys(authorMap).forEach(function(k) {
+        const cur = authorMap[k];
+        if (cur.indexOf('@') !== -1 && emailToName[cur.toLowerCase()]) {
+          authorMap[k] = emailToName[cur.toLowerCase()];
+        }
+      });
+    } catch (e) { /* noop */ }
+
     // 견적번호 열의 폰트 취소선을 읽어 라인삭제(struck) 상태를 프론트에 전달한다.
     const quoteCol = LEDGER_COL.QUOTE_NUMBER;
     const fontLines = lastRow >= 2 ? sheet.getRange(2, quoteCol, lastRow - 1, 1).getFontLines() : [];
@@ -233,10 +271,15 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
         return /^https?:\/\//i.test(val) ? val : null;
       });
 
+      const quoteNum = String(paddedValues[quoteCol - 1] || '').trim();
+      const baseNum = quoteNum.replace(/_Rev\d+$/i, '').trim();
+      const authorName = authorMap[quoteNum] || authorMap[baseNum] || '';
+
       return {
         values: paddedValues,
         links: links,
-        struck: fontLines[rowIndex] && fontLines[rowIndex][0] === 'line-through'
+        struck: fontLines[rowIndex] && fontLines[rowIndex][0] === 'line-through',
+        authorName: authorName
       };
     });
 
@@ -1691,8 +1734,16 @@ function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
   const year = dateMatches ? dateMatches[1] : new Date().getFullYear();
   const month = dateMatches ? dateMatches[2] : new Date().getMonth() + 1;
   const day = dateMatches ? dateMatches[3] : new Date().getDate();
-  const firstItem = items[0] || {};
-  const productName = items.length > 1 ? `${firstItem.name} 외 ${items.length - 1}건` : firstItem.name || '';
+  // 제품명 요약: 7건 이하이면 모두 표시, 7건 초과이면 앞의 7건 + '외 N건'으로 표시
+  const itemNames = items.map(function(item) { return String(item.name || '').trim(); }).filter(Boolean);
+  let productName = '';
+  if (itemNames.length <= 7) {
+    productName = itemNames.join(', ');
+  } else {
+    const top7 = itemNames.slice(0, 7).join(', ');
+    const remaining = itemNames.length - 7;
+    productName = `${top7} 외 ${remaining}건`;
+  }
   const categoryRules = [
     ['SCADA PRO', /SCADA\s*PRO/i],
     ['SCADA', /SCADA/i],
