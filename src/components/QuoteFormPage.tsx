@@ -255,19 +255,45 @@ function findLedgerColumn(headers: string[], labels: string[]) {
   return headers.findIndex((header) => labels.some((label) => header.includes(label)));
 }
 
+function normalizePhone(value: string) {
+  return value.replace(/[^\d]/g, '');
+}
+
 function customerRecordsFromLedger(headers: string[], rows: LedgerRow[]): CustomerRecord[] {
   const companyIndex = findLedgerColumn(headers, ['업체명', '회사명', '회사']);
   const contactIndex = findLedgerColumn(headers, ['고객명', '담당자']);
   const phoneIndex = findLedgerColumn(headers, ['연락처', '전화', '휴대폰']);
   const emailIndex = findLedgerColumn(headers, ['이메일', '메일']);
 
-  return rows.map((row, index) => ({
-    id: `${index}-${row.values.join('|')}`,
-    company: companyIndex >= 0 ? row.values[companyIndex] ?? '' : '',
-    contact: contactIndex >= 0 ? row.values[contactIndex] ?? '' : '',
-    phone: phoneIndex >= 0 ? row.values[phoneIndex] ?? '' : '',
-    email: emailIndex >= 0 ? row.values[emailIndex] ?? '' : '',
-  })).filter((record) => record.company.trim() || record.contact.trim());
+  const seen = new Set<string>();
+  const records: CustomerRecord[] = [];
+
+  // 최신 대장 데이터가 우선 반영되도록 역순(아래 행부터)으로 순회
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const row = rows[i];
+    const company = (companyIndex >= 0 ? row.values[companyIndex] ?? '' : '').trim();
+    const contact = (contactIndex >= 0 ? row.values[contactIndex] ?? '' : '').trim();
+    const phone = (phoneIndex >= 0 ? row.values[phoneIndex] ?? '' : '').trim();
+    const email = (emailIndex >= 0 ? row.values[emailIndex] ?? '' : '').trim();
+
+    if (!company && !contact) continue;
+
+    // 업체명, 담당자, 연락처, 이메일 4가지 정보가 모두 일치하면 중복 제거 (1개만 유지)
+    // 4가지 정보 중 1개라도 다르면 서로 다른 키가 생성되어 각각 보존됨
+    const dedupKey = `${company.toLowerCase()}|${contact.toLowerCase()}|${normalizePhone(phone)}|${email.toLowerCase()}`;
+    if (seen.has(dedupKey)) continue;
+    seen.add(dedupKey);
+
+    records.push({
+      id: `${i}-${dedupKey}`,
+      company,
+      contact,
+      phone,
+      email,
+    });
+  }
+
+  return records;
 }
 
 interface Props {
@@ -978,9 +1004,27 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     const value = field === 'company' ? company : contact;
     const query = value.trim().toLocaleLowerCase('ko-KR');
     if (!query) return;
-    const matches = customerRecords.filter((record) => record[field].toLocaleLowerCase('ko-KR').includes(query));
-    if (matches.length === 1) applyCustomerRecord(matches[0]);
-    else if (matches.length > 1) setCustomerPicker({ field, matches });
+
+    const rawMatches = customerRecords.filter((record) =>
+      record[field].toLocaleLowerCase('ko-KR').includes(query),
+    );
+
+    // 업체명, 담당자, 연락처, 이메일 4가지 정보 기준 중복 제거
+    // 4가지 정보가 모두 일치하면 1개만 남기고, 1개라도 다르면 모두 보존
+    const seen = new Set<string>();
+    const matches: CustomerRecord[] = [];
+    for (const record of rawMatches) {
+      const dedupKey = `${record.company.trim().toLowerCase()}|${record.contact.trim().toLowerCase()}|${normalizePhone(record.phone)}|${record.email.trim().toLowerCase()}`;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+      matches.push(record);
+    }
+
+    if (matches.length === 1) {
+      applyCustomerRecord(matches[0]);
+    } else if (matches.length > 1) {
+      setCustomerPicker({ field, matches });
+    }
   }
 
   function handleResetForm() {
