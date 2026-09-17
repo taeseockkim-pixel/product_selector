@@ -15,9 +15,28 @@ interface Props {
   pdfUrl?: string;
   /** pdfUrl을 아직 만드는 중인지 (true면 iframe 대신 로딩 표시) */
   loading?: boolean;
+  /** 수정 모드인지 여부 */
+  isEditMode?: boolean;
+  /** 수정 시 저장 방식: 신규 견적서로 생성 vs 기존 견적서에 Rev으로 생성 */
+  editSaveType?: 'newQuote' | 'revision';
+  onEditSaveTypeChange?: (type: 'newQuote' | 'revision') => void;
+  baseQuoteNumber?: string;
 }
 
-export default function QuotePrintView({ quote, onClose, onGenerate, onEmail, generating, emailing, pdfUrl, loading }: Props) {
+export default function QuotePrintView({
+  quote,
+  onClose,
+  onGenerate,
+  onEmail,
+  generating,
+  emailing,
+  pdfUrl,
+  loading,
+  isEditMode,
+  editSaveType = 'revision',
+  onEditSaveTypeChange,
+  baseQuoteNumber,
+}: Props) {
   const t = useT();
   const { lang } = useLang();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -92,6 +111,42 @@ export default function QuotePrintView({ quote, onClose, onGenerate, onEmail, ge
         {actionPreview ? (
           <>
             <div className="p-6 space-y-6 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 150px)' }}>
+              {isEditMode && (
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-blue-50/90 border border-blue-200 rounded-xl p-3.5 text-xs shadow-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-extrabold text-blue-900 bg-blue-200 px-2 py-0.5 rounded">
+                      수정 모드 {baseQuoteNumber ? `(${baseQuoteNumber})` : ''}
+                    </span>
+                    <span className="text-blue-800 font-medium">
+                      {editSaveType === 'newQuote'
+                        ? t(UI.quoteEditOptionNewHint)
+                        : t(UI.quoteEditOptionRevHint)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-xs">
+                    <label className="flex items-center gap-1.5 cursor-pointer font-bold text-[#1e293b]">
+                      <input
+                        type="checkbox"
+                        checked={editSaveType === 'newQuote'}
+                        onChange={() => onEditSaveTypeChange?.(editSaveType === 'newQuote' ? 'revision' : 'newQuote')}
+                        className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <span>{t(UI.quoteEditOptionNew)}</span>
+                    </label>
+                    <span className="text-[#cbd5e1]">|</span>
+                    <label className="flex items-center gap-1.5 cursor-pointer font-bold text-[#1e293b]">
+                      <input
+                        type="checkbox"
+                        checked={editSaveType === 'revision'}
+                        onChange={() => onEditSaveTypeChange?.(editSaveType === 'revision' ? 'newQuote' : 'revision')}
+                        className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      />
+                      <span>{t(UI.quoteEditOptionRev)}</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <section>
                   <h3 className="text-sm font-bold text-indigo-700 border-b-2 border-indigo-100 pb-2 mb-3">수신 (고객)</h3>
@@ -108,7 +163,17 @@ export default function QuotePrintView({ quote, onClose, onGenerate, onEmail, ge
                     <dt className="text-[#777777]">작성자</dt><dd className="font-semibold">{quote.author.name}</dd>
                     <dt className="text-[#777777]">연락처</dt><dd>{quote.author.phone}</dd>
                     <dt className="text-[#777777]">이메일</dt><dd>{quote.author.email}</dd>
-                    <dt className="text-[#777777]">견적번호</dt><dd className="font-semibold text-blue-700">{quote.quoteNumber || '(저장 시 자동 생성)'}</dd>
+                    <dt className="text-[#777777]">견적번호</dt>
+                    <dd className="font-semibold text-blue-700 flex items-center gap-2">
+                      <span>{isEditMode && editSaveType === 'newQuote' ? '(신규 번호 자동 채번)' : (quote.quoteNumber || '(저장 시 자동 생성)')}</span>
+                      {isEditMode && (
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          editSaveType === 'newQuote' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {editSaveType === 'newQuote' ? '신규 생성' : 'Rev 수정'}
+                        </span>
+                      )}
+                    </dd>
                   </dl>
                 </section>
               </div>

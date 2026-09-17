@@ -748,6 +748,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
 
+  // ── 수정 시 미리보기 저장 모드: 'revision'(기존 견적서에 Rev으로 생성) vs 'newQuote'(신규 견적서로 생성) ──
+  const [editSaveType, setEditSaveType] = useState<'newQuote' | 'revision'>('revision');
+
   // ── 견적 수정 시 저장 방식 선택 모달 상태 ──
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [revisionSaveMode, setRevisionSaveMode] = useState<'newRevision' | 'overwrite'>('newRevision');
@@ -756,6 +759,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
   useEffect(() => {
     if (editQuote) {
+      setEditSaveType('revision');
       setOverwriteTarget(editQuote.quoteNumber || editQuote.baseQuoteNumber);
     }
   }, [editQuote]);
@@ -1178,6 +1182,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     body = '',
     saveMode: 'newRevision' | 'overwrite' = 'newRevision',
     overwriteTargetNumber = '',
+    asNewQuote = false,
   ) {
     if (!validateForSubmit()) return;
     if (createDraft) setEmailing(true);
@@ -1185,9 +1190,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setProcessingMessage(createDraft ? '메일 초안을 준비하고 있습니다...' : '견적서를 저장하고 있습니다...');
     try {
       const quote = previewQuote ?? buildDraftQuote();
-      const revisionOf = editQuote?.baseQuoteNumber || editQuote?.quoteNumber || '';
-      const revisionYear = revisionOf ? editQuote?.year : undefined;
-      const revisionDepartment = revisionOf ? (editQuote?.department || '') : '';
+      // asNewQuote가 true이면 수정본이 아니라 완전히 새로운 신규 견적으로 처리한다.
+      const isRevision = Boolean(editQuote && !asNewQuote);
+      const revisionOf = isRevision ? (editQuote?.baseQuoteNumber || editQuote?.quoteNumber || '') : '';
+      const revisionYear = isRevision ? editQuote?.year : undefined;
+      const revisionDepartment = isRevision ? (editQuote?.department || '') : '';
       const result = await processQuoteRequest(
         quote,
         createDraft,
@@ -1218,7 +1225,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       await waitForLedgerFileLink(targetYear, targetDepartment, targetQuoteNumber, (msg) => setProcessingMessage(msg));
 
       // 수정(editQuote) 세션은 애초에 공용 "새 견적" 초안 키에 저장한 적이 없으므로 지우지 않는다.
-      if (!editQuote) clearQuoteFormDraft(draftStorageKey);
+      if (!editQuote || asNewQuote) clearQuoteFormDraft(draftStorageKey);
       if (createDraft) window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
       // 모든 파일 생성 및 대장 반영이 끝난 뒤 견적 목록으로 이동한다.
       onSuccess();
@@ -1233,7 +1240,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   }
 
   function handleSave() {
-    if (editQuote) {
+    if (editQuote && editSaveType === 'newQuote') {
+      // 사용자가 미리보기에서 '신규 견적서로 생성'을 체크한 경우: 신규 생성 프로세스로 진행!
+      void processGoogleQuote(false, '', '', 'newRevision', '', true /* asNewQuote */);
+      return;
+    }
+    if (editQuote && editSaveType === 'revision') {
+      // 사용자가 미리보기에서 '기존 견적서에 Rev으로 생성'을 체크한 경우: 기존 수정 프로세스(모달)
       setPendingDraftAction(false);
       setRevisionModalOpen(true);
       return;
@@ -1243,7 +1256,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
   function handleEmailDraft() {
     setEmailModalOpen(false);
-    if (editQuote) {
+    if (editQuote && editSaveType === 'newQuote') {
+      // 사용자가 미리보기에서 '신규 견적서로 생성'을 체크한 경우: 신규 생성 프로세스로 진행!
+      void processGoogleQuote(true, emailSubject, emailBody, 'newRevision', '', true /* asNewQuote */);
+      return;
+    }
+    if (editQuote && editSaveType === 'revision') {
+      // 사용자가 미리보기에서 '기존 견적서에 Rev으로 생성'을 체크한 경우: 기존 수정 프로세스(모달)
       setPendingDraftAction(true);
       setRevisionModalOpen(true);
       return;
@@ -1286,6 +1305,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
           onEmail={openEmailComposer}
           generating={submitting}
           emailing={emailing}
+          isEditMode={Boolean(editQuote)}
+          editSaveType={editSaveType}
+          onEditSaveTypeChange={setEditSaveType}
+          baseQuoteNumber={editQuote?.baseQuoteNumber}
         />
       )}
       {emailModalOpen && previewQuote && (
