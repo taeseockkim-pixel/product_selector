@@ -23,6 +23,13 @@ import express from 'express';
 import { fillQuoteTemplate } from '../server/fillTemplate.js';
 import { excelToPdf } from '../server/excelToPdf.js';
 import { appendQuoteToStatsJson, refreshDepartmentStats } from './quoteStats.js';
+import {
+  getOrderHistoryDir,
+  getLatestOrderHistoryFile,
+  parseOrderHistoryWorkbook,
+  syncOrderHistoryToDrive,
+  orderHistoryUploadHtml,
+} from './orderHistory.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -1076,6 +1083,72 @@ app.get('/upload', (req, res) => {
   res.type('html').send(uploadPageHtml(session, targetInfo));
 });
 
+// ── 발주 내역 파일 업로드 웹 페이지 ──
+app.get('/order-history-upload', (req, res) => {
+  const session = readSession(req);
+  if (!session) {
+    return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
+  }
+  const department = safeDepartmentSegment(req.query.department || session.department || DEFAULT_DEPARTMENT);
+  const year = Number(req.query.year) || new Date().getFullYear();
+  const dir = getOrderHistoryDir(STORAGE_ROOT, department, year);
+  const latestFile = getLatestOrderHistoryFile(dir);
+  res.type('html').send(orderHistoryUploadHtml(session, department, year, latestFile));
+});
+
+// ── 발주 내역 파일 업로드 API ──
+app.post('/api/order-history/upload', uploadJsonParser, async (req, res) => {
+  try {
+    const { department, year, fileName, base64 } = req.body || {};
+    if (!department || !fileName || !base64) {
+      return res.status(400).json({ success: false, message: '필수 입력값이 누락되었습니다.' });
+    }
+    const safeDept = safeDepartmentSegment(department);
+    const safeYear = Number(year) || new Date().getFullYear();
+    const dir = getOrderHistoryDir(STORAGE_ROOT, safeDept, safeYear);
+    const targetPath = join(dir, safeSegment(fileName));
+
+    const buffer = Buffer.from(base64, 'base64');
+    writeFileSync(targetPath, buffer);
+    console.log(`[에이전트] 발주 내역 파일 업로드 저장 완료: ${targetPath}`);
+
+    // 즉시 파싱 및 통계 갱신
+    const orderStats = await parseOrderHistoryWorkbook(targetPath);
+    syncOrderHistoryToDrive(AGENT_FOLDER, safeDept, safeYear, orderStats, fileName);
+
+    res.json({ success: true, message: '발주 내역이 성공적으로 반영되었습니다.', orderStats });
+  } catch (err) {
+    console.error(`[에이전트] 발주 내역 업로드 처리 실패: ${err.message}`);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── 최신 발주 내역 통계 조회 API (CORS 허용) ──
+app.get('/api/order-history/latest', async (req, res) => {
+  try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const department = safeDepartmentSegment(req.query.department || DEFAULT_DEPARTMENT);
+    const year = Number(req.query.year) || new Date().getFullYear();
+    const dir = getOrderHistoryDir(STORAGE_ROOT, department, year);
+    const latestFile = getLatestOrderHistoryFile(dir);
+    if (!latestFile) {
+      return res.json({ success: true, hasFile: false, records: [] });
+    }
+    const orderStats = await parseOrderHistoryWorkbook(latestFile.fullPath);
+    syncOrderHistoryToDrive(AGENT_FOLDER, department, year, orderStats, latestFile.name);
+    res.json({
+      success: true,
+      hasFile: true,
+      fileName: latestFile.name,
+      fileMtime: latestFile.mtime,
+      ...orderStats,
+    });
+  } catch (err) {
+    console.error(`[에이전트] 발주 내역 파싱 실패: ${err.message}`);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // 로그인된 부서와 요청된 견적 부서가 다른지 검사한다.
 // (파일 서버 세션은 자체 비밀번호 기반이라, 견적 앱의 관리자 부서 전환과는 별개로 동작한다.)
 function detectDepartmentMismatch(session, values) {
@@ -1398,6 +1471,19 @@ console.log(`[통계] 기존 견적서 스캔 시작 (부서: ${statsDepartments
 void (async () => {
   for (const dept of statsDepartments) {
     await refreshDepartmentStats(STORAGE_ROOT, AGENT_FOLDER, dept);
+    // 부서별 최신 발주 내역 파일 자동 스캔 및 Drive 동기화
+    try {
+      const currentYear = new Date().getFullYear();
+      const orderDir = getOrderHistoryDir(STORAGE_ROOT, dept, currentYear);
+      const latestOrderFile = getLatestOrderHistoryFile(orderDir);
+      if (latestOrderFile) {
+        console.log(`[발주내역] ${dept} 최신 발주 파일 감지: ${latestOrderFile.name}`);
+        const orderStats = await parseOrderHistoryWorkbook(latestOrderFile.fullPath);
+        syncOrderHistoryToDrive(AGENT_FOLDER, dept, currentYear, orderStats, latestOrderFile.name);
+      }
+    } catch (orderErr) {
+      console.warn(`[발주내역] ${dept} 초기 발주 파일 스캔 오류: ${orderErr.message}`);
+    }
   }
   console.log('[통계] 초기 스캔 완료');
 })();

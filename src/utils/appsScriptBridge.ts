@@ -191,6 +191,60 @@ export interface DashboardStatsResult {
   message?: string;
 }
 
+export interface OrderHistoryRecord {
+  orderNo: string;
+  orderDate: string;
+  year: number;
+  month: number;
+  day: number;
+  dateStr: string;
+  client: string;
+  delivery: string;
+  rep: string;
+  itemNo: string;
+  itemName: string;
+  spec: string;
+  qty: number;
+  unitPrice: number;
+  supply: number;
+  vat: number;
+  total: number;
+}
+
+export interface OrderHistoryResult {
+  success: boolean;
+  hasFile?: boolean;
+  department?: string;
+  year?: number;
+  sourceFileName?: string;
+  generatedAt?: string;
+  totalAmount?: number;
+  totalSupply?: number;
+  totalVat?: number;
+  totalOrders?: number;
+  totalItems?: number;
+  uniqueClients?: number;
+  monthlyTotals?: Array<{ month: number; amount: number; count: number; supply: number }>;
+  clientRanking?: Array<{ client: string; amount: number; count: number; supply?: number }>;
+  repRanking?: Array<{ rep: string; amount: number; count: number; supply?: number }>;
+  productRanking?: Array<{ name: string; itemNo?: string; amount: number; qty: number; count: number }>;
+  recentOrders?: Array<{
+    orderNo: string;
+    orderDate: string;
+    month: number;
+    day: number;
+    dateStr: string;
+    client: string;
+    delivery: string;
+    rep: string;
+    amount: number;
+    itemCount: number;
+    firstItem: string;
+  }>;
+  rawRows?: OrderHistoryRecord[];
+  message?: string;
+}
+
 export interface QuoteEditBridgeResponse {
   source?: string;
   type?: string;
@@ -234,6 +288,7 @@ declare global {
               deleteQuoteFromReact: (payload: unknown) => void;
               restoreQuoteFromReact: (payload: unknown) => void;
               updateQuoteSiteFromReact: (payload: unknown) => void;
+              getOrderHistoryFromReact: (payload: unknown) => void;
             };
           };
         };
@@ -265,8 +320,8 @@ function callAppsScriptFn<T>(
 }
 
 function callAppsScriptFnViaParentBridge<T>(
-  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT' | 'GET_QUOTE_FILES_RESULT' | 'GET_DASHBOARD_STATS_RESULT' | 'DELETE_QUOTE_RESULT' | 'RESTORE_QUOTE_RESULT' | 'UPDATE_QUOTE_SITE_RESULT',
-  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT' | 'GET_QUOTE_FILES' | 'GET_DASHBOARD_STATS' | 'DELETE_QUOTE' | 'RESTORE_QUOTE' | 'UPDATE_QUOTE_SITE',
+  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT' | 'GET_QUOTE_FILES_RESULT' | 'GET_DASHBOARD_STATS_RESULT' | 'DELETE_QUOTE_RESULT' | 'RESTORE_QUOTE_RESULT' | 'UPDATE_QUOTE_SITE_RESULT' | 'GET_ORDER_HISTORY_RESULT',
+  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT' | 'GET_QUOTE_FILES' | 'GET_DASHBOARD_STATS' | 'DELETE_QUOTE' | 'RESTORE_QUOTE' | 'UPDATE_QUOTE_SITE' | 'GET_ORDER_HISTORY',
   timeoutMs: number,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
@@ -297,7 +352,7 @@ function callAppsScriptFnViaParentBridge<T>(
 }
 
 function callAppsScriptPayload<T>(
-  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact' | 'getQuoteFilesFromReact' | 'getDashboardStatsFromReact' | 'deleteQuoteFromReact' | 'restoreQuoteFromReact' | 'updateQuoteSiteFromReact',
+  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact' | 'getQuoteFilesFromReact' | 'getDashboardStatsFromReact' | 'deleteQuoteFromReact' | 'restoreQuoteFromReact' | 'updateQuoteSiteFromReact' | 'getOrderHistoryFromReact',
   payload: unknown,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -445,6 +500,19 @@ export function updateQuoteSite(payload: { year: number; department: string; quo
     );
   }
   return callAppsScriptPayload<QuoteProcessResult>('updateQuoteSiteFromReact', payload);
+}
+
+/** 최신 ERP 발주 내역 데이터를 조회한다 (에이전트가 stats/<부서>_orders.json으로 기록) */
+export function fetchOrderHistory(department: string, year: number): Promise<OrderHistoryResult> {
+  if (window.parent && window.parent !== window) {
+    return callAppsScriptFnViaParentBridge<OrderHistoryResult>(
+      'GET_ORDER_HISTORY_RESULT',
+      'GET_ORDER_HISTORY',
+      30000,
+      { payload: { department, year } },
+    );
+  }
+  return callAppsScriptPayload<OrderHistoryResult>('getOrderHistoryFromReact', { department, year });
 }
 
 /** 앱 진입 시 접속 계정의 견적 기능 사용 권한을 확인한다 (fetchAuthorization 별칭) */

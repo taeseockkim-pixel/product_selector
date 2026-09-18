@@ -5,13 +5,15 @@ import {
   fetchLedger,
   fetchDashboardStats,
   fetchAuthors,
+  fetchOrderHistory,
   type DashboardStatsRecord,
+  type OrderHistoryResult,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
 
 type DashboardTab = 'quotes' | 'orders';
 type Metric = 'count' | 'amount';
-type PeriodMode = 'all' | 'month' | 'custom';
+type PeriodMode = 'all' | 'month' | 'week' | 'custom';
 
 interface Props {
   onBack: () => void;
@@ -50,7 +52,8 @@ interface HoverTooltipState {
   align: 'left' | 'center' | 'right';
 }
 
-const CATEGORY_OPTIONS = ['PLC', 'IPC / IAC', 'SCADA', 'XPANEL'];
+// 4대 제품군 외 모든 항목(TOUCH, ACCESSORY, Hybird, 기술지원비 등)을 '기타'로 포함하여 451건이 누락 없이 100% 집계되도록 함
+const CATEGORY_OPTIONS = ['PLC', 'IPC / IAC', 'SCADA', 'XPANEL', '기타'];
 
 function findColumn(headers: string[], labels: string[]) {
   return headers.findIndex((header) => labels.some((label) => header.includes(label)));
@@ -96,7 +99,7 @@ function normalizeCategory(value: string) {
   if (text.includes('SCADA')) return 'SCADA';
   if (text.includes('XPANEL')) return 'XPANEL';
   if (text.includes('PLC') || text.includes('CM0') || text.includes('CM1') || text.includes('CM3')) return 'PLC';
-  return value.trim() || '기타';
+  return '기타';
 }
 
 function buildRecords(
@@ -199,7 +202,7 @@ function dayTotals(records: QuoteRecord[], daysInMonth: number, metric: Metric) 
 }
 
 function teamColor(index: number) {
-  return ['#2563eb', '#0f766e', '#d97706', '#7c3aed'][index % 4];
+  return ['#2563eb', '#0f766e', '#d97706', '#7c3aed', '#64748b'][index % 5];
 }
 
 /** 통계 JSON 품목 상세 집계 — 견적/발주 필터링 지원 */
@@ -232,18 +235,23 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   const [metric, setMetric] = useState<Metric>('amount');
   const [categories, setCategories] = useState<string[]>(CATEGORY_OPTIONS);
 
-  // ── [신규] 사용자(작성자)별 필터 ──
+  // ── 사용자(작성자)별 필터 ──
   const [selectedAuthor, setSelectedAuthor] = useState('전체');
 
-  // ── [신규] 일자/기간별 필터 ──
+  // ── 일자/기간별 필터 (연간 전체 / 월별 / 주간 / 일자 지정) ──
   const [periodMode, setPeriodMode] = useState<PeriodMode>('all');
   const [selectedMonth, setSelectedMonth] = useState<number>(0);
+  const [selectedWeek, setSelectedWeek] = useState<number>(1); // 1~5주차
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
   const [records, setRecords] = useState<QuoteRecord[]>([]);
   const [history, setHistory] = useState<QuoteRecord[]>([]);
   const [statsRecords, setStatsRecords] = useState<DashboardStatsRecord[]>([]);
+
+  // ── ERP 발주 내역 최신 파일 데이터 ──
+  const [orderHistoryData, setOrderHistoryData] = useState<OrderHistoryResult | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -302,7 +310,20 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
         }
       });
 
-      // 3. 대장 조회
+      // 3. 최신 ERP 발주 내역 파일 데이터 조회
+      try {
+        const targetDeptForOrder = selectedDepartment === '전체' ? department : selectedDepartment;
+        const orderHistRes = await fetchOrderHistory(targetDeptForOrder, selectedYear);
+        if (orderHistRes && orderHistRes.success && orderHistRes.hasFile) {
+          setOrderHistoryData(orderHistRes);
+        } else {
+          setOrderHistoryData(null);
+        }
+      } catch {
+        setOrderHistoryData(null);
+      }
+
+      // 4. 대장 조회
       const years = new Set<number>();
       const selectedResults = await Promise.all(targetDepartments.map(async (target) => {
         try {
@@ -325,7 +346,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       setRecords(currentRecords);
       setAvailableYears([...years].filter((year) => year >= 2000 && year <= currentYear).sort((a, b) => b - a));
 
-      // 4. 과거 연도 대장 읽기 (이탈/재구매 분석용)
+      // 5. 과거 연도 대장 읽기 (이탈/재구매 분석용)
       const historicalYears = [...years].filter((year) => year < selectedYear).slice(0, 5);
       const historicalResults = await Promise.all(historicalYears.flatMap((year) =>
         targetDepartments.map(async (target) => {
@@ -344,15 +365,35 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       setRecords([]);
       setHistory([]);
       setStatsRecords([]);
+      setOrderHistoryData(null);
       setError(String(err));
     } finally {
       setLoading(false);
     }
-  }, [currentYear, selectedYear, targetDepartments]);
+  }, [currentYear, department, selectedDepartment, selectedYear, targetDepartments]);
 
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
+
+  // 발주 내역 업로드 완료 postMessage 수신 시 대시보드 자동 새로고침
+  useEffect(() => {
+    function handleOrderHistoryUploaded(event: MessageEvent) {
+      if (event.data?.source === 'cimon-order-history-agent' && event.data.type === 'ORDER_HISTORY_UPLOADED') {
+        void loadDashboard();
+      }
+    }
+    window.addEventListener('message', handleOrderHistoryUploaded);
+    return () => window.removeEventListener('message', handleOrderHistoryUploaded);
+  }, [loadDashboard]);
+
+  // 발주 내역 업로드 창 열기
+  function handleOpenOrderHistoryUpload() {
+    const targetDept = selectedDepartment === '전체' ? department : selectedDepartment;
+    const url = `http://172.35.12.36:8790/order-history-upload?department=${encodeURIComponent(targetDept)}&year=${selectedYear}`;
+    const popup = window.open(url, '_blank');
+    if (!popup) alert('발주 내역 파일 업로드 창을 열 수 없습니다. 브라우저 팝업 차단을 해제해 주세요.');
+  }
 
   // 해당 부서/연도의 고유 담당자(작성자) 목록 추출 (이메일 주소 형태나 미입력 제외)
   const availableAuthors = useMemo(() => {
@@ -366,23 +407,37 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
   }, [records]);
 
-  // ── [다단계 필터링: 제품군 + 담당자 + 일자/기간] ──
+  // ── [주간 계산 헬퍼: 1주차(1~7일), 2주차(8~14일), 3주차(15~21일), 4주차(22~28일), 5주차(29~말일)] ──
+  const activeWeekMonth = selectedMonth > 0 ? selectedMonth : (new Date().getMonth() + 1);
+  const weekRange = useMemo(() => {
+    const startDay = (selectedWeek - 1) * 7 + 1;
+    const daysInMonth = new Date(selectedYear, activeWeekMonth, 0).getDate();
+    const endDay = selectedWeek === 5 ? daysInMonth : Math.min(selectedWeek * 7, daysInMonth);
+    return { startDay, endDay, daysInMonth };
+  }, [activeWeekMonth, selectedWeek, selectedYear]);
+
+  // ── [다단계 필터링: 제품군 + 담당자 + 일자/기간(연간/월간/주간/일자지정)] ──
   const categoryRecords = useMemo(() => {
     return records.filter((record) => {
-      // 1. 제품군 필터
-      if (!categories.includes(record.category)) return false;
+      // 1. 제품군 필터: 전체 선택 시 무조건 통과 (451건 100% 보존)
+      if (categories.length < CATEGORY_OPTIONS.length && !categories.includes(record.category)) {
+        return false;
+      }
       // 2. 담당자 필터
       if (selectedAuthor !== '전체' && record.authorName !== selectedAuthor) return false;
       // 3. 기간 필터
       if (periodMode === 'month') {
         if (selectedMonth > 0 && record.month !== selectedMonth) return false;
+      } else if (periodMode === 'week') {
+        if (record.month !== activeWeekMonth) return false;
+        if (record.day < weekRange.startDay || record.day > weekRange.endDay) return false;
       } else if (periodMode === 'custom') {
         if (startDate && record.dateStr && record.dateStr < startDate) return false;
         if (endDate && record.dateStr && record.dateStr > endDate) return false;
       }
       return true;
     });
-  }, [categories, endDate, periodMode, records, selectedAuthor, selectedMonth, startDate]);
+  }, [activeWeekMonth, categories, endDate, periodMode, records, selectedAuthor, selectedMonth, startDate, weekRange.endDay, weekRange.startDay]);
 
   // 발주 완료된 레코드 (수주 실적 데이터)
   const orderRecords = useMemo(
@@ -408,56 +463,123 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
   const avgQuoteAmount = totalQuoteCount > 0 ? totalQuoteAmount / totalQuoteCount : 0;
   const uniqueQuotedClients = useMemo(() => new Set(categoryRecords.map((r) => r.company).filter(Boolean)).size, [categoryRecords]);
 
-  const totalOrderAmount = useMemo(() => orderRecords.reduce((sum, r) => sum + r.amount, 0), [orderRecords]);
-  const totalOrderCount = orderRecords.length;
+  // 발주 탭의 경우: 최신 ERP 발주 내역 파일이 있으면 해당 실제 데이터를 우선 사용!
+  const hasOrderFile = Boolean(orderHistoryData && orderHistoryData.hasFile);
+
+  const totalOrderAmount = useMemo(() => {
+    if (activeTab === 'orders' && hasOrderFile && orderHistoryData?.totalAmount != null) {
+      return orderHistoryData.totalAmount;
+    }
+    return orderRecords.reduce((sum, r) => sum + r.amount, 0);
+  }, [activeTab, hasOrderFile, orderHistoryData, orderRecords]);
+
+  const totalOrderCount = useMemo(() => {
+    if (activeTab === 'orders' && hasOrderFile && orderHistoryData?.totalOrders != null) {
+      return orderHistoryData.totalOrders;
+    }
+    return orderRecords.length;
+  }, [activeTab, hasOrderFile, orderHistoryData, orderRecords]);
+
   const avgOrderAmount = totalOrderCount > 0 ? totalOrderAmount / totalOrderCount : 0;
-  const uniquePayingClients = useMemo(() => new Set(orderRecords.map((r) => r.company).filter(Boolean)).size, [orderRecords]);
+
+  const uniquePayingClients = useMemo(() => {
+    if (activeTab === 'orders' && hasOrderFile && orderHistoryData?.uniqueClients != null) {
+      return orderHistoryData.uniqueClients;
+    }
+    return new Set(orderRecords.map((r) => r.company).filter(Boolean)).size;
+  }, [activeTab, hasOrderFile, orderHistoryData, orderRecords]);
 
   // 전환율 (Win Rate)
   const winRateCount = totalQuoteCount > 0 ? Math.round((totalOrderCount / totalQuoteCount) * 1000) / 10 : 0;
   const winRateAmount = totalQuoteAmount > 0 ? Math.round((totalOrderAmount / totalQuoteAmount) * 1000) / 10 : 0;
 
-  // ── [스마트 추이 차트: 월별 추이 vs 일별 추이] ──
-  const isDailyChart = periodMode === 'month' && selectedMonth > 0;
+  // ── [스마트 추이 차트: 월별 vs 일별(월간) vs 일별(주간)] ──
+  const isDailyChart = (periodMode === 'month' && selectedMonth > 0) || periodMode === 'week';
   const daysInSelectedMonth = useMemo(() => {
-    if (!isDailyChart) return 0;
-    return new Date(selectedYear, selectedMonth, 0).getDate();
-  }, [isDailyChart, selectedMonth, selectedYear]);
+    if (periodMode === 'week') {
+      return weekRange.endDay - weekRange.startDay + 1;
+    }
+    if (periodMode === 'month' && selectedMonth > 0) {
+      return new Date(selectedYear, selectedMonth, 0).getDate();
+    }
+    return 0;
+  }, [periodMode, selectedMonth, selectedYear, weekRange.endDay, weekRange.startDay]);
 
   const chartData = useMemo(() => {
+    // 발주 탭이고 ERP 파일 데이터가 연간 전체로 제공되는 경우
+    if (activeTab === 'orders' && hasOrderFile && periodMode === 'all' && orderHistoryData?.monthlyTotals) {
+      const values = orderHistoryData.monthlyTotals.map((m) => (metric === 'amount' ? m.amount : m.count));
+      const labels = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
+      return { values, labels, isDaily: false };
+    }
+
+    if (periodMode === 'week') {
+      const count = weekRange.endDay - weekRange.startDay + 1;
+      const values = Array.from({ length: count }, (_, idx) => {
+        const d = weekRange.startDay + idx;
+        const matched = currentRecords.filter((r) => r.day === d);
+        return matched.reduce((sum, r) => sum + (metric === 'amount' ? r.amount : 1), 0);
+      });
+      const labels = Array.from({ length: count }, (_, idx) => `${weekRange.startDay + idx}일`);
+      return { values, labels, isDaily: true };
+    }
+
     if (isDailyChart) {
       const values = dayTotals(currentRecords, daysInSelectedMonth, metric);
       const labels = Array.from({ length: daysInSelectedMonth }, (_, i) => `${i + 1}일`);
       return { values, labels, isDaily: true };
     }
+
     const values = monthTotals(currentRecords, metric);
     const labels = Array.from({ length: 12 }, (_, i) => `${i + 1}월`);
     return { values, labels, isDaily: false };
-  }, [currentRecords, daysInSelectedMonth, isDailyChart, metric]);
+  }, [activeTab, currentRecords, daysInSelectedMonth, hasOrderFile, isDailyChart, metric, orderHistoryData, periodMode, weekRange.endDay, weekRange.startDay]);
 
-  const chartWidth = isDailyChart && daysInSelectedMonth > 28 ? 840 : 760;
+  const chartWidth = isDailyChart && daysInSelectedMonth > 20 ? 840 : 760;
   const chartHeight = 240;
   const chartPoints = useMemo(() => linePoints(chartData.values, chartWidth, chartHeight), [chartData.values, chartWidth]);
 
-  // 차원별 집계 및 랭킹
-  const rankedCompanies = useMemo(
-    () => [...aggregate(currentRecords, 'company')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8),
-    [currentRecords, metric],
-  );
-  const rankedProducts = useMemo(
-    () => [...aggregate(currentRecords, 'product')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8),
-    [currentRecords, metric],
-  );
+  // 차원별 집계 및 랭킹 (발주 탭이고 ERP 파일이 있으면 ERP 파일 데이터 우선)
+  const rankedCompanies = useMemo(() => {
+    if (activeTab === 'orders' && hasOrderFile && orderHistoryData?.clientRanking) {
+      return orderHistoryData.clientRanking.slice(0, 8).map((c) => ({
+        label: c.client,
+        amount: c.amount,
+        count: c.count,
+      }));
+    }
+    return [...aggregate(currentRecords, 'company')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8);
+  }, [activeTab, currentRecords, hasOrderFile, metric, orderHistoryData]);
+
+  const rankedProducts = useMemo(() => {
+    if (activeTab === 'orders' && hasOrderFile && orderHistoryData?.productRanking) {
+      return orderHistoryData.productRanking.slice(0, 8).map((p) => ({
+        label: p.name,
+        amount: p.amount,
+        count: p.count,
+        qty: p.qty,
+      }));
+    }
+    return [...aggregate(currentRecords, 'product')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)).slice(0, 8);
+  }, [activeTab, currentRecords, hasOrderFile, metric, orderHistoryData]);
+
   const rankedCategories = useMemo(
     () => [...aggregate(currentRecords, 'category')].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)),
     [currentRecords, metric],
   );
-  const rankedAuthors = useMemo(
-    () => [...aggregate(currentRecords, 'authorName')]
+
+  const rankedAuthors = useMemo(() => {
+    if (activeTab === 'orders' && hasOrderFile && orderHistoryData?.repRanking) {
+      return orderHistoryData.repRanking.map((r) => ({
+        label: r.rep,
+        amount: r.amount,
+        count: r.count,
+      }));
+    }
+    return [...aggregate(currentRecords, 'authorName')]
       .filter((item) => item.label && item.label !== '미입력' && !item.label.includes('@'))
-      .sort((a, b) => metricValue(b, metric) - metricValue(a, metric)),
-    [currentRecords, metric],
-  );
+      .sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
+  }, [activeTab, currentRecords, hasOrderFile, metric, orderHistoryData]);
 
   // 팀별 영업 성과 비교 행 (관리자: 전체 부서 비교 / 일반: 본인 부서 표시)
   const displayDepartments = useMemo(
@@ -484,8 +606,20 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
       .slice(0, 8);
   }, [categoryRecords]);
 
-  // 발주 탭: 최근 수주 확정 건 내역 (최근 발주)
+  // 발주 탭: 최근 수주 확정 건 내역 (ERP 파일 데이터 우선)
   const recentOrders = useMemo(() => {
+    if (activeTab === 'orders' && hasOrderFile && orderHistoryData?.recentOrders) {
+      return orderHistoryData.recentOrders.slice(0, 8).map((o) => ({
+        quoteNumber: o.orderNo,
+        company: o.client,
+        product: o.firstItem + (o.itemCount > 1 ? ` 외 ${o.itemCount - 1}건` : ''),
+        amount: o.amount,
+        authorName: o.rep,
+        month: o.month,
+        day: o.day,
+        dateStr: o.dateStr || o.orderDate,
+      }));
+    }
     return [...orderRecords]
       .sort((a, b) => {
         if (b.month !== a.month) return b.month - a.month;
@@ -493,7 +627,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
         return b.amount - a.amount;
       })
       .slice(0, 8);
-  }, [orderRecords]);
+  }, [activeTab, hasOrderFile, orderHistoryData, orderRecords]);
 
   // 고객 분석: 견적 탭(견적 문의 중단) vs 발주 탭(실제 발주 이탈 우려 거래처)
   const customerRetentionList = useMemo(() => {
@@ -516,7 +650,11 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
         .sort((a, b) => b.totalAmount - a.totalAmount)
         .slice(0, 8);
     } else {
-      const currentOrderClients = new Set(orderRecords.map((r) => r.company));
+      const currentOrderClients = new Set(
+        hasOrderFile && orderHistoryData?.clientRanking
+          ? orderHistoryData.clientRanking.map((c) => c.client)
+          : orderRecords.map((r) => r.company)
+      );
       const pastOrderRecords = history.filter((r) => r.ordered);
       const pastOrderClients = new Set(pastOrderRecords.map((r) => r.company));
       return [...pastOrderClients]
@@ -535,7 +673,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
         .sort((a, b) => b.totalAmount - a.totalAmount)
         .slice(0, 8);
     }
-  }, [activeTab, categoryRecords, history, orderRecords]);
+  }, [activeTab, categoryRecords, hasOrderFile, history, orderHistoryData, orderRecords]);
 
   // 통계 JSON 기반 품목 상세
   const itemAnalysis = useMemo(() => {
@@ -553,7 +691,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     );
   }
 
-  // ── [툴팁 호버 감지 개선: 천장 근처 flipDown 반전 + 좌우 클램핑 + 부모 클리핑 방지] ──
+  // ── [툴팁 호버 감지: 천장 근처 flipDown 반전 + 좌우 클램핑] ──
   function handleTrendHover(event: React.MouseEvent<SVGSVGElement, MouseEvent>) {
     const svg = trendSvgRef.current;
     if (!svg || chartPoints.length === 0) return;
@@ -575,7 +713,6 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
     const closest = chartPoints[closestIndex];
     if (!closest) return;
 
-    // 천장 근처(y < 85)면 툴팁을 포인트 아래로 반전(flipDown)
     const flipDown = closest.y < 85;
     const align: 'left' | 'center' | 'right' =
       closest.x < 110 ? 'left' : closest.x > chartWidth - 110 ? 'right' : 'center';
@@ -704,18 +841,50 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
             </button>
           </div>
 
-          <div className="text-right hidden sm:block">
-            <p className="text-xs font-semibold text-[#64748b]">
+          <div className="flex items-center gap-3">
+            {!isQuotes && (
+              <button
+                type="button"
+                onClick={handleOpenOrderHistoryUpload}
+                className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors shadow-xs"
+              >
+                <span>📁</span>
+                <span>{t(UI.quoteDashboardOrderFileUpload)}</span>
+              </button>
+            )}
+            <p className="text-xs font-semibold text-[#64748b] hidden sm:block">
               {isQuotes ? t(UI.quoteDashboardQuotesSub) : t(UI.quoteDashboardOrdersSub)}
             </p>
           </div>
         </div>
 
-        {/* ── [필터 바: 1줄: 제품군 + 담당자 + 지표 / 2줄: 기간/일자 선택] ── */}
+        {/* ── [발주 분석 탭 기준 파일 배지] ── */}
+        {!isQuotes && hasOrderFile && (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-emerald-50/80 border border-emerald-200 px-4 py-2.5 text-xs text-emerald-950">
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-white bg-emerald-600 px-2 py-0.5 rounded text-[10px]">
+                {t(UI.quoteDashboardOrderFileSource)}
+              </span>
+              <span className="font-bold">
+                {orderHistoryData?.sourceFileName}
+              </span>
+              <span className="text-emerald-700 text-[11px]">
+                (D:\folders\공유\견적서\{selectedDepartment === '전체' ? department : selectedDepartment}\{selectedYear}\발주 내역)
+              </span>
+            </div>
+            {orderHistoryData?.generatedAt && (
+              <span className="text-[11px] text-emerald-700 font-medium">
+                반영 시각: {new Date(orderHistoryData.generatedAt).toLocaleString('ko-KR')}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── [필터 바: 1줄: 제품군 + 담당자 + 지표 / 2줄: 기간/일자 선택 (연간/월별/주간/일자지정)] ── */}
         <section className="rounded-2xl border border-[#e2e8f0] bg-white p-4 shadow-sm space-y-3">
           {/* 1줄: 제품군 필터 + 담당자 필터 + 금액/건수 지표 토글 */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#f1f5f9] pb-3">
-            {/* 제품군 칩 */}
+            {/* 제품군 칩 (451건 100% 집계 보장) */}
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-[#64748b]">제품군:</span>
               {CATEGORY_OPTIONS.map((category) => {
@@ -797,7 +966,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
             </div>
           </div>
 
-          {/* 2줄: 기간/일자 선택 컨트롤 */}
+          {/* 2줄: 기간/일자 선택 컨트롤 (연간 전체 / 월간 / 주간 / 일자 지정) */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-bold text-[#64748b] mr-1">{t(UI.quoteDashboardFilterPeriod)}:</span>
@@ -825,6 +994,18 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                   }`}
                 >
                   {t(UI.quoteDashboardPeriodMonth)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPeriodMode('week');
+                    if (selectedMonth === 0) setSelectedMonth(new Date().getMonth() + 1);
+                  }}
+                  className={`rounded-lg px-3 py-1 font-bold transition-all ${
+                    periodMode === 'week' ? 'bg-white text-blue-700 shadow-xs' : 'text-[#64748b]'
+                  }`}
+                >
+                  {t(UI.quoteDashboardPeriodWeek)}
                 </button>
                 <button
                   type="button"
@@ -860,6 +1041,43 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                 </div>
               )}
 
+              {/* 주간(Weekly) 모드일 때: 월 선택 + 1~5주차 칩 */}
+              {periodMode === 'week' && (
+                <div className="flex flex-wrap items-center gap-2 ml-2">
+                  <select
+                    value={activeWeekMonth}
+                    onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                    className="rounded-lg border border-[#cbd5e1] bg-white px-2 py-1 text-xs font-bold text-[#1e293b]"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <option key={m} value={m}>{m}월</option>
+                    ))}
+                  </select>
+
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((w) => (
+                      <button
+                        type="button"
+                        key={w}
+                        onClick={() => setSelectedWeek(w)}
+                        className={`px-2 py-1 rounded-lg text-xs font-bold transition-colors ${
+                          selectedWeek === w
+                            ? isQuotes
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-emerald-600 text-white'
+                            : 'bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] hover:bg-[#edf2f7]'
+                        }`}
+                      >
+                        {w}주차
+                      </button>
+                    ))}
+                    <span className="text-[11px] text-[#64748b] ml-1">
+                      ({weekRange.startDay}일~{weekRange.endDay}일)
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* 일자 지정 모드일 때: 시작일 ~ 종료일 달력 인풋 */}
               {periodMode === 'custom' && (
                 <div className="flex items-center gap-1.5 ml-2">
@@ -888,6 +1106,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                   setSelectedAuthor('전체');
                   setPeriodMode('all');
                   setSelectedMonth(0);
+                  setSelectedWeek(1);
                   setStartDate('');
                   setEndDate('');
                   setCategories([...CATEGORY_OPTIONS]);
@@ -919,7 +1138,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
             {/* ── [영업 핵심 KPI 스코어카드 5종] ── */}
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
               {isQuotes ? (
-                // ── 견적 분석 탭 KPI ──
+                // ── 견적 분석 탭 KPI (451건 100% 집계) ──
                 <>
                   <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-white to-blue-50/40 p-4 shadow-sm">
                     <div className="flex items-center justify-between">
@@ -938,7 +1157,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                       {totalQuoteCount.toLocaleString('ko-KR')}건
                     </p>
                     <p className="text-[11px] text-[#64748b] mt-1">
-                      {selectedAuthor !== '전체' ? `${selectedAuthor} 제안 건수` : '총 영업 제안 건수'}
+                      {selectedAuthor !== '전체' ? `${selectedAuthor} 제안 건수` : '전체 영업 제안 건수'}
                     </p>
                   </div>
 
@@ -970,7 +1189,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                   </div>
                 </>
               ) : (
-                // ── 발주(수주) 분석 탭 KPI ──
+                // ── 발주(수주) 분석 탭 KPI (실제 ERP 발주 파일 데이터 연동) ──
                 <>
                   <div className="rounded-2xl border border-emerald-300 bg-gradient-to-br from-white to-emerald-50/50 p-4 shadow-sm">
                     <div className="flex items-center justify-between">
@@ -989,7 +1208,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                       {totalOrderCount.toLocaleString('ko-KR')}건
                     </p>
                     <p className="text-[11px] text-[#64748b] mt-1">
-                      {selectedAuthor !== '전체' ? `${selectedAuthor} 수주 건수` : '확정 계약 건수'}
+                      {selectedAuthor !== '전체' ? `${selectedAuthor} 수주 건수` : (hasOrderFile ? 'ERP 수주 주문 건수' : '확정 계약 건수')}
                     </p>
                   </div>
 
@@ -1025,19 +1244,25 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
 
             {/* ── [차트 섹션: 스마트 추이 차트 & 영업팀별 비교] ── */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
-              {/* 스마트 실적 추이 라인 차트 (월별 또는 일별) */}
+              {/* 스마트 실적 추이 라인 차트 (월별 / 주간 일별 / 월간 일별) */}
               <section className="xl:col-span-7 rounded-2xl border border-[#e2e8f0] bg-white p-5 shadow-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <div>
                     <h2 className="text-base font-bold text-[#0f172a]">
-                      {isDailyChart
-                        ? `${selectedYear}년 ${selectedMonth}월 ${isQuotes ? '일별 견적 발행 추이' : '일별 수주(발주) 실적 추이'}`
+                      {periodMode === 'week'
+                        ? `${selectedYear}년 ${activeWeekMonth}월 ${selectedWeek}주차 일별 ${isQuotes ? '견적 발행' : '수주 실적'} 추이`
+                        : periodMode === 'month' && selectedMonth > 0
+                        ? `${selectedYear}년 ${selectedMonth}월 일별 ${isQuotes ? '견적 발행' : '수주 실적'} 추이`
                         : isQuotes
                         ? t(UI.quoteDashboardMonthlyQuotes)
                         : t(UI.quoteDashboardMonthlyOrders)}
                     </h2>
                     <p className="text-xs text-[#64748b] mt-0.5">
-                      {isDailyChart ? `${selectedMonth}월 1일~${daysInSelectedMonth}일` : `${selectedYear}년도`}{' '}
+                      {periodMode === 'week'
+                        ? `${activeWeekMonth}월 ${weekRange.startDay}일~${weekRange.endDay}일`
+                        : periodMode === 'month' && selectedMonth > 0
+                        ? `${selectedMonth}월 1일~${daysInSelectedMonth}일`
+                        : `${selectedYear}년도`}{' '}
                       {metric === 'amount' ? '금액(원)' : '건수(건)'} 기준{' '}
                       {isDailyChart ? '일별' : '월별'} 추이
                       {selectedAuthor !== '전체' && ` · ${selectedAuthor}`}
@@ -1063,7 +1288,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                     ref={trendSvgRef}
                     viewBox={`0 0 ${chartWidth} ${chartHeight}`}
                     className="w-full h-64 cursor-crosshair select-none"
-                    style={{ minWidth: isDailyChart ? '720px' : '580px' }}
+                    style={{ minWidth: isDailyChart && daysInSelectedMonth > 20 ? '720px' : '580px' }}
                     onMouseMove={handleTrendHover}
                     onMouseLeave={() => setHoverPoint(null)}
                   >
@@ -1100,14 +1325,13 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                     {chartPoints.map((point, index) => {
                       const showLabel =
                         !isDailyChart ||
-                        daysInSelectedMonth <= 15 ||
+                        daysInSelectedMonth <= 10 ||
                         index === 0 ||
                         index === daysInSelectedMonth - 1 ||
                         (index + 1) % 5 === 0;
 
                       return (
                         <g key={index}>
-                          {/* 마우스 호버 감지 히트박스 (넓은 반경) */}
                           <circle cx={point.x} cy={point.y} r="14" fill="transparent" />
                           <circle
                             cx={point.x}
@@ -1134,13 +1358,13 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                     })}
                   </svg>
 
-                  {/* ── [호버 툴팁: 상단 짤림 방지 스마트 반전 및 정확한 배치] ── */}
+                  {/* 호버 툴팁 */}
                   {hoverPoint && (
                     <div
                       className="pointer-events-none absolute z-30 rounded-xl bg-[#0f172a] px-3.5 py-2 text-xs font-bold text-white shadow-2xl border border-slate-700 transition-all duration-75"
                       style={{
                         left: `${(hoverPoint.x / chartWidth) * 100}%`,
-                        top: `${hoverPoint.y + 32}px`, // pt-8 (32px) 오프셋 보정
+                        top: `${hoverPoint.y + 32}px`,
                         transform: hoverPoint.flipDown
                           ? hoverPoint.align === 'left'
                             ? 'translate(0%, 18px)'
@@ -1373,7 +1597,7 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                             <span className="text-[#64748b] ml-1.5 text-[11px]">
                               {isQuotes
                                 ? `(${item.count}건)`
-                                : `(${item.count}건 · 수주율 ${repWinRate}%)`}
+                                : `(${item.count}건${repWinRate > 0 ? ` · 수주율 ${repWinRate}%` : ''})`}
                             </span>
                           </div>
                         </div>
@@ -1492,13 +1716,13 @@ export default function DashboardPage({ onBack, departments, department, isAdmin
                     {isQuotes ? t(UI.quoteDashboardPipelineOpen) : t(UI.quoteDashboardRecentOrders)}
                   </h2>
                   <span className="text-xs font-semibold text-[#64748b]">
-                    {isQuotes ? '영업 팔로업 타깃' : '최근 성사 내역'}
+                    {isQuotes ? '영업 팔로업 타깃' : (hasOrderFile ? 'ERP 수주 내역' : '최근 성사 내역')}
                   </span>
                 </div>
                 <p className="text-xs text-[#94a3b8] mb-4">
                   {isQuotes
                     ? '아직 발주되지 않은 고액 견적 파이프라인입니다. 적극적인 영업 팔로업을 진행하세요.'
-                    : '최근 수주가 확정된 주요 발주 내역입니다.'}
+                    : (hasOrderFile ? '최신 발주 내역 파일로부터 수집된 최근 수주 내역입니다.' : '최근 수주가 확정된 주요 발주 내역입니다.')}
                 </p>
 
                 <div className="overflow-x-auto">

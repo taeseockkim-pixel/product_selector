@@ -1342,6 +1342,32 @@ function getDashboardStatsFromReact(payload) {
   }
 }
 
+// 최신 ERP 발주 내역 파일 데이터 조회 (에이전트가 stats/<부서>_orders.json으로 동기화한 파일)
+function getOrderHistoryFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, message: '발주 내역 조회 권한이 없습니다.' };
+    }
+    let department = access.author.department || CONFIG.DEFAULT_DEPARTMENT;
+    const requestedDept = String((payload && payload.department) || '').trim();
+    if (access.isAdmin && requestedDept && CONFIG.DEPARTMENT_ROOTS[requestedDept]) {
+      department = requestedDept;
+    }
+
+    const statsRoot = getAgentSubfolder_('stats');
+    const fileIter = statsRoot.getFilesByName(`${department}_orders.json`);
+    if (!fileIter.hasNext()) {
+      return { success: true, hasFile: false, department, records: [] };
+    }
+    const file = fileIter.next();
+    const parsed = JSON.parse(file.getBlob().getDataAsString('utf8'));
+    return Object.assign({ success: true, hasFile: true, department }, parsed);
+  } catch (err) {
+    return { success: false, message: '발주 내역 조회 실패: ' + err.toString() };
+  }
+}
+
 function getNextQuoteNumber(rootFolderId, department) {
   try {
     const today = new Date();
