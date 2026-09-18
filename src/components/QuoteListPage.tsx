@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import {
@@ -15,6 +15,7 @@ import AiSearchPanel from './AiSearchPanel';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
 const FOLDER_BROWSER_ORIGIN = new URL(FOLDER_BROWSER_URL).origin;
+const COLUMN_CONFIG_STORAGE_KEY = 'cimon-quote-column-config';
 
 function fileNameFromLink(value: string) {
   try {
@@ -187,6 +188,29 @@ export default function QuoteListPage({
   const [pageSize, setPageSize] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // ── 대장 항목(열) 표시/숨김 및 순서 설정 상태 ──
+  const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
+  const [columnOrder, setColumnOrder] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem(COLUMN_CONFIG_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.order)) return parsed.order;
+      }
+    } catch { /* noop */ }
+    return [];
+  });
+  const [hiddenColumns, setHiddenColumns] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(COLUMN_CONFIG_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.hidden)) return new Set(parsed.hidden);
+      }
+    } catch { /* noop */ }
+    return new Set();
+  });
+
   // ── 발주 처리 방식 선택 모달 상태 ──
   const [orderActionRow, setOrderActionRow] = useState<LedgerRow | null>(null);
 
@@ -323,6 +347,65 @@ export default function QuoteListPage({
   const visibleRows = pageSize === 0
     ? sortedRows
     : sortedRows.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
+
+  // ── 대장 항목 순서 및 표시 헤더 도출 ──
+  const allOrderedHeaders = useMemo(() => {
+    if (headers.length === 0) return [];
+    const ordered: string[] = [];
+    columnOrder.forEach((h) => {
+      if (headers.includes(h)) ordered.push(h);
+    });
+    headers.forEach((h) => {
+      if (!ordered.includes(h)) ordered.push(h);
+    });
+    return ordered;
+  }, [headers, columnOrder]);
+
+  const activeHeaders = useMemo(() => {
+    return allOrderedHeaders.filter((h) => !hiddenColumns.has(h));
+  }, [allOrderedHeaders, hiddenColumns]);
+
+  function saveColumnConfig(newOrder: string[], newHidden: Set<string>) {
+    setColumnOrder(newOrder);
+    setHiddenColumns(newHidden);
+    try {
+      localStorage.setItem(COLUMN_CONFIG_STORAGE_KEY, JSON.stringify({
+        order: newOrder,
+        hidden: [...newHidden],
+      }));
+    } catch { /* noop */ }
+  }
+
+  function toggleColumnVisibility(colName: string) {
+    const nextHidden = new Set(hiddenColumns);
+    if (nextHidden.has(colName)) {
+      nextHidden.delete(colName);
+    } else {
+      if (headers.length - nextHidden.size <= 1) {
+        alert('최소 1개 이상의 항목은 표시되어야 합니다.');
+        return;
+      }
+      nextHidden.add(colName);
+    }
+    saveColumnConfig(allOrderedHeaders, nextHidden);
+  }
+
+  function moveColumn(index: number, direction: -1 | 1) {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= allOrderedHeaders.length) return;
+    const nextOrder = [...allOrderedHeaders];
+    const [moved] = nextOrder.splice(index, 1);
+    nextOrder.splice(targetIndex, 0, moved);
+    saveColumnConfig(nextOrder, hiddenColumns);
+  }
+
+  function resetColumnConfig() {
+    setColumnOrder([...headers]);
+    setHiddenColumns(new Set());
+    try {
+      localStorage.removeItem(COLUMN_CONFIG_STORAGE_KEY);
+    } catch { /* noop */ }
+  }
 
   function handleSort(index: number) {
     const currentActiveIndex = sortIndex !== null ? sortIndex : quoteColIndex;
@@ -700,6 +783,18 @@ export default function QuoteListPage({
           <button onClick={() => void loadQuotes()} className="px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors">
             {t(UI.quoteRefresh)}
           </button>
+          <button
+            type="button"
+            onClick={() => setColumnSettingsOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors"
+            title={t(UI.quoteColumnSettingsTitle)}
+          >
+            <svg className="w-4 h-4 text-[#666]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{t(UI.quoteColumnSettings)}</span>
+          </button>
           <div className="relative w-44 sm:w-60">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1025,6 +1120,105 @@ export default function QuoteListPage({
         </div>
       )}
 
+      {/* 대장 항목(열) 표시 및 순서 설정 모달 */}
+      {columnSettingsOpen && (
+        <div className="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-blue-600 text-white shrink-0">
+              <h2 className="text-sm font-bold flex items-center gap-2">
+                <span>⚙</span>
+                <span>{t(UI.quoteColumnSettingsTitle)}</span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => setColumnSettingsOpen(false)}
+                className="text-blue-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                x
+              </button>
+            </div>
+
+            <div className="p-5 overflow-y-auto flex-1 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-[#64748b]">
+                  {t(UI.quoteColumnSettingsDesc)}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => saveColumnConfig(allOrderedHeaders, new Set())}
+                  className="text-xs text-blue-600 font-bold hover:underline"
+                >
+                  {t(UI.quoteColumnShowAll)}
+                </button>
+              </div>
+
+              <div className="space-y-1.5">
+                {allOrderedHeaders.map((colName, index) => {
+                  const isVisible = !hiddenColumns.has(colName);
+                  return (
+                    <div
+                      key={colName}
+                      className={`flex items-center justify-between gap-2 rounded-lg border px-3.5 py-2.5 text-xs transition-colors ${
+                        isVisible ? 'border-[#e2e8f0] bg-white' : 'border-[#f1f5f9] bg-[#f8fafc] opacity-60'
+                      }`}
+                    >
+                      <label className="flex items-center gap-2.5 cursor-pointer flex-1 font-semibold text-[#1e293b]">
+                        <input
+                          type="checkbox"
+                          checked={isVisible}
+                          onChange={() => toggleColumnVisibility(colName)}
+                          className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer h-4 w-4"
+                        />
+                        <span className={isVisible ? 'font-bold' : 'text-[#94a3b8]'}>{colName}</span>
+                      </label>
+
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => moveColumn(index, -1)}
+                          className="px-2 py-1 rounded bg-[#f1f5f9] hover:bg-[#e2e8f0] disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold text-[#475569]"
+                          title={t(UI.quoteColumnMoveUp)}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === allOrderedHeaders.length - 1}
+                          onClick={() => moveColumn(index, 1)}
+                          className="px-2 py-1 rounded bg-[#f1f5f9] hover:bg-[#e2e8f0] disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold text-[#475569]"
+                          title={t(UI.quoteColumnMoveDown)}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between px-5 py-3.5 bg-[#f8fafc] border-t border-[#e2e8f0] shrink-0">
+              <button
+                type="button"
+                onClick={resetColumnConfig}
+                className="px-3 py-1.5 rounded-lg border border-[#cbd5e1] text-xs font-semibold text-[#64748b] hover:bg-white transition-colors"
+              >
+                ↺ {t(UI.quoteColumnResetDefault)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setColumnSettingsOpen(false)}
+                className="px-5 py-1.5 rounded-lg bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                {t(UI.close)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {orderEmailOpen && orderEmailRow && (
         <div className="fixed inset-0 bg-black/50 z-[70] flex items-start justify-center overflow-y-auto py-10 px-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
@@ -1166,31 +1360,34 @@ export default function QuoteListPage({
       {!loading && !error && rows.length > 0 && (
         <div className="bg-white rounded-xl border border-[#ddd9d2] overflow-hidden">
           <div className="overflow-x-auto">
-          <table className="table-fixed text-xs" style={{ width: `${headers.reduce((sum, header) => sum + columnWidth(header), 0) + ACTION_COLUMN_WIDTH}px` }}>
+          <table className="table-fixed text-xs" style={{ width: `${activeHeaders.reduce((sum, header) => sum + columnWidth(header), 0) + ACTION_COLUMN_WIDTH}px` }}>
             <colgroup>
-              {headers.map((header, index) => (
+              {activeHeaders.map((header, index) => (
                 <col key={`${header}-${index}`} style={{ width: `${columnWidth(header)}px` }} />
               ))}
               <col style={{ width: `${ACTION_COLUMN_WIDTH}px` }} />
             </colgroup>
             <thead className="bg-[#f0ede8]">
               <tr>
-                  {headers.map((header, index) => (
-                  <th key={`${header}-${index}`} className={`${header.includes('금액') ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs ${header.includes('연도') || header.includes('년도') ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
-                    <button
-                      type="button"
-                      onClick={() => handleSort(index)}
-                      className={`inline-flex w-full items-center gap-1 hover:text-[#191919] ${header.includes('금액') ? 'justify-end text-right' : 'text-left'}`}
-                      title={activeSortIndex === index && activeSortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}
-                      aria-label={`${header} ${activeSortIndex === index && activeSortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}`}
-                    >
-                      <span>{header}</span>
-                      <span className={activeSortIndex === index ? 'text-blue-600 font-bold' : 'text-[#999999]'} aria-hidden="true">
-                        {activeSortIndex === index ? (activeSortDirection === 'asc' ? '↑' : '↓') : '↕'}
-                      </span>
-                    </button>
-                  </th>
-                ))}
+                {activeHeaders.map((header, index) => {
+                  const origIndex = headers.indexOf(header);
+                  return (
+                    <th key={`${header}-${index}`} className={`${header.includes('금액') ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs ${header.includes('연도') || header.includes('년도') ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleSort(origIndex)}
+                        className={`inline-flex w-full items-center gap-1 hover:text-[#191919] ${header.includes('금액') ? 'justify-end text-right' : 'text-left'}`}
+                        title={activeSortIndex === origIndex && activeSortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}
+                        aria-label={`${header} ${activeSortIndex === origIndex && activeSortDirection === 'desc' ? t(UI.quoteSortAsc) : t(UI.quoteSortDesc)}`}
+                      >
+                        <span>{header}</span>
+                        <span className={activeSortIndex === origIndex ? 'text-blue-600 font-bold' : 'text-[#999999]'} aria-hidden="true">
+                          {activeSortIndex === origIndex ? (activeSortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                        </span>
+                      </button>
+                    </th>
+                  );
+                })}
                 <th className="text-left whitespace-normal break-words px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs">
                   {t(UI.quoteAction)}
                 </th>
@@ -1206,9 +1403,10 @@ export default function QuoteListPage({
                 const quoteFolderName = folderNameFromLink(linkValue);
                 return (
                   <tr key={`${row.values.join('|')}-${rowIndex}`} className={`border-t border-[#f0ede8] hover:bg-[#fafaf9] ${row.struck ? 'opacity-60' : ''}`}>
-                    {headers.map((header, cellIndex) => {
-                      const value = row.values[cellIndex] ?? '';
-                      const link = row.links[cellIndex];
+                    {activeHeaders.map((header, displayIndex) => {
+                      const cellIndex = headers.indexOf(header);
+                      const value = cellIndex >= 0 ? (row.values[cellIndex] ?? '') : '';
+                      const link = cellIndex >= 0 ? row.links[cellIndex] : null;
                       const href = link ?? (/^https?:\/\//i.test(value) ? value : null);
                       const displayValue = href ? fileNameFromLink(href) : value;
                       const isOrderColumn = header.includes('발주');
@@ -1217,7 +1415,7 @@ export default function QuoteListPage({
                       const isAmountColumn = header.includes('금액');
                       const checked = orderStatus[rowKey] ?? isOrderMarked(value);
                       return (
-                        <td key={cellIndex} className={`${isAmountColumn ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 text-[#555555] ${isYearColumn ? 'whitespace-nowrap' : 'whitespace-normal break-words'} ${row.struck ? 'line-through decoration-[#333333] decoration-2' : ''}`}>
+                        <td key={`${header}-${displayIndex}`} className={`${isAmountColumn ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 text-[#555555] ${isYearColumn ? 'whitespace-nowrap' : 'whitespace-normal break-words'} ${row.struck ? 'line-through decoration-[#333333] decoration-2' : ''}`}>
                           {isOrderColumn ? (
                             <label className="inline-flex items-center gap-1.5 font-medium text-[#555555]">
                               <input
@@ -1257,7 +1455,13 @@ export default function QuoteListPage({
                             <a href={href} target="_blank" rel="noreferrer" className="font-medium text-blue-700 hover:underline break-all" title={displayValue}>
                               {displayValue || '열기'}
                             </a>
-                          ) : isAmountColumn ? formatAmountValue(value) : value}
+                          ) : isAmountColumn ? (
+                            formatAmountValue(value)
+                          ) : (
+                            <span title={value} className="break-words">
+                              {value}
+                            </span>
+                          )}
                         </td>
                       );
                     })}
@@ -1310,7 +1514,7 @@ export default function QuoteListPage({
               })}
               {!loading && !error && visibleRows.length === 0 && rows.length > 0 && (
                 <tr>
-                  <td colSpan={headers.length + 1} className="px-4 py-8 text-center text-sm text-[#999999]">
+                  <td colSpan={activeHeaders.length + 1} className="px-4 py-8 text-center text-sm text-[#999999]">
                     {t(UI.quoteSearchNoResults)}
                   </td>
                 </tr>
