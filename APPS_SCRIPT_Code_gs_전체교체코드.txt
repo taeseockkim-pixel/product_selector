@@ -1244,11 +1244,13 @@ function createOrderDraftFromReact(payload) {
       '감사합니다.'
     ].join('\n');
 
-    // 본인(로그인 사용자) 계정으로 초안을 생성한다.
+    // 본인(로그인 사용자) 계정으로 HTML 모드 초안을 생성한다 (Gmail 서명 이미지 파일 보존).
+    const htmlBody = textToHtmlBody_(body);
     GmailApp.createDraft(ORDER_EMAIL_TO, subject, body, {
       cc: ORDER_EMAIL_CC,
       attachments: attachments,
-      name: 'CIMON'
+      name: 'CIMON',
+      htmlBody: htmlBody
     });
 
     enqueueActivityLog_(
@@ -1636,13 +1638,18 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
           });
           return createTempQuotePdf_({ details: partDetails, items: partItems }, system, partDetails);
         });
+        const emailBodyText = customBody || makeDefaultEmailBody(details);
+        const htmlBody = textToHtmlBody_(emailBodyText);
+
+        // HTML 모드로 초안을 생성하여 사용자의 Gmail 서명 이미지/로고가 깨지지 않도록 한다.
         GmailApp.createDraft(
           details.clientEmail,
           customSubject || `[CIMON] ${details.clientName} - 제품 견적서 송부 드립니다.`,
-          customBody || makeDefaultEmailBody(details),
+          emailBodyText,
           {
             attachments: pdfBlobs,
-            name: details.authorName || 'CIMON'
+            name: details.authorName || 'CIMON',
+            htmlBody: htmlBody
           }
         );
         returnMessage += '\n\nGmail 초안 생성 완료!';
@@ -1884,6 +1891,19 @@ function generateAIContent(prompt) {
   } catch (err) {
     return '에러';
   }
+}
+
+// 일반 텍스트를 HTML 본문으로 변환 (줄바꿈 및 특수문자 변환)
+// options.htmlBody에 전달하여 Gmail 임시보관함 초안이 HTML 모드로 생성되도록 한다 (서명 이미지/로고 보존).
+function textToHtmlBody_(text) {
+  if (!text) return '';
+  const escaped = String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+  return escaped.replace(/\r\n|\r|\n/g, '<br>\n');
 }
 
 function makeDefaultEmailBody(details) {
