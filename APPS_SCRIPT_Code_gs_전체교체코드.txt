@@ -1042,6 +1042,12 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber, requestedDepartmen
 }
 
 function updateQuoteOrderFromReact(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+  } catch (err) {
+    return { success: false, message: '다른 사용자가 대장을 갱신 중입니다. 잠시 후 다시 시도해 주세요.' };
+  }
   try {
     const access = getAuthorizedUserFromReact();
     if (!access.success || !access.authorized || !access.author) {
@@ -1090,12 +1096,20 @@ function updateQuoteOrderFromReact(payload) {
     return { success: true, message: '발주 여부가 기록되었습니다.' };
   } catch (err) {
     return { success: false, message: '발주 상태 기록 실패: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
   }
 }
 
 // 적용 현장 명칭 기록 (대장 시트의 '적용현장' 열에 저장)
 // payload: { year, department, quoteNumber, siteName }
 function updateQuoteSiteFromReact(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+  } catch (err) {
+    return { success: false, message: '다른 사용자가 대장을 갱신 중입니다. 잠시 후 다시 시도해 주세요.' };
+  }
   try {
     const access = getAuthorizedUserFromReact();
     if (!access.success || !access.authorized || !access.author) {
@@ -1150,6 +1164,8 @@ function updateQuoteSiteFromReact(payload) {
     return { success: true, message: '적용 현장이 저장되었습니다.', siteName: siteName };
   } catch (err) {
     return { success: false, message: '적용 현장 저장 실패: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -1401,6 +1417,12 @@ function getNextQuoteNumber(rootFolderId, department) {
 //                'strikethrough'(라인삭제, 대장에 검은 취소선, 견적번호 유지)
 // payload: { year, department, quoteNumber, mode }
 function deleteQuoteFromReact(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+  } catch (err) {
+    return { success: false, message: '다른 사용자가 삭제 또는 저장 중입니다. 잠시 후 다시 시도해 주세요.' };
+  }
   try {
     const access = getAuthorizedUserFromReact();
     if (!access.success || !access.authorized || !access.author) {
@@ -1454,11 +1476,19 @@ function deleteQuoteFromReact(payload) {
     return { success: true, message: '견적에 취소선이 표시되었습니다. 견적번호는 유지됩니다.' };
   } catch (err) {
     return { success: false, message: '견적 삭제 실패: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
   }
 }
 
 // 라인삭제 해제 — 취소선 제거
 function restoreQuoteFromReact(payload) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(30000);
+  } catch (err) {
+    return { success: false, message: '다른 사용자가 대장을 갱신 중입니다. 잠시 후 다시 시도해 주세요.' };
+  }
   try {
     const access = getAuthorizedUserFromReact();
     if (!access.success || !access.authorized || !access.author) {
@@ -1485,6 +1515,8 @@ function restoreQuoteFromReact(payload) {
     return { success: true, message: '취소선이 해제되었습니다.' };
   } catch (err) {
     return { success: false, message: '견적 복원 실패: ' + err.toString() };
+  } finally {
+    lock.releaseLock();
   }
 }
 
@@ -1508,7 +1540,7 @@ function enqueueLocalDelete_(department, year, baseQuoteNumber) {
 function processQuote(quoteData, createDraft, customSubject, customBody, revisionOf, revisionYear, revisionDepartment, saveMode, overwriteTargetNumber) {
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(10000);
+    lock.waitLock(30000);
   } catch (err) {
     return { success: false, message: '다른 사용자가 저장 중입니다. 잠시 후 다시 시도해 주세요.' };
   }

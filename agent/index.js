@@ -767,17 +767,21 @@ function loginPageHtml(errorMessage = '', nextPath = '') {
 </div></body></html>`;
 }
 
-function browserPageHtml(session, dirRelative, entries) {
+function browserPageHtml(session, dirRelative, entries, order = 'asc') {
   const departmentLabel = session.department === '*' ? '전체 부서 (관리자)' : escHtml(session.department);
-  const crumbParts = [`<a href="/browse">홈</a>`];
+  const nextOrder = order === 'asc' ? 'desc' : 'asc';
+  const orderIcon = order === 'asc' ? '▲' : '▼';
+  const orderTitle = order === 'asc' ? '클릭하여 내림차순(역순)으로 정렬' : '클릭하여 오름차순으로 정렬';
+
+  const crumbParts = [`<a href="/browse?order=${order}">홈</a>`];
   let acc = '';
   for (const part of dirRelative.split('/').filter(Boolean)) {
     acc = acc ? `${acc}/${part}` : part;
-    crumbParts.push(`<a href="/browse?dir=${encodeURIComponent(acc)}">${escHtml(part)}</a>`);
+    crumbParts.push(`<a href="/browse?dir=${encodeURIComponent(acc)}&order=${order}">${escHtml(part)}</a>`);
   }
   const rows = entries.map((entry) => {
     if (entry.isFolder) {
-      return `<tr><td>📁 <a href="/browse?dir=${encodeURIComponent(entry.browsePath)}">${escHtml(entry.name)}</a></td><td>폴더</td><td style="text-align:center; color:#ccc;">-</td></tr>`;
+      return `<tr><td>📁 <a href="/browse?dir=${encodeURIComponent(entry.browsePath)}&order=${order}">${escHtml(entry.name)}</a></td><td>폴더</td><td style="text-align:center; color:#ccc;">-</td></tr>`;
     }
     const viewUrl = `/view?path=${encodeURIComponent(entry.downloadPath)}`;
     const downUrl = `/download?path=${encodeURIComponent(entry.downloadPath)}`;
@@ -801,7 +805,7 @@ function browserPageHtml(session, dirRelative, entries) {
     <a class="logout" href="/logout">로그아웃</a>
   </div>
   <div class="crumb">${crumbParts.join(' &gt; ')}</div>
-  <table><tr><th>이름</th><th style="width:75px;">크기</th><th style="width:130px; text-align:center;">동작</th></tr>${rows}${emptyRow}</table>
+  <table><tr><th style="cursor:pointer;"><a href="/browse?dir=${encodeURIComponent(dirRelative)}&order=${nextOrder}" style="color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:5px;" title="${orderTitle}">이름 <span style="font-size:11px; color:#2563eb;">${orderIcon}</span></a></th><th style="width:75px;">크기</th><th style="width:130px; text-align:center;">동작</th></tr>${rows}${emptyRow}</table>
   </div></body></html>`;
 }
 
@@ -1323,6 +1327,8 @@ app.get('/browse', (req, res) => {
   const dirRelative = target.target === deptRoot ? '' : target.target.slice(deptRoot.length + 1).split(sep).join('/');
   const storageRelative = target.target === storageRootResolved ? '' : target.target.slice(storageRootResolved.length + 1).split(sep).join('/');
 
+  const order = String(req.query.order || '').toLowerCase() === 'desc' ? 'desc' : 'asc';
+
   const entries = readdirSync(target.target, { withFileTypes: true })
     .filter((e) => !e.name.startsWith('.') && e.name.toLowerCase() !== 'desktop.ini')
     .map((e) => {
@@ -1339,9 +1345,13 @@ app.get('/browse', (req, res) => {
         downloadPath: storageRelative ? `${storageRelative}/${e.name}` : e.name,
       };
     })
-    .sort((a, b) => (a.isFolder === b.isFolder ? a.name.localeCompare(b.name, 'ko') : a.isFolder ? -1 : 1));
+    .sort((a, b) => {
+      if (a.isFolder !== b.isFolder) return a.isFolder ? -1 : 1;
+      const cmp = a.name.localeCompare(b.name, 'ko', { numeric: true });
+      return order === 'desc' ? -cmp : cmp;
+    });
 
-  res.type('html').send(browserPageHtml(session, dirRelative, entries));
+  res.type('html').send(browserPageHtml(session, dirRelative, entries, order));
 });
 
 app.get('/view', (req, res) => {
