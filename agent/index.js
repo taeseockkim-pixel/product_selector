@@ -1468,22 +1468,37 @@ startPolling();
 const statsDepartments = [DEFAULT_DEPARTMENT, ...Object.keys(FOLDER_PASSWORDS)]
   .filter((dept, index, arr) => arr.indexOf(dept) === index);
 console.log(`[통계] 기존 견적서 스캔 시작 (부서: ${statsDepartments.join(', ')})`);
+
+const lastProcessedOrderFiles = new Map();
+
+async function checkAndSyncOrderHistory() {
+  const currentYear = new Date().getFullYear();
+  for (const dept of statsDepartments) {
+    try {
+      const orderDir = getOrderHistoryDir(STORAGE_ROOT, dept, currentYear);
+      const latest = getLatestOrderHistoryFile(orderDir);
+      if (!latest) continue;
+
+      const cached = lastProcessedOrderFiles.get(dept);
+      if (!cached || cached.filePath !== latest.fullPath || cached.mtime !== latest.mtime) {
+        console.log(`[발주내역] ${dept} 새 발주 파일 감지 및 분석 시작: ${latest.name}`);
+        const orderStats = await parseOrderHistoryWorkbook(latest.fullPath);
+        syncOrderHistoryToDrive(AGENT_FOLDER, dept, currentYear, orderStats, latest.name);
+        lastProcessedOrderFiles.set(dept, { filePath: latest.fullPath, mtime: latest.mtime });
+      }
+    } catch (orderErr) {
+      // 파일 접근 중 일시 잠금 시 다음 주기에 재시도
+    }
+  }
+}
+
+// 10초마다 발주 내역 폴더의 새 파일 변경을 자동 감지하여 갱신
+setInterval(() => { void checkAndSyncOrderHistory(); }, 10000);
+
 void (async () => {
   for (const dept of statsDepartments) {
     await refreshDepartmentStats(STORAGE_ROOT, AGENT_FOLDER, dept);
-    // 부서별 최신 발주 내역 파일 자동 스캔 및 Drive 동기화
-    try {
-      const currentYear = new Date().getFullYear();
-      const orderDir = getOrderHistoryDir(STORAGE_ROOT, dept, currentYear);
-      const latestOrderFile = getLatestOrderHistoryFile(orderDir);
-      if (latestOrderFile) {
-        console.log(`[발주내역] ${dept} 최신 발주 파일 감지: ${latestOrderFile.name}`);
-        const orderStats = await parseOrderHistoryWorkbook(latestOrderFile.fullPath);
-        syncOrderHistoryToDrive(AGENT_FOLDER, dept, currentYear, orderStats, latestOrderFile.name);
-      }
-    } catch (orderErr) {
-      console.warn(`[발주내역] ${dept} 초기 발주 파일 스캔 오류: ${orderErr.message}`);
-    }
   }
+  await checkAndSyncOrderHistory();
   console.log('[통계] 초기 스캔 완료');
 })();
