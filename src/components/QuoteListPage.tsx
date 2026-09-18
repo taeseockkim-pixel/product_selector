@@ -323,6 +323,13 @@ export default function QuoteListPage({
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('ko-KR');
   const searchedRows = rows.filter((row) => {
+    // 1. 삭제(취소선)된 행은 검색 시 결과에서 완전 제외
+    if (row.struck) return false;
+    // 2. 견적번호와 업체명이 모두 비어 있는 빈 유령 행도 제외
+    const quoteNum = ledgerValue(headers, row, ['견적번호']).trim();
+    const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
+    if (!quoteNum && !company) return false;
+
     if (!normalizedSearch) return true;
     const matchValue = row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
     const matchAuthor = Boolean(row.authorName && row.authorName.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
@@ -443,6 +450,10 @@ export default function QuoteListPage({
   function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key !== 'Enter' || !normalizedSearch) return;
     const matches = rows.filter((row) => {
+      if (row.struck) return false;
+      const quoteNum = ledgerValue(headers, row, ['견적번호']).trim();
+      const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
+      if (!quoteNum && !company) return false;
       const matchVal = row.values.some((v) => v.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
       const matchAuthor = Boolean(row.authorName && row.authorName.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
       return matchVal || matchAuthor;

@@ -223,7 +223,7 @@ function verifyFileLinkSignature(rawEncodedPath, signature) {
 }
 
 // 서명은 통과했지만 정확한 경로에 파일이 없을 때(폴더명/업체명 표기 차이, 폴더 수동 수정 등)
-// 견적번호 접두사로 실제 폴더와 파일을 찾아 반환한다. 동일 쿼터 보안 영역(STORAGE_ROOT) 안에서만 동작한다.
+// 견적번호 접두사 및 순수 일련번호로 실제 폴더와 파일을 유연하게 찾아 반환한다. 동일 쿼터 보안 영역(STORAGE_ROOT) 안에서만 동작한다.
 function resolveQuoteFileForClaim(relative) {
   try {
     const parts = String(relative).split('/').filter(Boolean);
@@ -237,35 +237,89 @@ function resolveQuoteFileForClaim(relative) {
     const yearRoot = resolve(join(deptRoot, year));
     if (!yearRoot.startsWith(deptRoot + sep) || !existsSync(yearRoot) || !statSync(yearRoot).isDirectory()) return null;
 
-    // 폴더명 "기술영업 2609-001_싸이몬" 형태 → 견적번호 접두사 "기술영업 2609-001"
-    const quoteNum = String(folderRaw).split('_')[0];
-    if (!quoteNum) return null;
+    // 1) 전체 견적번호 (예: "기술영업 2608-354")
+    const rawQuoteNum = String(folderRaw).split('_')[0].trim();
+    // 2) 순수 일련번호 패턴 추출 (예: "2608-354" 또는 "2608354")
+    const seqMatch = rawQuoteNum.match(/(\d{4}[-_]?\d+)/);
+    const pureSeq = seqMatch ? seqMatch[1] : '';
 
-    const candidateDirs = readdirSync(yearRoot, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name.startsWith(`${quoteNum}_`));
+    function normKey(str) {
+      return String(str || '').replace(/[\s\-_]/g, '').toLowerCase();
+    }
+    const rawNorm = normKey(rawQuoteNum);
+    const seqNorm = normKey(pureSeq);
+
+    const allDirs = readdirSync(yearRoot, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'));
+
+    // 후보 폴더 탐색 (다단계 유연 매칭)
+    let candidateDirs = [];
+
+    // 1순위: 폴더명이 rawQuoteNum으로 시작 ("기술영업 2608-354_")
+    candidateDirs = allDirs.filter((d) => d.name.startsWith(`${rawQuoteNum}_`));
+
+    // 2순위: 폴더명이 순수 번호로 시작 ("2608-354_", "2608-354 ")
+    if (candidateDirs.length === 0 && pureSeq) {
+      candidateDirs = allDirs.filter((d) => d.name.startsWith(`${pureSeq}_`) || d.name.startsWith(`${pureSeq} `) || d.name.startsWith(`${pureSeq}-`));
+    }
+
+    // 3순위: 정규화 키 포함 ("기술영업2608354" 또는 "2608354"가 폴더명에 포함)
+    if (candidateDirs.length === 0 && seqNorm) {
+      candidateDirs = allDirs.filter((d) => {
+        const dNorm = normKey(d.name);
+        return dNorm.includes(rawNorm) || dNorm.includes(seqNorm);
+      });
+    }
+
+    // 4순위: folderRaw가 후보 디렉토리와 정확히 일치하는 경우
+    const exactDir = allDirs.find((d) => d.name === folderRaw);
+    if (exactDir && !candidateDirs.includes(exactDir)) {
+      candidateDirs.unshift(exactDir);
+    }
+
     if (candidateDirs.length === 0) return null;
 
+    // 폴더 내에서 파일 탐색
+    const requestedExt = extname(fileName).toLowerCase() || '.pdf';
+
     for (const dir of candidateDirs) {
-      const exact = resolve(join(yearRoot, dir.name, fileName));
-      if (exact.startsWith(yearRoot + sep) && existsSync(exact) && statSync(exact).isFile()) return exact;
-    }
-    // URL에 적힌 폴더가 후보 중 하나라면 그 폴더를 우선 검색한다.
-    // 파일명은 업체명/분할 번호 차이를 고려해 같은 확장자와 견적번호를 기준으로 찾는다.
-    const exactDir = candidateDirs.find((entry) => entry.name === folderRaw);
-    const dirsToSearch = exactDir ? [exactDir] : candidateDirs;
-    const requestedExt = extname(fileName).toLowerCase();
-    for (const dir of dirsToSearch) {
       const dirPath = join(yearRoot, dir.name);
-      const matches = readdirSync(dirPath, { withFileTypes: true })
-        .filter((entry) => entry.isFile()
-          && !entry.name.startsWith('.')
-          && extname(entry.name).toLowerCase() === requestedExt
-          && entry.name.includes(quoteNum));
-      if (matches.length === 1) {
-        const found = resolve(join(dirPath, matches[0].name));
+
+      // A) 정확한 파일명 존재 시 즉시 반환
+      const exactFilePath = resolve(join(dirPath, fileName));
+      if (exactFilePath.startsWith(yearRoot + sep) && existsSync(exactFilePath) && statSync(exactFilePath).isFile()) {
+        return exactFilePath;
+      }
+
+      // B) 해당 폴더 내 요청 확장자 파일 목록
+      const files = readdirSync(dirPath, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && !entry.name.startsWith('.') && extname(entry.name).toLowerCase() === requestedExt);
+
+      if (files.length === 0) continue;
+
+      // B-1) 요청 파일명과 정규화가 일치하는 파일
+      const targetFileNorm = normKey(fileName);
+      const normMatch = files.find((f) => normKey(f.name) === targetFileNorm);
+      if (normMatch) {
+        const found = resolve(join(dirPath, normMatch.name));
         if (found.startsWith(yearRoot + sep)) return found;
       }
+
+      // B-2) 견적번호(또는 순수 번호)가 포함된 파일
+      const seqFileMatch = files.find((f) => {
+        const fNorm = normKey(f.name);
+        return fNorm.includes(rawNorm) || (seqNorm && fNorm.includes(seqNorm));
+      });
+      if (seqFileMatch) {
+        const found = resolve(join(dirPath, seqFileMatch.name));
+        if (found.startsWith(yearRoot + sep)) return found;
+      }
+
+      // B-3) 폴더 안에 존재하는 요청 확장자 파일
+      const found = resolve(join(dirPath, files[0].name));
+      if (found.startsWith(yearRoot + sep)) return found;
     }
+
     return null;
   } catch (err) {
     console.error(`[파일 클레임 해석 실패] ${relative}: ${describeError(err)}`);
