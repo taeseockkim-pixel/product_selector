@@ -937,6 +937,75 @@ function mimeTypeForFileName(name) {
   return types[ext] || 'application/octet-stream';
 }
 
+const DELIVERY_ADDRESS_FILE = join(__dirname, 'delivery-addresses.json');
+
+/** 특정 고객사(업체명)의 과거 납품 주소 이력 조회 (최신순) */
+function getDeliveryAddressesForClient(department, company) {
+  const cleanComp = String(company || '').trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+  if (!cleanComp) return [];
+  const addresses = [];
+  const seen = new Set();
+
+  // 1) delivery-addresses.json 확인
+  try {
+    if (existsSync(DELIVERY_ADDRESS_FILE)) {
+      const map = JSON.parse(readFileSync(DELIVERY_ADDRESS_FILE, 'utf8'));
+      for (const [cName, list] of Object.entries(map)) {
+        const cClean = String(cName).trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+        if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
+          (Array.isArray(list) ? list : [list]).forEach((a) => {
+            const trimmed = String(a || '').trim();
+            if (trimmed && !seen.has(trimmed)) {
+              seen.add(trimmed);
+              addresses.push(trimmed);
+            }
+          });
+        }
+      }
+    }
+  } catch { /* noop */ }
+
+  // 2) stats/{department}.json 확인 (기존 견적서의 납품장소 스캔)
+  try {
+    const statsPath = join(AGENT_FOLDER, 'stats', `${safeDepartmentSegment(department)}.json`);
+    if (existsSync(statsPath)) {
+      const stats = JSON.parse(readFileSync(statsPath, 'utf8'));
+      const records = Array.isArray(stats.records) ? stats.records : [];
+      for (let i = records.length - 1; i >= 0; i--) {
+        const r = records[i];
+        const cClean = String(r.company || '').trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+        if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
+          const loc = String(r.deliveryLocation || '').trim();
+          if (loc && !seen.has(loc) && !loc.includes('택배 배송') && loc.length >= 4) {
+            seen.add(loc);
+            addresses.push(loc);
+          }
+        }
+      }
+    }
+  } catch { /* noop */ }
+
+  return addresses;
+}
+
+/** 납품 주소 이력 파일에 저장 (최신 주소를 맨 앞으로 최대 8개 유지) */
+function saveDeliveryAddress(company, address) {
+  const cleanComp = String(company || '').trim();
+  const cleanAddr = String(address || '').trim();
+  if (!cleanComp || !cleanAddr) return;
+  try {
+    let map = {};
+    if (existsSync(DELIVERY_ADDRESS_FILE)) {
+      map = JSON.parse(readFileSync(DELIVERY_ADDRESS_FILE, 'utf8'));
+    }
+    const currentList = Array.isArray(map[cleanComp]) ? map[cleanComp] : [];
+    const filtered = currentList.filter((a) => a !== cleanAddr);
+    filtered.unshift(cleanAddr);
+    map[cleanComp] = filtered.slice(0, 8);
+    writeFileSync(DELIVERY_ADDRESS_FILE, JSON.stringify(map, null, 2), 'utf8');
+  } catch { /* noop */ }
+}
+
 function orderEmailPageHtml(session, targetInfo, values) {
   const departmentLabel = session.department === '*' ? `전체 부서 (관리자) / ${escHtml(targetInfo.department)}` : escHtml(session.department);
   const entries = readdirSync(targetInfo.target, { withFileTypes: true })
@@ -954,6 +1023,10 @@ function orderEmailPageHtml(session, targetInfo, values) {
       };
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+
+  const savedAddresses = getDeliveryAddressesForClient(targetInfo.department, targetInfo.company);
+  const defaultAddress = savedAddresses.length > 0 ? savedAddresses[0] : '';
+
   const orderData = JSON.stringify({
     year: targetInfo.year,
     department: targetInfo.department,
@@ -966,17 +1039,32 @@ function orderEmailPageHtml(session, targetInfo, values) {
     authorEmail: String(values.authorEmail || ''),
   }).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
   const filesJson = JSON.stringify(entries).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+  const addressesJson = JSON.stringify(savedAddresses).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
   return `<!DOCTYPE html>
 <html lang="ko">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 발주등록 요청 메일</title>
-<style>${PAGE_STYLE} .hint{color:#777;font-size:12px;line-height:1.6;margin:10px 0 16px}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px}.required{color:#dc2626}.field{margin-top:16px}.field label{display:block;font-size:12px;font-weight:bold;color:#555;margin-bottom:6px}.field input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd9d2;border-radius:8px;font-size:14px}.files{max-height:280px;overflow:auto;border:1px solid #ddd9d2;border-radius:8px}.file-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid #eee;font-size:13px}.file-row:last-child{border-bottom:0}.file-row span.name{flex:1;min-width:0;overflow-wrap:anywhere}.file-row span.size{color:#999;font-size:11px}.submit{margin-top:18px}.submit button{background:#2563eb}.status{margin-top:10px;font-size:13px}.ok{color:#15803d}.err{color:#dc2626}@media(max-width:560px){.info{grid-template-columns:1fr}}</style></head>
+<style>${PAGE_STYLE} .hint{color:#777;font-size:12px;line-height:1.6;margin:10px 0 16px}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px}.required{color:#dc2626}.field{margin-top:16px}.field label{display:block;font-size:12px;font-weight:bold;color:#555;margin-bottom:6px}.field input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd9d2;border-radius:8px;font-size:14px}.files{max-height:280px;overflow:auto;border:1px solid #ddd9d2;border-radius:8px}.file-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid #eee;font-size:13px}.file-row:last-child{border-bottom:0}.file-row span.name{flex:1;min-width:0;overflow-wrap:anywhere}.file-row span.size{color:#999;font-size:11px}.submit{margin-top:18px}.submit button{background:#2563eb}.status{margin-top:10px;font-size:13px}.ok{color:#15803d}.err{color:#dc2626}.addr-badge{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;margin-bottom:6px}.addr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.addr-chip{background:#f1f5f9;border:1px solid #cbd5e1;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;transition:all 0.15s;text-align:left}.addr-chip:hover{background:#e2e8f0;border-color:#94a3b8}@media(max-width:560px){.info{grid-template-columns:1fr}}</style></head>
 <body><div class="card">
   <div class="top"><div><h1>발주등록 요청 메일 작성</h1><div class="sub">부서: ${departmentLabel}</div></div><a class="logout" href="/logout">로그아웃</a></div>
   <div class="crumb">견적번호: ${escHtml(targetInfo.quoteNumber)} · 업체명: ${escHtml(targetInfo.company)}</div>
   <div class="info"><span><b>제품명:</b> ${escHtml(String(values.productName || '-'))}</span><span><b>담당자:</b> ${escHtml(String(values.contactName || '-'))}</span><span><b>연락처:</b> ${escHtml(String(values.contactPhone || '-'))}</span><span><b>작성자:</b> ${escHtml(String(values.authorName || '-'))}</span></div>
   <p class="hint">주소를 입력하고 발주서·사업자등록증·견적서 XLSX/PDF 등 첨부할 파일을 선택하세요.</p>
-  <div class="field"><label for="address">납품 주소 <span class="required">*</span></label><input id="address" type="text" placeholder="납품 주소를 입력해 주세요 (필수)" required></div>
+  <div class="field">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <label for="address" style="margin-bottom:0;">납품 주소 <span class="required">*</span></label>
+      ${savedAddresses.length > 0 ? `<span class="addr-badge">✓ 기존 등록 주소 자동 불러옴</span>` : ''}
+    </div>
+    <input id="address" type="text" value="${escHtml(defaultAddress)}" placeholder="납품 주소를 입력해 주세요 (필수)" style="margin-top:6px;" required>
+    ${savedAddresses.length > 1 ? `
+      <div style="margin-top:8px;">
+        <span style="font-size:11px; color:#64748b; font-weight:bold;">동일 업체 최근 등록 주소 이력 (클릭하여 선택):</span>
+        <div class="addr-chips">
+          ${savedAddresses.map((addr) => `<button type="button" class="addr-chip" onclick="selectAddress(this.textContent)">${escHtml(addr)}</button>`).join('')}
+        </div>
+      </div>
+    ` : ''}
+  </div>
   <div class="field"><label>첨부 파일 선택 <span class="required">*</span></label>${entries.length ? `<div class="files" id="fileList">${entries.map((file) => `<label class="file-row"><input type="checkbox" value="${escHtml(file.name)}"><span class="name">${escHtml(file.name)}</span><span class="size">${file.size ? `${Math.max(1, Math.round(file.size / 1024)).toLocaleString('ko-KR')} KB` : ''}</span></label>`).join('')}</div>` : '<div class="hint">첨부 가능한 파일이 없습니다.</div>'}</div>
   <div class="submit"><button id="submit" type="button" ${entries.length ? '' : 'disabled'}>임시보관함 작성</button><div id="status" class="status"></div></div>
 </div>
@@ -986,6 +1074,11 @@ const files = ${filesJson};
 const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
 const status = document.getElementById('status');
 function setStatus(text, cls = '') { status.className = 'status ' + cls; status.textContent = text; }
+function selectAddress(text) {
+  const input = document.getElementById('address');
+  input.value = text.trim();
+  input.focus();
+}
 function toBase64(buffer) { const bytes = new Uint8Array(buffer); let binary = ''; const chunk = 0x8000; for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length))); return btoa(binary); }
 document.getElementById('submit').addEventListener('click', async () => {
   const address = document.getElementById('address').value.trim();
@@ -994,6 +1087,15 @@ document.getElementById('submit').addEventListener('click', async () => {
   if (!selectedNames.length) { setStatus('첨부 파일을 1개 이상 선택해 주세요.', 'err'); return; }
   setStatus('선택한 파일을 읽는 중입니다. 잠시 기다려 주세요...');
   try {
+    // 입력된 주소를 에이전트 주소 이력에 비동기 저장
+    try {
+      fetch('/api/save-delivery-address', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company: orderData.clientName, address: address })
+      }).catch(() => {});
+    } catch (e) {}
+
     let totalBytes = 0; const attachments = [];
     for (const name of selectedNames) {
       const meta = files.find((file) => file.name === name); if (!meta) continue;
@@ -1009,8 +1111,15 @@ document.getElementById('submit').addEventListener('click', async () => {
 });
 window.addEventListener('message', (event) => {
   if (event.data?.source !== 'cimon-quote-app' || event.data.type !== 'ORDER_EMAIL_RESULT') return;
-  if (event.data.success) setStatus(event.data.message || '임시보관함에 메일 초안이 생성되었습니다. 이 창을 닫아 주세요.', 'ok');
-  else { document.getElementById('submit').disabled = false; setStatus(event.data.message || '메일 작성에 실패했습니다.', 'err'); }
+  if (event.data.success) {
+    setStatus((event.data.message || '임시보관함에 메일 초안이 생성되었습니다.') + ' 잠시 후 창이 자동으로 닫힙니다.', 'ok');
+    setTimeout(() => {
+      try { window.close(); } catch (e) {}
+    }, 1000);
+  } else {
+    document.getElementById('submit').disabled = false;
+    setStatus(event.data.message || '메일 작성에 실패했습니다.', 'err');
+  }
 });
 </script></body></html>`;
 }
@@ -1121,6 +1230,13 @@ app.get('/order-email', (req, res) => {
     return res.status(404).type('html').send('견적 폴더를 찾을 수 없습니다. 견적번호와 업체명을 확인해 주세요.');
   }
   res.type('html').send(orderEmailPageHtml(session, targetInfo, req.query));
+});
+
+// ── 발주 납품 주소 이력 저장 API ──
+app.post('/api/save-delivery-address', uploadJsonParser, (req, res) => {
+  const { company, address } = req.body || {};
+  saveDeliveryAddress(company, address);
+  res.json({ success: true });
 });
 
 app.get('/upload', (req, res) => {

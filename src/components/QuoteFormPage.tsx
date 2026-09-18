@@ -795,6 +795,52 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
+  // ── 제품명 전용 검색 상태 (제품명으로만 검색) ──
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [productPickerMatches, setProductPickerMatches] = useState<QuoteCatalogItem[] | null>(null);
+
+  const allCatalogItems = useMemo(() => {
+    const list: QuoteCatalogItem[] = [];
+    QUOTE_PRODUCT_CATALOG.forEach((group) => {
+      group.items.forEach((item) => {
+        list.push(item);
+      });
+    });
+    return list;
+  }, []);
+
+  function handleProductSearchChange(value: string) {
+    setProductSearchTerm(value);
+    setProductPickerMatches(null);
+  }
+
+  function applySearchedProduct(item: QuoteCatalogItem) {
+    setSelectedSheet(item.sheet);
+    setSelectedProductId(item.id);
+    setProductPickerMatches(null);
+    setProductSearchTerm('');
+  }
+
+  function handleProductSearchKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const query = productSearchTerm.trim().toLowerCase();
+    if (!query) return;
+
+    // "제품 명으로만 동작하도록" — item.name 만으로 검색
+    const matches = allCatalogItems.filter((item) =>
+      item.name.trim().toLowerCase().includes(query),
+    );
+
+    if (matches.length === 1) {
+      applySearchedProduct(matches[0]);
+    } else if (matches.length > 1) {
+      setProductPickerMatches(matches);
+    } else {
+      alert(t(UI.quoteProductSearchNoResults));
+    }
+  }
+
   const [items, setItems] = useState<ItemRow[]>(() => restoreQuoteItems(initialDraft, cartProducts, lang));
 
   useEffect(() => {
@@ -1587,6 +1633,71 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
           </div>
         </div>
       )}
+
+      {/* 일치하는 제품 선택 모달 (견적 목록 searchPickerRows 스타일) */}
+      {productPickerMatches && (
+        <div className="fixed inset-0 bg-black/50 z-[65] flex items-start justify-center overflow-y-auto py-10 px-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-3 bg-blue-600 text-white">
+              <div>
+                <h2 className="text-sm font-bold">{t(UI.quoteProductSelectTitle)}</h2>
+                <p className="text-xs text-blue-100 mt-1">{t(UI.quoteProductSelectHint)} ({productPickerMatches.length}건)</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProductPickerMatches(null)}
+                className="text-blue-100 hover:text-white text-xl leading-none"
+                aria-label={t(UI.close)}
+              >
+                x
+              </button>
+            </div>
+            <div className="p-5 space-y-2 max-h-[60vh] overflow-y-auto">
+              {productPickerMatches.map((item) => {
+                const price = getQuoteCatalogUnitPrice(item, 1);
+                return (
+                  <button
+                    key={`${item.sheet}-${item.id}`}
+                    type="button"
+                    onClick={() => applySearchedProduct(item)}
+                    className="w-full text-left rounded-lg border border-[#ddd9d2] p-3.5 hover:bg-blue-50 hover:border-blue-300 transition-colors group"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-bold text-sm text-[#0f172a] group-hover:text-blue-700">
+                        {item.name}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-semibold text-[#64748b] bg-[#f1f5f9] px-2 py-0.5 rounded">
+                          {item.categoryLabel || item.sheet}
+                        </span>
+                        {price != null && (
+                          <span className="text-xs font-black text-blue-700">
+                            {formatMoney(price, lang)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {item.spec && (
+                      <p className="text-xs text-[#64748b] line-clamp-2 mt-1">
+                        {translateSpecValue(item.spec, lang)}
+                      </p>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex justify-end px-5 py-4 bg-[#f0ede8] border-t border-[#ddd9d2]">
+              <button
+                type="button"
+                onClick={() => setProductPickerMatches(null)}
+                className="px-4 py-2 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-white transition-colors"
+              >
+                {t(UI.quoteCancel)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {detailProduct && (
         <SpecModal
           product={detailProduct}
@@ -1827,6 +1938,32 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                     </button>
                   </div>
                 </div>
+
+                {/* 제품명 전용 검색 입력창 (견적 목록 검색 스타일) */}
+                <div className="relative mb-3">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#999999]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    value={productSearchTerm}
+                    onChange={(e) => handleProductSearchChange(e.target.value)}
+                    onKeyDown={handleProductSearchKeyDown}
+                    placeholder={t(UI.quoteProductSearchPlaceholder)}
+                    className="w-full border border-[#cbd5e1] rounded-lg pl-9 pr-8 py-2 text-sm bg-[#fafbfc] focus:bg-white focus:outline-none focus:border-blue-600 shadow-xs transition-colors"
+                  />
+                  {productSearchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => { setProductSearchTerm(''); setProductPickerMatches(null); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
+                      aria-label="검색어 지우기"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_120px_150px] gap-3">
                   <select
                     value={selectedSheet}
