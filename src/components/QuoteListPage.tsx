@@ -79,6 +79,7 @@ function columnWidth(header: string) {
   return 110;
 }
 
+const ACTION_COLUMN_KEY = '__action__';
 const ACTION_COLUMN_WIDTH = 200;
 
 function uploadUrl(
@@ -348,14 +349,15 @@ export default function QuoteListPage({
     ? sortedRows
     : sortedRows.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
 
-  // ── 대장 항목 순서 및 표시 헤더 도출 ──
+  // ── 대장 항목 순서 및 표시 헤더 도출 (액션 열 포함) ──
   const allOrderedHeaders = useMemo(() => {
     if (headers.length === 0) return [];
+    const baseList = [...headers, ACTION_COLUMN_KEY];
     const ordered: string[] = [];
     columnOrder.forEach((h) => {
-      if (headers.includes(h)) ordered.push(h);
+      if (baseList.includes(h)) ordered.push(h);
     });
-    headers.forEach((h) => {
+    baseList.forEach((h) => {
       if (!ordered.includes(h)) ordered.push(h);
     });
     return ordered;
@@ -381,7 +383,7 @@ export default function QuoteListPage({
     if (nextHidden.has(colName)) {
       nextHidden.delete(colName);
     } else {
-      if (headers.length - nextHidden.size <= 1) {
+      if (allOrderedHeaders.length - nextHidden.size <= 1) {
         alert('최소 1개 이상의 항목은 표시되어야 합니다.');
         return;
       }
@@ -400,7 +402,7 @@ export default function QuoteListPage({
   }
 
   function resetColumnConfig() {
-    setColumnOrder([...headers]);
+    setColumnOrder([...headers, ACTION_COLUMN_KEY]);
     setHiddenColumns(new Set());
     try {
       localStorage.removeItem(COLUMN_CONFIG_STORAGE_KEY);
@@ -1170,7 +1172,9 @@ export default function QuoteListPage({
                           onChange={() => toggleColumnVisibility(colName)}
                           className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer h-4 w-4"
                         />
-                        <span className={isVisible ? 'font-bold' : 'text-[#94a3b8]'}>{colName}</span>
+                        <span className={isVisible ? 'font-bold text-[#0f172a]' : 'text-[#94a3b8]'}>
+                          {colName === ACTION_COLUMN_KEY ? `${t(UI.quoteAction)} (수정·업로드·삭제)` : colName}
+                        </span>
                       </label>
 
                       <div className="flex items-center gap-1">
@@ -1360,16 +1364,28 @@ export default function QuoteListPage({
       {!loading && !error && rows.length > 0 && (
         <div className="bg-white rounded-xl border border-[#ddd9d2] overflow-hidden">
           <div className="overflow-x-auto">
-          <table className="table-fixed text-xs" style={{ width: `${activeHeaders.reduce((sum, header) => sum + columnWidth(header), 0) + ACTION_COLUMN_WIDTH}px` }}>
+          <table className="table-fixed text-xs" style={{ width: `${activeHeaders.reduce((sum, h) => sum + (h === ACTION_COLUMN_KEY ? ACTION_COLUMN_WIDTH : columnWidth(h)), 0)}px` }}>
             <colgroup>
               {activeHeaders.map((header, index) => (
-                <col key={`${header}-${index}`} style={{ width: `${columnWidth(header)}px` }} />
+                <col
+                  key={`${header}-${index}`}
+                  style={{ width: `${header === ACTION_COLUMN_KEY ? ACTION_COLUMN_WIDTH : columnWidth(header)}px` }}
+                />
               ))}
-              <col style={{ width: `${ACTION_COLUMN_WIDTH}px` }} />
             </colgroup>
             <thead className="bg-[#f0ede8]">
               <tr>
                 {activeHeaders.map((header, index) => {
+                  if (header === ACTION_COLUMN_KEY) {
+                    return (
+                      <th
+                        key="action-header"
+                        className="text-left whitespace-normal break-words px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs"
+                      >
+                        {t(UI.quoteAction)}
+                      </th>
+                    );
+                  }
                   const origIndex = headers.indexOf(header);
                   return (
                     <th key={`${header}-${index}`} className={`${header.includes('금액') ? 'text-right' : 'text-left'} px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs ${header.includes('연도') || header.includes('년도') ? 'whitespace-nowrap' : 'whitespace-normal break-words'}`}>
@@ -1388,9 +1404,6 @@ export default function QuoteListPage({
                     </th>
                   );
                 })}
-                <th className="text-left whitespace-normal break-words px-2 lg:px-3 py-3 font-semibold text-[#555555] text-xs">
-                  {t(UI.quoteAction)}
-                </th>
               </tr>
             </thead>
             <tbody>
@@ -1404,6 +1417,55 @@ export default function QuoteListPage({
                 return (
                   <tr key={`${row.values.join('|')}-${rowIndex}`} className={`border-t border-[#f0ede8] hover:bg-[#fafaf9] ${row.struck ? 'opacity-60' : ''}`}>
                     {activeHeaders.map((header, displayIndex) => {
+                      if (header === ACTION_COLUMN_KEY) {
+                        return (
+                          <td key="action-cell" className="px-2 lg:px-3 py-3 whitespace-normal break-words">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <button
+                                type="button"
+                                disabled={!quoteNumber}
+                                onClick={() => onEditQuote(selectedYear, quoteNumber, currentDepartment)}
+                                className="w-14 rounded border border-blue-200 px-1 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
+                              >
+                                {t(UI.quoteEditBtn)}
+                              </button>
+                              <a
+                                href={quoteNumber && company ? uploadUrl(selectedYear, currentDepartment, quoteNumber, company, authorEmail, authorName, quoteFolderName) : '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}
+                                className="w-14 rounded border border-green-200 px-1 py-1 text-[11px] font-medium text-green-700 hover:bg-green-50 aria-disabled:pointer-events-none aria-disabled:opacity-40 text-center"
+                                aria-disabled={!quoteNumber || !company}
+                              >
+                                {t(UI.quoteUploadBtn)}
+                              </a>
+                              {row.struck ? (
+                                <button
+                                  type="button"
+                                  disabled={!quoteNumber || restoreLoadingKey === rowKey}
+                                  onClick={() => void handleRestoreQuote(row)}
+                                  className="w-14 rounded border border-amber-200 px-1 py-1 text-[11px] font-medium text-amber-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
+                                >
+                                  {restoreLoadingKey === rowKey ? '...' : t(UI.quoteRestoreBtn)}
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={!quoteNumber}
+                                  onClick={() => {
+                                    setDeleteMode('strikethrough');
+                                    setDeleteDialogRow(row);
+                                  }}
+                                  className="w-14 rounded border border-red-200 px-1 py-1 text-[11px] font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
+                                >
+                                  {t(UI.quoteDeleteBtn)}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        );
+                      }
+
                       const cellIndex = headers.indexOf(header);
                       const value = cellIndex >= 0 ? (row.values[cellIndex] ?? '') : '';
                       const link = cellIndex >= 0 ? row.links[cellIndex] : null;
@@ -1465,50 +1527,6 @@ export default function QuoteListPage({
                         </td>
                       );
                     })}
-                    <td className="px-2 lg:px-3 py-3 whitespace-normal break-words">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <button
-                          type="button"
-                          disabled={!quoteNumber}
-                          onClick={() => onEditQuote(selectedYear, quoteNumber, currentDepartment)}
-                          className="w-14 rounded border border-blue-200 px-1 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
-                        >
-                          {t(UI.quoteEditBtn)}
-                        </button>
-                        <a
-                          href={quoteNumber && company ? uploadUrl(selectedYear, currentDepartment, quoteNumber, company, authorEmail, authorName, quoteFolderName) : '#'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(event) => { if (!quoteNumber || !company) event.preventDefault(); }}
-                          className="w-14 rounded border border-green-200 px-1 py-1 text-[11px] font-medium text-green-700 hover:bg-green-50 aria-disabled:pointer-events-none aria-disabled:opacity-40 text-center"
-                          aria-disabled={!quoteNumber || !company}
-                        >
-                          {t(UI.quoteUploadBtn)}
-                        </a>
-                        {row.struck ? (
-                          <button
-                            type="button"
-                            disabled={!quoteNumber || restoreLoadingKey === rowKey}
-                            onClick={() => void handleRestoreQuote(row)}
-                            className="w-14 rounded border border-amber-200 px-1 py-1 text-[11px] font-medium text-amber-700 hover:bg-amber-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
-                          >
-                            {restoreLoadingKey === rowKey ? '...' : t(UI.quoteRestoreBtn)}
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={!quoteNumber}
-                            onClick={() => {
-                              setDeleteMode('strikethrough');
-                              setDeleteDialogRow(row);
-                            }}
-                            className="w-14 rounded border border-red-200 px-1 py-1 text-[11px] font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 text-center"
-                          >
-                            {t(UI.quoteDeleteBtn)}
-                          </button>
-                        )}
-                      </div>
-                    </td>
                   </tr>
                 );
               })}

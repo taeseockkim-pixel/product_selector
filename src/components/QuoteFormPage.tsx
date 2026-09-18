@@ -1273,11 +1273,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
   function handleSave() {
     if (editQuote && editSaveType === 'newQuote') {
+      if (!window.confirm(t(UI.quoteConfirmNewSave))) return;
       // 사용자가 미리보기에서 '신규 견적서로 생성'을 체크한 경우: 신규 생성 프로세스로 진행!
       void processGoogleQuote(false, '', '', 'newRevision', '', true /* asNewQuote */);
       return;
     }
     if (editQuote && editSaveType === 'revision') {
+      if (!window.confirm(t(UI.quoteConfirmRevSave))) return;
       // 사용자가 미리보기에서 '기존 견적서에 Rev으로 생성'을 체크한 경우: 기존 수정 프로세스(모달)
       setPendingDraftAction(false);
       setRevisionModalOpen(true);
@@ -1289,11 +1291,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   function handleEmailDraft() {
     setEmailModalOpen(false);
     if (editQuote && editSaveType === 'newQuote') {
+      if (!window.confirm(t(UI.quoteConfirmNewSave))) return;
       // 사용자가 미리보기에서 '신규 견적서로 생성'을 체크한 경우: 신규 생성 프로세스로 진행!
       void processGoogleQuote(true, emailSubject, emailBody, 'newRevision', '', true /* asNewQuote */);
       return;
     }
     if (editQuote && editSaveType === 'revision') {
+      if (!window.confirm(t(UI.quoteConfirmRevSave))) return;
       // 사용자가 미리보기에서 '기존 견적서에 Rev으로 생성'을 체크한 경우: 기존 수정 프로세스(모달)
       setPendingDraftAction(true);
       setRevisionModalOpen(true);
