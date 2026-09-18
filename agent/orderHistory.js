@@ -1,10 +1,17 @@
 /**
  * 발주 내역 분석 모듈 — D:\folders\공유\견적서\{부서}\{연도}\발주 내역\ 폴더 안의
  * 최신 발주 엑셀 파일을 읽어 ERP 수주 실적 통계를 생성하고 제공한다.
+ *
+ * 지원 형식:
+ *  - 표준 XLSX (.xlsx)
+ *  - 웹 ERP 다운로드 HTML/XML 기반 XLS (.xls)
+ *  - 바이너리 구형 XLS (.xls) -> Windows Excel COM 자동 변환 지원
  */
+import { execFileSync } from 'child_process';
 import ExcelJS from 'exceljs';
-import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from 'fs';
-import { basename, extname, join } from 'path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { extname, join } from 'path';
 
 function findColIndex(headers, aliases) {
   return headers.findIndex((h) => {
@@ -68,37 +75,100 @@ export function getLatestOrderHistoryFile(orderHistoryDir) {
   return files[0];
 }
 
-/** 최신 발주 내역 엑셀 파일 파싱 */
-export async function parseOrderHistoryWorkbook(filePath) {
-  const wb = new ExcelJS.Workbook();
-  await wb.xlsx.readFile(filePath);
-  const ws = wb.worksheets[0];
-  if (!ws) throw new Error('엑셀 시트를 찾을 수 없습니다.');
+/** Windows Excel COM을 이용해 구형 .xls 파일을 최신 .xlsx 파일로 변환 */
+function convertXlsToXlsxViaExcel(xlsPath) {
+  const psQuote = (s) => s.replace(/'/g, "''");
+  const tempXlsxPath = join(tmpdir(), `cimon_order_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.xlsx`);
+  const ps = `
+$ErrorActionPreference = 'Stop'
+try {
+  $xl = New-Object -ComObject Excel.Application
+  $xl.Visible = $false
+  $xl.DisplayAlerts = $false
+  $wb = $xl.Workbooks.Open('${psQuote(xlsPath)}')
+  $wb.SaveAs('${psQuote(tempXlsxPath)}', 51)
+  $wb.Close($false)
+  Write-Output 'OK'
+} catch {
+  Write-Output "ERROR: $_"
+} finally {
+  if ($xl) {
+    $xl.Quit()
+    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($xl) | Out-Null
+  }
+}
+`.trim();
 
-  // 헤더 행 찾기 (1행~5행 중 '주문번호' 또는 '고객' 또는 '품명'이 있는 행)
-  let headerRowIdx = 1;
-  let headers = [];
-  for (let r = 1; r <= Math.min(ws.rowCount, 10); r++) {
-    const rowValues = [];
-    ws.getRow(r).eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      rowValues[colNumber - 1] = cellStr(cell.value);
+  try {
+    const result = execFileSync('powershell.exe', ['-NoProfile', '-Command', ps], {
+      timeout: 30000,
+      encoding: 'utf8',
     });
-    const hasOrderCol = rowValues.some((v) => /주문번호|발주번호|order/i.test(v));
-    const hasClientCol = rowValues.some((v) => /고객|업체명|거래처|client/i.test(v));
-    if (hasOrderCol || hasClientCol) {
-      headerRowIdx = r;
-      headers = rowValues;
+    if (result.includes('OK') && existsSync(tempXlsxPath)) {
+      return tempXlsxPath;
+    }
+  } catch (err) {
+    console.warn(`[발주내역] Excel COM 변환 실패: ${err.message}`);
+  }
+  return null;
+}
+
+/** 웹 ERP 다운로드 HTML <table> 또는 XML Spreadsheet 텍스트 파싱 */
+function parseHtmlOrXmlTable(content) {
+  const rows = [];
+  // 1. HTML <table> 형식 파싱
+  if (/<table/i.test(content) && /<tr/i.test(content)) {
+    const trMatches = content.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
+    for (const trHtml of trMatches) {
+      const cellMatches = trHtml.match(/<(?:td|th)[^>]*>([\s\S]*?)<\/(?:td|th)>/gi) || [];
+      if (cellMatches.length === 0) continue;
+      const row = cellMatches.map((c) => {
+        return c.replace(/<[^>]+>/g, '')
+          .replace(/&nbsp;/gi, ' ')
+          .replace(/&amp;/gi, '&')
+          .replace(/&lt;/gi, '<')
+          .replace(/&gt;/gi, '>')
+          .trim();
+      });
+      if (row.some(Boolean)) rows.push(row);
+    }
+    return rows;
+  }
+
+  // 2. XML Spreadsheet 2003 형식 파싱
+  if (/<Row/i.test(content) && /<Cell/i.test(content)) {
+    const rowMatches = content.match(/<Row[^>]*>[\s\S]*?<\/Row>/gi) || [];
+    for (const rowXml of rowMatches) {
+      const dataMatches = rowXml.match(/<Data[^>]*>([\s\S]*?)<\/Data>/gi) || [];
+      if (dataMatches.length === 0) continue;
+      const row = dataMatches.map((d) => d.replace(/<[^>]+>/g, '').trim());
+      if (row.some(Boolean)) rows.push(row);
+    }
+    return rows;
+  }
+
+  return rows;
+}
+
+/** 2차원 문자열 배열로부터 집계 통계 산출 */
+function buildStatsFromGrid(gridRows) {
+  if (gridRows.length === 0) {
+    throw new Error('파싱된 데이터 행이 없습니다.');
+  }
+
+  // 헤더 행 탐색
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(gridRows.length, 10); i++) {
+    const row = gridRows[i];
+    const hasOrder = row.some((v) => /주문번호|발주번호|order/i.test(v));
+    const hasClient = row.some((v) => /고객|업체명|거래처|client/i.test(v));
+    if (hasOrder || hasClient) {
+      headerIdx = i;
       break;
     }
   }
 
-  if (headers.length === 0) {
-    ws.getRow(1).eachCell({ includeEmpty: true }, (cell, colNumber) => {
-      headers[colNumber - 1] = cellStr(cell.value);
-    });
-  }
-
-  // 컬럼 인덱스 매핑
+  const headers = gridRows[headerIdx];
   const col = {
     orderNo: findColIndex(headers, ['주문번호', '발주번호', 'order']),
     orderDate: findColIndex(headers, ['주문일자', '발주일자', '주문일', '일자', 'date']),
@@ -113,28 +183,23 @@ export async function parseOrderHistoryWorkbook(filePath) {
     supply: findColIndex(headers, ['공급가', '공급가액']),
     vat: findColIndex(headers, ['부가세', '세액']),
     total: findColIndex(headers, ['합계액', '합계', '총액', '금액', 'total']),
-    deliveryDeadline: findColIndex(headers, ['납기일', '납기']),
-    shipDate: findColIndex(headers, ['출하예정일', '출하일']),
-    project: findColIndex(headers, ['프로젝트', '관리구분', '구분']),
-    notes: findColIndex(headers, ['비고', '내역']),
   };
 
   const rawRows = [];
   const uniqueOrderNos = new Set();
   const uniqueClients = new Set();
 
-  for (let r = headerRowIdx + 1; r <= ws.rowCount; r++) {
-    const row = ws.getRow(r);
-    const orderNo = col.orderNo >= 0 ? cellStr(row.getCell(col.orderNo + 1).value) : '';
-    const client = col.client >= 0 ? cellStr(row.getCell(col.client + 1).value) : '';
-    const itemName = col.itemName >= 0 ? cellStr(row.getCell(col.itemName + 1).value) : '';
-    const itemNo = col.itemNo >= 0 ? cellStr(row.getCell(col.itemNo + 1).value) : '';
+  for (let r = headerIdx + 1; r < gridRows.length; r++) {
+    const row = gridRows[r];
+    const orderNo = col.orderNo >= 0 ? cellStr(row[col.orderNo]) : '';
+    const client = col.client >= 0 ? cellStr(row[col.client]) : '';
+    const itemName = col.itemName >= 0 ? cellStr(row[col.itemName]) : '';
+    const itemNo = col.itemNo >= 0 ? cellStr(row[col.itemNo]) : '';
 
-    // 주문번호나 고객사명이 없으면 건너뜀 (합계 행 등)
     if (!orderNo && !client) continue;
     if (/합\s*계|total|소\s*계/i.test(client) || /합\s*계|total/i.test(orderNo)) continue;
 
-    const orderDateRaw = col.orderDate >= 0 ? cellStr(row.getCell(col.orderDate + 1).value) : '';
+    const orderDateRaw = col.orderDate >= 0 ? cellStr(row[col.orderDate]) : '';
     const dateMatch = orderDateRaw.match(/(\d{4})[./-](\d{1,2})[./-](\d{1,2})/);
     const year = dateMatch ? parseInt(dateMatch[1], 10) : new Date().getFullYear();
     const month = dateMatch ? parseInt(dateMatch[2], 10) : 0;
@@ -143,18 +208,18 @@ export async function parseOrderHistoryWorkbook(filePath) {
       ? `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
       : '';
 
-    const qty = col.qty >= 0 ? cellNum(row.getCell(col.qty + 1).value) : 1;
-    const unitPrice = col.price >= 0 ? cellNum(row.getCell(col.price + 1).value) : 0;
-    const supply = col.supply >= 0 ? cellNum(row.getCell(col.supply + 1).value) : 0;
-    const vat = col.vat >= 0 ? cellNum(row.getCell(col.vat + 1).value) : 0;
-    let total = col.total >= 0 ? cellNum(row.getCell(col.total + 1).value) : 0;
+    const qty = col.qty >= 0 ? cellNum(row[col.qty]) : 1;
+    const unitPrice = col.price >= 0 ? cellNum(row[col.price]) : 0;
+    const supply = col.supply >= 0 ? cellNum(row[col.supply]) : 0;
+    const vat = col.vat >= 0 ? cellNum(row[col.vat]) : 0;
+    let total = col.total >= 0 ? cellNum(row[col.total]) : 0;
     if (total === 0 && supply > 0) {
       total = supply + (vat > 0 ? vat : Math.round(supply * 0.1));
     }
 
-    const rep = col.rep >= 0 ? cellStr(row.getCell(col.rep + 1).value) : '';
-    const delivery = col.delivery >= 0 ? cellStr(row.getCell(col.delivery + 1).value) : '';
-    const spec = col.spec >= 0 ? cellStr(row.getCell(col.spec + 1).value) : '';
+    const rep = col.rep >= 0 ? cellStr(row[col.rep]) : '';
+    const delivery = col.delivery >= 0 ? cellStr(row[col.delivery]) : '';
+    const spec = col.spec >= 0 ? cellStr(row[col.spec]) : '';
 
     if (orderNo) uniqueOrderNos.add(orderNo);
     if (client) uniqueClients.add(client);
@@ -274,6 +339,78 @@ export async function parseOrderHistoryWorkbook(filePath) {
   };
 }
 
+/** 최신 발주 내역 파일 파싱 (하이브리드 지원) */
+export async function parseOrderHistoryWorkbook(filePath) {
+  let targetPath = filePath;
+  let tempConvertedPath = null;
+  const ext = extname(filePath).toLowerCase();
+
+  // 1. 파일 내용 첫 부분을 읽어 HTML/XML 텍스트 포맷인지 검사
+  try {
+    const buf = readFileSync(filePath);
+    const head = buf.slice(0, 1024).toString('utf8');
+    if (/<html|<table|<\?xml|<Workbook/i.test(head)) {
+      let text = buf.toString('utf8');
+      if (text.includes('\uFFFD')) {
+        try {
+          const decoder = new TextDecoder('euc-kr');
+          text = decoder.decode(buf);
+        } catch { /* noop */ }
+      }
+      const gridRows = parseHtmlOrXmlTable(text);
+      if (gridRows.length > 1) {
+        console.log(`[발주내역] HTML/XML 테이블 파서로 ${gridRows.length}개 행 감지 성공`);
+        return buildStatsFromGrid(gridRows);
+      }
+    }
+  } catch { /* noop */ }
+
+  // 2. 구형 바이너리 .xls 파일인 경우 Windows Excel COM으로 변환
+  if (ext === '.xls') {
+    tempConvertedPath = convertXlsToXlsxViaExcel(filePath);
+    if (tempConvertedPath) {
+      targetPath = tempConvertedPath;
+    }
+  }
+
+  // 3. ExcelJS로 읽기 (표준 .xlsx 또는 변환된 .xlsx)
+  try {
+    const wb = new ExcelJS.Workbook();
+    try {
+      await wb.xlsx.readFile(targetPath);
+    } catch (readErr) {
+      if (!tempConvertedPath) {
+        tempConvertedPath = convertXlsToXlsxViaExcel(filePath);
+        if (tempConvertedPath) {
+          await wb.xlsx.readFile(tempConvertedPath);
+        } else {
+          throw readErr;
+        }
+      } else {
+        throw readErr;
+      }
+    }
+
+    const ws = wb.worksheets[0];
+    if (!ws) throw new Error('엑셀 시트를 찾을 수 없습니다.');
+
+    const gridRows = [];
+    for (let r = 1; r <= ws.rowCount; r++) {
+      const rowValues = [];
+      ws.getRow(r).eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        rowValues[colNumber - 1] = cellStr(cell.value);
+      });
+      if (rowValues.some(Boolean)) gridRows.push(rowValues);
+    }
+
+    return buildStatsFromGrid(gridRows);
+  } finally {
+    if (tempConvertedPath && existsSync(tempConvertedPath)) {
+      try { unlinkSync(tempConvertedPath); } catch { /* noop */ }
+    }
+  }
+}
+
 /** Drive 동기화 폴더(stats/{department}_orders.json)에 캐시 파일 저장 */
 export function syncOrderHistoryToDrive(agentFolder, department, year, orderStats, fileName) {
   try {
@@ -325,7 +462,7 @@ export function orderHistoryUploadHtml(session, department, year, latestFile) {
     <span class="badge">ERP 발주 내역 동기화</span>
     <h1>${department} ${year}년도 발주 내역 파일 업로드</h1>
     <div class="sub">
-      ERP/엑셀에서 내려받은 수주·발주 내역 파일(.xlsx)을 업로드하면, 대시보드의 발주(수주) 실적 분석에 최신 데이터로 즉시 반영됩니다.
+      ERP/엑셀에서 내려받은 수주·발주 내역 파일(.xlsx, .xls)을 업로드하면, 대시보드의 발주(수주) 실적 분석에 최신 데이터로 즉시 반영됩니다.
     </div>
 
     ${latestFile ? `
