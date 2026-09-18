@@ -1511,10 +1511,11 @@ const server = app.listen(HTTP_PORT, '0.0.0.0', () => {
 });
 
 server.on('error', (err) => {
-  console.error(`[에이전트] 파일 서버를 시작하지 못했습니다: ${err.code || err.message}`);
   if (err.code === 'EADDRINUSE') {
-    console.error(`[에이전트] ${HTTP_PORT} 포트를 다른 프로그램이 사용 중입니다.`);
+    console.warn(`[에이전트 안내] ${HTTP_PORT} 포트가 이미 사용 중입니다. 에이전트가 다른 창이나 백그라운드에서 이미 실행 중이므로 중복 실행을 방지하고 종료합니다.`);
+    process.exit(0);
   }
+  console.error(`[에이전트] 파일 서버를 시작하지 못했습니다: ${err.code || err.message}`);
   process.exitCode = 1;
 });
 
