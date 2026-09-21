@@ -2090,7 +2090,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16PDRF",
-        "spec": "DI/O-16p\nRelay 출력 / DI 8/ DO 8, USB Loader, RS232C 1ch, RS485 1ch, Ethernet 2ch, Micro SD Card Slot",
+        "spec": "DI/O-16p\nRelay 출력 / DI 8/ DO 8, USB Loader, RS232C 1ch, RS485 1ch, Ethernet 2ch, Micro SD Card Slot / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2103,7 +2103,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDR",
-        "spec": "DI/O-16p\nRelay 출력 / DI 8/DO 8, USB Loader, RS232C 1ch",
+        "spec": "DI/O-16p\nRelay 출력 / DI 8/DO 8, USB Loader, RS232C 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2116,7 +2116,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDRV",
-        "spec": "DI/O-16p\nRelay 출력 / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch",
+        "spec": "DI/O-16p\nRelay 출력 / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2129,7 +2129,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDRE",
-        "spec": "DI-8p & DO-6p\nRelay 출력 / DI 8/DO 6, USB Loader, RS232C 1ch, Ethernet 1ch",
+        "spec": "DI-8p & DO-6p\nRelay 출력 / DI 8/DO 6, USB Loader, RS232C 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2142,7 +2142,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDRF",
-        "spec": "DI-8p & DO-6p\nRelay 출력 / DI 8/DO 6, USB Loader, RS232C 1ch, Ethernet 1ch, RS485 1ch",
+        "spec": "DI-8p & DO-6p\nRelay 출력 / DI 8/DO 6, USB Loader, RS232C 1ch, Ethernet 1ch, RS485 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2155,7 +2155,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDTV",
-        "spec": "DI/O-16p\nTR출력\n(sink) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch",
+        "spec": "DI/O-16p\nTR출력\n(sink) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2168,7 +2168,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDTF",
-        "spec": "DI/O-16p\nTR출력\n(sink) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch, Ethernet 1ch",
+        "spec": "DI/O-16p\nTR출력\n(sink) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2181,7 +2181,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDCV",
-        "spec": "DI/O-16p\nTR출력\n(source) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch",
+        "spec": "DI/O-16p\nTR출력\n(source) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2194,7 +2194,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP16MDCF",
-        "spec": "DI/O-16p\nTR출력\n(source) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch, Ethernet 1ch",
+        "spec": "DI/O-16p\nTR출력\n(source) / DI 8/DO 8, USB Loader, RS232C 1ch, RS485 1 ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2207,7 +2207,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32PDCF",
-        "spec": "DI/O-32p        \n TR출력\n(source) / DI 16 / DO 16(TR Source) , USB Loader, RS232C 1ch, RS485 1ch, Ethernet 2CH, Micro SD Card Slot",
+        "spec": "DI/O-32p        \n TR출력\n(source) / DI 16 / DO 16(TR Source) , USB Loader, RS232C 1ch, RS485 1ch, Ethernet 2CH, Micro SD Card Slot / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2220,7 +2220,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDC",
-        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch",
+        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2233,7 +2233,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDCV",
-        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch, RS485 1ch",
+        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch, RS485 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2246,7 +2246,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDCE",
-        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch",
+        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2259,7 +2259,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDCF",
-        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch, RS485 1ch",
+        "spec": "DI/O-32p        \n TR출력\n(source) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch, RS485 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2272,7 +2272,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32PDTF",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI 16 / DO 16(TR Sink) , USB Loader, RS232C 1ch, RS485 1ch, Ethernet 2CH, Micro SD Card Slot",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI 16 / DO 16(TR Sink) , USB Loader, RS232C 1ch, RS485 1ch, Ethernet 2CH, Micro SD Card Slot / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2285,7 +2285,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDT",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2298,7 +2298,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDT-SD",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2311,7 +2311,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDTV",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch, RS485 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch, RS485 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2324,7 +2324,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDTV-SD",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch, RS485 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch, RS485 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2337,7 +2337,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDTE",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2350,7 +2350,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDTE-SD",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch, Ethernet 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2363,7 +2363,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDTF",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch, RS485 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, RS232C 1ch, Ethernet 1ch, RS485 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2376,7 +2376,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SP32MDTF-SD",
-        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch, Ethernet 1ch, RS485 1ch",
+        "spec": "DI/O-32p\nTR출력\n(sink) / DI16/DO16, USB Loader, SD/MMC Card Slot, RS232C 1ch, Ethernet 1ch, RS485 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2389,7 +2389,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SB32MDRF",
-        "spec": "Block PLCs\nDI/O-16P,\nAI/O-4ch / 입력 16점/출력 16점(Relay), AI 2점/AO 2점,\nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch",
+        "spec": "Block PLCs\nDI/O-16P,\nAI/O-4ch / 입력 16점/출력 16점(Relay), AI 2점/AO 2점,\nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2402,7 +2402,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SB32MDCF",
-        "spec": "Block PLCs\nDI/O-16P,\nAI/O-4ch / 입력 16점/출력 16점(TR-Source), AI 2점/AO 2점,\nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch",
+        "spec": "Block PLCs\nDI/O-16P,\nAI/O-4ch / 입력 16점/출력 16점(TR-Source), AI 2점/AO 2점,\nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2415,7 +2415,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SB32MDTF",
-        "spec": "Block PLCs\nDI/O-16P,\nAI/O-4ch / 입력 16점/출력 16점(TR-Sink), AI 2점/AO 2점,\nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch",
+        "spec": "Block PLCs\nDI/O-16P,\nAI/O-4ch / 입력 16점/출력 16점(TR-Sink), AI 2점/AO 2점,\nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2428,7 +2428,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SB16MDCF",
-        "spec": "Block PLCs\nDI/O-16p / 입력 8점/출력 8점(TR-Source), \nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch",
+        "spec": "Block PLCs\nDI/O-16p / 입력 8점/출력 8점(TR-Source), \nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -2441,7 +2441,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "PLC . CM3",
         "categoryLabel": "CM3 - Main-Block",
         "name": "CM3-SB16MDTF",
-        "spec": "Block PLCs\nDI/O-16p / 입력 8점/출력 8점(TR-Sink), \nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch",
+        "spec": "Block PLCs\nDI/O-16p / 입력 8점/출력 8점(TR-Sink), \nUSB Loader, RS232C 1ch, RS485 1ch, Ethernet 1ch / DC24V",
         "tiers": [
           {
             "minQty": 1,
@@ -3752,7 +3752,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP510-A",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -3777,7 +3777,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP512-A",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -3802,7 +3802,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP515-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -3827,7 +3827,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP519-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -3852,7 +3852,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT510-A",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -3869,7 +3869,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT512-A",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -3886,7 +3886,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT515-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -3903,7 +3903,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT519-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -3920,7 +3920,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP510-D",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -3945,7 +3945,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP512-D",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -3970,7 +3970,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP515-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -3995,7 +3995,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP519-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4020,7 +4020,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT510-D",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4037,7 +4037,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT512-D",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4054,7 +4054,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT515-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4071,7 +4071,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT519-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4088,7 +4088,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P510-A",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4113,7 +4113,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P512-A",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4138,7 +4138,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P515-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4163,7 +4163,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P519-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4188,7 +4188,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T510-A",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4205,7 +4205,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T512-A",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4222,7 +4222,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T515-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4239,7 +4239,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T519-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4256,7 +4256,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P510-D",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4281,7 +4281,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P512-D",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4306,7 +4306,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P515-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4331,7 +4331,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "P519-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4356,7 +4356,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T510-D",
-        "spec": "10.4\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n10.4\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4373,7 +4373,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T512-D",
-        "spec": "12.1\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n12.1\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4390,7 +4390,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T515-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4407,7 +4407,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - 500",
         "name": "T519-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4424,7 +4424,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "500Series",
         "categoryLabel": "500Series - PPC 500 series Lot 발주",
         "name": "1",
-        "spec": "1EA / 0.65",
+        "spec": "Intel® Celeron® Quad-Core J6412 SoC (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n1EA / 0.65",
         "tiers": [
           {
             "minQty": 5,
@@ -4446,7 +4446,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP5615-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4467,7 +4467,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP5619-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4488,7 +4488,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT5615-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4501,7 +4501,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT5619-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4514,7 +4514,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP5615-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4535,7 +4535,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNP5619-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4556,7 +4556,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT5615-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4569,7 +4569,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000Series + Memory 8G + SSD 120GB",
         "name": "CM-iNT5619-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4582,7 +4582,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "P5615-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4603,7 +4603,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "P5619-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V",
         "tiers": [
           {
             "minQty": 1,
@@ -4624,7 +4624,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "T5615-A",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4637,7 +4637,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "T5619-A",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / AC 220V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4650,7 +4650,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "P5615-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4671,7 +4671,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "P5619-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4692,7 +4692,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "T5615-D",
-        "spec": "15\" / 1024*768",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n15\" / 1024*768 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4705,7 +4705,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "5000Series",
         "categoryLabel": "5000Series - 5000",
         "name": "T5619-D",
-        "spec": "19\" / 1280*1024",
+        "spec": "Intel® Core™ i5-6300U (FANLESS) / DDR4\nSDRAM8GB(Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise\n19\" / 1280*1024 / DC 24V / FULL DS 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4723,7 +4723,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNP51115W-C-D",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4736,7 +4736,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNP51121W-C-D",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4749,7 +4749,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNP71115W-C-D",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4762,7 +4762,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNP71121W-C-D",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4775,7 +4775,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNT51115W-C-D",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4788,7 +4788,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNT51121W-C-D",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4801,7 +4801,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNT71115W-C-D",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4814,7 +4814,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000Series + Memory 8G + SSD 500GB",
         "name": "CM-iNT71121W-C-D",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4827,7 +4827,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "P51115W",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4840,7 +4840,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "P51121W",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4853,7 +4853,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "P71115W",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4866,7 +4866,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "P71121W",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4879,7 +4879,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "T51115W",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4892,7 +4892,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "T51121W",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4905,7 +4905,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "T71115W",
-        "spec": "15.6'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n15.6'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4918,7 +4918,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "50000_70000Series",
         "categoryLabel": "50000_70000Series - 50000/70000",
         "name": "T71121W",
-        "spec": "21.5'' / 1920*1080",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 11 IoT Enterprise\n21.5'' / 1920*1080 / DC 24V / SCADA PRO (10K/DS) 내장",
         "tiers": [
           {
             "minQty": 1,
@@ -4936,7 +4936,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "BOX PC Series",
         "categoryLabel": "BOX PC Series - NB BOX PC + Memory 8G + SSD 500GB (NO License / NO SCADA)",
         "name": "NB5011",
-        "spec": "",
+        "spec": "Intel® Core™ i5-1145G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 10 IoT Enterprise\nBOX PC TYPE / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4949,7 +4949,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "BOX PC Series",
         "categoryLabel": "BOX PC Series - NB BOX PC + Memory 8G + SSD 500GB (NO License / NO SCADA)",
         "name": "NB7011",
-        "spec": "",
+        "spec": "Intel® Core™ i7-1185G7E Quad Core (FANLESS) / DDR4\nSDRAM 8GB / SSD 500GB / Windows 10 IoT Enterprise\nBOX PC TYPE / DC 24V",
         "tiers": [
           {
             "minQty": 1,
@@ -4967,7 +4967,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "TOUCH MONITOR",
         "categoryLabel": "TOUCH MONITOR - TOUCH Monitor",
         "name": "CM-IM15W-D",
-        "spec": "TOUCH MONITOR",
+        "spec": "15.6\" Wide TFT LCD / 1920 x 1080 (FHD) / 4-Wire Resistive Touch\nLuminance 500 cd/m² / DC 24V / HDMI, VGA",
         "tiers": [
           {
             "minQty": 1,
@@ -5001,15 +5001,28 @@ export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined
     'CM0-SCB15I': 'CM0-SCB15IR',
   };
   const candidates = [normalized, aliases[normalized]].filter(Boolean);
-  return QUOTE_PRODUCT_ITEMS.find((item) => {
+  const matched = QUOTE_PRODUCT_ITEMS.find((item) => {
     const itemName = normalizeName(item.name);
     return candidates.some((candidate) => itemName === candidate || itemName === `CM-${candidate}` || itemName.endsWith(candidate));
   });
+  if (matched) return matched;
+
+  // 베이스 모델명 스마트 매칭 (예: iNT519 -> CM-iNT519-A, iNT(iNP)519-A/D -> CM-iNT519-A)
+  const baseMatch = name.match(/^(?:CM-)?([A-Za-z0-9]+)/i);
+  if (baseMatch) {
+    const prefix = normalizeName(baseMatch[1]);
+    return QUOTE_PRODUCT_ITEMS.find((item) => {
+      const itemName = normalizeName(item.name);
+      return itemName.includes(prefix);
+    });
+  }
+
+  return undefined;
 }
 
 export const QUOTE_PRODUCT_CATALOG_META = {
   source: 'Quote_manage/기본자료/Product_Prise.xlsx',
-  generatedAt: '2026-09-03T01:39:11.743Z',
+  generatedAt: '2026-09-21T01:41:19.958Z',
   groupCount: 15,
   itemCount: 341,
 } as const;
