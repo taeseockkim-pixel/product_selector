@@ -147,14 +147,36 @@ function assertLedgerLayout_(ledgerSheet) {
 }
 
 function doGet(e) {
-  const template = HtmlService.createTemplateFromFile('Index');
-  const queryString = e && e.queryString ? '?' + e.queryString : '';
-  template.appUrl = VERCEL_APP_URL + queryString;
-  return template
-    .evaluate()
-    .setTitle('CIMON 제품 선택 가이드')
-    .setFaviconUrl('https://www.cimon.co.kr/favicon.ico')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  try {
+    const template = HtmlService.createTemplateFromFile('Index');
+    const queryString = e && e.queryString ? '?' + e.queryString : '';
+    template.appUrl = VERCEL_APP_URL + queryString;
+    const output = template
+      .evaluate()
+      .setTitle('CIMON 제품 선택 가이드')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+
+    // 파비콘 설정: 지원 확장자(.png) 우선 시도, 실패 시 안전 무시하여 웹 앱 로딩 보장
+    try {
+      output.setFaviconUrl('https://product-selector-two.vercel.app/favicon.png');
+    } catch (favErr) {
+      try {
+        output.setFaviconUrl('https://www.cimon.co.kr/favicon.ico');
+      } catch (favErr2) {
+        Logger.log('파비콘 설정 건너뜀: ' + favErr2.toString());
+      }
+    }
+    return output;
+  } catch (err) {
+    Logger.log('doGet 초기화 예외: ' + err.toString());
+    return HtmlService.createHtmlOutput(
+      '<div style="padding:24px;font-family:sans-serif;color:#b91c1c;">' +
+      '<h2 style="margin-top:0;">시스템 초기화 오류</h2>' +
+      '<p><strong>오류 내용:</strong> ' + err.toString() + '</p>' +
+      '<p style="color:#64748b;font-size:13px;">Index.html 파일의 내용이 올바른 HTML인지 확인한 뒤 새로고침해 주세요.</p>' +
+      '</div>'
+    );
+  }
 }
 
 function processQuoteFromReact(payload) {
