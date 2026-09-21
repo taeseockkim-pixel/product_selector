@@ -1323,6 +1323,43 @@ app.get('/api/order-history/latest', async (req, res) => {
   }
 });
 
+// ── 견적별 실제 작성자 실명 매핑 API (CORS 허용) ──
+// stats/<부서>.json 파일 및 부서 견적 데이터에서 { "견적번호": "작성자이름" } 매핑 반환
+app.get('/api/quote-authors', async (req, res) => {
+  try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const department = safeDepartmentSegment(req.query.department || req.query.dept || DEFAULT_DEPARTMENT);
+    const statsPath = join(AGENT_FOLDER, 'stats', `${department}.json`);
+
+    let records = [];
+    if (existsSync(statsPath)) {
+      try {
+        const parsed = JSON.parse(readFileSync(statsPath, 'utf8'));
+        records = Array.isArray(parsed.records) ? parsed.records : [];
+      } catch (e) { /* noop */ }
+    }
+
+    if (records.length === 0) {
+      void refreshDepartmentStats(STORAGE_ROOT, AGENT_FOLDER, department);
+    }
+
+    const authorMap = {};
+    records.forEach((rec) => {
+      const qNum = String(rec.quoteNumber || '').trim();
+      const bNum = qNum.replace(/_Rev\d+$/i, '').trim();
+      const aName = String(rec.authorName || '').trim();
+      if (aName) {
+        if (qNum) authorMap[qNum] = aName;
+        if (bNum) authorMap[bNum] = aName;
+      }
+    });
+
+    res.json({ success: true, department, count: Object.keys(authorMap).length, authors: authorMap });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // 로그인된 부서와 요청된 견적 부서가 다른지 검사한다.
 // (파일 서버 세션은 자체 비밀번호 기반이라, 견적 앱의 관리자 부서 전환과는 별개로 동작한다.)
 function detectDepartmentMismatch(session, values) {

@@ -250,9 +250,14 @@ export default function QuoteListPage({
     setLoading(true);
     setError(null);
     try {
-      const [result, statsResult] = await Promise.all([
+      const agentAuthorsPromise = fetch(`${FOLDER_BROWSER_URL}api/quote-authors?dept=${encodeURIComponent(targetDept)}`)
+        .then((r) => r.json())
+        .catch(() => null);
+
+      const [result, statsResult, agentAuthorsResult] = await Promise.all([
         fetchLedger(targetYear, targetDept),
         fetchDashboardStats(targetDept).catch(() => null),
+        agentAuthorsPromise,
       ]);
       if (!result.success) throw new Error(result.message || '견적관리대장을 불러오지 못했습니다.');
       const availableYears = (result.availableYears ?? [targetYear])
@@ -265,8 +270,8 @@ export default function QuoteListPage({
       setHeaders(result.headers ?? []);
       setRows(result.rows ?? []);
 
+      const map = new Map<string, string>();
       if (statsResult && statsResult.success && Array.isArray(statsResult.records)) {
-        const map = new Map<string, string>();
         statsResult.records.forEach((r) => {
           const qNum = String(r.quoteNumber || '').trim();
           const bNum = qNum.replace(/_Rev\d+$/i, '').trim();
@@ -276,8 +281,17 @@ export default function QuoteListPage({
             if (bNum) map.set(bNum, aName);
           }
         });
-        setStatsAuthorMap(map);
       }
+      if (agentAuthorsResult && agentAuthorsResult.success && agentAuthorsResult.authors) {
+        Object.entries(agentAuthorsResult.authors).forEach(([qNum, aName]) => {
+          const nameStr = String(aName || '').trim();
+          if (nameStr) {
+            map.set(qNum, nameStr);
+            map.set(qNum.replace(/_Rev\d+$/i, ''), nameStr);
+          }
+        });
+      }
+      setStatsAuthorMap(map);
     } catch (err) {
       setError(String(err));
       setHeaders([]);
