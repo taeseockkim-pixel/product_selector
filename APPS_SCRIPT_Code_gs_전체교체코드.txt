@@ -153,6 +153,7 @@ function doGet(e) {
   return template
     .evaluate()
     .setTitle('CIMON 제품 선택 가이드')
+    .setFaviconUrl('https://www.cimon.co.kr/favicon.ico')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
