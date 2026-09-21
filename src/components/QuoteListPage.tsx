@@ -65,6 +65,7 @@ function columnWidth(header: string) {
   if (header.includes('연도') || header.includes('년도')) return 56;
   if (header === '월' || header === '일') return 42;
   if (header.includes('발주')) return 78;
+  if (header.includes('작성자') || header.includes('담당영업') || header === '작성자') return 80;
   if (header.includes('견적번호')) return 128;
   if (header.includes('업체명') || header.includes('회사명')) return 100;
   if (header.includes('고객명') || header.includes('담당자')) return 92;
@@ -364,7 +365,24 @@ export default function QuoteListPage({
     columnOrder.forEach((h) => {
       if (baseList.includes(h)) ordered.push(h);
     });
-    baseList.forEach((h) => {
+
+    // 신규 추가된 '작성자' 헤더가 columnOrder에 없으면 발주와 견적번호 사이에 스마트 삽입
+    const unplacedHeaders = baseList.filter((h) => !ordered.includes(h));
+    const authorHeader = unplacedHeaders.find((h) => h.includes('작성자'));
+    if (authorHeader) {
+      const orderIdx = ordered.findIndex((h) => h.includes('발주'));
+      const quoteIdx = ordered.findIndex((h) => h.includes('견적번호'));
+      if (orderIdx >= 0) {
+        ordered.splice(orderIdx + 1, 0, authorHeader);
+      } else if (quoteIdx >= 0) {
+        ordered.splice(quoteIdx, 0, authorHeader);
+      } else {
+        ordered.push(authorHeader);
+      }
+    }
+
+    // 나머지 미배치 헤더 추가
+    unplacedHeaders.forEach((h) => {
       if (!ordered.includes(h)) ordered.push(h);
     });
     return ordered;
@@ -1530,6 +1548,10 @@ export default function QuoteListPage({
                             </a>
                           ) : isAmountColumn ? (
                             formatAmountValue(value)
+                          ) : header.includes('작성자') ? (
+                            <span title={value || row.authorName} className="font-medium text-[#1e293b] whitespace-nowrap">
+                              {value || row.authorName || '—'}
+                            </span>
                           ) : (
                             <span title={value} className="break-words">
                               {value}
