@@ -19,6 +19,8 @@ try {
   $xl.Visible = $false
   $xl.DisplayAlerts = $false
   $wb = $xl.Workbooks.Open('${psQuote(xlsxPath)}')
+  $ws = $wb.Worksheets.Item(1)
+  $ws.Range("B16:F29").WrapText = $true
   $wb.ExportAsFixedFormat(0, '${psQuote(pdfPath)}')
   $wb.Close($false)
   Write-Output 'OK'

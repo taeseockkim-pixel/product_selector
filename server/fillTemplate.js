@@ -53,6 +53,25 @@ export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_
     set(`A${row}`, i + 1);
     set(`B${row}`, item.name);
     set(`D${row}`, item.spec ?? '');
+
+    // 제품명(B~C) 및 규격(D~F) 셀에 다중줄 자동 줄바꿈(wrapText) 적용
+    ['B', 'C', 'D', 'E', 'F'].forEach((col) => {
+      const c = ws.getCell(`${col}${row}`);
+      c.alignment = { ...(c.alignment || {}), wrapText: true, vertical: 'middle' };
+    });
+
+    // 규격 텍스트 길이에 맞춰 행 높이를 자동 확장하여 PDF 출력 시 잘리지 않도록 처리
+    const specText = String(item.spec ?? '');
+    const lineBreaks = (specText.match(/\n/g) || []).length;
+    const textLen = specText.length;
+    const rowObj = ws.getRow(row);
+    if (lineBreaks >= 3 || textLen > 90) {
+      rowObj.height = Math.max(rowObj.height || 22, 54);
+    } else if (lineBreaks >= 2 || textLen > 60) {
+      rowObj.height = Math.max(rowObj.height || 22, 42);
+    } else if (lineBreaks >= 1 || textLen > 30) {
+      rowObj.height = Math.max(rowObj.height || 22, 32);
+    }
     const quantity = Number(item.quantity ?? 0);
     const unitPrice = Number(item.unitPrice ?? 0);
     const multiplierValue = Number(item.multiplier ?? 1);
