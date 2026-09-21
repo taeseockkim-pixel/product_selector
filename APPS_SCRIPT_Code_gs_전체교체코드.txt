@@ -274,6 +274,49 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
       });
     }
 
+    // 에이전트가 기록한 부서 통계 JSON (stats/<부서>.json)에서 실제 작성자 정보 병합 (스냅샷 없는 과거 견적 복원)
+    try {
+      const statsRoot = getAgentSubfolder_('stats');
+      const statsIter = statsRoot.getFilesByName(`${department}.json`);
+      if (statsIter.hasNext()) {
+        const statsFile = statsIter.next();
+        const parsedStats = JSON.parse(statsFile.getBlob().getDataAsString('utf8'));
+        if (Array.isArray(parsedStats.records)) {
+          parsedStats.records.forEach(function(rec) {
+            const qNum = String(rec.quoteNumber || '').trim();
+            const bNum = baseQuoteNumber_(qNum);
+            const aName = String(rec.authorName || '').trim();
+            if (aName) {
+              if (qNum && !authorMap[qNum]) authorMap[qNum] = aName;
+              if (bNum && !authorMap[bNum]) authorMap[bNum] = aName;
+            }
+          });
+        }
+      }
+    } catch (statsErr) {
+      Logger.log('stats JSON 작성자 조회 예외: ' + statsErr.toString());
+    }
+
+    // 활동로그 시트에서 견적번호별 작성자 정보 보충
+    try {
+      const logSheet = system.ledger.getSheetByName('활동로그');
+      if (logSheet && logSheet.getLastRow() >= 2) {
+        const logValues = logSheet.getRange(2, 2, logSheet.getLastRow() - 1, 3).getValues();
+        logValues.forEach(function(lRow) {
+          const uUser = String(lRow[0] || '').trim();
+          const dDetail = String(lRow[2] || '').trim();
+          const qm = dDetail.match(/견적번호:\s*([^\s|]+(?:\s+\d{4}-\d+)?)/);
+          if (qm && uUser) {
+            const qKey = qm[1].trim();
+            const bKey = baseQuoteNumber_(qKey);
+            const uName = uUser.indexOf('@') !== -1 ? uUser.split('@')[0] : uUser;
+            if (qKey && !authorMap[qKey]) authorMap[qKey] = uName;
+            if (bKey && !authorMap[bKey]) authorMap[bKey] = uName;
+          }
+        });
+      }
+    } catch (logErr) { /* noop */ }
+
     // 작성자 DB의 이메일->이름 맵으로 보정
     try {
       const authorRows = readAuthorRows_();
@@ -2221,6 +2264,114 @@ function autoRepairAllMissingLedgerLinks() {
 
 function repairMissingLedgerLink() {
   autoRepairAllMissingLedgerLinks();
+}
+
+// ── 대장 F열(작성자) 일괄 채움 유틸리티 ──────────────────────────────────────
+// 대장 시트의 F열(작성자)이 비어 있는 기존 행들에 대해
+// stats/{부서}.json 및 스냅샷 시트, 활동로그의 실제 작성자 실명을 대장에 직접 영구 기록한다.
+// 실행 방법: 함수 선택 → backfillAuthorsToLedger → [실행]
+function backfillAuthorsToLedger() {
+  const currentYear = new Date().getFullYear();
+  for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
+    const rootFolderId = CONFIG.DEPARTMENT_ROOTS[dept];
+    const system = getExistingYearSystem_(currentYear, rootFolderId);
+    if (!system) continue;
+
+    const sheet = system.ledgerSheet;
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) continue;
+
+    const layout = getLedgerLayout_(sheet);
+    if (layout.AUTHOR <= 0) {
+      Logger.log(`[부서: ${dept}] 대장에 작성자 열이 없어 건너뜁니다.`);
+      continue;
+    }
+
+    // 1. authorMap 수집 (스냅샷 + stats/{부서}.json + 작성자DB + 활동로그)
+    const authorMap = {};
+    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
+    if (snapshot && snapshot.getLastRow() >= 2) {
+      const snapRows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
+      snapRows.forEach(function(sRow) {
+        const q0 = String(sRow[0] || '').trim();
+        const q1 = String(sRow[1] || '').trim();
+        let name = '';
+        try {
+          const parsed = JSON.parse(String(sRow[4] || '{}'));
+          name = String((parsed.details && parsed.details.authorName) || '').trim();
+        } catch (e) { /* noop */ }
+        if (!name && sRow[3]) name = String(sRow[3]).split('@')[0];
+        if (name) {
+          if (q0) authorMap[q0] = name;
+          if (q1) authorMap[q1] = name;
+        }
+      });
+    }
+
+    try {
+      const statsRoot = getAgentSubfolder_('stats');
+      const statsIter = statsRoot.getFilesByName(`${dept}.json`);
+      if (statsIter.hasNext()) {
+        const statsFile = statsIter.next();
+        const parsedStats = JSON.parse(statsFile.getBlob().getDataAsString('utf8'));
+        if (Array.isArray(parsedStats.records)) {
+          parsedStats.records.forEach(function(rec) {
+            const qNum = String(rec.quoteNumber || '').trim();
+            const bNum = baseQuoteNumber_(qNum);
+            const aName = String(rec.authorName || '').trim();
+            if (aName) {
+              if (qNum && !authorMap[qNum]) authorMap[qNum] = aName;
+              if (bNum && !authorMap[bNum]) authorMap[bNum] = aName;
+            }
+          });
+        }
+      }
+    } catch (statsErr) {
+      Logger.log('stats 읽기 예외: ' + statsErr.toString());
+    }
+
+    try {
+      const authorRows = readAuthorRows_();
+      const emailToName = {};
+      authorRows.forEach(function(ar) {
+        if (ar.email && ar.name) emailToName[String(ar.email).toLowerCase()] = ar.name;
+      });
+      Object.keys(authorMap).forEach(function(k) {
+        const cur = authorMap[k];
+        if (cur.indexOf('@') !== -1 && emailToName[cur.toLowerCase()]) {
+          authorMap[k] = emailToName[cur.toLowerCase()];
+        }
+      });
+    } catch (e) { /* noop */ }
+
+    // 2. 대장 시트의 작성자 열 값 읽기
+    const authorRange = sheet.getRange(2, layout.AUTHOR, lastRow - 1, 1);
+    const authorValues = authorRange.getDisplayValues();
+    const quoteValues = sheet.getRange(2, layout.QUOTE_NUMBER, lastRow - 1, 1).getDisplayValues();
+
+    let updatedCount = 0;
+    for (let i = 0; i < authorValues.length; i++) {
+      const currentAuthor = String(authorValues[i][0] || '').trim();
+      if (!currentAuthor) {
+        const qNum = String(quoteValues[i][0] || '').trim();
+        const bNum = baseQuoteNumber_(qNum);
+        const found = authorMap[qNum] || authorMap[bNum] || '';
+        if (found) {
+          authorValues[i][0] = found;
+          updatedCount++;
+        }
+      }
+    }
+
+    if (updatedCount > 0) {
+      authorRange.setValues(authorValues);
+      SpreadsheetApp.flush();
+      Logger.log(`[부서: ${dept}] 대장 시트 작성자 ${updatedCount}건 자동 기록 완료!`);
+    } else {
+      Logger.log(`[부서: ${dept}] 갱신할 빈 작성자 행이 없습니다.`);
+    }
+  }
+  Logger.log('전체 부서 작성자 일괄 채움 완료!');
 }
 
 // ── 전체 테스트 견적 초기화 유틸리티 (정식 오픈 전 1회 실행) ────────────────

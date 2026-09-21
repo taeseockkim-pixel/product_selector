@@ -3,6 +3,7 @@ import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import {
   fetchLedger,
+  fetchDashboardStats,
   createOrderDraft,
   fetchQuoteFiles,
   deleteQuote,
@@ -189,6 +190,7 @@ export default function QuoteListPage({
 
   const [pageSize, setPageSize] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [statsAuthorMap, setStatsAuthorMap] = useState<Map<string, string>>(new Map());
 
   // ── 대장 항목(열) 표시/숨김 및 순서 설정 상태 ──
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
@@ -248,7 +250,10 @@ export default function QuoteListPage({
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchLedger(targetYear, targetDept);
+      const [result, statsResult] = await Promise.all([
+        fetchLedger(targetYear, targetDept),
+        fetchDashboardStats(targetDept).catch(() => null),
+      ]);
       if (!result.success) throw new Error(result.message || '견적관리대장을 불러오지 못했습니다.');
       const availableYears = (result.availableYears ?? [targetYear])
         .filter((year) => Number.isInteger(year) && year >= 2000 && year <= currentYear)
@@ -259,6 +264,20 @@ export default function QuoteListPage({
       }
       setHeaders(result.headers ?? []);
       setRows(result.rows ?? []);
+
+      if (statsResult && statsResult.success && Array.isArray(statsResult.records)) {
+        const map = new Map<string, string>();
+        statsResult.records.forEach((r) => {
+          const qNum = String(r.quoteNumber || '').trim();
+          const bNum = qNum.replace(/_Rev\d+$/i, '').trim();
+          const aName = String(r.authorName || '').trim();
+          if (aName) {
+            if (qNum) map.set(qNum, aName);
+            if (bNum) map.set(bNum, aName);
+          }
+        });
+        setStatsAuthorMap(map);
+      }
     } catch (err) {
       setError(String(err));
       setHeaders([]);
@@ -333,7 +352,8 @@ export default function QuoteListPage({
 
     if (!normalizedSearch) return true;
     const matchValue = row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
-    const matchAuthor = Boolean(row.authorName && row.authorName.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
+    const authorVal = row.authorName || statsAuthorMap.get(quoteNum) || statsAuthorMap.get(quoteNum.replace(/_Rev\d+$/i, '')) || '';
+    const matchAuthor = Boolean(authorVal && authorVal.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
     return matchValue || matchAuthor;
   });
 
@@ -896,7 +916,7 @@ export default function QuoteListPage({
                     <span><strong className="text-[#555555]">{t(UI.quoteNumber)}:</strong> {ledgerValue(headers, row, ['견적번호']) || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteCompany)}:</strong> {ledgerValue(headers, row, ['업체명', '회사명']) || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteContact)}:</strong> {ledgerValue(headers, row, ['고객명', '담당자']) || '-'}</span>
-                    <span><strong className="text-[#555555]">작성자:</strong> {row.authorName || '-'}</span>
+                    <span><strong className="text-[#555555]">작성자:</strong> {row.authorName || statsAuthorMap.get(ledgerValue(headers, row, ['견적번호'])) || statsAuthorMap.get(ledgerValue(headers, row, ['견적번호']).replace(/_Rev\d+$/i, '')) || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteDate)}:</strong> {ledgerValue(headers, row, ['견적일자', '일']) || '-'}</span>
                   </div>
                 </button>
@@ -1549,8 +1569,11 @@ export default function QuoteListPage({
                           ) : isAmountColumn ? (
                             formatAmountValue(value)
                           ) : header.includes('작성자') ? (
-                            <span title={value || row.authorName} className="font-medium text-[#1e293b] whitespace-nowrap">
-                              {value || row.authorName || '—'}
+                            <span
+                              title={value || row.authorName || statsAuthorMap.get(quoteNumber) || statsAuthorMap.get(quoteNumber.replace(/_Rev\d+$/i, '')) || '—'}
+                              className="font-medium text-[#1e293b] whitespace-nowrap"
+                            >
+                              {value || row.authorName || statsAuthorMap.get(quoteNumber) || statsAuthorMap.get(quoteNumber.replace(/_Rev\d+$/i, '')) || '—'}
                             </span>
                           ) : (
                             <span title={value} className="break-words">
