@@ -371,50 +371,9 @@ function unitPriceForItem(item: Pick<ItemRow, 'catalogItem' | 'product' | 'unitP
   return item.unitPrice;
 }
 
-function detailedSpecFromProduct(product: Product, lang: 'ko' | 'en'): string {
-  if (product.category === 'IPC' && product.specs && product.specs.length > 0) {
-    const getSpec = (label: string) => product.specs.find((s) => s.label === label)?.value;
-    const cpu = getSpec('CPU');
-    const screen = getSpec('화면') || (product.screenSize ? `${product.screenSize}"` : '');
-    const res = getSpec('해상도');
-    const os = getSpec('OS')?.split('/')[0]?.trim();
-    const mem = getSpec('메모리');
-
-    if (cpu) {
-      const line1 = `${cpu} / DDR4`;
-      const line2Parts: string[] = [];
-      if (product.series === '500' || product.series === '5000') {
-        line2Parts.push('SDRAM8GB(Max. 32GB)');
-        line2Parts.push('SSD 120 Gbyte');
-      } else {
-        line2Parts.push('SDRAM 8GB');
-        line2Parts.push(mem?.includes('500GB') ? 'SSD 500GB' : (mem || 'SSD 500GB'));
-      }
-      if (os) line2Parts.push(os);
-      const line2 = line2Parts.join(' / ');
-
-      const line3Parts: string[] = [];
-      if (screen && res) line3Parts.push(`${screen} / ${res}`);
-      else if (screen) line3Parts.push(screen);
-      else line3Parts.push('BOX PC TYPE');
-
-      const isDc = product.id.endsWith('-D') || product.modelName.endsWith('-D') || product.series?.includes('50000') || product.series?.includes('BOX');
-      line3Parts.push(isDc ? 'DC 24V' : 'AC 220V');
-
-      if (product.hasScadaPreinstalled) {
-        line3Parts.push(product.series?.includes('50000') ? 'SCADA PRO (10K/DS) 내장' : 'FULL DS 내장');
-      }
-      const line3 = line3Parts.join(' / ');
-
-      return [line1, line2, line3].filter(Boolean).join('\n');
-    }
-  }
-  return lang === 'en' ? (product.descriptionEn ?? product.description) : product.description;
-}
-
 function itemFromProduct(product: Product, lang: 'ko' | 'en'): ItemRow {
   const catalogItem = findQuoteCatalogItem(product.modelName) ?? findQuoteCatalogItem(product.id);
-  const spec = catalogItem?.spec || detailedSpecFromProduct(product, lang);
+  const spec = catalogItem?.spec || (lang === 'en' ? (product.descriptionEn ?? product.description) : product.description);
   const unitPrice = catalogItem ? getQuoteCatalogUnitPrice(catalogItem, 1) : getUnitPrice(product.id, 1);
 
   return {
@@ -2139,7 +2098,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                               />
                             </div>
                             <textarea
-                              rows={item.isCustom || (item.spec && (item.spec.includes('\n') || item.spec.length > 40)) ? 3 : 1}
+                              rows={item.isCustom || (item.spec && item.spec.length > 40) ? 2 : 1}
                               value={item.spec}
                               onChange={(e) => updateItemSpec(idx, e.target.value)}
                               placeholder="규격/사양 상세 내용 직접 작성"

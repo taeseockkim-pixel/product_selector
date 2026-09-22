@@ -3,7 +3,6 @@ import { useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import {
   fetchLedger,
-  fetchDashboardStats,
   createOrderDraft,
   fetchQuoteFiles,
   deleteQuote,
@@ -66,7 +65,6 @@ function columnWidth(header: string) {
   if (header.includes('연도') || header.includes('년도')) return 56;
   if (header === '월' || header === '일') return 42;
   if (header.includes('발주')) return 78;
-  if (header.includes('작성자') || header.includes('담당영업') || header === '작성자') return 80;
   if (header.includes('견적번호')) return 128;
   if (header.includes('업체명') || header.includes('회사명')) return 100;
   if (header.includes('고객명') || header.includes('담당자')) return 92;
@@ -190,7 +188,6 @@ export default function QuoteListPage({
 
   const [pageSize, setPageSize] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [statsAuthorMap, setStatsAuthorMap] = useState<Map<string, string>>(new Map());
 
   // ── 대장 항목(열) 표시/숨김 및 순서 설정 상태 ──
   const [columnSettingsOpen, setColumnSettingsOpen] = useState(false);
@@ -250,15 +247,7 @@ export default function QuoteListPage({
     setLoading(true);
     setError(null);
     try {
-      const agentAuthorsPromise = fetch(`${FOLDER_BROWSER_URL}api/quote-authors?dept=${encodeURIComponent(targetDept)}`)
-        .then((r) => r.json())
-        .catch(() => null);
-
-      const [result, statsResult, agentAuthorsResult] = await Promise.all([
-        fetchLedger(targetYear, targetDept),
-        fetchDashboardStats(targetDept).catch(() => null),
-        agentAuthorsPromise,
-      ]);
+      const result = await fetchLedger(targetYear, targetDept);
       if (!result.success) throw new Error(result.message || '견적관리대장을 불러오지 못했습니다.');
       const availableYears = (result.availableYears ?? [targetYear])
         .filter((year) => Number.isInteger(year) && year >= 2000 && year <= currentYear)
@@ -269,29 +258,6 @@ export default function QuoteListPage({
       }
       setHeaders(result.headers ?? []);
       setRows(result.rows ?? []);
-
-      const map = new Map<string, string>();
-      if (statsResult && statsResult.success && Array.isArray(statsResult.records)) {
-        statsResult.records.forEach((r) => {
-          const qNum = String(r.quoteNumber || '').trim();
-          const bNum = qNum.replace(/_Rev\d+$/i, '').trim();
-          const aName = String(r.authorName || '').trim();
-          if (aName) {
-            if (qNum) map.set(qNum, aName);
-            if (bNum) map.set(bNum, aName);
-          }
-        });
-      }
-      if (agentAuthorsResult && agentAuthorsResult.success && agentAuthorsResult.authors) {
-        Object.entries(agentAuthorsResult.authors).forEach(([qNum, aName]) => {
-          const nameStr = String(aName || '').trim();
-          if (nameStr) {
-            map.set(qNum, nameStr);
-            map.set(qNum.replace(/_Rev\d+$/i, ''), nameStr);
-          }
-        });
-      }
-      setStatsAuthorMap(map);
     } catch (err) {
       setError(String(err));
       setHeaders([]);
@@ -366,8 +332,7 @@ export default function QuoteListPage({
 
     if (!normalizedSearch) return true;
     const matchValue = row.values.some((value) => value.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
-    const authorVal = row.authorName || statsAuthorMap.get(quoteNum) || statsAuthorMap.get(quoteNum.replace(/_Rev\d+$/i, '')) || '';
-    const matchAuthor = Boolean(authorVal && authorVal.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
+    const matchAuthor = Boolean(row.authorName && row.authorName.toLocaleLowerCase('ko-KR').includes(normalizedSearch));
     return matchValue || matchAuthor;
   });
 
@@ -399,24 +364,7 @@ export default function QuoteListPage({
     columnOrder.forEach((h) => {
       if (baseList.includes(h)) ordered.push(h);
     });
-
-    // 신규 추가된 '작성자' 헤더가 columnOrder에 없으면 발주와 견적번호 사이에 스마트 삽입
-    const unplacedHeaders = baseList.filter((h) => !ordered.includes(h));
-    const authorHeader = unplacedHeaders.find((h) => h.includes('작성자'));
-    if (authorHeader) {
-      const orderIdx = ordered.findIndex((h) => h.includes('발주'));
-      const quoteIdx = ordered.findIndex((h) => h.includes('견적번호'));
-      if (orderIdx >= 0) {
-        ordered.splice(orderIdx + 1, 0, authorHeader);
-      } else if (quoteIdx >= 0) {
-        ordered.splice(quoteIdx, 0, authorHeader);
-      } else {
-        ordered.push(authorHeader);
-      }
-    }
-
-    // 나머지 미배치 헤더 추가
-    unplacedHeaders.forEach((h) => {
+    baseList.forEach((h) => {
       if (!ordered.includes(h)) ordered.push(h);
     });
     return ordered;
@@ -930,7 +878,7 @@ export default function QuoteListPage({
                     <span><strong className="text-[#555555]">{t(UI.quoteNumber)}:</strong> {ledgerValue(headers, row, ['견적번호']) || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteCompany)}:</strong> {ledgerValue(headers, row, ['업체명', '회사명']) || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteContact)}:</strong> {ledgerValue(headers, row, ['고객명', '담당자']) || '-'}</span>
-                    <span><strong className="text-[#555555]">작성자:</strong> {row.authorName || statsAuthorMap.get(ledgerValue(headers, row, ['견적번호'])) || statsAuthorMap.get(ledgerValue(headers, row, ['견적번호']).replace(/_Rev\d+$/i, '')) || '-'}</span>
+                    <span><strong className="text-[#555555]">작성자:</strong> {row.authorName || '-'}</span>
                     <span><strong className="text-[#555555]">{t(UI.quoteDate)}:</strong> {ledgerValue(headers, row, ['견적일자', '일']) || '-'}</span>
                   </div>
                 </button>
@@ -1582,13 +1530,6 @@ export default function QuoteListPage({
                             </a>
                           ) : isAmountColumn ? (
                             formatAmountValue(value)
-                          ) : header.includes('작성자') ? (
-                            <span
-                              title={value || row.authorName || statsAuthorMap.get(quoteNumber) || statsAuthorMap.get(quoteNumber.replace(/_Rev\d+$/i, '')) || '—'}
-                              className="font-medium text-[#1e293b] whitespace-nowrap"
-                            >
-                              {value || row.authorName || statsAuthorMap.get(quoteNumber) || statsAuthorMap.get(quoteNumber.replace(/_Rev\d+$/i, '')) || '—'}
-                            </span>
                           ) : (
                             <span title={value} className="break-words">
                               {value}

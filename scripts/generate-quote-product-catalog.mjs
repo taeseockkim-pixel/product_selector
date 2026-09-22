@@ -11,7 +11,6 @@ const OUT_PATH = path.join(ROOT, 'src', 'data', 'quoteProductCatalog.ts');
 
 const NAME_HEADERS = new Set(['형명', '품명', '모델명']);
 const SPEC_HEADERS = new Set(['구분', '규격', '사양', 'Display', '해상도']);
-const NOTE_HEADERS = new Set(['비고', '비 고', '비  고']);
 const MODULE_SECTION_NAMES = new Set(['전원', '베이스', '증설', 'DI/DO', '아날로그', '온도', '고속/통신', '통신']);
 
 function cellText(cell) {
@@ -101,7 +100,6 @@ function normalizeSectionLabel(sheetName, sectionLabel) {
 function findHeader(row, columnCount, sheetName) {
   let nameCol = 0;
   let qtyCol = 0;
-  let noteCol = 0;
   const specCols = [];
   const unitPriceCols = [];
   const listPriceCols = [];
@@ -111,7 +109,6 @@ function findHeader(row, columnCount, sheetName) {
     if (!nameCol && (NAME_HEADERS.has(text) || (sheetName === 'TOUCH MONITOR' && text === '제품명'))) nameCol = c;
     if (text === '주문수량') qtyCol = c;
     if ((SPEC_HEADERS.has(text) || (sheetName === 'TOUCH MONITOR' && text === 'Size')) && !specCols.includes(c)) specCols.push(c);
-    if (NOTE_HEADERS.has(text)) noteCol = c;
     if (text === '단가') unitPriceCols.push({ col: c, minQty: 1 });
     const tier = text.match(/^단가-\s*(\d+)대$/);
     if (tier) unitPriceCols.push({ col: c, minQty: Number(tier[1]) });
@@ -120,116 +117,7 @@ function findHeader(row, columnCount, sheetName) {
 
   const priceCols = unitPriceCols.length > 0 ? unitPriceCols : listPriceCols;
   if (!nameCol || priceCols.length === 0) return null;
-  return { nameCol, specCols, qtyCol, noteCol, priceCols };
-}
-
-function buildIpcDetailedSpec(sheetName, name, specParts, noteText) {
-  const isAc = /-A($|\s)/i.test(name) || (sheetName === '500Series' && !/-D($|\s)/i.test(name) && name.endsWith('-A'));
-  const isDc = /-D($|\s)/i.test(name) || sheetName.includes('50000') || sheetName.includes('BOX');
-  const power = isDc ? 'DC 24V' : (isAc ? 'AC 220V' : '');
-
-  let cpu = '';
-  let ramSpec = 'SDRAM8GB(Max. 32GB)';
-  let ssd = 'SSD 120 Gbyte';
-  let os = 'Windows 10 IoT Enterprise';
-  let scada = '';
-
-  const isScada = /iNT|T\d/i.test(name) || /SCADA/i.test(noteText);
-
-  if (sheetName === '500Series') {
-    cpu = 'Intel® Celeron® Quad-Core J6412 SoC (FANLESS)';
-    ramSpec = 'SDRAM8GB(Max. 32GB)';
-    ssd = 'SSD 120 Gbyte';
-    os = 'Windows 10 IoT Enterprise';
-    if (isScada) scada = 'FULL DS 내장';
-  } else if (sheetName === '5000Series') {
-    cpu = 'Intel® Core™ i5-6300U (FANLESS)';
-    ramSpec = 'SDRAM8GB(Max. 32GB)';
-    ssd = 'SSD 120 Gbyte';
-    os = 'Windows 10 IoT Enterprise';
-    if (isScada) scada = 'FULL DS 내장';
-  } else if (sheetName.includes('50000')) {
-    const is70k = /711|70000/i.test(name);
-    cpu = is70k
-      ? 'Intel® Core™ i7-1185G7E Quad Core (FANLESS)'
-      : 'Intel® Core™ i5-1145G7E Quad Core (FANLESS)';
-    ramSpec = 'SDRAM 8GB';
-    ssd = 'SSD 500GB';
-    os = 'Windows 11 IoT Enterprise';
-    if (isScada) scada = 'SCADA PRO (10K/DS) 내장';
-  } else if (sheetName.includes('BOX')) {
-    const is70k = /7011/i.test(name);
-    const is200 = /200/i.test(name);
-    if (is200) {
-      cpu = 'Intel® Celeron® Quad-Core J6412 SoC (FANLESS)';
-      ssd = 'SSD 120 Gbyte';
-    } else if (is70k) {
-      cpu = 'Intel® Core™ i7-1185G7E Quad Core (FANLESS)';
-      ssd = 'SSD 500GB';
-    } else {
-      cpu = 'Intel® Core™ i5-1145G7E Quad Core (FANLESS)';
-      ssd = 'SSD 500GB';
-    }
-    ramSpec = 'SDRAM 8GB';
-    os = 'Windows 10 IoT Enterprise';
-    if (isScada) scada = 'FULL DS 내장';
-  }
-
-  // 화면 / 해상도 추출
-  let screenPart = '';
-  if (specParts.length >= 2) {
-    screenPart = `${specParts[0]} / ${specParts[1]}`;
-  } else if (specParts.length === 1) {
-    screenPart = specParts[0];
-  } else if (sheetName.includes('BOX')) {
-    screenPart = 'BOX PC TYPE';
-  }
-
-  // 1줄: CPU / DDR4
-  // 2줄: RAM / SSD / OS
-  // 3줄: 화면 / 해상도 / 전원 / SCADA
-  const line1 = `${cpu} / DDR4`;
-  const line2Parts = [ramSpec];
-  if (ssd) line2Parts.push(ssd);
-  if (os) line2Parts.push(os);
-  const line2 = line2Parts.join(' / ');
-
-  const line3Parts = [];
-  if (screenPart) line3Parts.push(screenPart);
-  if (power) line3Parts.push(power);
-  if (scada) line3Parts.push(scada);
-  const line3 = line3Parts.join(' / ');
-
-  return [line1, line2, line3].filter(Boolean).join('\n');
-}
-
-function buildDetailedSpec(sheetName, name, specParts, noteText) {
-  const isIpc = ['500Series', '5000Series', '50000_70000Series', 'BOX PC Series'].includes(sheetName);
-  if (isIpc) {
-    return buildIpcDetailedSpec(sheetName, name, specParts, noteText);
-  }
-
-  if (sheetName === 'TOUCH MONITOR') {
-    if (name.includes('15W')) {
-      return '15.6" Wide TFT LCD / 1920 x 1080 (FHD) / 4-Wire Resistive Touch\nLuminance 500 cd/m² / DC 24V / HDMI, VGA';
-    }
-    if (name.includes('12W')) {
-      return '12.1" Wide TFT LCD / 1280 x 800 / 정전식 Touch\nLuminance 600 cd/m² / DC 24V / HDMI, DP, DVI, VGA';
-    }
-    if (name.includes('21W')) {
-      return '21.5" Wide TFT LCD / 1920 x 1080 (FHD) / 정전식 Touch\nLuminance 400 cd/m² / DC 24V / HDMI, DP, DVI, VGA';
-    }
-  }
-
-  // PLC . CM3: 비고란에 전원 사양이 있으면 보강
-  if (sheetName === 'PLC . CM3' && noteText) {
-    const powerMatch = noteText.match(/전원\s*:\s*(DC24V|AC\d+V)/i);
-    if (powerMatch && !specParts.some((p) => p.includes(powerMatch[1]))) {
-      pushUnique(specParts, powerMatch[1]);
-    }
-  }
-
-  return specParts.join(' / ');
+  return { nameCol, specCols, qtyCol, priceCols };
 }
 
 function buildTieredItems(workbook) {
@@ -257,28 +145,14 @@ function buildTieredItems(workbook) {
 
       const rawName = cellText(row.getCell(header.nameCol));
       const name = sanitizeIdentifier(rawName);
-      if (!name || NAME_HEADERS.has(name) || name === 'NO' || name === 'Option' || name.startsWith('■') || name.startsWith('*')) continue;
+      if (!name || NAME_HEADERS.has(name) || name === 'NO' || name === 'Option') continue;
 
       const specParts = [];
       for (const col of header.specCols) {
         const value = cellText(row.getCell(col));
         if (value && !NAME_HEADERS.has(value) && value !== name) pushUnique(specParts, value);
       }
-
-      let noteText = '';
-      if (header.noteCol) {
-        noteText = cellText(row.getCell(header.noteCol));
-      } else {
-        for (let c = 6; c <= sheet.columnCount; c++) {
-          const t = cellText(row.getCell(c));
-          if (t.includes('Windows') || t.includes('SCADA') || t.includes('전원') || t.includes('포함')) {
-            noteText = t;
-            break;
-          }
-        }
-      }
-
-      const spec = buildDetailedSpec(sheet.name.trim(), name, specParts, noteText);
+      const spec = specParts.join(' / ');
 
       const mapKey = `${name}\u0000${spec}`;
       let item = items.get(mapKey);
@@ -380,23 +254,10 @@ export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined
     'CM0-SCB15I': 'CM0-SCB15IR',
   };
   const candidates = [normalized, aliases[normalized]].filter(Boolean);
-  const matched = QUOTE_PRODUCT_ITEMS.find((item) => {
+  return QUOTE_PRODUCT_ITEMS.find((item) => {
     const itemName = normalizeName(item.name);
     return candidates.some((candidate) => itemName === candidate || itemName === \`CM-\${candidate}\` || itemName.endsWith(candidate));
   });
-  if (matched) return matched;
-
-  // 베이스 모델명 스마트 매칭 (예: iNT519 -> CM-iNT519-A, iNT(iNP)519-A/D -> CM-iNT519-A)
-  const baseMatch = name.match(/^(?:CM-)?([A-Za-z0-9]+)/i);
-  if (baseMatch) {
-    const prefix = normalizeName(baseMatch[1]);
-    return QUOTE_PRODUCT_ITEMS.find((item) => {
-      const itemName = normalizeName(item.name);
-      return itemName.includes(prefix);
-    });
-  }
-
-  return undefined;
 }
 
 export const QUOTE_PRODUCT_CATALOG_META = {

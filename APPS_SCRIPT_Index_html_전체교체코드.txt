@@ -1,3 +1,7 @@
+아래 내용을 Apps Script의 Index.html에 전체 붙여넣으세요.
+기존 Index.html 내용은 모두 삭제한 뒤 아래 코드 전체로 교체합니다.
+
+----- 여기부터 복사 -----
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -5,8 +9,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CIMON 제품 선택 가이드</title>
-  <link rel="icon" type="image/png" href="https://product-selector-two.vercel.app/favicon.png" />
-  <link rel="shortcut icon" href="https://product-selector-two.vercel.app/favicon.png" />
   <style>
     html,
     body {

@@ -96,7 +96,7 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 .r { text-align: right; }
 .l { text-align: left; }
 .b { font-weight: 600; }
-.sm { font-size: 8pt; white-space: pre-wrap; word-break: break-all; }
+.sm { font-size: 8pt; }
 .total { border: 2px solid #222; text-align: right; padding: 5px 8px; font-size: 11pt; font-weight: bold; margin-bottom: 7px; }
 .note { border: 1px solid #888; padding: 5px 8px; min-height: 34px; font-size: 9pt; margin-bottom: 14px; }
 .footer { display: flex; justify-content: space-between; align-items: flex-end; }

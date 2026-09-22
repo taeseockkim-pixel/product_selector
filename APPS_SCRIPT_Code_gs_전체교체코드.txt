@@ -26,8 +26,7 @@ const CONFIG = {
   // 작성자 DB 시트가 있는 폴더 아래 '견적에이전트' 폴더를 만들고, 그 안에서
   // pending/results 파일을 주고받는다 (에이전트 PC에는 Google Drive 데스크톱 필요)
   AGENT_QUEUE_FOLDER_NAME: '견적에이전트',
-  // 보안: API Key는 코드에 노출하지 않고 Apps Script의 [프로젝트 설정 > 스크립트 속성]의 GEMINI_API_KEY에서 읽어옵니다.
-  GEMINI_API_KEY: (typeof PropertiesService !== 'undefined' && PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY')) || '',
+  GEMINI_API_KEY: 'AIzaSyBFshNCRc924FBF1Web1_oPxoARGyT50zs',
   GEMINI_URL_BASE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='
 };
 
@@ -73,35 +72,12 @@ const QUOTE_SNAPSHOT_SHEET_NAME = '견적원본데이터';
 // 견적관리대장 열 번호 (1부터 시작). 사용자가 "일"과 "견적번호" 사이에 "발주" 열을
 // 직접 추가했으므로, 그 뒤 열들은 기존 문서에 적혀 있던 번호보다 한 칸씩 뒤로 밀린다.
 // 대장 컬럼 구성을 바꾸면 반드시 이 상수만 수정한다 (다른 곳에 열 번호를 직접 적지 않는다).
-// 기본 대장 컬럼 정의 (F열에 '작성자'가 추가된 최신 16열 구조)
-// A=NO, B=연도, C=월, D=일, E=발주, F=작성자, G=견적번호, H=업체명, I=고객명, J=연락처, K=이메일, L=제품 항목, M=제품명, N=견적 금액, O=비고, P=파일링크
 const LEDGER_COL = {
   NO: 1,
   YEAR: 2,
   MONTH: 3,
   DAY: 4,
   ORDER: 5,
-  AUTHOR: 6,
-  QUOTE_NUMBER: 7,
-  CLIENT_NAME: 8,
-  CLIENT_CONTACT: 9,
-  CLIENT_PHONE: 10,
-  CLIENT_EMAIL: 11,
-  CATEGORIES: 12,
-  PRODUCT_NAME: 13,
-  TOTAL_PRICE: 14,
-  NOTES: 15,
-  FILE_LINK: 16
-};
-
-// 과거 연도 시트 등 '작성자' 열이 없는 레거시 시트용 컬럼 정의 (15열 구조)
-const LEDGER_COL_LEGACY = {
-  NO: 1,
-  YEAR: 2,
-  MONTH: 3,
-  DAY: 4,
-  ORDER: 5,
-  AUTHOR: 0,
   QUOTE_NUMBER: 6,
   CLIENT_NAME: 7,
   CLIENT_CONTACT: 8,
@@ -114,33 +90,18 @@ const LEDGER_COL_LEGACY = {
   FILE_LINK: 15
 };
 
-// 대장 시트의 1행 헤더를 분석하여 신규 16열(F=작성자, G=견적번호) 또는 레거시 15열(F=견적번호) 레이아웃을 동적으로 반환한다.
-function getLedgerLayout_(ledgerSheet) {
-  try {
-    const lastCol = Math.max(ledgerSheet.getLastColumn(), 16);
-    const headers = ledgerSheet.getRange(1, 1, 1, lastCol).getDisplayValues()[0];
-    const col6 = String(headers[5] || '').trim(); // F열 (0-indexed 5)
-    if (col6.indexOf('작성자') !== -1) {
-      return LEDGER_COL;
-    }
-  } catch (e) { /* noop */ }
-  return LEDGER_COL_LEGACY;
-}
-
-// 대장 시트가 예상 열 구성을 갖는지 검증한다 (신규 16열: E=발주, F=작성자, G=견적번호 / 레거시: E=발주, F=견적번호).
+// 대장 시트가 LEDGER_COL과 같은 열 구성(E=발주, F=견적번호)을 갖는지 검증한다.
+// LEDGER_TEMPLATE_ID 스프레드시트나 특정 연도 시트의 열 구성이 어긋나 있으면 조용히 잘못된
+// 열에 쓰는 대신 즉시 에러를 던진다. (연 단위 자동 생성 시 특히 중요 — 템플릿에 발주 열이
+// 없다면 새로 만들어지는 모든 연도의 대장이 한 칸씩 밀려 저장된다.)
 function assertLedgerLayout_(ledgerSheet) {
-  const lastColumn = Math.max(ledgerSheet.getLastColumn(), 15);
+  const lastColumn = Math.max(ledgerSheet.getLastColumn(), LEDGER_COL.FILE_LINK);
   const headers = ledgerSheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
-  const orderHeader = String(headers[4] || ''); // E열 (5번째)
-  const fHeader = String(headers[5] || '');     // F열 (6번째)
-  const gHeader = String(headers[6] || '');     // G열 (7번째)
-
-  const isNewLayout = orderHeader.indexOf('발주') !== -1 && fHeader.indexOf('작성자') !== -1 && gHeader.indexOf('견적번호') !== -1;
-  const isLegacyLayout = orderHeader.indexOf('발주') !== -1 && fHeader.indexOf('견적번호') !== -1;
-
-  if (!isNewLayout && !isLegacyLayout) {
+  const orderHeader = String(headers[LEDGER_COL.ORDER - 1] || '');
+  const quoteNumberHeader = String(headers[LEDGER_COL.QUOTE_NUMBER - 1] || '');
+  if (orderHeader.indexOf('발주') === -1 || quoteNumberHeader.indexOf('견적번호') === -1) {
     throw new Error(
-      '견적관리대장의 열 구성이 예상과 다릅니다(E열=발주, F열=작성자, G열=견적번호이거나 E열=발주, F열=견적번호이어야 합니다). ' +
+      '견적관리대장의 열 구성이 예상과 다릅니다(E열=발주, F열=견적번호이어야 합니다). ' +
       'LEDGER_TEMPLATE_ID 대장 템플릿 또는 이 연도 시트의 헤더 행을 확인해 주세요.'
     );
   }
@@ -148,36 +109,13 @@ function assertLedgerLayout_(ledgerSheet) {
 }
 
 function doGet(e) {
-  try {
-    const template = HtmlService.createTemplateFromFile('Index');
-    const queryString = e && e.queryString ? '?' + e.queryString : '';
-    template.appUrl = VERCEL_APP_URL + queryString;
-    const output = template
-      .evaluate()
-      .setTitle('CIMON 제품 선택 가이드')
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-
-    // 파비콘 설정: 지원 확장자(.png) 우선 시도, 실패 시 안전 무시하여 웹 앱 로딩 보장
-    try {
-      output.setFaviconUrl('https://product-selector-two.vercel.app/favicon.png');
-    } catch (favErr) {
-      try {
-        output.setFaviconUrl('https://www.cimon.co.kr/favicon.ico');
-      } catch (favErr2) {
-        Logger.log('파비콘 설정 건너뜀: ' + favErr2.toString());
-      }
-    }
-    return output;
-  } catch (err) {
-    Logger.log('doGet 초기화 예외: ' + err.toString());
-    return HtmlService.createHtmlOutput(
-      '<div style="padding:24px;font-family:sans-serif;color:#b91c1c;">' +
-      '<h2 style="margin-top:0;">시스템 초기화 오류</h2>' +
-      '<p><strong>오류 내용:</strong> ' + err.toString() + '</p>' +
-      '<p style="color:#64748b;font-size:13px;">Index.html 파일의 내용이 올바른 HTML인지 확인한 뒤 새로고침해 주세요.</p>' +
-      '</div>'
-    );
-  }
+  const template = HtmlService.createTemplateFromFile('Index');
+  const queryString = e && e.queryString ? '?' + e.queryString : '';
+  template.appUrl = VERCEL_APP_URL + queryString;
+  return template
+    .evaluate()
+    .setTitle('CIMON 제품 선택 가이드')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function processQuoteFromReact(payload) {
@@ -251,10 +189,9 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
     const displayValues = range.getDisplayValues();
     const headers = displayValues[0];
 
-    // O열(파일링크)에만 URL 링크가 걸려 있으므로, 전체 시트가 아닌 O열(또는 P열)만 1회성으로 읽어 속도를 극대화한다.
-    // 440행 기준 전체 셀 richText 읽기 시 10~15초 이상 지연되던 병목을 0.3초대로 단축!
-    const layout = getLedgerLayout_(sheet);
-    const fileLinkCol = layout.FILE_LINK;
+    // O열(파일링크)에만 URL 링크가 걸려 있으므로, 전체 시트가 아닌 O열만 1회성으로 읽어 속도를 극대화한다.
+    // 440행 기준 전체 셀(440 x 16 = 7,040개) richText 읽기 시 10~15초 이상 지연되던 병목을 0.3초대로 단축!
+    const fileLinkCol = LEDGER_COL.FILE_LINK;
     const richTextLinks = (lastRow >= 2 && lastColumn >= fileLinkCol)
       ? sheet.getRange(2, fileLinkCol, lastRow - 1, 1).getRichTextValues()
       : [];
@@ -297,49 +234,6 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
       });
     }
 
-    // 에이전트가 기록한 부서 통계 JSON (stats/<부서>.json)에서 실제 작성자 정보 병합 (스냅샷 없는 과거 견적 복원)
-    try {
-      const statsRoot = getAgentSubfolder_('stats');
-      const statsIter = statsRoot.getFilesByName(`${department}.json`);
-      if (statsIter.hasNext()) {
-        const statsFile = statsIter.next();
-        const parsedStats = JSON.parse(statsFile.getBlob().getDataAsString('utf8'));
-        if (Array.isArray(parsedStats.records)) {
-          parsedStats.records.forEach(function(rec) {
-            const qNum = String(rec.quoteNumber || '').trim();
-            const bNum = baseQuoteNumber_(qNum);
-            const aName = String(rec.authorName || '').trim();
-            if (aName) {
-              if (qNum && !authorMap[qNum]) authorMap[qNum] = aName;
-              if (bNum && !authorMap[bNum]) authorMap[bNum] = aName;
-            }
-          });
-        }
-      }
-    } catch (statsErr) {
-      Logger.log('stats JSON 작성자 조회 예외: ' + statsErr.toString());
-    }
-
-    // 활동로그 시트에서 견적번호별 작성자 정보 보충
-    try {
-      const logSheet = system.ledger.getSheetByName('활동로그');
-      if (logSheet && logSheet.getLastRow() >= 2) {
-        const logValues = logSheet.getRange(2, 2, logSheet.getLastRow() - 1, 3).getValues();
-        logValues.forEach(function(lRow) {
-          const uUser = String(lRow[0] || '').trim();
-          const dDetail = String(lRow[2] || '').trim();
-          const qm = dDetail.match(/견적번호:\s*([^\s|]+(?:\s+\d{4}-\d+)?)/);
-          if (qm && uUser) {
-            const qKey = qm[1].trim();
-            const bKey = baseQuoteNumber_(qKey);
-            const uName = uUser.indexOf('@') !== -1 ? uUser.split('@')[0] : uUser;
-            if (qKey && !authorMap[qKey]) authorMap[qKey] = uName;
-            if (bKey && !authorMap[bKey]) authorMap[bKey] = uName;
-          }
-        });
-      }
-    } catch (logErr) { /* noop */ }
-
     // 작성자 DB의 이메일->이름 맵으로 보정
     try {
       const authorRows = readAuthorRows_();
@@ -356,7 +250,7 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
     } catch (e) { /* noop */ }
 
     // 견적번호 열의 폰트 취소선을 읽어 라인삭제(struck) 상태를 프론트에 전달한다.
-    const quoteCol = layout.QUOTE_NUMBER;
+    const quoteCol = LEDGER_COL.QUOTE_NUMBER;
     const fontLines = lastRow >= 2 ? sheet.getRange(2, quoteCol, lastRow - 1, 1).getFontLines() : [];
     const fileLinkIndex = fileLinkCol - 1;
 
@@ -366,7 +260,7 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
         paddedValues.push('');
       }
 
-      // O열/P열(파일링크)의 링크만 richTextLinks에서 추출하고 나머지는 URL 문자열 체크로 가볍게 처리
+      // O열(파일링크)의 링크만 richTextLinks에서 추출하고 나머지는 URL 문자열 체크로 가볍게 처리
       const linkRt = (richTextLinks[rowIndex] && richTextLinks[rowIndex][0]);
       const fileUrl = linkRt ? linkRt.getLinkUrl() : null;
 
@@ -379,17 +273,7 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
 
       const quoteNum = String(paddedValues[quoteCol - 1] || '').trim();
       const baseNum = quoteNum.replace(/_Rev\d+$/i, '').trim();
-      let authorName = authorMap[quoteNum] || authorMap[baseNum] || '';
-
-      // 시트의 작성자 열에 값이 있으면 우선 사용, 비어있으면 authorMap에서 보충하여 화면에 표시
-      if (layout.AUTHOR > 0) {
-        const sheetAuthor = String(paddedValues[layout.AUTHOR - 1] || '').trim();
-        if (sheetAuthor) {
-          authorName = sheetAuthor;
-        } else if (authorName) {
-          paddedValues[layout.AUTHOR - 1] = authorName;
-        }
-      }
+      const authorName = authorMap[quoteNum] || authorMap[baseNum] || '';
 
       return {
         values: paddedValues,
@@ -664,8 +548,7 @@ function updateLedgerLink_(result) {
   const linkLabel = revisionNumber > 0
     ? `Rev${String(revisionNumber).padStart(2, '0')}: ${fileName}`
     : `원본: ${fileName}`;
-  const layout = getLedgerLayout_(ledger);
-  const cell = ledger.getRange(row, layout.FILE_LINK);
+  const cell = ledger.getRange(row, LEDGER_COL.FILE_LINK);
   const links = [];
   const existing = cell.getRichTextValue();
   if (existing) {
@@ -906,8 +789,7 @@ function baseQuoteNumber_(quoteNumber) {
 function findLedgerRow_(sheet, quoteNumber) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return -1;
-  const layout = getLedgerLayout_(sheet);
-  const numbers = sheet.getRange(2, layout.QUOTE_NUMBER, lastRow - 1, 1).getDisplayValues();
+  const numbers = sheet.getRange(2, LEDGER_COL.QUOTE_NUMBER, lastRow - 1, 1).getDisplayValues();
   const target = String(quoteNumber || '').trim();
   for (let i = 0; i < numbers.length; i++) {
     if (String(numbers[i][0] || '').trim() === target) return i + 2;
@@ -927,10 +809,9 @@ function getNextRevisionNumber_(spreadsheet, ledgerSheet, baseQuoteNumber) {
     });
   }
 
-  const layout = getLedgerLayout_(ledgerSheet);
   const ledgerRow = findLedgerRow_(ledgerSheet, baseQuoteNumber);
   if (ledgerRow >= 2) {
-    const linkText = String(ledgerSheet.getRange(ledgerRow, layout.FILE_LINK).getDisplayValue() || '');
+    const linkText = String(ledgerSheet.getRange(ledgerRow, LEDGER_COL.FILE_LINK).getDisplayValue() || '');
     const matches = linkText.match(/_Rev(\d+)/gi) || [];
     matches.forEach(function(value) {
       const match = value.match(/(\d+)/);
@@ -1092,7 +973,6 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber, requestedDepartmen
     if (ledgerRowIdx >= 2) {
       const rowValues = sheet.getRange(ledgerRowIdx, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
       const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
-      const layout = getLedgerLayout_(sheet);
 
       function colVal(labels, fallbackCol) {
         const idx = headers.findIndex(function(h) {
@@ -1101,16 +981,16 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber, requestedDepartmen
         return idx >= 0 ? String(rowValues[idx] || '').trim() : (fallbackCol ? String(rowValues[fallbackCol - 1] || '').trim() : '');
       }
 
-      const clientName = colVal(['업체명', '회사명'], layout.CLIENT_NAME);
-      const contactPerson = colVal(['고객명', '담당자'], layout.CLIENT_CONTACT);
-      const clientPhone = colVal(['연락처', '전화'], layout.CLIENT_PHONE);
-      const clientEmail = colVal(['이메일', '메일'], layout.CLIENT_EMAIL);
-      const productName = colVal(['제품명'], layout.PRODUCT_NAME);
-      const categories = colVal(['제품 항목', '제품군'], layout.CATEGORIES);
-      const rawPrice = colVal(['견적 금액', '금액'], layout.TOTAL_PRICE);
+      const clientName = colVal(['업체명', '회사명'], LEDGER_COL.CLIENT_NAME);
+      const contactPerson = colVal(['고객명', '담당자'], LEDGER_COL.CLIENT_CONTACT);
+      const clientPhone = colVal(['연락처', '전화'], LEDGER_COL.CLIENT_PHONE);
+      const clientEmail = colVal(['이메일', '메일'], LEDGER_COL.CLIENT_EMAIL);
+      const productName = colVal(['제품명'], LEDGER_COL.PRODUCT_NAME);
+      const categories = colVal(['제품 항목', '제품군'], LEDGER_COL.CATEGORIES);
+      const rawPrice = colVal(['견적 금액', '금액'], LEDGER_COL.TOTAL_PRICE);
       const totalPrice = Number(rawPrice.replace(/[^\d.-]/g, '')) || 0;
-      const notes = colVal(['비고'], layout.NOTES);
-      const quoteDate = `${rowValues[layout.YEAR - 1]}.${rowValues[layout.MONTH - 1]}.${rowValues[layout.DAY - 1]}`;
+      const notes = colVal(['비고'], LEDGER_COL.NOTES);
+      const quoteDate = `${rowValues[LEDGER_COL.YEAR - 1]}.${rowValues[LEDGER_COL.MONTH - 1]}.${rowValues[LEDGER_COL.DAY - 1]}`;
 
       existingVersions.push({
         quoteNumber: baseQuoteNumber,
@@ -1955,33 +1835,19 @@ function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
   const seqMatch = ledgerQuoteNumber.match(/-(\d+)\s*$/);
   const no = seqMatch ? parseInt(seqMatch[1], 10) : sheet.getLastRow();
 
-  const layout = getLedgerLayout_(sheet);
-  // 신규 16열 레이아웃(F열=작성자, G열=견적번호) vs 레거시 15열 레이아웃(F열=견적번호)
-  // E열(발주)은 사용자가 대장에서 직접 관리하는 열이므로 신규/수정 저장 로직에서는 절대 건드리지 않는다.
-  const quoteInfoValues = layout.AUTHOR > 0
-    ? [
-        details.authorName || '',
-        ledgerQuoteNumber,
-        details.clientName,
-        details.clientContactPerson,
-        details.clientPhone,
-        details.clientEmail,
-        productCategories.join(', '),
-        productName,
-        totalPrice,
-        details.notes || ''
-      ]
-    : [
-        ledgerQuoteNumber,
-        details.clientName,
-        details.clientContactPerson,
-        details.clientPhone,
-        details.clientEmail,
-        productCategories.join(', '),
-        productName,
-        totalPrice,
-        details.notes || ''
-      ];
+  // F열(견적번호)부터 N열(비고)까지 9개 값 — E열(발주)은 사용자가 대장에서 직접
+  // 관리하는 열이므로 신규/수정 저장 로직에서는 절대 건드리지 않는다.
+  const quoteInfoValues = [
+    ledgerQuoteNumber,
+    details.clientName,
+    details.clientContactPerson,
+    details.clientPhone,
+    details.clientEmail,
+    productCategories.join(', '),
+    productName,
+    totalPrice,
+    details.notes || ''
+  ];
 
   // 신규 견적도 완료 보고 재처리 시 같은 견적번호 행을 중복 append하지 않도록 먼저 찾는다.
   const existingRow = findLedgerRow_(sheet, ledgerQuoteNumber);
@@ -1993,13 +1859,12 @@ function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
   // 손대지 않은 상태이므로 "일부만 반영된" 상태가 되지 않는다.
   saveQuoteSnapshot_(sheet.getParent(), details, items, totalPrice);
 
-  const startCol = layout.AUTHOR > 0 ? layout.AUTHOR : layout.QUOTE_NUMBER;
   if (existingRow >= 2) {
-    // 수정본: A~D열(날짜)과 E열(발주)은 원본 값을 그대로 두고 F~O열만 갱신한다.
-    // 파일링크 열은 updateLedgerLink_이 원본·Rev 링크를 누적하므로 여기서 건드리지 않는다.
-    sheet.getRange(existingRow, startCol, 1, quoteInfoValues.length).setValues([quoteInfoValues]);
+    // 수정본: A~D열(날짜)과 E열(발주)은 원본 값을 그대로 두고 F~N열만 갱신한다.
+    // O열(파일링크)은 updateLedgerLink_이 원본·Rev 링크를 누적하므로 여기서 건드리지 않는다.
+    sheet.getRange(existingRow, LEDGER_COL.QUOTE_NUMBER, 1, quoteInfoValues.length).setValues([quoteInfoValues]);
   } else {
-    // 신규 견적: A~D, E(발주 공란), F~(작성자/견적번호~비고), 파일링크를 한 번에 추가한다.
+    // 신규 견적: A~D, E(발주 공란), F~N, O(파일링크)를 한 번에 추가한다.
     sheet.appendRow([no, year, month, day, ''].concat(quoteInfoValues).concat([fileUrl]));
   }
 }
@@ -2203,17 +2068,15 @@ function writeLinkItemsToCell_(sheet, rowIndex, linkItems) {
     if (item.url) builder.setLinkUrl(offset, offset + item.text.length, item.url);
     offset += item.text.length + separator.length;
   });
-  const layout = getLedgerLayout_(sheet);
-  sheet.getRange(rowIndex, layout.FILE_LINK).setRichTextValue(builder.build());
+  sheet.getRange(rowIndex, LEDGER_COL.FILE_LINK).setRichTextValue(builder.build());
 }
 
 // 견적 목록 조회 시 누락된 파일링크를 "그 자리에서" 자동 복구한다.
 // 반환할 rows 배열에도 복구된 링크를 반영해서 화면에 즉시 보이게 한다.
 function repairEmptyLedgerLinks_(system, dept, year, rows) {
-  const layout = getLedgerLayout_(system.ledgerSheet);
-  const linkCol = layout.FILE_LINK - 1;
-  const quoteCol = layout.QUOTE_NUMBER - 1;
-  const companyCol = layout.CLIENT_NAME - 1;
+  const linkCol = LEDGER_COL.FILE_LINK - 1;
+  const quoteCol = LEDGER_COL.QUOTE_NUMBER - 1;
+  const companyCol = LEDGER_COL.CLIENT_NAME - 1;
 
   // 빈 링크가 하나도 없으면 스냅샷 시트 조회나 셀 쓰기를 아예 건너뛴다 (0ms)
   let hasMissing = false;
@@ -2268,11 +2131,10 @@ function autoRepairAllMissingLedgerLinks() {
       ? snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues()
       : [];
 
-    const layout = getLedgerLayout_(sheet);
     let repaired = 0;
     for (let r = 2; r <= lastRow; r++) {
-      const quoteNumber = String(sheet.getRange(r, layout.QUOTE_NUMBER).getDisplayValue() || '').trim();
-      const company = String(sheet.getRange(r, layout.CLIENT_NAME).getDisplayValue() || '').trim();
+      const quoteNumber = String(sheet.getRange(r, LEDGER_COL.QUOTE_NUMBER).getDisplayValue() || '').trim();
+      const company = String(sheet.getRange(r, LEDGER_COL.CLIENT_NAME).getDisplayValue() || '').trim();
       if (!quoteNumber || !company) continue;
       const linkItems = buildRowLinkItems_(dept, currentYear, quoteNumber, company, snapshotRows);
       if (!linkItems.length) continue;
@@ -2287,114 +2149,6 @@ function autoRepairAllMissingLedgerLinks() {
 
 function repairMissingLedgerLink() {
   autoRepairAllMissingLedgerLinks();
-}
-
-// ── 대장 F열(작성자) 일괄 채움 유틸리티 ──────────────────────────────────────
-// 대장 시트의 F열(작성자)이 비어 있는 기존 행들에 대해
-// stats/{부서}.json 및 스냅샷 시트, 활동로그의 실제 작성자 실명을 대장에 직접 영구 기록한다.
-// 실행 방법: 함수 선택 → backfillAuthorsToLedger → [실행]
-function backfillAuthorsToLedger() {
-  const currentYear = new Date().getFullYear();
-  for (const dept of Object.keys(CONFIG.DEPARTMENT_ROOTS)) {
-    const rootFolderId = CONFIG.DEPARTMENT_ROOTS[dept];
-    const system = getExistingYearSystem_(currentYear, rootFolderId);
-    if (!system) continue;
-
-    const sheet = system.ledgerSheet;
-    const lastRow = sheet.getLastRow();
-    if (lastRow < 2) continue;
-
-    const layout = getLedgerLayout_(sheet);
-    if (layout.AUTHOR <= 0) {
-      Logger.log(`[부서: ${dept}] 대장에 작성자 열이 없어 건너뜁니다.`);
-      continue;
-    }
-
-    // 1. authorMap 수집 (스냅샷 + stats/{부서}.json + 작성자DB + 활동로그)
-    const authorMap = {};
-    const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
-    if (snapshot && snapshot.getLastRow() >= 2) {
-      const snapRows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
-      snapRows.forEach(function(sRow) {
-        const q0 = String(sRow[0] || '').trim();
-        const q1 = String(sRow[1] || '').trim();
-        let name = '';
-        try {
-          const parsed = JSON.parse(String(sRow[4] || '{}'));
-          name = String((parsed.details && parsed.details.authorName) || '').trim();
-        } catch (e) { /* noop */ }
-        if (!name && sRow[3]) name = String(sRow[3]).split('@')[0];
-        if (name) {
-          if (q0) authorMap[q0] = name;
-          if (q1) authorMap[q1] = name;
-        }
-      });
-    }
-
-    try {
-      const statsRoot = getAgentSubfolder_('stats');
-      const statsIter = statsRoot.getFilesByName(`${dept}.json`);
-      if (statsIter.hasNext()) {
-        const statsFile = statsIter.next();
-        const parsedStats = JSON.parse(statsFile.getBlob().getDataAsString('utf8'));
-        if (Array.isArray(parsedStats.records)) {
-          parsedStats.records.forEach(function(rec) {
-            const qNum = String(rec.quoteNumber || '').trim();
-            const bNum = baseQuoteNumber_(qNum);
-            const aName = String(rec.authorName || '').trim();
-            if (aName) {
-              if (qNum && !authorMap[qNum]) authorMap[qNum] = aName;
-              if (bNum && !authorMap[bNum]) authorMap[bNum] = aName;
-            }
-          });
-        }
-      }
-    } catch (statsErr) {
-      Logger.log('stats 읽기 예외: ' + statsErr.toString());
-    }
-
-    try {
-      const authorRows = readAuthorRows_();
-      const emailToName = {};
-      authorRows.forEach(function(ar) {
-        if (ar.email && ar.name) emailToName[String(ar.email).toLowerCase()] = ar.name;
-      });
-      Object.keys(authorMap).forEach(function(k) {
-        const cur = authorMap[k];
-        if (cur.indexOf('@') !== -1 && emailToName[cur.toLowerCase()]) {
-          authorMap[k] = emailToName[cur.toLowerCase()];
-        }
-      });
-    } catch (e) { /* noop */ }
-
-    // 2. 대장 시트의 작성자 열 값 읽기
-    const authorRange = sheet.getRange(2, layout.AUTHOR, lastRow - 1, 1);
-    const authorValues = authorRange.getDisplayValues();
-    const quoteValues = sheet.getRange(2, layout.QUOTE_NUMBER, lastRow - 1, 1).getDisplayValues();
-
-    let updatedCount = 0;
-    for (let i = 0; i < authorValues.length; i++) {
-      const currentAuthor = String(authorValues[i][0] || '').trim();
-      if (!currentAuthor) {
-        const qNum = String(quoteValues[i][0] || '').trim();
-        const bNum = baseQuoteNumber_(qNum);
-        const found = authorMap[qNum] || authorMap[bNum] || '';
-        if (found) {
-          authorValues[i][0] = found;
-          updatedCount++;
-        }
-      }
-    }
-
-    if (updatedCount > 0) {
-      authorRange.setValues(authorValues);
-      SpreadsheetApp.flush();
-      Logger.log(`[부서: ${dept}] 대장 시트 작성자 ${updatedCount}건 자동 기록 완료!`);
-    } else {
-      Logger.log(`[부서: ${dept}] 갱신할 빈 작성자 행이 없습니다.`);
-    }
-  }
-  Logger.log('전체 부서 작성자 일괄 채움 완료!');
 }
 
 // ── 전체 테스트 견적 초기화 유틸리티 (정식 오픈 전 1회 실행) ────────────────
@@ -2510,11 +2264,10 @@ function requeueMissingLocalQuoteJobs() {
       const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
       if (!snapshot || snapshot.getLastRow() < 2) continue;
       const snapshotRows = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues();
-      const layout = getLedgerLayout_(sheet);
 
       for (let rowIndex = 2; rowIndex <= lastRow; rowIndex++) {
-        const quoteNumber = String(sheet.getRange(rowIndex, layout.QUOTE_NUMBER).getDisplayValue() || '').trim();
-        const fileLink = String(sheet.getRange(rowIndex, layout.FILE_LINK).getDisplayValue() || '').trim();
+        const quoteNumber = String(sheet.getRange(rowIndex, LEDGER_COL.QUOTE_NUMBER).getDisplayValue() || '').trim();
+        const fileLink = String(sheet.getRange(rowIndex, LEDGER_COL.FILE_LINK).getDisplayValue() || '').trim();
         if (!quoteNumber || fileLink) continue;
 
         const baseQuote = baseQuoteNumber_(quoteNumber);

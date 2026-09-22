@@ -937,69 +937,35 @@ function mimeTypeForFileName(name) {
   return types[ext] || 'application/octet-stream';
 }
 
-const DELIVERY_ADDRESS_FILES = [
-  join(STORAGE_ROOT, 'delivery-addresses.json'),
-  join(AGENT_FOLDER, 'delivery-addresses.json'),
-  join(__dirname, 'delivery-addresses.json'),
-];
-
-function normalizeCompanyName(name) {
-  return String(name || '')
-    .trim()
-    .toLowerCase()
-    .replace(/\(주\)|주식회사|㈜|\(유\)|유한회사|\(합\)|합자회사/g, '')
-    .replace(/[\s\-_.,/()[\]]/g, '');
-}
+const DELIVERY_ADDRESS_FILE = join(__dirname, 'delivery-addresses.json');
 
 /** 특정 고객사(업체명)의 과거 납품 주소 이력 조회 (최신순) */
 function getDeliveryAddressesForClient(department, company) {
-  const cleanTarget = normalizeCompanyName(company);
-  if (!cleanTarget) return [];
+  const cleanComp = String(company || '').trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+  if (!cleanComp) return [];
   const addresses = [];
   const seen = new Set();
 
-  function addAddr(raw) {
-    const trimmed = String(raw || '').trim().replace(/^[\s,;.-]+|[\s,;.-]+$/g, '');
-    if (!trimmed || trimmed.length < 5) return;
-    if (trimmed === '고객 요청 장소로 택배 배송' || trimmed === '택배 배송' || trimmed === '화물 배송') return;
-    if (!seen.has(trimmed)) {
-      seen.add(trimmed);
-      addresses.push(trimmed);
-    }
-  }
-
-  // 1) delivery-addresses.json 파일들 확인 (우선순위 최고)
-  for (const filePath of DELIVERY_ADDRESS_FILES) {
-    try {
-      if (existsSync(filePath)) {
-        const map = JSON.parse(readFileSync(filePath, 'utf8'));
-        for (const [cName, list] of Object.entries(map)) {
-          const cClean = normalizeCompanyName(cName);
-          if (cClean && (cClean.includes(cleanTarget) || cleanTarget.includes(cClean))) {
-            (Array.isArray(list) ? list : [list]).forEach(addAddr);
-          }
-        }
-      }
-    } catch { /* noop */ }
-  }
-
-  // 2) ERP 발주 내역 파일 (stats/<부서>_orders.json) 확인
+  // 1) delivery-addresses.json 확인
   try {
-    const ordersPath = join(AGENT_FOLDER, 'stats', `${safeDepartmentSegment(department)}_orders.json`);
-    if (existsSync(ordersPath)) {
-      const ordersData = JSON.parse(readFileSync(ordersPath, 'utf8'));
-      const records = Array.isArray(ordersData.records) ? ordersData.records : [];
-      for (let i = records.length - 1; i >= 0; i--) {
-        const r = records[i];
-        const cClean = normalizeCompanyName(r.client || r.company);
-        if (cClean && (cClean.includes(cleanTarget) || cleanTarget.includes(cClean))) {
-          addAddr(r.delivery || r.deliveryAddress || r.address);
+    if (existsSync(DELIVERY_ADDRESS_FILE)) {
+      const map = JSON.parse(readFileSync(DELIVERY_ADDRESS_FILE, 'utf8'));
+      for (const [cName, list] of Object.entries(map)) {
+        const cClean = String(cName).trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+        if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
+          (Array.isArray(list) ? list : [list]).forEach((a) => {
+            const trimmed = String(a || '').trim();
+            if (trimmed && !seen.has(trimmed)) {
+              seen.add(trimmed);
+              addresses.push(trimmed);
+            }
+          });
         }
       }
     }
   } catch { /* noop */ }
 
-  // 3) stats/{department}.json 확인 (기존 견적서의 납품장소 스캔)
+  // 2) stats/{department}.json 확인 (기존 견적서의 납품장소 스캔)
   try {
     const statsPath = join(AGENT_FOLDER, 'stats', `${safeDepartmentSegment(department)}.json`);
     if (existsSync(statsPath)) {
@@ -1007,13 +973,12 @@ function getDeliveryAddressesForClient(department, company) {
       const records = Array.isArray(stats.records) ? stats.records : [];
       for (let i = records.length - 1; i >= 0; i--) {
         const r = records[i];
-        const cClean = normalizeCompanyName(r.company);
-        if (cClean && (cClean.includes(cleanTarget) || cleanTarget.includes(cClean))) {
+        const cClean = String(r.company || '').trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+        if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
           const loc = String(r.deliveryLocation || '').trim();
-          if (/[시도군구동로길번지]/.test(loc) && loc.length >= 8) {
-            addAddr(loc);
-          } else if (loc && !loc.includes('택배 배송') && loc.length >= 5) {
-            addAddr(loc);
+          if (loc && !seen.has(loc) && !loc.includes('택배 배송') && loc.length >= 4) {
+            seen.add(loc);
+            addresses.push(loc);
           }
         }
       }
@@ -1028,20 +993,17 @@ function saveDeliveryAddress(company, address) {
   const cleanComp = String(company || '').trim();
   const cleanAddr = String(address || '').trim();
   if (!cleanComp || !cleanAddr) return;
-
-  for (const filePath of DELIVERY_ADDRESS_FILES) {
-    try {
-      let map = {};
-      if (existsSync(filePath)) {
-        try { map = JSON.parse(readFileSync(filePath, 'utf8')); } catch { map = {}; }
-      }
-      const currentList = Array.isArray(map[cleanComp]) ? map[cleanComp] : [];
-      const filtered = currentList.filter((a) => a !== cleanAddr);
-      filtered.unshift(cleanAddr);
-      map[cleanComp] = filtered.slice(0, 10);
-      writeFileSync(filePath, JSON.stringify(map, null, 2), 'utf8');
-    } catch { /* noop */ }
-  }
+  try {
+    let map = {};
+    if (existsSync(DELIVERY_ADDRESS_FILE)) {
+      map = JSON.parse(readFileSync(DELIVERY_ADDRESS_FILE, 'utf8'));
+    }
+    const currentList = Array.isArray(map[cleanComp]) ? map[cleanComp] : [];
+    const filtered = currentList.filter((a) => a !== cleanAddr);
+    filtered.unshift(cleanAddr);
+    map[cleanComp] = filtered.slice(0, 8);
+    writeFileSync(DELIVERY_ADDRESS_FILE, JSON.stringify(map, null, 2), 'utf8');
+  } catch { /* noop */ }
 }
 
 function orderEmailPageHtml(session, targetInfo, values) {
@@ -1082,7 +1044,7 @@ function orderEmailPageHtml(session, targetInfo, values) {
   return `<!DOCTYPE html>
 <html lang="ko">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>CIMON 발주등록 요청 메일</title>
-<style>${PAGE_STYLE} .hint{color:#777;font-size:12px;line-height:1.6;margin:10px 0 16px}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px}.required{color:#dc2626}.field{margin-top:16px}.field label{display:block;font-size:12px;font-weight:bold;color:#555;margin-bottom:6px}.field input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd9d2;border-radius:8px;font-size:14px}.files{max-height:280px;overflow:auto;border:1px solid #ddd9d2;border-radius:8px}.file-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid #eee;font-size:13px}.file-row:last-child{border-bottom:0}.file-row span.name{flex:1;min-width:0;overflow-wrap:anywhere}.file-row span.size{color:#999;font-size:11px}.submit{margin-top:18px}.submit button{background:#2563eb}.status{margin-top:10px;font-size:13px}.ok{color:#15803d}.err{color:#dc2626}.addr-badge{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;margin-bottom:6px}.addr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.addr-chip{background:#f1f5f9;border:1px solid #cbd5e1;color:#1e293b;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:left}.addr-chip:hover{background:#dbeafe;border-color:#3b82f6;color:#1d4ed8}@media(max-width:560px){.info{grid-template-columns:1fr}}</style></head>
+<style>${PAGE_STYLE} .hint{color:#777;font-size:12px;line-height:1.6;margin:10px 0 16px}.info{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:12px;font-size:13px}.required{color:#dc2626}.field{margin-top:16px}.field label{display:block;font-size:12px;font-weight:bold;color:#555;margin-bottom:6px}.field input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd9d2;border-radius:8px;font-size:14px}.files{max-height:280px;overflow:auto;border:1px solid #ddd9d2;border-radius:8px}.file-row{display:flex;align-items:center;gap:8px;padding:9px 10px;border-bottom:1px solid #eee;font-size:13px}.file-row:last-child{border-bottom:0}.file-row span.name{flex:1;min-width:0;overflow-wrap:anywhere}.file-row span.size{color:#999;font-size:11px}.submit{margin-top:18px}.submit button{background:#2563eb}.status{margin-top:10px;font-size:13px}.ok{color:#15803d}.err{color:#dc2626}.addr-badge{display:inline-block;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;margin-bottom:6px}.addr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.addr-chip{background:#f1f5f9;border:1px solid #cbd5e1;color:#1e293b;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;transition:all 0.15s;text-align:left}.addr-chip:hover{background:#e2e8f0;border-color:#94a3b8}@media(max-width:560px){.info{grid-template-columns:1fr}}</style></head>
 <body><div class="card">
   <div class="top"><div><h1>발주등록 요청 메일 작성</h1><div class="sub">부서: ${departmentLabel}</div></div><a class="logout" href="/logout">로그아웃</a></div>
   <div class="crumb">견적번호: ${escHtml(targetInfo.quoteNumber)} · 업체명: ${escHtml(targetInfo.company)}</div>
@@ -1091,15 +1053,17 @@ function orderEmailPageHtml(session, targetInfo, values) {
   <div class="field">
     <div style="display:flex; justify-content:space-between; align-items:center;">
       <label for="address" style="margin-bottom:0;">납품 주소 <span class="required">*</span></label>
-      <span id="addrAutoBadge" class="addr-badge" style="display:${savedAddresses.length > 0 ? 'inline-block' : 'none'};">✓ 동일 업체 등록 주소 자동 불러옴</span>
+      ${savedAddresses.length > 0 ? `<span class="addr-badge">✓ 기존 등록 주소 자동 불러옴</span>` : ''}
     </div>
     <input id="address" type="text" value="${escHtml(defaultAddress)}" placeholder="납품 주소를 입력해 주세요 (필수)" style="margin-top:6px;" required>
-    <div id="addrChipsContainer" style="margin-top:8px; display:${savedAddresses.length > 0 ? 'block' : 'none'};">
-      <span style="font-size:11px; color:#2563eb; font-weight:bold;">동일 업체 최근 등록 주소 이력 (클릭하여 즉시 적용):</span>
-      <div class="addr-chips" id="addrChipsList">
-        ${savedAddresses.map((addr) => `<button type="button" class="addr-chip" onclick="selectAddress(this.textContent)">${escHtml(addr)}</button>`).join('')}
+    ${savedAddresses.length > 1 ? `
+      <div style="margin-top:8px;">
+        <span style="font-size:11px; color:#64748b; font-weight:bold;">동일 업체 최근 등록 주소 이력 (클릭하여 선택):</span>
+        <div class="addr-chips">
+          ${savedAddresses.map((addr) => `<button type="button" class="addr-chip" onclick="selectAddress(this.textContent)">${escHtml(addr)}</button>`).join('')}
+        </div>
       </div>
-    </div>
+    ` : ''}
   </div>
   <div class="field"><label>첨부 파일 선택 <span class="required">*</span></label>${entries.length ? `<div class="files" id="fileList">${entries.map((file) => `<label class="file-row"><input type="checkbox" value="${escHtml(file.name)}"><span class="name">${escHtml(file.name)}</span><span class="size">${file.size ? `${Math.max(1, Math.round(file.size / 1024)).toLocaleString('ko-KR')} KB` : ''}</span></label>`).join('')}</div>` : '<div class="hint">첨부 가능한 파일이 없습니다.</div>'}</div>
   <div class="submit"><button id="submit" type="button" ${entries.length ? '' : 'disabled'}>임시보관함 작성</button><div id="status" class="status"></div></div>
@@ -1107,85 +1071,14 @@ function orderEmailPageHtml(session, targetInfo, values) {
 <script>
 const orderData = ${orderData};
 const files = ${filesJson};
-const serverAddresses = ${addressesJson};
 const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
 const status = document.getElementById('status');
-const LOCAL_STORAGE_KEY = 'cimon_order_delivery_addresses';
-
 function setStatus(text, cls = '') { status.className = 'status ' + cls; status.textContent = text; }
 function selectAddress(text) {
   const input = document.getElementById('address');
   input.value = text.trim();
   input.focus();
 }
-
-function cleanCompanyName(name) {
-  return String(name || '').trim().toLowerCase()
-    .replace(/\\(주\\)|주식회사|㈜|\\(유\\)|유한회사|\\(합\\)|합자회사/g, '')
-    .replace(/[\\s\\-_.,/()[\\]]/g, '');
-}
-
-function getLocalAddresses(company) {
-  try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) return [];
-    const map = JSON.parse(raw);
-    const target = cleanCompanyName(company);
-    for (const [k, list] of Object.entries(map)) {
-      if (cleanCompanyName(k) === target) {
-        return Array.isArray(list) ? list : [list];
-      }
-    }
-  } catch (e) {}
-  return [];
-}
-
-function saveLocalAddress(company, address) {
-  if (!company || !address) return;
-  try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    const map = raw ? JSON.parse(raw) : {};
-    const key = String(company).trim();
-    const list = Array.isArray(map[key]) ? map[key] : [];
-    const filtered = [address, ...list.filter((a) => a !== address)].slice(0, 10);
-    map[key] = filtered;
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(map));
-  } catch (e) {}
-}
-
-(function initDeliveryAddresses() {
-  const comp = orderData.clientName || '';
-  const localList = getLocalAddresses(comp);
-  const combined = [];
-  const seen = new Set();
-  [...serverAddresses, ...localList].forEach((a) => {
-    const trimmed = String(a || '').trim();
-    if (trimmed && !seen.has(trimmed)) {
-      seen.add(trimmed);
-      combined.push(trimmed);
-    }
-  });
-
-  const input = document.getElementById('address');
-  const badge = document.getElementById('addrAutoBadge');
-  const container = document.getElementById('addrChipsContainer');
-  const chipsList = document.getElementById('addrChipsList');
-
-  if (combined.length > 0) {
-    if (!input.value.trim()) {
-      input.value = combined[0];
-    }
-    if (badge) badge.style.display = 'inline-block';
-    if (container && chipsList) {
-      chipsList.innerHTML = combined.map((a) => {
-        const safe = a.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        return '<button type="button" class="addr-chip" onclick="selectAddress(this.textContent)">' + safe + '</button>';
-      }).join('');
-      container.style.display = 'block';
-    }
-  }
-})();
-
 function toBase64(buffer) { const bytes = new Uint8Array(buffer); let binary = ''; const chunk = 0x8000; for (let i = 0; i < bytes.length; i += chunk) binary += String.fromCharCode(...bytes.subarray(i, Math.min(i + chunk, bytes.length))); return btoa(binary); }
 document.getElementById('submit').addEventListener('click', async () => {
   const address = document.getElementById('address').value.trim();
@@ -1194,7 +1087,6 @@ document.getElementById('submit').addEventListener('click', async () => {
   if (!selectedNames.length) { setStatus('첨부 파일을 1개 이상 선택해 주세요.', 'err'); return; }
   setStatus('선택한 파일을 읽는 중입니다. 잠시 기다려 주세요...');
   try {
-    saveLocalAddress(orderData.clientName, address);
     // 입력된 주소를 에이전트 주소 이력에 비동기 저장
     try {
       fetch('/api/save-delivery-address', {
@@ -1341,15 +1233,7 @@ app.get('/order-email', (req, res) => {
 });
 
 // ── 발주 납품 주소 이력 저장 API ──
-app.options('/api/save-delivery-address', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.sendStatus(204);
-});
-
 app.post('/api/save-delivery-address', uploadJsonParser, (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
   const { company, address } = req.body || {};
   saveDeliveryAddress(company, address);
   res.json({ success: true });
@@ -1435,43 +1319,6 @@ app.get('/api/order-history/latest', async (req, res) => {
     });
   } catch (err) {
     console.error(`[에이전트] 발주 내역 파싱 실패: ${err.message}`);
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// ── 견적별 실제 작성자 실명 매핑 API (CORS 허용) ──
-// stats/<부서>.json 파일 및 부서 견적 데이터에서 { "견적번호": "작성자이름" } 매핑 반환
-app.get('/api/quote-authors', async (req, res) => {
-  try {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    const department = safeDepartmentSegment(req.query.department || req.query.dept || DEFAULT_DEPARTMENT);
-    const statsPath = join(AGENT_FOLDER, 'stats', `${department}.json`);
-
-    let records = [];
-    if (existsSync(statsPath)) {
-      try {
-        const parsed = JSON.parse(readFileSync(statsPath, 'utf8'));
-        records = Array.isArray(parsed.records) ? parsed.records : [];
-      } catch (e) { /* noop */ }
-    }
-
-    if (records.length === 0) {
-      void refreshDepartmentStats(STORAGE_ROOT, AGENT_FOLDER, department);
-    }
-
-    const authorMap = {};
-    records.forEach((rec) => {
-      const qNum = String(rec.quoteNumber || '').trim();
-      const bNum = qNum.replace(/_Rev\d+$/i, '').trim();
-      const aName = String(rec.authorName || '').trim();
-      if (aName) {
-        if (qNum) authorMap[qNum] = aName;
-        if (bNum) authorMap[bNum] = aName;
-      }
-    });
-
-    res.json({ success: true, department, count: Object.keys(authorMap).length, authors: authorMap });
-  } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });

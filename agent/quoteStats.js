@@ -42,71 +42,6 @@ function cellNumber(ws, addr) {
   return Number.isFinite(num) ? num : null;
 }
 
-function safeCellText(cell) {
-  try {
-    const val = cell.value;
-    if (val == null) return '';
-    if (typeof val === 'string') return val.trim();
-    if (typeof val === 'number') return String(val);
-    if (typeof val === 'object') {
-      if (val.result != null) return String(val.result).trim();
-      if (val.text != null) return String(val.text).trim();
-      if (Array.isArray(val.richText)) return val.richText.map((r) => r.text || '').join('').trim();
-      return '';
-    }
-    return String(val).trim();
-  } catch {
-    return '';
-  }
-}
-
-function findAuthorFromWorksheet(sheet) {
-  let authorName = '';
-  let authorEmail = '';
-  let authorPhone = '';
-
-  for (let r = 25; r <= Math.min(sheet.rowCount, 48); r++) {
-    const row = sheet.getRow(r);
-    for (let c = 1; c <= Math.min(sheet.columnCount, 15); c++) {
-      const text = safeCellText(row.getCell(c));
-      if (!authorName && text.includes('작성자')) {
-        const inlineMatch = text.match(/작성자\s*[:：]?\s*([가-힣A-Za-z\s]+)/);
-        if (inlineMatch && inlineMatch[1].trim()) {
-          authorName = inlineMatch[1].trim();
-        } else {
-          for (let nextC = c + 1; nextC <= c + 4; nextC++) {
-            const nextVal = safeCellText(row.getCell(nextC));
-            if (nextVal && nextVal !== ':' && nextVal !== '：') {
-              authorName = nextVal;
-              break;
-            }
-          }
-        }
-      }
-      if (!authorPhone && (text.includes('TEL') || text.includes('연락처') || text.includes('전화'))) {
-        const phoneMatch = text.match(/01[0-9]-?[0-9]{3,4}-?[0-9]{4}/);
-        if (phoneMatch) {
-          authorPhone = phoneMatch[0];
-        } else {
-          for (let nextC = c + 1; nextC <= c + 4; nextC++) {
-            const nextVal = safeCellText(row.getCell(nextC));
-            const m = nextVal.match(/01[0-9]-?[0-9]{3,4}-?[0-9]{4}/);
-            if (m) {
-              authorPhone = m[0];
-              break;
-            }
-          }
-        }
-      }
-      if (!authorEmail && (text.includes('@cimon.com') || (text.includes('@') && !text.includes('http')))) {
-        const emailMatch = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
-        if (emailMatch && emailMatch[0].includes('cimon.com')) authorEmail = emailMatch[0];
-      }
-    }
-  }
-  return { authorName, authorEmail, authorPhone };
-}
-
 /** 하나의 견적 XLSX를 읽어 견적 + 품목 목록을 반환한다. */
 export async function readQuoteFromXlsx(xlsxPath) {
   const wb = new ExcelJS.Workbook();
@@ -133,22 +68,8 @@ export async function readQuoteFromXlsx(xlsxPath) {
   const folderName = basename(dirname(xlsxPath));
   const fileName = basename(xlsxPath);
 
-  // 견적번호: 셀 I3 우선, 없으면 파일명이나 폴더명 앞부분(부서 YYMM-NNN)에서 스마트 추출
-  let quoteNumber = cellString(ws, CELL.quoteNumber).trim();
-  if (!quoteNumber) {
-    const fileMatch = fileName.match(/^([^\s_]+(?:\s+\d{4}-\d+)?)/);
-    const folderMatch = folderName.match(/^([^\s_]+(?:\s+\d{4}-\d+)?)/);
-    quoteNumber = (fileMatch && fileMatch[1]) || (folderMatch && folderMatch[1]) || fileName.replace(/\.xlsx$/i, '');
-  }
-
-  // 작성자 정보: 시트 탐색 우선, 없으면 고정 셀(H37, H38, H39) 폴백
-  const discoveredAuthor = findAuthorFromWorksheet(ws);
-  const authorName = discoveredAuthor.authorName || cellString(ws, CELL.authorName).trim();
-  const authorPhone = discoveredAuthor.authorPhone || cellString(ws, CELL.authorPhone).trim();
-  const authorEmail = discoveredAuthor.authorEmail || cellString(ws, CELL.authorEmail).trim();
-
   return {
-    quoteNumber,
+    quoteNumber: cellString(ws, CELL.quoteNumber).trim() || fileName.replace(/_견적서\.xlsx$/i, ''),
     quoteDate: cellString(ws, CELL.quoteDate).trim(),
     company: cellString(ws, CELL.company).trim(),
     contact: cellString(ws, CELL.contact).trim(),
@@ -160,9 +81,9 @@ export async function readQuoteFromXlsx(xlsxPath) {
     validityPeriod: cellString(ws, CELL.validityPeriod).trim(),
     packing: cellString(ws, CELL.packing).trim(),
     notes: cellString(ws, CELL.notes).trim(),
-    authorName,
-    authorPhone,
-    authorEmail,
+    authorName: cellString(ws, CELL.authorName).trim(),
+    authorPhone: cellString(ws, CELL.authorPhone).trim(),
+    authorEmail: cellString(ws, CELL.authorEmail).trim(),
     items,
     itemAmount: items.reduce((sum, item) => sum + item.totalPrice, 0),
     fileName,
@@ -194,8 +115,7 @@ export async function scanDepartmentQuotes(storageRoot, department) {
       let files = [];
       try { files = readdirSync(folder); } catch { continue; }
       for (const fileName of files) {
-        if (!fileName.toLowerCase().endsWith('.xlsx') || fileName.startsWith('~$')) continue;
-        if (!fileName.includes('견적서')) continue;
+        if (!fileName.endsWith('_견적서.xlsx')) continue;
         if (/_Rev\d+_/.test(fileName)) continue; // Rev 파일은 원본 행에 별도 반영하지 않는다
         try {
           const quote = await readQuoteFromXlsx(join(folder, fileName));

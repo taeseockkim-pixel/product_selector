@@ -197,7 +197,7 @@ export default function QuotePrintView({
                         <tr key={`${item.name}-${index}`} className="border-t border-[#e5e1da]">
                           <td className="px-3 py-3 text-center text-[#777777]">{index + 1}</td>
                           <td className="px-3 py-3 font-medium">{item.name}</td>
-                          <td className="px-3 py-3 text-xs leading-relaxed whitespace-pre-wrap break-words">{item.spec}</td>
+                          <td className="px-3 py-3 text-xs leading-relaxed">{item.spec}</td>
                           <td className="px-3 py-3 text-right">{item.quantity}</td>
                           <td className="px-3 py-3 text-right">{fmt(item.unitPrice * (item.multiplier ?? 1))}</td>
                           <td className="px-3 py-3 text-right font-semibold">{fmt(item.totalPrice)}</td>
