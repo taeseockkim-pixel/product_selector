@@ -2,17 +2,6 @@
 title CIMON Quote File Local Save Agent
 cd /d "%~dp0.."
 
-rem 중복 실행 방지: 포트 8790이 이미 LISTENING 상태이면 기존 에이전트가 돌고 있으므로 새 창 자동 종료
-netstat -ano | findstr ":8790 " | findstr "LISTENING" >nul
-if not errorlevel 1 (
-  echo ============================================================
-  echo [안내] CIMON 견적 에이전트가 이미 실행 중입니다. (포트 8790)
-  echo 중복 실행을 방지하기 위해 이 창을 3초 후 자동으로 닫습니다.
-  echo ============================================================
-  timeout /t 3 >nul
-  exit /b 0
-)
-
 rem Trust the corporate CA certificate exported to agent\corp-ca.pem (recommended)
 if exist "agent\corp-ca.pem" set "NODE_EXTRA_CA_CERTS=%~dp0corp-ca.pem"
 
