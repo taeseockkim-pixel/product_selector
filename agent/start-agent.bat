@@ -1,32 +1,15 @@
 @echo off
-chcp 65001 >nul
 title CIMON Quote File Local Save Agent
-
-rem Auto-elevate to administrator privileges
-net session >nul 2>&1
-if not %errorlevel% == 0 (
-  echo [ELEVATING] Requesting administrator privileges...
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process cmd.exe -ArgumentList '/k \"\"%~f0\"\"' -WorkingDirectory '\"%~dp0..\"' -Verb RunAs"
-  exit /b
-)
-
 cd /d "%~dp0.."
 
-echo ============================================================
-echo CIMON Quote File Local Save Agent
-echo Working Directory: %CD%
-echo ============================================================
-
-rem Prevent duplicate execution: check if port 8790 is already listening
+rem 중복 실행 방지: 포트 8790이 이미 LISTENING 상태이면 기존 에이전트가 돌고 있으므로 새 창 자동 종료
 netstat -ano | findstr ":8790 " | findstr "LISTENING" >nul
 if not errorlevel 1 (
   echo ============================================================
-  echo [NOTICE] CIMON Agent is ALREADY running on port 8790!
-  echo The agent service is active and working normally.
+  echo [안내] CIMON 견적 에이전트가 이미 실행 중입니다. (포트 8790)
+  echo 중복 실행을 방지하기 위해 이 창을 3초 후 자동으로 닫습니다.
   echo ============================================================
-  echo.
-  echo Press any key to close this informational window...
-  pause >nul
+  timeout /t 3 >nul
   exit /b 0
 )
 
@@ -38,9 +21,7 @@ if exist "agent\allow-insecure-tls" set "NODE_TLS_REJECT_UNAUTHORIZED=0"
 
 where node >nul 2>nul
 if errorlevel 1 (
-  echo [ERROR] Node.js is not found in PATH for this administrator session.
-  echo Please check if Node.js is installed system-wide.
-  echo.
+  echo [ERROR] Node.js is not installed. Install the LTS version from https://nodejs.org
   pause
   exit /b 1
 )
@@ -51,15 +32,12 @@ if not exist "node_modules" (
 )
 
 if not exist "agent\config.json" (
-  echo [ERROR] agent\config.json not found in %CD%\agent.
+  echo [ERROR] agent\config.json not found.
   echo Copy agent\config.example.json to agent\config.json and fill in the values.
-  echo.
   pause
   exit /b 1
 )
 
 echo Starting CIMON quote file local save agent... (close this window or press Ctrl+C to stop)
 call npm run agent
-echo.
-echo [AGENT STOPPED]
 pause
