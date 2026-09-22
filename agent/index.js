@@ -1624,25 +1624,25 @@ app.use('/files', (req, res) => {
 const server = app.listen(HTTP_PORT, '0.0.0.0', () => {
   console.log(`[에이전트] 파일 브라우저: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`} (부서 비밀번호로 접속)`);
   console.log(`[에이전트] 서명된 파일 링크: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`}/files/...`);
+
+  // 포트 바인딩 성공 후에만 큐 폴링 시작 (중복 실행 시 폴링 차단)
+  mkdirSync(STORAGE_ROOT, { recursive: true });
+  console.log('[에이전트] CIMON 견적 파일 로컬 저장 에이전트 시작');
+  console.log(`[에이전트] Drive 대기 폴더: ${PENDING_DIR}`);
+  console.log(`[에이전트] 저장 루트: ${STORAGE_ROOT}`);
+  console.log(`[에이전트] 템플릿: ${TEMPLATE_PATH}`);
+  console.log(`[에이전트] 폴링 주기: ${POLL_INTERVAL_MS}ms`);
+  startPolling();
 });
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.warn(`[에이전트 안내] ${HTTP_PORT} 포트가 이미 사용 중입니다. 에이전트가 다른 창이나 백그라운드에서 이미 실행 중이므로 중복 실행을 방지하고 종료합니다.`);
+    console.warn(`[에이전트 안내] ${HTTP_PORT} 포트가 이미 사용 중입니다. 에이전트가 다른 창이나 백그라운드에서 이미 실행 중이므로 중복 실행을 방지하고 안전하게 종료합니다.`);
     process.exit(0);
   }
   console.error(`[에이전트] 파일 서버를 시작하지 못했습니다: ${err.code || err.message}`);
   process.exitCode = 1;
 });
-
-// ── 시작 ───────────────────────────────────────────────────────────────────
-mkdirSync(STORAGE_ROOT, { recursive: true });
-console.log('[에이전트] CIMON 견적 파일 로컬 저장 에이전트 시작');
-console.log(`[에이전트] Drive 대기 폴더: ${PENDING_DIR}`);
-console.log(`[에이전트] 저장 루트: ${STORAGE_ROOT}`);
-console.log(`[에이전트] 템플릿: ${TEMPLATE_PATH}`);
-console.log(`[에이전트] 폴링 주기: ${POLL_INTERVAL_MS}ms`);
-startPolling();
 
 // 시작 시 기존 견적서를 스캔해 부서별 통계 Workbook(XLSX)과 JSON을 생성/갱신한다.
 // 기존 데이터가 많으면 시간이 걸리므로 폴링과 병렬로 실행한다.

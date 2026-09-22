@@ -2,6 +2,21 @@
 title CIMON Quote File Local Save Agent
 cd /d "%~dp0.."
 
+rem Check if port 8790 is already running
+set "PORT_PID="
+for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr /r /c:":8790 .*LISTENING"') do set "PORT_PID=%%a"
+
+if defined PORT_PID (
+  echo ============================================================
+  echo [NOTICE] CIMON Agent is ALREADY running on port 8790
+  echo The background service is active and working normally
+  echo No duplicate instance will be launched
+  echo ============================================================
+  echo Press any key to close this window
+  pause >nul
+  exit /b 0
+)
+
 rem Trust the corporate CA certificate exported to agent\corp-ca.pem (recommended)
 if exist "agent\corp-ca.pem" set "NODE_EXTRA_CA_CERTS=%~dp0corp-ca.pem"
 
