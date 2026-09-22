@@ -1,5 +1,15 @@
 @echo off
 title CIMON Quote File Local Save Agent
+
+rem ── 관리자 권한 자동 승격 (Self-Elevation) ──
+rem G: 드라이브 및 로컬 시스템 파일 접근 권한을 확보하기 위해 관리자 권한이 아니면 자동으로 승격하여 재실행합니다.
+net session >nul 2>&1
+if not %errorlevel% == 0 (
+  echo [권한 상승] 관리자 권한으로 자동 승격 실행 중...
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process cmd.exe -ArgumentList '/c \"\"%~f0\"\"' -Verb RunAs"
+  exit /b
+)
+
 cd /d "%~dp0.."
 
 rem 중복 실행 방지: 포트 8790이 이미 LISTENING 상태이면 기존 에이전트가 돌고 있으므로 새 창 자동 종료
