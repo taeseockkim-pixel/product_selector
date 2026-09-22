@@ -26,7 +26,8 @@ const CONFIG = {
   // 작성자 DB 시트가 있는 폴더 아래 '견적에이전트' 폴더를 만들고, 그 안에서
   // pending/results 파일을 주고받는다 (에이전트 PC에는 Google Drive 데스크톱 필요)
   AGENT_QUEUE_FOLDER_NAME: '견적에이전트',
-  GEMINI_API_KEY: 'AIzaSyBFshNCRc924FBF1Web1_oPxoARGyT50zs',
+  // 보안: API Key는 코드에 노출하지 않고 Apps Script의 [프로젝트 설정 > 스크립트 속성]의 GEMINI_API_KEY에서 읽어옵니다.
+  GEMINI_API_KEY: (typeof PropertiesService !== 'undefined' && PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY')) || '',
   GEMINI_URL_BASE: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='
 };
 
