@@ -2137,7 +2137,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                               value={item.unitPrice != null ? formatKRW(item.unitPrice) : ''}
                               onChange={(e) => updatePrice(idx, parseKRW(e.target.value))}
                               placeholder={t(UI.quotePriceNone)}
-                              className="w-24 text-right border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#191919] bg-white"
+                              className={`w-24 text-right border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#191919] bg-white ${
+                                item.unitPrice == null ? 'placeholder:text-rose-600 placeholder:font-semibold' : ''
+                              }`}
                             />
                           </td>
                           <td className="px-3 py-3 text-right">

@@ -72,7 +72,7 @@ export const UI = {
   quoteSubtotal:    t('공급가액 합계', 'Subtotal'),
   quoteVatTotal:    t('총 견적금액 (VAT 포함)', 'Total (VAT incl.)'),
   quoteSubmitBtn:   t('견적서 생성', 'Generate Quote'),
-  quotePriceNone:   t('가격 협의', 'Price on Request'),
+  quotePriceNone:   t('단종', 'Discontinued'),
   quoteTieredHint:  t('수량에 따라 단가가 변동됩니다', 'Unit price varies by quantity'),
   quoteSuccess:     t('견적서가 생성되었습니다. PDF를 확인하세요.', 'Quote generated. Please check the PDF.'),
   quoteError:       t('견적서 생성에 실패했습니다.', 'Failed to generate quote.'),
