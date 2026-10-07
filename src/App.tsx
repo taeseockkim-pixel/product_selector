@@ -141,14 +141,17 @@ function AppInner() {
   const [availableDepartments, setAvailableDepartments] = useState<string[]>(['기술영업', '영업', '프로젝트']);
   const [editingQuote, setEditingQuote] = useState<QuoteEditData | null>(null);
   const authEmailRef = useRef('');
+  const authFailureHintRef = useRef('');
   const accessCheckRef = useRef<Promise<'authorized' | 'denied'> | null>(null);
 
   function requestQuoteAccessCheck(): Promise<'authorized' | 'denied'> {
     if (!accessCheckRef.current) {
-      accessCheckRef.current = checkQuoteAccess()
+      const check = checkQuoteAccess()
         .then((result) => {
           if (result.success && result.authorized && result.author) {
             setAuthAuthor(result.author);
+            authEmailRef.current = result.author.email ?? '';
+            authFailureHintRef.current = '';
             const admin = Boolean(
               result.isAdmin ||
               (result.author.email && ADMIN_AUTHOR_EMAILS.has(result.author.email.toLowerCase()))
@@ -160,12 +163,30 @@ function AppInner() {
             return 'authorized' as const;
           }
           authEmailRef.current = result.email ?? '';
+          if (!result.success) {
+            authFailureHintRef.current = '작성자 DB 또는 Apps Script 권한 확인에 실패했습니다. 관리자에게 작성자 시트 공유 권한을 확인해 주세요.';
+          } else if (result.message) {
+            authFailureHintRef.current = result.message;
+          } else if (!result.email) {
+            authFailureHintRef.current = '현재 회사 Google 계정 이메일을 확인할 수 없습니다. 운영 Apps Script 주소에서 회사 계정으로 다시 로그인한 뒤 새로고침해 주세요.';
+          } else {
+            authFailureHintRef.current = '현재 로그인 이메일이 작성자 DB의 이메일과 정확히 일치하는지 확인해 주세요.';
+          }
+          // 일시적인 첫 호출 실패가 페이지가 열려 있는 동안 계속 재사용되지 않게 한다.
+          accessCheckRef.current = null;
           return 'denied' as const;
         })
         .catch((err) => {
           console.warn('견적 권한 확인 실패:', err);
+          authEmailRef.current = '';
+          const errorMessage = String(err);
+          authFailureHintRef.current = errorMessage.includes('google.script.run')
+            ? '운영 Apps Script 웹앱 주소로 접속했는지 확인해 주세요. Vercel 주소를 직접 열면 견적 기능을 사용할 수 없습니다.'
+            : 'Apps Script 계정 확인 응답이 없습니다. 회사 계정으로 다시 로그인한 뒤 새로고침해 주세요.';
+          accessCheckRef.current = null;
           return 'denied' as const;
         });
+      accessCheckRef.current = check;
     }
     return accessCheckRef.current;
   }
@@ -179,7 +200,8 @@ function AppInner() {
     const emailLine = authEmailRef.current
       ? (lang === 'ko' ? `\n\n계정: ${authEmailRef.current}` : `\n\nAccount: ${authEmailRef.current}`)
       : '';
-    alert(t(UI.quoteAccessDenied) + emailLine);
+    const hintLine = authFailureHintRef.current ? `\n\n확인: ${authFailureHintRef.current}` : '';
+    alert(t(UI.quoteAccessDenied) + emailLine + hintLine);
     return false;
   }
 

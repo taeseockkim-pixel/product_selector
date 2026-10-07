@@ -9,10 +9,10 @@
 const CONFIG = {
   TEMPLATE_ID: '108TCen8xKlP__sBXtrjD1_TxVuA7_cp_Sq3B8wn1tPI',
   LEDGER_TEMPLATE_ID: '1owRRx6myeHtsbT2Xt6pxW4xS2THFYgLUDNAow9J6gjc',
-  // 작성자 DB: 시트1에 작성자/연락처/이메일/부서 목록이 있는 스프레드시트
+  // 공유 폴더 안의 "견적관리시스템_작성자" 스프레드시트
   AUTHOR_DB_SHEET_ID: '1-5089CU1_wjmjVAJxDTxQ-7qCTvB0zuONbBuC9D0pRA',
   AUTHOR_DB_SHEET_NAME: '시트1',
-  // 부서별 견적 저장 루트 폴더. 부서가 없거나 목록에 없으면 DEFAULT_DEPARTMENT 폴더를 사용한다.
+  // 부서별 견적 저장 루트 폴더. 일반 사용자 권한은 작성자 DB에서 확인한 부서로 제한한다.
   DEFAULT_DEPARTMENT: '기술영업',
   DEPARTMENT_ROOTS: {
     '기술영업': '1fO6k7oi4tw7kZ0VzdJeGwDH8rUzpFA_4',
@@ -69,8 +69,8 @@ const CELL_MAP = {
 const ITEMS_PER_FILE = 14;
 const QUOTE_SNAPSHOT_SHEET_NAME = '견적원본데이터';
 
-// 견적관리대장 열 번호 (1부터 시작). 사용자가 "일"과 "견적번호" 사이에 "발주" 열을
-// 직접 추가했으므로, 그 뒤 열들은 기존 문서에 적혀 있던 번호보다 한 칸씩 뒤로 밀린다.
+// 견적관리대장 열 번호 (1부터 시작). 운영 대장은 E열 발주, F열 작성자,
+// Q열 적용현장이 포함된 A:Q 17열 구조를 사용한다.
 // 대장 컬럼 구성을 바꾸면 반드시 이 상수만 수정한다 (다른 곳에 열 번호를 직접 적지 않는다).
 const LEDGER_COL = {
   NO: 1,
@@ -78,31 +78,37 @@ const LEDGER_COL = {
   MONTH: 3,
   DAY: 4,
   ORDER: 5,
-  QUOTE_NUMBER: 6,
-  CLIENT_NAME: 7,
-  CLIENT_CONTACT: 8,
-  CLIENT_PHONE: 9,
-  CLIENT_EMAIL: 10,
-  CATEGORIES: 11,
-  PRODUCT_NAME: 12,
-  TOTAL_PRICE: 13,
-  NOTES: 14,
-  FILE_LINK: 15
+  AUTHOR: 6,
+  QUOTE_NUMBER: 7,
+  CLIENT_NAME: 8,
+  CLIENT_CONTACT: 9,
+  CLIENT_PHONE: 10,
+  CLIENT_EMAIL: 11,
+  CATEGORIES: 12,
+  PRODUCT_NAME: 13,
+  TOTAL_PRICE: 14,
+  NOTES: 15,
+  FILE_LINK: 16,
+  SITE: 17
 };
 
-// 대장 시트가 LEDGER_COL과 같은 열 구성(E=발주, F=견적번호)을 갖는지 검증한다.
-// LEDGER_TEMPLATE_ID 스프레드시트나 특정 연도 시트의 열 구성이 어긋나 있으면 조용히 잘못된
-// 열에 쓰는 대신 즉시 에러를 던진다. (연 단위 자동 생성 시 특히 중요 — 템플릿에 발주 열이
-// 없다면 새로 만들어지는 모든 연도의 대장이 한 칸씩 밀려 저장된다.)
+// 대장 시트가 운영 열 구성(E=발주, F=작성자, G=견적번호, P=파일링크)을 갖는지 검증한다.
 function assertLedgerLayout_(ledgerSheet) {
   const lastColumn = Math.max(ledgerSheet.getLastColumn(), LEDGER_COL.FILE_LINK);
   const headers = ledgerSheet.getRange(1, 1, 1, lastColumn).getDisplayValues()[0];
   const orderHeader = String(headers[LEDGER_COL.ORDER - 1] || '');
+  const authorHeader = String(headers[LEDGER_COL.AUTHOR - 1] || '');
   const quoteNumberHeader = String(headers[LEDGER_COL.QUOTE_NUMBER - 1] || '');
-  if (orderHeader.indexOf('발주') === -1 || quoteNumberHeader.indexOf('견적번호') === -1) {
+  const fileLinkHeader = String(headers[LEDGER_COL.FILE_LINK - 1] || '');
+  if (
+    orderHeader.indexOf('발주') === -1 ||
+    authorHeader.indexOf('작성자') === -1 ||
+    quoteNumberHeader.indexOf('견적번호') === -1 ||
+    fileLinkHeader.indexOf('파일링크') === -1
+  ) {
     throw new Error(
-      '견적관리대장의 열 구성이 예상과 다릅니다(E열=발주, F열=견적번호이어야 합니다). ' +
-      'LEDGER_TEMPLATE_ID 대장 템플릿 또는 이 연도 시트의 헤더 행을 확인해 주세요.'
+      '견적관리대장의 열 구성이 예상과 다릅니다(E열=발주, F열=작성자, G열=견적번호, P열=파일링크이어야 합니다). ' +
+      'LEDGER_TEMPLATE_ID 대장 템플릿 또는 해당 연도 시트의 A:Q 헤더를 확인해 주세요.'
     );
   }
   return ledgerSheet;
@@ -112,9 +118,13 @@ function doGet(e) {
   const template = HtmlService.createTemplateFromFile('Index');
   const queryString = e && e.queryString ? '?' + e.queryString : '';
   template.appUrl = VERCEL_APP_URL + queryString;
+  // setFaviconUrl requires the URL to end in the image extension (no query string).
+  const faviconUrl = VERCEL_APP_URL.replace(/\/+$/, '') + '/products/CIMON_Logo.png';
+  template.faviconUrl = faviconUrl;
   return template
     .evaluate()
     .setTitle('CIMON 제품 선택 가이드')
+    .setFaviconUrl(faviconUrl)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
@@ -139,16 +149,14 @@ function processQuoteFromReact(payload) {
 
 function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
   try {
-    // 1분 주기 트리거를 기다리지 않고, 에이전트 완료 보고(results/)가 있으면 즉시 대장에 반영한다.
-    try {
-      processAgentResults();
-    } catch (agentErr) {
-      Logger.log('대장 조회 중 에이전트 완료 보고 반영 예외: ' + agentErr.toString());
-    }
-
+    const t0 = Date.now();
     const access = getAuthorizedUserFromReact();
     if (!access.success || !access.authorized || !access.author) {
-      return { success: false, message: '접속 권한이 없습니다.' };
+      return {
+        success: false,
+        message: access.message || '접속 권한이 없습니다.',
+        email: access.email || ''
+      };
     }
 
     // 관리자는 모든 부서의 대장을 선택해 조회할 수 있다.
@@ -157,6 +165,14 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
     const targetDept = String(requestedDepartment || '').trim();
     if (access.isAdmin && targetDept && CONFIG.DEPARTMENT_ROOTS[targetDept]) {
       department = targetDept;
+    }
+
+    // 인증된 다음에만 완료 보고를 처리하고, 일반 계정은 자기 부서의 결과만 처리한다.
+    // 관리자는 목록에서 선택한 부서만 즉시 반영한다(주기 트리거는 기존대로 전체 처리).
+    try {
+      processAgentResults(2, department);
+    } catch (agentErr) {
+      Logger.log('대장 조회 중 에이전트 완료 보고 반영 예외: ' + agentErr.toString());
     }
 
     const rootFolderId = resolveRootFolderId({ authorDepartment: department });
@@ -172,7 +188,7 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
       availableYears: availableYears,
       department: department,
       isAdmin: Boolean(access.isAdmin),
-      availableDepartments: Object.keys(CONFIG.DEPARTMENT_ROOTS)
+      availableDepartments: access.isAdmin ? Object.keys(CONFIG.DEPARTMENT_ROOTS) : [department]
     };
     if (!system) {
       return Object.assign({ headers: [], rows: [] }, baseResult);
@@ -189,8 +205,7 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
     const displayValues = range.getDisplayValues();
     const headers = displayValues[0];
 
-    // O열(파일링크)에만 URL 링크가 걸려 있으므로, 전체 시트가 아닌 O열만 1회성으로 읽어 속도를 극대화한다.
-    // 440행 기준 전체 셀(440 x 16 = 7,040개) richText 읽기 시 10~15초 이상 지연되던 병목을 0.3초대로 단축!
+    // P열(파일링크)에만 URL 링크가 걸려 있으므로, 전체 시트가 아닌 P열만 1회성으로 읽는다.
     const fileLinkCol = LEDGER_COL.FILE_LINK;
     const richTextLinks = (lastRow >= 2 && lastColumn >= fileLinkCol)
       ? sheet.getRange(2, fileLinkCol, lastRow - 1, 1).getRichTextValues()
@@ -260,9 +275,19 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
         paddedValues.push('');
       }
 
-      // O열(파일링크)의 링크만 richTextLinks에서 추출하고 나머지는 URL 문자열 체크로 가볍게 처리
+      // P열(파일링크)의 링크만 richTextLinks에서 추출하고 나머지는 URL 문자열 체크로 가볍게 처리
       const linkRt = (richTextLinks[rowIndex] && richTextLinks[rowIndex][0]);
-      const fileUrl = linkRt ? linkRt.getLinkUrl() : null;
+      let fileUrl = null;
+      if (linkRt) {
+        fileUrl = linkRt.getLinkUrl();
+        if (!fileUrl) {
+          const runs = linkRt.getRuns();
+          for (let ri = 0; ri < runs.length; ri++) {
+            const ru = runs[ri].getLinkUrl();
+            if (ru) { fileUrl = ru; break; }
+          }
+        }
+      }
 
       const links = paddedValues.map(function(val, columnIndex) {
         if (columnIndex === fileLinkIndex) {
@@ -273,7 +298,7 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
 
       const quoteNum = String(paddedValues[quoteCol - 1] || '').trim();
       const baseNum = quoteNum.replace(/_Rev\d+$/i, '').trim();
-      const authorName = authorMap[quoteNum] || authorMap[baseNum] || '';
+      const authorName = authorMap[quoteNum] || authorMap[baseNum] || String(paddedValues[LEDGER_COL.AUTHOR - 1] || '').trim();
 
       return {
         values: paddedValues,
@@ -287,6 +312,7 @@ function getQuoteLedgerFromReact(requestedYear, requestedDepartment) {
     // (비동기 완료 보고를 기다리지 않고, 매 조회마다 빈 링크 행만 스냅샷 기반으로 다시 채운다.)
     repairEmptyLedgerLinks_(system, department, year, rows);
 
+    Logger.log('[성능] getQuoteLedgerFromReact 완료: ' + (Date.now() - t0) + 'ms (행수: ' + rows.length + ')');
     return Object.assign({ headers: headers, rows: rows }, baseResult);
   } catch (err) {
     Logger.log('대장 조회 오류: ' + err.toString());
@@ -463,7 +489,8 @@ function commitLedgerAfterAgentSuccess_(result) {
 }
 
 // 1분마다 실행: 에이전트가 쓴 완료 보고를 반영해 대장 파일링크를 갱신하고 잔여 파일을 정리한다.
-function processAgentResults() {
+function processAgentResults(maxFiles, allowedDepartment) {
+  const limit = Number.isInteger(maxFiles) && maxFiles > 0 ? maxFiles : 20;
   let results;
   try {
     results = getAgentSubfolder_('results');
@@ -471,8 +498,10 @@ function processAgentResults() {
     return;
   }
   const files = results.getFiles();
-  while (files.hasNext()) {
+  let scannedCount = 0;
+  while (files.hasNext() && scannedCount < limit) {
     const file = files.next();
+    scannedCount++;
     let result = null;
     try {
       result = JSON.parse(file.getBlob().getDataAsString('utf8'));
@@ -480,14 +509,28 @@ function processAgentResults() {
       continue; // 아직 동기화 중인 파일 — 다음 트리거에서 재시도
     }
 
+    if (
+      allowedDepartment &&
+      result &&
+      normalizeAuthorDepartment_(result.department) !== normalizeAuthorDepartment_(allowedDepartment)
+    ) {
+      continue;
+    }
+
     if (result && result.ok && result.department && result.quoteNumber && result.fileUrl) {
+      const ledgerStartedAt = Date.now();
       try {
         // 파일 생성 성공을 먼저 확인한 뒤에만 대장 행을 만들고, 그 다음 링크를 기록한다.
         const system = commitLedgerAfterAgentSuccess_(result);
-        exportLedgerToAgent_(system, Number(result.year), result.quoteNumber);
         updateLedgerLink_(result);
+        // 로컬 대장 사본도 파일링크까지 기록한 최신 상태로 내보낸다.
+        exportLedgerToAgent_(system, Number(result.year), result.quoteNumber);
+        setQuoteOperationStatus_(result.details.operationId, 'completed', result.quoteNumber);
+        Logger.log('[성능] 대장/링크 반영 ' + result.quoteNumber + ': ' + (Date.now() - ledgerStartedAt) + 'ms');
         Logger.log('대장 파일링크 갱신 완료(' + result.quoteNumber + '): ' + result.fileUrl);
       } catch (err) {
+        setQuoteOperationStatus_(result.details && result.details.operationId, 'failed', result.quoteNumber, err.toString());
+        Logger.log('[성능] 대장/링크 실패 ' + result.quoteNumber + ': ' + (Date.now() - ledgerStartedAt) + 'ms');
         // 파일은 이미 생성되었지만 대장 링크 갱신에 실패한 상태 — 결과를 지우면 영구히 유실되므로
         // resultsFailed 폴더에 원본을 보존하고, 매분 트리거가 같은 오류로 계속 재시도하지 않도록
         // results 폴더에서는 제거한다. 관리자가 수동으로 확인/재처리해야 한다.
@@ -510,6 +553,7 @@ function processAgentResults() {
       if (!result.quoteNumber) missing.push('quoteNumber');
       if (!result.fileUrl) missing.push('fileUrl');
       const message = '완료 보고 필수 값 누락: ' + missing.join(', ');
+      setQuoteOperationStatus_(result.details && result.details.operationId, 'failed', result.quoteNumber, message);
       Logger.log('대장 파일링크 갱신 보류(' + (result.quoteNumber || file.getName()) + '): ' + message);
       try {
         getAgentSubfolder_('resultsFailed').createFile(
@@ -521,10 +565,182 @@ function processAgentResults() {
         Logger.log('resultsFailed 보존 실패: ' + copyErr.toString());
       }
     } else if (result && result.ok === false) {
+      setQuoteOperationStatus_(result.operationId, 'failed', result.quoteNumber, result.error || '견적 파일 생성에 실패했습니다.');
       movePendingToFailed_(result.quoteNumber, result.error || '알 수 없는 오류');
     }
     permanentlyDeleteFile_(file.getId());
   }
+}
+
+function quoteOperationStatusKey_(operationId) {
+  return 'QUOTE_OPERATION_' + String(operationId || '').trim();
+}
+
+function setQuoteOperationStatus_(operationId, status, quoteNumber, message) {
+  const id = String(operationId || '').trim();
+  if (!id) return;
+  try {
+    CacheService.getScriptCache().put(quoteOperationStatusKey_(id), JSON.stringify({
+      success: true,
+      status: status,
+      quoteNumber: String(quoteNumber || ''),
+      message: String(message || '')
+    }), 21600);
+  } catch (err) {
+    Logger.log('견적 작업 상태 캐시 기록 실패(' + id + '): ' + err.toString());
+  }
+}
+
+// 저장 완료 대기 화면용 경량 API. 대장 전체 조회 대신 큐 결과와 operationId만 확인한다.
+function getQuoteOperationStatusFromReact(payload) {
+  try {
+    const access = getAuthorizedUserFromReact();
+    if (!access.success || !access.authorized || !access.author) {
+      return { success: false, status: 'failed', message: '견적 접근 권한을 확인할 수 없습니다.' };
+    }
+
+    const operationId = String(payload && payload.operationId || '').trim();
+    if (!operationId) {
+      return { success: false, status: 'failed', message: '견적 작업 ID가 없습니다.' };
+    }
+
+    const requestedDepartment = String(payload && payload.department || '').trim();
+    let department = access.author.department;
+    if (access.isAdmin && CONFIG.DEPARTMENT_ROOTS[requestedDepartment]) {
+      department = requestedDepartment;
+    } else if (requestedDepartment && requestedDepartment !== department) {
+      return { success: false, status: 'failed', message: '다른 부서의 견적 작업을 조회할 권한이 없습니다.' };
+    }
+
+    const cache = CacheService.getScriptCache();
+    const statusKey = quoteOperationStatusKey_(operationId);
+    let cached = cache.get(statusKey);
+    if (cached) {
+      try {
+        const status = JSON.parse(cached);
+        if (status.status === 'completed' || status.status === 'failed') return status;
+      } catch (err) { /* 손상된 상태 캐시는 다시 조회한다. */ }
+    }
+
+    // 동시에 들어오는 폴링은 2초에 한 번만 Drive results 큐를 확인한다.
+    const pollKey = 'QUOTE_OPERATION_RESULT_POLL_' + department;
+    if (!cache.get(pollKey)) {
+      cache.put(pollKey, '1', 2);
+      processAgentResults(undefined, department);
+    }
+
+    cached = cache.get(statusKey);
+    if (cached) {
+      try {
+        const status = JSON.parse(cached);
+        if (status.status === 'completed' || status.status === 'failed') return status;
+      } catch (err) { /* 손상된 캐시는 pending 응답으로 처리한다. */ }
+    }
+
+    // CacheService가 상태를 퇴거한 경우 스냅샷에서 operationId를 한 번 복구 조회한다.
+    if (!cached) {
+      const currentYear = new Date().getFullYear();
+      const parsedYear = Number(payload && payload.year);
+      const year = Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= currentYear
+        ? parsedYear
+        : currentYear;
+      const system = getExistingYearSystem_(year, resolveRootFolderId({ authorDepartment: department }));
+      const snapshot = system ? getQuoteSnapshotSheet_(system.ledger, false) : null;
+      if (snapshot && snapshot.getLastRow() >= 2) {
+        const match = snapshot.getRange(2, 5, snapshot.getLastRow() - 1, 1)
+          .createTextFinder(operationId)
+          .matchCase(true)
+          .findNext();
+        if (match) {
+          try {
+            const stored = JSON.parse(String(match.getDisplayValue() || '{}'));
+            if (String(stored.details && stored.details.operationId || '') === operationId) {
+              const completed = {
+                success: true,
+                status: 'completed',
+                quoteNumber: String(stored.details.quoteNumber || '')
+              };
+              cache.put(statusKey, JSON.stringify(completed), 21600);
+              return completed;
+            }
+          } catch (err) { /* 손상된 스냅샷은 완료로 오인하지 않는다. */ }
+        }
+      }
+    }
+
+    const pending = { success: true, status: 'pending', quoteNumber: String(payload && payload.quoteNumber || '') };
+    if (!cached) cache.put(statusKey, JSON.stringify(pending), 21600);
+    return pending;
+  } catch (err) {
+    return { success: false, status: 'failed', message: '견적 처리 상태 조회 실패: ' + err.toString() };
+  }
+}
+
+// 대장 열 구성 오류로 resultsFailed에 보존된 견적 결과를, 열 수정 후 안전하게 재반영한다.
+// Apps Script 편집기에서 recoverFailedLedgerResultsAfterLayoutFix를 실행한다.
+// 동일 견적번호의 중복 실패본은 가장 최근 결과 하나만 처리하며, 원본 실패 JSON은 감사용으로 보존한다.
+function recoverFailedLedgerResultsAfterLayoutFix() {
+  const failedFolder = getAgentSubfolder_('resultsFailed');
+  const iterator = failedFolder.getFiles();
+  const latestByQuote = {};
+
+  while (iterator.hasNext()) {
+    const file = iterator.next();
+    if (file.getName().indexOf('링크실패_') !== 0) continue;
+    let wrapper;
+    try {
+      wrapper = JSON.parse(file.getBlob().getDataAsString('utf8'));
+    } catch (err) {
+      Logger.log('[대장 복구 건너뜀] JSON 파싱 실패: ' + file.getName());
+      continue;
+    }
+
+    const result = wrapper && wrapper.result;
+    const errorText = String(wrapper && wrapper.error || '');
+    if (!result || result.ok !== true || errorText.indexOf('열 구성이 예상과 다릅니다') === -1) continue;
+    if (!result.department || !result.quoteNumber || !result.fileUrl) continue;
+
+    const key = [result.department, result.year, result.quoteNumber].join('|');
+    const modifiedAt = file.getLastUpdated().getTime();
+    if (!latestByQuote[key] || modifiedAt > latestByQuote[key].modifiedAt) {
+      latestByQuote[key] = { result: result, modifiedAt: modifiedAt, fileName: file.getName() };
+    }
+  }
+
+  const candidates = Object.keys(latestByQuote).map(function(key) { return latestByQuote[key]; });
+  if (candidates.length === 0) {
+    Logger.log('열 구성 오류로 재처리할 견적 결과가 없습니다.');
+    return { success: true, recovered: 0, failed: 0 };
+  }
+
+  // 모든 대상 대장의 헤더를 먼저 검증해, 일부만 반영된 뒤 다음 건에서 헤더 오류가 나지 않도록 한다.
+  candidates.forEach(function(candidate) {
+    const result = candidate.result;
+    const rootFolderId = resolveRootFolderId({ authorDepartment: result.department });
+    const system = getExistingYearSystem_(Number(result.year), rootFolderId);
+    if (!system) throw new Error('대장을 찾을 수 없습니다: ' + result.department + '/' + result.year);
+    assertLedgerLayout_(system.ledgerSheet);
+  });
+
+  let recovered = 0;
+  let failed = 0;
+  candidates.forEach(function(candidate) {
+    const result = candidate.result;
+    try {
+      const system = commitLedgerAfterAgentSuccess_(result);
+      updateLedgerLink_(result);
+      exportLedgerToAgent_(system, Number(result.year), result.quoteNumber);
+      setQuoteOperationStatus_(result.details && result.details.operationId, 'completed', result.quoteNumber);
+      recovered++;
+      Logger.log('[대장 복구 완료] ' + result.department + ' / ' + result.quoteNumber + ' (원본: ' + candidate.fileName + ')');
+    } catch (err) {
+      failed++;
+      Logger.log('[대장 복구 실패] ' + result.department + ' / ' + result.quoteNumber + ': ' + err.toString());
+    }
+  });
+
+  Logger.log('실패 결과 복구 완료: 성공 ' + recovered + '건, 실패 ' + failed + '건');
+  return { success: failed === 0, recovered: recovered, failed: failed };
 }
 
 function updateLedgerLink_(result) {
@@ -603,11 +819,37 @@ function movePendingToFailed_(quoteNumber, error) {
   }
 }
 
+function openAuthorDatabaseSpreadsheet_() {
+  return SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+}
+
+function normalizeAuthorDepartment_(value) {
+  const raw = String(value || '').trim();
+  const key = raw.replace(/[\s\u00A0]/g, '');
+  const aliases = {
+    '기술영업': '기술영업',
+    '기술영업실': '기술영업',
+    '영업': '영업',
+    '자동화영업실': '영업',
+    '자동화영업': '영업',
+    '프로젝트': '프로젝트',
+    '프로젝트사업실': '프로젝트',
+    '프로젝트사업': '프로젝트'
+  };
+  return aliases[key] || raw;
+}
+
+function normalizeAccountEmail_(value) {
+  const raw = String(value || '').replace(/[\u200B-\u200D\uFEFF\u00A0]/g, ' ').trim();
+  const wrapped = raw.match(/<([^<>]+)>/);
+  return String(wrapped ? wrapped[1] : raw).trim().toLowerCase();
+}
+
 // 작성자 DB 시트(시트1)에서 행 목록을 읽는 공용 헬퍼.
 // 기대하는 열 구성: 작성자(또는 이름/성명) | 연락처 | 이메일 | 부서
 // 1행 헤더의 키워드로 열 위치를 찾고, 헤더가 없으면 A~D열 고정 순서로 해석한다.
 function readAuthorRows_() {
-  const spreadsheet = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+  const spreadsheet = openAuthorDatabaseSpreadsheet_();
   const sheet = spreadsheet.getSheetByName(CONFIG.AUTHOR_DB_SHEET_NAME) || spreadsheet.getSheets()[0];
   const lastRow = sheet.getLastRow();
   const lastColumn = sheet.getLastColumn();
@@ -618,17 +860,18 @@ function readAuthorRows_() {
 
   function findColumn(keywords) {
     for (let c = 0; c < headers.length; c++) {
+      const header = String(headers[c] || '').toLowerCase();
       for (const keyword of keywords) {
-        if (headers[c].indexOf(keyword) !== -1) return c;
+        if (header.indexOf(String(keyword).toLowerCase()) !== -1) return c;
       }
     }
     return -1;
   }
 
-  let nameCol = findColumn(['작성자', '이름', '성명']);
-  let phoneCol = findColumn(['연락처', '전화', '휴대폰']);
-  let emailCol = findColumn(['이메일', '메일']);
-  let deptCol = findColumn(['부서', '소속', '팀']);
+  let nameCol = findColumn(['작성자', '이름', '성명', 'name', 'author']);
+  let phoneCol = findColumn(['연락처', '전화', '휴대폰', 'phone', 'mobile', 'tel']);
+  let emailCol = findColumn(['이메일', '메일', 'email', 'e-mail']);
+  let deptCol = findColumn(['부서', '소속', '팀', 'department', 'dept', 'team']);
 
   const headerMatched = nameCol !== -1;
   if (!headerMatched) {
@@ -645,8 +888,8 @@ function readAuthorRows_() {
     rows.push({
       name: name,
       phone: phoneCol >= 0 ? String(values[r][phoneCol] || '').trim() : '',
-      email: emailCol >= 0 ? String(values[r][emailCol] || '').trim() : '',
-      department: deptCol >= 0 ? String(values[r][deptCol] || '').trim() : ''
+      email: emailCol >= 0 ? normalizeAccountEmail_(values[r][emailCol]) : '',
+      department: deptCol >= 0 ? normalizeAuthorDepartment_(values[r][deptCol]) : ''
     });
   }
   return rows;
@@ -664,30 +907,61 @@ function getAuthorsFromReact() {
 // 접속 중인 Google 계정이 작성자 DB에 등록되어 있는지 확인한다.
 // 견적 기능 접근 권한 확인 + 부서 조회 용도로 사용된다.
 function getAuthorizedUserFromReact() {
+  let userEmail = '';
   try {
-    const userEmail = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase();
+    userEmail = normalizeAccountEmail_(Session.getActiveUser().getEmail());
     if (!userEmail) {
       return { success: true, authorized: false, email: '', message: 'Google 계정을 확인할 수 없습니다.' };
     }
     const rows = readAuthorRows_();
-    const matched = rows.find(function(row) {
-      return String(row.email || '').trim().toLowerCase() === userEmail;
+    const matchingRows = rows.filter(function(row) {
+      return normalizeAccountEmail_(row.email) === userEmail;
     });
-    if (!matched) {
+    if (matchingRows.length === 0) {
       return { success: true, authorized: false, email: userEmail };
     }
     const isAdmin = Boolean(CONFIG.ADMIN_EMAILS && CONFIG.ADMIN_EMAILS.some(function(adminEmail) {
-      return String(adminEmail || '').trim().toLowerCase() === userEmail;
+      return normalizeAccountEmail_(adminEmail) === userEmail;
     }));
+    const registeredDepartments = Array.from(new Set(matchingRows.map(function(row) {
+      return normalizeAuthorDepartment_(row.department);
+    })));
+    if (!isAdmin && registeredDepartments.length > 1) {
+      return {
+        success: true,
+        authorized: false,
+        email: userEmail,
+        message: '작성자 DB에 동일한 이메일이 여러 부서로 등록되어 있습니다. 한 부서로 정리한 뒤 다시 시도해 주세요.'
+      };
+    }
+    const matched = matchingRows[0];
+    const department = normalizeAuthorDepartment_(matched.department);
+    if (!isAdmin && !CONFIG.DEPARTMENT_ROOTS[department]) {
+      return {
+        success: true,
+        authorized: false,
+        email: userEmail,
+        message: '작성자 DB의 부서 값이 견적 시스템 부서 목록과 일치하지 않습니다. 관리자에게 부서 등록을 확인해 주세요.'
+      };
+    }
+    const author = Object.assign({}, matched, {
+      department: CONFIG.DEPARTMENT_ROOTS[department] ? department : CONFIG.DEFAULT_DEPARTMENT
+    });
     return {
       success: true,
       authorized: true,
-      author: matched,
+      author: author,
       isAdmin: isAdmin,
-      availableDepartments: Object.keys(CONFIG.DEPARTMENT_ROOTS)
+      availableDepartments: isAdmin ? Object.keys(CONFIG.DEPARTMENT_ROOTS) : [department]
     };
   } catch (err) {
-    return { success: false, message: '권한 확인 중 오류가 발생했습니다: ' + err.toString() };
+    Logger.log('권한 확인 중 오류(' + (userEmail || '계정 이메일 확인 불가') + '): ' + err.toString());
+    return {
+      success: false,
+      authorized: false,
+      email: userEmail,
+      message: '권한 확인 중 오류가 발생했습니다: ' + err.toString()
+    };
   }
 }
 
@@ -1013,7 +1287,7 @@ function getQuoteForEditFromReact(requestedYear, quoteNumber, requestedDepartmen
             clientPhone: clientPhone,
             clientEmail: clientEmail,
             notes: notes,
-            authorName: access.author.name || '',
+            authorName: colVal(['작성자'], LEDGER_COL.AUTHOR) || access.author.name || '',
             authorPhone: access.author.phone || '',
             authorEmail: access.author.email || '',
             authorDepartment: department
@@ -1209,8 +1483,9 @@ function createOrderDraftFromReact(payload) {
     files.forEach(function(file) {
       const fileName = String(file && file.name || '첨부파일');
       const mimeType = String(file && file.mimeType || 'application/octet-stream');
-      const base64 = String(file && file.base64 || '').replace(/[^A-Za-z0-9+/=]/g, '');
+      const base64 = String(file && file.base64 || '');
       if (!base64) throw new Error('첨부 파일 데이터가 비어 있습니다: ' + fileName);
+      if (/[^A-Za-z0-9+/=]/.test(base64)) throw new Error('첨부 파일의 base64 데이터 형식이 올바르지 않습니다: ' + fileName);
       try {
         // Apps Script는 parseUint8Array를 제공하지 않으므로 base64Decode로 Blob 바이트를 만든다.
         const bytes = Utilities.base64Decode(base64);
@@ -1549,6 +1824,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
 
   try {
     const details = quoteData.details;
+    details.operationId = details.operationId || Utilities.getUuid();
     const requestedBaseQuoteNumber = baseQuoteNumber_(revisionOf);
     // 수정본은 원본을 조회했을 때의 부서(revisionDepartment)를 그대로 사용해야 한다.
     // 폼의 작성자 드롭다운에서 다른 사람을 선택했더라도, 폴더/대장 조회는 반드시 원본이 저장된
@@ -1592,6 +1868,25 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
       if (saveMode === 'overwrite' && overwriteTargetNumber) {
         // 덮어쓰기 모드: 사용자가 선택한 기존 버전 번호(원본 또는 특정 Rev)를 그대로 사용
         realQuoteNumber = String(overwriteTargetNumber).trim();
+        // 대상은 현재 수정 중인 기본 견적 또는 해당 기본 견적의 Rev만 허용한다.
+        // 임의의 견적번호를 전달해 다른 견적 폴더를 덮어쓰는 것을 방지한다.
+        const targetBaseNumber = baseQuoteNumber_(realQuoteNumber);
+        if (targetBaseNumber !== baseQuoteNumber || !new RegExp('^' + baseQuoteNumber.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '(?:_Rev\\d+)?$', 'i').test(realQuoteNumber)) {
+          lock.releaseLock();
+          return { success: false, message: '대체 대상 견적서가 현재 수정 대상과 일치하지 않습니다.' };
+        }
+        const targetSnapshot = getQuoteSnapshotSheet_(system.ledger, false);
+        let targetExists = realQuoteNumber === baseQuoteNumber;
+        if (targetSnapshot && targetSnapshot.getLastRow() >= 2) {
+          const targetRows = targetSnapshot.getRange(2, 1, targetSnapshot.getLastRow() - 1, 2).getDisplayValues();
+          targetExists = targetExists || targetRows.some(function(row) {
+            return String(row[0] || '').trim() === realQuoteNumber && String(row[1] || '').trim() === baseQuoteNumber;
+          });
+        }
+        if (!targetExists) {
+          lock.releaseLock();
+          return { success: false, message: '대체할 기존 견적서 버전을 찾을 수 없습니다.' };
+        }
         const revMatch = realQuoteNumber.match(/_Rev(\d+)$/i);
         revisionNumber = revMatch ? parseInt(revMatch[1], 10) : 0;
         details.overwrite = true;
@@ -1621,7 +1916,9 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
 
     // 파일 생성 작업을 먼저 대기열에 등록한다.
     // 대장 행은 에이전트가 XLSX/PDF 생성에 성공했다는 완료 보고를 보낸 뒤 processAgentResults에서 기록한다.
+    details.agentQueuedAt = Date.now();
     enqueueLocalSave_(details, items, finalVatPrice, createDraft, customSubject);
+    setQuoteOperationStatus_(details.operationId, 'pending', realQuoteNumber);
 
     let returnMessage = '[접수] 견적번호: ' + realQuoteNumber;
     if (itemParts.length > 1) {
@@ -1632,16 +1929,19 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
     if (createDraft) {
       if (details.clientEmail && details.clientEmail.indexOf('@') > -1) {
         // Gmail 초안 첨부용으로만 임시 PDF를 만들고, 초안 생성 직후 구글 드라이브에서 삭제한다.
+        const tempPdfStartedAt = Date.now();
         const pdfBlobs = itemParts.map(function(partItems, partIndex) {
           const partDetails = Object.assign({}, details, {
             quoteNumber: quotePartNumber_(realQuoteNumber, partIndex, itemParts.length)
           });
           return createTempQuotePdf_({ details: partDetails, items: partItems }, system, partDetails);
         });
+        Logger.log(`[성능] 메일 첨부 PDF 생성 ${realQuoteNumber}: ${Date.now() - tempPdfStartedAt}ms, ${pdfBlobs.length}개`);
         const emailBodyText = customBody || makeDefaultEmailBody(details);
         const htmlBody = textToHtmlBody_(emailBodyText);
 
         // HTML 모드로 초안을 생성하여 사용자의 Gmail 서명 이미지/로고가 깨지지 않도록 한다.
+        const draftStartedAt = Date.now();
         GmailApp.createDraft(
           details.clientEmail,
           customSubject || `[CIMON] ${details.clientName} - 제품 견적서 송부 드립니다.`,
@@ -1652,6 +1952,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
             htmlBody: htmlBody
           }
         );
+        Logger.log(`[성능] Gmail 초안 생성 ${realQuoteNumber}: ${Date.now() - draftStartedAt}ms`);
         returnMessage += '\n\nGmail 초안 생성 완료!';
       } else {
         returnMessage += '\n\n이메일 주소 오류: Gmail 초안 생성 실패';
@@ -1668,6 +1969,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
       newQuoteNumber: realQuoteNumber,
       baseQuoteNumber: baseQuoteNumber,
       revisionNumber: revisionNumber || undefined,
+      operationId: details.operationId,
       message: returnMessage
     };
   } catch (err) {
@@ -1718,26 +2020,84 @@ function permanentlyDeleteFile_(fileId) {
 
 // ── 사내 PC 로컬 저장 에이전트 (Google Drive 폴더 연동) 끝 ────────────────
 
+function normalizeQuoteTemplateLabel_(value) {
+  return String(value || '').replace(/[\s:：]/g, '').toLowerCase();
+}
+
+// 임시 견적서 템플릿의 라벨을 찾아 그 오른쪽 값 셀을 반환한다.
+// 업체별/버전별 템플릿에서 작성자 영역의 행·열 위치가 달라도 라벨 기준으로 맞춘다.
+function findQuoteTemplateValueCell_(sheet, label) {
+  const firstSearchRow = 30; // 고객 정보 라벨과 혼동하지 않도록 하단 작성자 영역만 검색
+  const lastRow = sheet.getLastRow();
+  const lastColumn = sheet.getLastColumn();
+  if (lastRow < firstSearchRow || lastColumn < 1) return null;
+
+  const labels = sheet.getRange(firstSearchRow, 1, lastRow - firstSearchRow + 1, lastColumn).getDisplayValues();
+  const target = normalizeQuoteTemplateLabel_(label);
+  for (let rowOffset = labels.length - 1; rowOffset >= 0; rowOffset -= 1) {
+    for (let columnOffset = 0; columnOffset < labels[rowOffset].length; columnOffset += 1) {
+      if (normalizeQuoteTemplateLabel_(labels[rowOffset][columnOffset]) !== target) continue;
+
+      const row = firstSearchRow + rowOffset;
+      const column = columnOffset + 1;
+      let valueColumn = column + 1;
+      try {
+        const mergedRanges = sheet.getRange(row, column).getMergedRanges();
+        mergedRanges.forEach(function(mergedRange) {
+          if (row >= mergedRange.getRow() && row <= mergedRange.getLastRow() &&
+              column >= mergedRange.getColumn() && column <= mergedRange.getLastColumn()) {
+            valueColumn = Math.max(valueColumn, mergedRange.getLastColumn() + 1);
+          }
+        });
+      } catch (err) { /* 병합 셀을 조회할 수 없으면 라벨 바로 오른쪽을 사용한다. */ }
+
+      if (valueColumn <= sheet.getMaxColumns()) return sheet.getRange(row, valueColumn);
+    }
+  }
+  return null;
+}
+
+function setQuoteTemplateValueByLabel_(sheet, label, fallbackA1, value) {
+  const target = findQuoteTemplateValueCell_(sheet, label);
+  if (target) {
+    target.setValue(value || '');
+  } else {
+    // 라벨이 없는 구형 템플릿은 기존 H37:H39 위치로 호환한다.
+    setRangeValuesIfRangeExists(sheet, fallbackA1, [[value || '']]);
+  }
+}
+
 function fillSheetData(spreadsheet, quoteData) {
   const sheet = spreadsheet.getSheets()[0];
   const details = quoteData.details || {};
   const items = quoteData.items || [];
 
-  setValueIfRangeExists(sheet, CELL_MAP.clientName, details.clientName);
-  setValueIfRangeExists(sheet, CELL_MAP.clientContactPerson, details.clientContactPerson);
-  setValueIfRangeExists(sheet, CELL_MAP.clientPhone, details.clientPhone);
-  setValueIfRangeExists(sheet, CELL_MAP.clientEmail, details.clientEmail);
-  setValueIfRangeExists(sheet, CELL_MAP.quoteNumber, details.quoteNumber);
-  setValueIfRangeExists(sheet, CELL_MAP.quoteDate, details.quoteDate);
-  setValueIfRangeExists(sheet, CELL_MAP.deliveryLocation, details.deliveryLocation);
-  setValueIfRangeExists(sheet, CELL_MAP.deliveryDeadline, details.deliveryDeadline);
-  setValueIfRangeExists(sheet, CELL_MAP.paymentTerms, details.paymentTerms);
-  setValueIfRangeExists(sheet, CELL_MAP.validityPeriod, details.validityPeriod);
-  setValueIfRangeExists(sheet, CELL_MAP.packing, details.packing);
-  setValueIfRangeExists(sheet, CELL_MAP.authorName, details.authorName);
-  setValueIfRangeExists(sheet, CELL_MAP.authorPhone, details.authorPhone);
-  setValueIfRangeExists(sheet, CELL_MAP.authorEmail, details.authorEmail);
-  setValueIfRangeExists(sheet, CELL_MAP.notes, details.notes || '');
+  // PDF 메일 첨부용 임시 시트는 기존에 셀마다 setValue를 반복했다.
+  // Google Sheets 서비스 호출 수를 줄이기 위해 연속된 셀은 한 번에 기록한다.
+  setRangeValuesIfRangeExists(sheet, 'C3:C4', [
+    [details.clientName || ''],
+    [details.clientContactPerson || ''],
+  ]);
+  setRangeValuesIfRangeExists(sheet, 'F3:F4', [
+    [details.clientPhone || ''],
+    [details.clientEmail || ''],
+  ]);
+  setRangeValuesIfRangeExists(sheet, 'I3:I4', [
+    [details.quoteNumber || ''],
+    [details.quoteDate || ''],
+  ]);
+  setRangeValuesIfRangeExists(sheet, 'C9:C13', [
+    [details.deliveryLocation || ''],
+    [details.deliveryDeadline || ''],
+    [details.paymentTerms || ''],
+    [details.validityPeriod || ''],
+    [details.packing || ''],
+  ]);
+  // 작성자·연락처·이메일은 고정 셀 주소 대신 템플릿 라벨 옆 셀에 기록한다.
+  setQuoteTemplateValueByLabel_(sheet, '작성자', 'H37', details.authorName || '');
+  setQuoteTemplateValueByLabel_(sheet, '연락처', 'H38', details.authorPhone || '');
+  setQuoteTemplateValueByLabel_(sheet, '이메일', 'H39', details.authorEmail || '');
+  setRangeValuesIfRangeExists(sheet, CELL_MAP.notes, [[details.notes || '']]);
 
   try {
     sheet.getRange('D16:D100').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
@@ -1746,8 +2106,13 @@ function fillSheetData(spreadsheet, quoteData) {
   }
 
   let supplyTotal = 0;
+  const itemNumbers = [];
+  const itemNames = [];
+  const itemSpecs = [];
+  const quantities = [];
+  const effectiveUnitPrices = [];
+  const itemTotals = [];
   for (let i = 0; i < items.length; i++) {
-    const row = CELL_MAP.itemStartRow + i;
     const item = items[i];
     const quantity = Number(item.quantity || 0);
     const unitPrice = Number(item.unitPrice || 0);
@@ -1756,20 +2121,31 @@ function fillSheetData(spreadsheet, quoteData) {
     const effectiveUnitPrice = unitPrice * multiplier;
     const totalPrice = Math.round(quantity * effectiveUnitPrice);
 
-    setValueIfRangeExists(sheet, `A${row}`, i + 1);
-    setValueIfRangeExists(sheet, `B${row}`, item.name || '');
-    setValueIfRangeExists(sheet, `D${row}`, item.spec || '');
-    setValueIfRangeExists(sheet, `G${row}`, quantity);
-    // 템플릿에는 배율 열이 없으므로 단가 칸에 배율을 반영한 유효 단가를 기록한다.
-    setValueIfRangeExists(sheet, `H${row}`, effectiveUnitPrice);
-    setValueIfRangeExists(sheet, `I${row}`, totalPrice);
+    itemNumbers.push([i + 1]);
+    itemNames.push([item.name || '']);
+    itemSpecs.push([item.spec || '']);
+    quantities.push([quantity]);
+    effectiveUnitPrices.push([effectiveUnitPrice]);
+    itemTotals.push([totalPrice]);
 
     supplyTotal += totalPrice;
   }
 
+  if (items.length > 0) {
+    const firstRow = CELL_MAP.itemStartRow;
+    const lastRow = firstRow + items.length - 1;
+    setRangeValuesIfRangeExists(sheet, `A${firstRow}:A${lastRow}`, itemNumbers);
+    setRangeValuesIfRangeExists(sheet, `B${firstRow}:B${lastRow}`, itemNames);
+    setRangeValuesIfRangeExists(sheet, `D${firstRow}:D${lastRow}`, itemSpecs);
+    setRangeValuesIfRangeExists(sheet, `G${firstRow}:G${lastRow}`, quantities);
+    // 템플릿에는 배율 열이 없으므로 단가 칸에 배율을 반영한 유효 단가를 기록한다.
+    setRangeValuesIfRangeExists(sheet, `H${firstRow}:H${lastRow}`, effectiveUnitPrices);
+    setRangeValuesIfRangeExists(sheet, `I${firstRow}:I${lastRow}`, itemTotals);
+  }
+
   const vatIncludedPrice = Math.round(supplyTotal * 1.1);
   const formattedPrice = vatIncludedPrice.toLocaleString('ko-KR');
-  setValueIfRangeExists(sheet, CELL_MAP.totalPriceCell, `총 견적 금액(VAT포함): ${formattedPrice} 원`);
+  setRangeValuesIfRangeExists(sheet, CELL_MAP.totalPriceCell, [[`총 견적 금액(VAT포함): ${formattedPrice} 원`]]);
 
   return vatIncludedPrice;
 }
@@ -1835,8 +2211,8 @@ function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
   const seqMatch = ledgerQuoteNumber.match(/-(\d+)\s*$/);
   const no = seqMatch ? parseInt(seqMatch[1], 10) : sheet.getLastRow();
 
-  // F열(견적번호)부터 N열(비고)까지 9개 값 — E열(발주)은 사용자가 대장에서 직접
-  // 관리하는 열이므로 신규/수정 저장 로직에서는 절대 건드리지 않는다.
+  // G열(견적번호)부터 O열(비고)까지 9개 값 — E열(발주), P열(파일링크),
+  // Q열(적용현장)은 별도 관리하므로 여기서 덮어쓰지 않는다.
   const quoteInfoValues = [
     ledgerQuoteNumber,
     details.clientName,
@@ -1860,12 +2236,17 @@ function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
   saveQuoteSnapshot_(sheet.getParent(), details, items, totalPrice);
 
   if (existingRow >= 2) {
-    // 수정본: A~D열(날짜)과 E열(발주)은 원본 값을 그대로 두고 F~N열만 갱신한다.
-    // O열(파일링크)은 updateLedgerLink_이 원본·Rev 링크를 누적하므로 여기서 건드리지 않는다.
+    // 수정본: A~E열(날짜/발주)은 원본 값을 보존하고, F열 작성자와 G~O열 견적 정보를 갱신한다.
+    // P열(파일링크)과 Q열(적용현장)은 여기서 건드리지 않는다.
+    if (String(details.authorName || '').trim()) {
+      sheet.getRange(existingRow, LEDGER_COL.AUTHOR).setValue(String(details.authorName).trim());
+    }
     sheet.getRange(existingRow, LEDGER_COL.QUOTE_NUMBER, 1, quoteInfoValues.length).setValues([quoteInfoValues]);
   } else {
-    // 신규 견적: A~D, E(발주 공란), F~N, O(파일링크)를 한 번에 추가한다.
-    sheet.appendRow([no, year, month, day, ''].concat(quoteInfoValues).concat([fileUrl]));
+    // 신규 견적: A~D 날짜, E 발주 공란, F 작성자, G~O 견적 정보, P 링크, Q 현장을 기록한다.
+    sheet.appendRow([no, year, month, day, '', String(details.authorName || '').trim()]
+      .concat(quoteInfoValues)
+      .concat([fileUrl, '']));
   }
 }
 
@@ -1921,9 +2302,9 @@ function sanitizeDriveName(value) {
   return String(value || '').replace(/[\/\\:*?"<>|]/g, '').trim() || '미입력';
 }
 
-function setValueIfRangeExists(sheet, a1Notation, value) {
+function setRangeValuesIfRangeExists(sheet, a1Notation, values) {
   try {
-    sheet.getRange(a1Notation).setValue(value || '');
+    sheet.getRange(a1Notation).setValues(values);
   } catch (err) {
     Logger.log(`Range ${a1Notation} write skipped: ${err.toString()}`);
   }
@@ -1959,7 +2340,7 @@ function diagnoseDriveConfig() {
   }
 
   try {
-    const authorSS = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+    const authorSS = openAuthorDatabaseSpreadsheet_();
     const authorSheet = authorSS.getSheetByName(CONFIG.AUTHOR_DB_SHEET_NAME) || authorSS.getSheets()[0];
     Logger.log('OK 작성자 DB 시트 열기 성공: ' + authorSS.getName() + ' / 탭: ' + authorSheet.getName() + ' / 행 수: ' + authorSheet.getLastRow());
   } catch (e5) {
@@ -1992,7 +2373,7 @@ function diagnoseDriveConfig() {
 }
 
 // ── 파일링크 생성 헬퍼 (공용) ───────────────────────────────────────────────
-// 견적 번호/업체명 → 대장 O열(파일링크)에 기록할 서명된 링크 목록을 만든다.
+// 견적 번호/업체명 → 대장 P열(파일링크)에 기록할 서명된 링크 목록을 만든다.
 
 function signedFileUrl_(dept, year, folderName, fileName) {
   const publicBaseUrl = 'http://172.35.12.36:8790';
@@ -2071,20 +2452,69 @@ function writeLinkItemsToCell_(sheet, rowIndex, linkItems) {
   sheet.getRange(rowIndex, LEDGER_COL.FILE_LINK).setRichTextValue(builder.build());
 }
 
-// 견적 목록 조회 시 누락된 파일링크를 "그 자리에서" 자동 복구한다.
-// 반환할 rows 배열에도 복구된 링크를 반영해서 화면에 즉시 보이게 한다.
+function isLegacyFileLinkInNotes_(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  return /^(?:원본|Rev\d+):\s*[^|]*_견적서\.pdf(?:\s*\|\s*(?:원본|Rev\d+):\s*[^|]*_견적서\.pdf)*$/i.test(text);
+}
+
+function latestSnapshotNotes_(snapshotRows, quoteNumber) {
+  const baseQuote = baseQuoteNumber_(quoteNumber);
+  for (let index = snapshotRows.length - 1; index >= 0; index -= 1) {
+    const snapshotRow = snapshotRows[index];
+    const q0 = String(snapshotRow[0] || '').trim();
+    const q1 = String(snapshotRow[1] || '').trim();
+    if (q1 !== baseQuote && q0 !== baseQuote && baseQuoteNumber_(q0) !== baseQuote) continue;
+    try {
+      const stored = JSON.parse(String(snapshotRow[4] || snapshotRow[3] || '{}'));
+      if (stored.details && stored.details.notes !== undefined) {
+        return { found: true, value: String(stored.details.notes || '') };
+      }
+    } catch (err) { /* 손상된 스냅샷은 더 이전 기록에서 복구를 시도한다. */ }
+  }
+  return { found: false, value: '' };
+}
+
+function getAgentStatsNotesMap_(department) {
+  const map = {};
+  try {
+    const statsFolder = getAgentSubfolder_('stats');
+    const files = statsFolder.getFilesByName(String(department || '') + '.json');
+    if (!files.hasNext()) return map;
+    const stats = JSON.parse(files.next().getBlob().getDataAsString('utf8'));
+    const records = Array.isArray(stats.records) ? stats.records : [];
+    for (let index = 0; index < records.length; index += 1) {
+      const record = records[index];
+      const recordQuote = String(record.quoteNumber || '').trim();
+      if (recordQuote && record.notes !== undefined) {
+        map[recordQuote] = String(record.notes || '');
+        const base = baseQuoteNumber_(recordQuote);
+        if (base && !map[base]) map[base] = String(record.notes || '');
+      }
+    }
+  } catch (err) {
+    Logger.log('부서 통계 비고 맵 생성 예외: ' + err.toString());
+  }
+  return map;
+}
+
+// 견적 목록 조회 시 누락 링크를 복구하고, 예전 열 매핑이 P열 링크를 O열 비고에 썼던 흔적도 복구한다.
 function repairEmptyLedgerLinks_(system, dept, year, rows) {
   const linkCol = LEDGER_COL.FILE_LINK - 1;
   const quoteCol = LEDGER_COL.QUOTE_NUMBER - 1;
   const companyCol = LEDGER_COL.CLIENT_NAME - 1;
+  const notesCol = LEDGER_COL.NOTES - 1;
 
-  // 빈 링크가 하나도 없으면 스냅샷 시트 조회나 셀 쓰기를 아예 건너뛴다 (0ms)
+  // 빈 링크와 레거시 파일명 텍스트가 비고에 남아 있는 행만 처리한다.
   let hasMissing = false;
+  let hasLegacyNotes = false;
   for (let i = 0; i < rows.length; i++) {
-    if (!rows[i].links[linkCol]) {
+    if (!rows[i].links[linkCol]) hasMissing = true;
+    if (isLegacyFileLinkInNotes_(rows[i].values[notesCol])) {
       hasMissing = true;
-      break;
+      hasLegacyNotes = true;
     }
+    if (hasMissing && hasLegacyNotes) break;
   }
   if (!hasMissing) return 0;
 
@@ -2094,18 +2524,52 @@ function repairEmptyLedgerLinks_(system, dept, year, rows) {
     ? snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 5).getValues()
     : [];
 
+  // 통계 파일은 레거시 비고 복구가 필요한 행이 있고 스냅샷에서 찾지 못했을 때만 최대 1회 읽는다.
+  let statsNotesMap = null;
+  const startTime = Date.now();
   let repaired = 0;
+
   for (let i = 0; i < rows.length; i++) {
+    // 웹 응답 타임아웃(30초)을 절대 넘기지 않도록 복구 작업은 10초로 제한한다
+    if (Date.now() - startTime > 10000) {
+      Logger.log('[성능] repairEmptyLedgerLinks_ 10초 상한 도달, 남은 행은 다음 조회에 이어서 처리합니다.');
+      break;
+    }
+
     const row = rows[i];
-    if (row.links[linkCol]) continue; // 이미 링크가 있으면 건드리지 않는다.
     const quoteNumber = String(row.values[quoteCol] || '').trim();
     const company = String(row.values[companyCol] || '').trim();
     if (!quoteNumber || !company) continue;
-    const linkItems = buildRowLinkItems_(dept, year, quoteNumber, company, snapshotRows);
-    if (!linkItems.length) continue;
-    writeLinkItemsToCell_(sheet, i + 2, linkItems);
-    row.links[linkCol] = linkItems[0].url; // 화면에 즉시 표시되도록 반환 데이터에 반영
-    repaired++;
+
+    if (!row.links[linkCol]) {
+      const linkItems = buildRowLinkItems_(dept, year, quoteNumber, company, snapshotRows);
+      if (linkItems.length) {
+        writeLinkItemsToCell_(sheet, i + 2, linkItems);
+        row.links[linkCol] = linkItems[0].url; // 화면에 즉시 표시되도록 반환 데이터에 반영
+        repaired++;
+      }
+    }
+
+    if (isLegacyFileLinkInNotes_(row.values[notesCol])) {
+      let restoredNotes = latestSnapshotNotes_(snapshotRows, quoteNumber);
+      if (!restoredNotes.found) {
+        if (statsNotesMap === null) {
+          statsNotesMap = getAgentStatsNotesMap_(dept);
+        }
+        const fromStats = statsNotesMap[quoteNumber] || statsNotesMap[baseQuoteNumber_(quoteNumber)];
+        if (fromStats !== undefined) {
+          restoredNotes = { found: true, value: fromStats };
+        } else {
+          // 스냅샷과 통계 어디에도 없는 경우: 파일명 텍스트는 버그로 들어간 가짜 비고이므로 빈 문자열로 복구한다.
+          restoredNotes = { found: true, value: '' };
+        }
+      }
+      if (restoredNotes.found) {
+        sheet.getRange(i + 2, LEDGER_COL.NOTES).setValue(restoredNotes.value);
+        row.values[notesCol] = restoredNotes.value;
+        repaired++;
+      }
+    }
   }
   if (repaired > 0) SpreadsheetApp.flush();
   return repaired;
@@ -2332,7 +2796,7 @@ function diagnoseUserDriveAccess() {
   }
 
   check('작성자 DB 시트', function() {
-    const ss = SpreadsheetApp.openById(CONFIG.AUTHOR_DB_SHEET_ID);
+    const ss = openAuthorDatabaseSpreadsheet_();
     return ss.getName();
   });
 

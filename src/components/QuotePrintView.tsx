@@ -17,9 +17,9 @@ interface Props {
   loading?: boolean;
   /** 수정 모드인지 여부 */
   isEditMode?: boolean;
-  /** 수정 시 저장 방식: 신규 견적서로 생성 vs 기존 견적서에 Rev으로 생성 */
-  editSaveType?: 'newQuote' | 'revision';
-  onEditSaveTypeChange?: (type: 'newQuote' | 'revision') => void;
+  /** 수정 시 저장 방식: 신규 견적서로 생성 vs 기존 견적서에 Rev/대체 */
+  editSaveType?: 'newQuote' | 'revision' | 'overwrite';
+  onEditSaveTypeChange?: (type: 'newQuote' | 'revision' | 'overwrite') => void;
   baseQuoteNumber?: string;
 }
 
@@ -120,29 +120,48 @@ export default function QuotePrintView({
                     <span className="text-blue-800 font-medium">
                       {editSaveType === 'newQuote'
                         ? t(UI.quoteEditOptionNewHint)
-                        : t(UI.quoteEditOptionRevHint)}
+                        : editSaveType === 'revision'
+                          ? t(UI.quoteEditOptionRevHint)
+                          : t(UI.quoteSaveOverwriteHint)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-blue-200 shadow-xs">
-                    <label className="flex items-center gap-1.5 cursor-pointer font-bold text-[#1e293b]">
-                      <input
-                        type="checkbox"
-                        checked={editSaveType === 'newQuote'}
-                        onChange={() => onEditSaveTypeChange?.(editSaveType === 'newQuote' ? 'revision' : 'newQuote')}
-                        className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                      />
-                      <span>{t(UI.quoteEditOptionNew)}</span>
-                    </label>
-                    <span className="text-[#cbd5e1]">|</span>
-                    <label className="flex items-center gap-1.5 cursor-pointer font-bold text-[#1e293b]">
-                      <input
-                        type="checkbox"
-                        checked={editSaveType === 'revision'}
-                        onChange={() => onEditSaveTypeChange?.(editSaveType === 'revision' ? 'newQuote' : 'revision')}
-                        className="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                      />
-                      <span>{t(UI.quoteEditOptionRev)}</span>
-                    </label>
+                  <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t(UI.quoteEditSaveMethodTitle)}>
+                    <button
+                      type="button"
+                      aria-pressed={editSaveType === 'newQuote'}
+                      onClick={() => onEditSaveTypeChange?.('newQuote')}
+                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+                        editSaveType === 'newQuote'
+                          ? 'border-emerald-600 bg-emerald-600 text-white'
+                          : 'border-[#cbd5e1] bg-white text-[#334155] hover:bg-emerald-50'
+                      }`}
+                    >
+                      {t(UI.quoteEditOptionNew)}
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={editSaveType === 'revision'}
+                      onClick={() => onEditSaveTypeChange?.('revision')}
+                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+                        editSaveType === 'revision'
+                          ? 'border-blue-600 bg-blue-600 text-white'
+                          : 'border-[#cbd5e1] bg-white text-[#334155] hover:bg-blue-50'
+                      }`}
+                    >
+                      {t(UI.quoteEditOptionRev)}
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={editSaveType === 'overwrite'}
+                      onClick={() => onEditSaveTypeChange?.('overwrite')}
+                      className={`rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
+                        editSaveType === 'overwrite'
+                          ? 'border-amber-600 bg-amber-600 text-white'
+                          : 'border-amber-300 bg-white text-amber-800 hover:bg-amber-50'
+                      }`}
+                    >
+                      {t(UI.quoteEditOptionOverwrite)}
+                    </button>
                   </div>
                 </div>
               )}
@@ -168,9 +187,13 @@ export default function QuotePrintView({
                       <span>{isEditMode && editSaveType === 'newQuote' ? '(신규 번호 자동 채번)' : (quote.quoteNumber || '(저장 시 자동 생성)')}</span>
                       {isEditMode && (
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                          editSaveType === 'newQuote' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'
+                          editSaveType === 'newQuote'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : editSaveType === 'overwrite'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {editSaveType === 'newQuote' ? '신규 생성' : 'Rev 수정'}
+                          {editSaveType === 'newQuote' ? '신규 생성' : editSaveType === 'overwrite' ? '기존 파일 대체' : 'Rev 수정'}
                         </span>
                       )}
                     </dd>

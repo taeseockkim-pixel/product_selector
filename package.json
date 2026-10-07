@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test:quote-auth": "node scripts/test-quote-department-auth.mjs",
     "preview": "vite preview",
     "validate:specs": "node scripts/validate-specs.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",
@@ -23,6 +24,7 @@
     "@vercel/blob": "^2.3.3",
     "exceljs": "^4.4.0",
     "flag-icons": "^7.5.0",
+    "jszip": "^3.10.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

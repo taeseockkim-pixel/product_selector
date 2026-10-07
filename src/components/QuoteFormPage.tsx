@@ -16,6 +16,8 @@ import { getSeq, saveQuote } from '../utils/quoteStorage';
 import {
   fetchAuthors,
   fetchLedger,
+  fetchQuoteOperationStatus,
+  fetchQuoteForEdit,
   type QuoteProcessResult,
   type QuoteEditData,
   type QuoteEditVersion,
@@ -685,6 +687,7 @@ async function waitForLedgerFileLink(
   quoteNumber: string,
   onProgress?: (msg: string) => void,
   timeoutMs = 240000,
+  operationId = '',
 ) {
   const startedAt = Date.now();
   const baseQuoteNumber = quoteNumber.replace(/_Rev\d+$/i, '').trim();
@@ -712,13 +715,23 @@ async function waitForLedgerFileLink(
           const rowQuoteNumber = quoteIndex >= 0 ? String(row.values[quoteIndex] ?? '').trim() : '';
           const rowBaseNumber = rowQuoteNumber.replace(/_Rev\d+$/i, '').trim();
           const link = fileIndex >= 0 ? row.links[fileIndex] : null;
+          const linkLabel = fileIndex >= 0 ? String(row.values[fileIndex] ?? '').trim() : '';
 
-          // 견적번호 또는 기본 견적번호가 일치하고 파일링크가 존재하면 완료!
+          // 견적번호가 일치하고 대장 파일링크 셀에 URL 또는 표시 텍스트가 생기면 완료.
+          // Apps Script RichText 응답은 셀의 표시 텍스트가 있어도 getLinkUrl()이 null일 수 있다.
           const isMatch = (rowQuoteNumber === quoteNumber || rowBaseNumber === baseQuoteNumber);
-          return isMatch && Boolean(link && String(link).trim());
+          return isMatch && Boolean((link && String(link).trim()) || linkLabel);
         });
 
-        if (completed) return;
+        if (completed) {
+          if (!operationId) return;
+          try {
+            const editResult = await fetchQuoteForEdit(year, baseQuoteNumber, department);
+            if (editResult.success && editResult.quote?.details?.operationId === operationId) return;
+          } catch {
+            // Apps Script 스냅샷 반영 전에는 다음 폴링에서 다시 확인한다.
+          }
+        }
       }
     } catch {
       // 에이전트/트리거 처리 중 일시적인 조회 실패는 다음 주기에 재시도한다.
@@ -729,6 +742,50 @@ async function waitForLedgerFileLink(
     await wait(pollDelay);
   }
   throw new Error('파일 생성 또는 견적관리대장 반영 시간이 초과되었습니다. 에이전트 상태를 확인한 뒤 견적 목록에서 다시 확인해 주세요.');
+}
+
+/** 대장 전체를 반복 조회하지 않고 Apps Script의 작업 상태 캐시를 폴링한다. */
+async function waitForQuoteOperation(
+  year: number,
+  department: string,
+  quoteNumber: string,
+  operationId: string,
+  onProgress?: (msg: string) => void,
+  timeoutMs = 240000,
+) {
+  if (!operationId) {
+    return waitForLedgerFileLink(year, department, quoteNumber, onProgress, timeoutMs);
+  }
+
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const elapsed = Date.now() - startedAt;
+    if (onProgress) {
+      if (elapsed < 8000) onProgress('견적서 엑셀/PDF를 생성하고 있습니다...');
+      else if (elapsed < 20000) onProgress('파일 생성이 끝나면 대장에 반영합니다...');
+      else onProgress('견적 작업 상태를 확인하고 있습니다...');
+    }
+
+    let result;
+    try {
+      result = await fetchQuoteOperationStatus({ operationId, quoteNumber, year, department });
+    } catch {
+      // Apps Script가 아직 새 status API로 배포되지 않았다면 기존 파일링크 폴링으로 호환한다.
+      return waitForLedgerFileLink(year, department, quoteNumber, onProgress, Math.max(1000, timeoutMs - elapsed), operationId);
+    }
+
+    if (!result.success) {
+      throw new Error(result.message || '견적 작업 상태를 확인하지 못했습니다.');
+    }
+    if (result.status === 'completed') return;
+    if (result.status === 'failed') {
+      throw new Error(result.message || `견적 파일 생성에 실패했습니다 (${result.quoteNumber || quoteNumber}).`);
+    }
+
+    await wait(elapsed < 12000 ? 1000 : 2000);
+  }
+
+  throw new Error('견적 파일 생성 또는 대장 반영 시간이 초과되었습니다. 에이전트와 Apps Script 실행 기록을 확인해 주세요.');
 }
 
 function findProductForItem(item: ItemRow): Product | null {
@@ -791,6 +848,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [submitting, setSubmitting] = useState(false);
   const [emailing, setEmailing] = useState(false);
   const [waitingForCompletion, setWaitingForCompletion] = useState(false);
+  const [acceptedQuoteNumber, setAcceptedQuoteNumber] = useState('');
   const [processingMessage, setProcessingMessage] = useState('');
   const [previewQuote, setPreviewQuote] = useState<Quote | null>(null);
   const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
@@ -800,7 +858,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [emailBody, setEmailBody] = useState('');
 
   // ── 수정 시 미리보기 저장 모드: 'revision'(기존 견적서에 Rev으로 생성) vs 'newQuote'(신규 견적서로 생성) ──
-  const [editSaveType, setEditSaveType] = useState<'newQuote' | 'revision'>('revision');
+  const [editSaveType, setEditSaveType] = useState<'newQuote' | 'revision' | 'overwrite'>('revision');
 
   // ── 견적 수정 시 저장 방식 선택 모달 상태 ──
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
@@ -811,6 +869,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   useEffect(() => {
     if (editQuote) {
       setEditSaveType('revision');
+      setRevisionSaveMode('newRevision');
       setOverwriteTarget(editQuote.quoteNumber || editQuote.baseQuoteNumber);
     }
   }, [editQuote]);
@@ -1303,10 +1362,16 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     overwriteTargetNumber = '',
     asNewQuote = false,
   ) {
+    if (acceptedQuoteNumber) {
+      alert(t(UI.quoteAcceptedCompletionDelayed).replace('{quoteNumber}', acceptedQuoteNumber));
+      onSuccess();
+      return;
+    }
     if (!validateForSubmit()) return;
     if (createDraft) setEmailing(true);
     else setSubmitting(true);
     setProcessingMessage(createDraft ? '메일 초안을 준비하고 있습니다...' : '견적서를 저장하고 있습니다...');
+    let acceptedNumber = '';
     try {
       const quote = previewQuote ?? buildDraftQuote();
       // asNewQuote가 true이면 수정본이 아니라 완전히 새로운 신규 견적으로 처리한다.
@@ -1329,6 +1394,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         throw new Error(result.message ?? t(UI.quoteGoogleConfigMissing));
       }
 
+      acceptedNumber = result.newQuoteNumber ?? quote.quoteNumber;
+      setAcceptedQuoteNumber(acceptedNumber);
+
       const finalQuote: Quote = {
         ...quote,
         quoteNumber: result.newQuoteNumber ?? quote.quoteNumber,
@@ -1341,7 +1409,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       const targetDepartment = revisionDepartment || department || quote.author.department || '';
       const targetQuoteNumber = result.baseQuoteNumber || result.newQuoteNumber || finalQuote.quoteNumber;
       const targetYear = revisionYear || Number(String(quote.details.quoteDate || '').match(/\d{4}/)?.[0]) || new Date().getFullYear();
-      await waitForLedgerFileLink(targetYear, targetDepartment, targetQuoteNumber, (msg) => setProcessingMessage(msg));
+      await waitForQuoteOperation(
+        targetYear,
+        targetDepartment,
+        targetQuoteNumber,
+        result.operationId ?? '',
+        (msg) => setProcessingMessage(msg),
+      );
 
       // 수정(editQuote) 세션은 애초에 공용 "새 견적" 초안 키에 저장한 적이 없으므로 지우지 않는다.
       if (!editQuote || asNewQuote) clearQuoteFormDraft(draftStorageKey);
@@ -1349,7 +1423,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       // 모든 파일 생성 및 대장 반영이 끝난 뒤 견적 목록으로 이동한다.
       onSuccess();
     } catch (err) {
-      alert(`${t(UI.quoteSaveFailed)}: ${String(err)}`);
+      if (acceptedNumber) {
+        alert(t(UI.quoteAcceptedCompletionDelayed).replace('{quoteNumber}', acceptedNumber));
+        // 요청은 이미 큐에 접수되었으므로 같은 폼에서 재전송하지 않게 목록으로 이동한다.
+        onSuccess();
+      } else {
+        alert(`${t(UI.quoteSaveFailed)}: ${String(err)}`);
+      }
     } finally {
       setSubmitting(false);
       setEmailing(false);
@@ -1365,10 +1445,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       void processGoogleQuote(false, '', '', 'newRevision', '', true /* asNewQuote */);
       return;
     }
-    if (editQuote && editSaveType === 'revision') {
-      if (!window.confirm(t(UI.quoteConfirmRevSave))) return;
-      // 사용자가 미리보기에서 '기존 견적서에 Rev으로 생성'을 체크한 경우: 기존 수정 프로세스(모달)
+    if (editQuote && (editSaveType === 'revision' || editSaveType === 'overwrite')) {
+      if (!window.confirm(t(editSaveType === 'overwrite' ? UI.quoteConfirmOverwriteSave : UI.quoteConfirmRevSave))) return;
+      // Rev 또는 기존 파일 대체 대상은 기존 버전 선택 모달에서 확정한다.
       setPendingDraftAction(false);
+      setRevisionSaveMode(editSaveType === 'overwrite' ? 'overwrite' : 'newRevision');
       setRevisionModalOpen(true);
       return;
     }
@@ -1383,10 +1464,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       void processGoogleQuote(true, emailSubject, emailBody, 'newRevision', '', true /* asNewQuote */);
       return;
     }
-    if (editQuote && editSaveType === 'revision') {
-      if (!window.confirm(t(UI.quoteConfirmRevSave))) return;
-      // 사용자가 미리보기에서 '기존 견적서에 Rev으로 생성'을 체크한 경우: 기존 수정 프로세스(모달)
+    if (editQuote && (editSaveType === 'revision' || editSaveType === 'overwrite')) {
+      if (!window.confirm(t(editSaveType === 'overwrite' ? UI.quoteConfirmOverwriteSave : UI.quoteConfirmRevSave))) return;
+      // Rev 또는 기존 파일 대체 대상은 기존 버전 선택 모달에서 확정한다.
       setPendingDraftAction(true);
+      setRevisionSaveMode(editSaveType === 'overwrite' ? 'overwrite' : 'newRevision');
       setRevisionModalOpen(true);
       return;
     }
@@ -1394,6 +1476,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   }
 
   function handleConfirmRevisionSave() {
+    if (revisionSaveMode === 'overwrite' && !overwriteTarget.trim()) {
+      alert(t(UI.quoteSelectOverwriteTarget));
+      return;
+    }
     setRevisionModalOpen(false);
     void processGoogleQuote(
       pendingDraftAction,

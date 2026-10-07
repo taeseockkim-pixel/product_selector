@@ -11,6 +11,14 @@ export interface QuoteProcessResult {
   pdfUrl?: string;
   sheetUrl?: string;
   url?: string;
+  operationId?: string;
+}
+
+export interface QuoteOperationStatusResult {
+  success: boolean;
+  status?: 'pending' | 'completed' | 'failed';
+  quoteNumber?: string;
+  message?: string;
 }
 
 export interface QuoteEditDetails {
@@ -32,6 +40,7 @@ export interface QuoteEditDetails {
   authorDepartment?: string;
   /** 수정 저장 시 견적 폴더명을 원본과 동일하게 유지하기 위한 값 */
   folderClientName?: string;
+  operationId?: string;
 }
 
 export interface QuoteEditItem {
@@ -280,6 +289,7 @@ declare global {
               getAuthorsFromReact: () => void;
               getAuthorizedUserFromReact: () => void;
               getQuoteLedgerFromReact: (year?: number, department?: string) => void;
+              getQuoteOperationStatusFromReact: (payload: unknown) => void;
               getQuoteForEditFromReact: (year: number, quoteNumber: string, department?: string) => void;
               updateQuoteOrderFromReact: (payload: unknown) => void;
               createOrderDraftFromReact: (payload: unknown) => void;
@@ -320,8 +330,8 @@ function callAppsScriptFn<T>(
 }
 
 function callAppsScriptFnViaParentBridge<T>(
-  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT' | 'GET_QUOTE_FILES_RESULT' | 'GET_DASHBOARD_STATS_RESULT' | 'DELETE_QUOTE_RESULT' | 'RESTORE_QUOTE_RESULT' | 'UPDATE_QUOTE_SITE_RESULT' | 'GET_ORDER_HISTORY_RESULT',
-  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT' | 'GET_QUOTE_FILES' | 'GET_DASHBOARD_STATS' | 'DELETE_QUOTE' | 'RESTORE_QUOTE' | 'UPDATE_QUOTE_SITE' | 'GET_ORDER_HISTORY',
+  resultType: 'LOAD_AUTHORS_RESULT' | 'LOAD_AUTHORIZED_USER_RESULT' | 'LOAD_QUOTE_LEDGER_RESULT' | 'LOAD_QUOTE_EDIT_RESULT' | 'GET_QUOTE_OPERATION_STATUS_RESULT' | 'UPDATE_QUOTE_ORDER_RESULT' | 'CREATE_ORDER_DRAFT_RESULT' | 'GET_QUOTE_FILES_RESULT' | 'GET_DASHBOARD_STATS_RESULT' | 'DELETE_QUOTE_RESULT' | 'RESTORE_QUOTE_RESULT' | 'UPDATE_QUOTE_SITE_RESULT' | 'GET_ORDER_HISTORY_RESULT',
+  requestType: 'LOAD_AUTHORS' | 'LOAD_AUTHORIZED_USER' | 'LOAD_QUOTE_LEDGER' | 'LOAD_QUOTE_EDIT' | 'GET_QUOTE_OPERATION_STATUS' | 'UPDATE_QUOTE_ORDER' | 'CREATE_ORDER_DRAFT' | 'GET_QUOTE_FILES' | 'GET_DASHBOARD_STATS' | 'DELETE_QUOTE' | 'RESTORE_QUOTE' | 'UPDATE_QUOTE_SITE' | 'GET_ORDER_HISTORY',
   timeoutMs: number,
   payload: Record<string, unknown> = {},
 ): Promise<T> {
@@ -352,7 +362,7 @@ function callAppsScriptFnViaParentBridge<T>(
 }
 
 function callAppsScriptPayload<T>(
-  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact' | 'getQuoteFilesFromReact' | 'getDashboardStatsFromReact' | 'deleteQuoteFromReact' | 'restoreQuoteFromReact' | 'updateQuoteSiteFromReact' | 'getOrderHistoryFromReact',
+  fnName: 'updateQuoteOrderFromReact' | 'createOrderDraftFromReact' | 'getQuoteFilesFromReact' | 'getDashboardStatsFromReact' | 'deleteQuoteFromReact' | 'restoreQuoteFromReact' | 'updateQuoteSiteFromReact' | 'getOrderHistoryFromReact' | 'getQuoteOperationStatusFromReact',
   payload: unknown,
 ): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -366,6 +376,24 @@ function callAppsScriptPayload<T>(
       .withFailureHandler((error) => reject(new Error(String(error))));
     call[fnName](payload);
   });
+}
+
+/** 현재 견적 저장 작업의 처리 상태를 빠르게 조회한다 (대장 전체 재조회 없이 status cache 사용). */
+export function fetchQuoteOperationStatus(payload: {
+  operationId: string;
+  quoteNumber: string;
+  year: number;
+  department: string;
+}): Promise<QuoteOperationStatusResult> {
+  if (window.parent && window.parent !== window) {
+    return callAppsScriptFnViaParentBridge<QuoteOperationStatusResult>(
+      'GET_QUOTE_OPERATION_STATUS_RESULT',
+      'GET_QUOTE_OPERATION_STATUS',
+      15000,
+      { payload },
+    );
+  }
+  return callAppsScriptPayload<QuoteOperationStatusResult>('getQuoteOperationStatusFromReact', payload);
 }
 
 /** 작성자 DB 시트에서 작성자 목록을 조회한다 */
@@ -390,7 +418,7 @@ export function fetchLedger(year?: number, department?: string): Promise<LedgerR
     return callAppsScriptFnViaParentBridge<LedgerResult>(
       'LOAD_QUOTE_LEDGER_RESULT',
       'LOAD_QUOTE_LEDGER',
-      30000,
+      45000,
       { year, department },
     );
   }

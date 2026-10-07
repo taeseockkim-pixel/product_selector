@@ -4,6 +4,7 @@
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="<?= faviconUrl ?>">
   <title>CIMON 제품 선택 가이드</title>
   <style>
     html,
@@ -74,6 +75,28 @@
             }, appOrigin);
           })
           .getQuoteLedgerFromReact(message.year, message.department);
+        return;
+      }
+
+      if (message.type === 'GET_QUOTE_OPERATION_STATUS') {
+        google.script.run
+          .withSuccessHandler((result) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'GET_QUOTE_OPERATION_STATUS_RESULT',
+              requestId: message.requestId,
+              result,
+            }, appOrigin);
+          })
+          .withFailureHandler((error) => {
+            appFrame.contentWindow.postMessage({
+              source: 'cimon-appscript-bridge',
+              type: 'GET_QUOTE_OPERATION_STATUS_RESULT',
+              requestId: message.requestId,
+              error: String(error),
+            }, appOrigin);
+          })
+          .getQuoteOperationStatusFromReact(message.payload);
         return;
       }
 

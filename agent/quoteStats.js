@@ -117,6 +117,7 @@ export async function scanDepartmentQuotes(storageRoot, department) {
       for (const fileName of files) {
         if (!fileName.endsWith('_견적서.xlsx')) continue;
         if (/_Rev\d+_/.test(fileName)) continue; // Rev 파일은 원본 행에 별도 반영하지 않는다
+        if (/_bak(?:_|\.)/i.test(fileName)) continue; // 백업 파일은 통계 원본으로 집계하지 않는다
         try {
           const quote = await readQuoteFromXlsx(join(folder, fileName));
           if (quote) { quote.year = Number(year); quotes.push(quote); }
@@ -239,6 +240,7 @@ export function writeStatsJson(agentFolder, department, quotes) {
     contact: q.contact,
     phone: q.phone,
     email: q.email,
+    notes: q.notes,
     authorName: q.authorName,
     authorEmail: q.authorEmail,
     amount: q.itemAmount,
@@ -297,6 +299,7 @@ export function appendQuoteToStatsJson(agentFolder, department, quoteData) {
       contact: quoteData.clientContactPerson ?? '',
       phone: quoteData.clientPhone ?? '',
       email: quoteData.clientEmail ?? '',
+      notes: quoteData.notes ?? '',
       authorName: quoteData.authorName ?? '',
       authorEmail: quoteData.authorEmail ?? '',
       amount: quoteData.itemAmount ?? 0,

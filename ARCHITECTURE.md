@@ -194,15 +194,22 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
   개발(`npm run local`) 전용 기능이다.
 - Vercel 배포 환경에서는 `/api/local/*` 저장 단계가 생략된다. Apps Script wrapper 안에서 실행되는 Vercel 앱은 `postMessage` 브릿지로 저장 요청을 전달하고, wrapper 밖에서 직접 실행될 때만 `/api/google/quote` fallback을 사용한다.
 - 견적 목록은 `getQuoteLedgerFromReact(year)`로 선택 연도를 전달한다. 읽기 전용 연도 조회는 기존 연도 폴더와 대장이 있을 때만 열고, 없는 연도는 생성하지 않는다.
+- 견적 권한은 작성자 이름이 아니라 회사 Google 로그인 이메일을 `견적관리시스템_작성자`의 이메일 값과 정규화해 일치시킨 뒤 해당 행의 부서로 대장 루트를 제한한다. 작성자 DB 부서명은 지원되는 부서 키로 정규화하며, 알 수 없는 부서나 여러 부서에 걸친 중복 이메일은 기본 부서로 대체하지 않고 거부한다. 일반 사용자가 다른 부서를 요청해도 서버는 작성자 DB에 등록된 부서만 조회하며, 관리자만 부서 전환이 가능하다.
+- 과거 열 매핑 오류로 파일 링크 문구가 O열 비고에 남은 행은 목록 조회 시 스냅샷을 먼저, `stats/{부서}.json`의 `notes`를 보조로 사용해 복구하고 P열 링크를 채운다. `agent/quoteStats.js`의 전체 재스캔도 `notes`를 JSON에 기록해야 기존 원문을 복구할 수 있다. 스냅샷·원본 XLSX·통계에 원문이 모두 없으면 임의로 비우지 않는다.
 - 견적번호는 대장에 기본 번호 하나로 기록한다. 로컬 에이전트는 템플릿의 14개 품목 행 제약을 기준으로 품목을 분할해 같은 견적 폴더에 `_1`, `_2` 접미사를 붙인 XLSX/PDF를 생성한다.
+- 견적서 템플릿의 대표이사 문구는 Excel floating text box(`xdr:sp`)로 저장되어 있으며 ExcelJS 재저장에서 기본적으로 제거된다. `server/fillTemplate.js`의 후처리가 템플릿 도형을 결과 XLSX에 복원한 뒤 Excel COM이 PDF로 변환한다. 템플릿·ExcelJS 업그레이드 후에는 대표이사 문구와 직인 출력 여부를 회귀 확인한다.
+- 견적 저장 응답의 `operationId`는 Apps Script `CacheService` 상태(`pending/completed/failed`)와 연결된다. 폼은 완료 대기 중 대장 전체를 반복 조회하지 않고 `getQuoteOperationStatusFromReact()`를 폴링한다. 결과 큐 확인은 2초 간격으로 제한하며 CacheService 누락 시 견적 스냅샷에서 복구한다.
 - **견적 수정(리비전)**: `getQuoteForEditFromReact()`가 스냅샷 시트에서 원본을 불러오며, 저장은
-  `processQuote(..., revisionOf, revisionYear, revisionDepartment)`로 이어진다. 대장 원본 행(F~N열)만
-  갱신하고, 파일은 `_RevNN` 접미사로 같은 폴더에 추가된다. `revisionYear`/`revisionDepartment`는
+  `processQuote(..., revisionOf, revisionYear, revisionDepartment)`로 이어진다. 대장 원본 행의
+  작성자(F열)와 견적 정보(G~O열)를 갱신하고, 파일은 `_RevNN` 접미사로 같은 폴더에 추가된다.
+  `revisionYear`/`revisionDepartment`는
   원본을 조회했던 연도/부서를 그대로 전달해야 로컬 에이전트가 다른 연도/부서 폴더에 저장하지 않는다.
   **삭제 기능은 구현하지 않는다.**
 - **발주 체크박스 / 서류 업로드**: `updateQuoteOrderFromReact()`가 대장 E열(발주)에 기록하고,
   `saveToLedgerSheet()`는 이 열을 절대 덮어쓰지 않는다. 서류 업로드는 Apps Script를 거치지 않고
   로컬 에이전트의 `POST /upload`로 직접 처리된다(부서 비밀번호 세션 필요).
+- **발주등록 메일 첨부**: 에이전트 order-email 페이지는 선택 파일 크기를 먼저 검사한 뒤 첨부 다운로드를 병렬화한다. Apps Script 임시 견적 PDF의 시트 값은 연속 범위 단위로 기록하며, 작성자 정보는 템플릿의 `작성자`·`연락처`·`이메일` 라벨을 찾아 오른쪽 값 셀에 기록한다. 에이전트는 분할 PDF를 Excel COM 최대 12개씩 묶어 변환한다.
+- Apps Script가 Gmail 첨부용 임시 스프레드시트/PDF를 만들 때 작성자 정보는 고정 셀 위치가 아니라 템플릿의 `작성자`·`연락처`·`이메일` 라벨 옆에 기록한다. 라벨이 없는 구형 템플릿에서만 H37:H39로 fallback한다.
 - AI 검색은 현재 로그인한 작성자의 부서로 조회된 선택 연도의 대장 요약 행만 사용한다. 개인 OpenRouter API 키는 요청 본문으로만 전달하며 애플리케이션 저장소에 기록하지 않는다. 담당자·연락처·이메일을 포함하므로 ZDR 제공자 사용을 기본값으로 권장한다.
 
 Apps Script 반영 파일:

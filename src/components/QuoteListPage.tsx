@@ -236,6 +236,21 @@ export default function QuoteListPage({
   const [orderEmailLoading, setOrderEmailLoading] = useState(false);
   const [orderEmailFetching, setOrderEmailFetching] = useState(false);
   const orderEmailProcessingRef = useRef(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const toastTimerRef = useRef<number | null>(null);
+
+  function showToast(message: string) {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+    setToastMessage(message);
+    toastTimerRef.current = window.setTimeout(() => {
+      setToastMessage('');
+      toastTimerRef.current = null;
+    }, 3000);
+  }
+
+  useEffect(() => () => {
+    if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (department && !isAdmin) {
@@ -297,8 +312,9 @@ export default function QuoteListPage({
           await onOrderChange(payload.year, payload.quoteNumber, true, payload.department);
           success = true;
           message = result.message || '발주등록 요청 메일 초안이 생성되었습니다.';
-          await loadQuotes(payload.year, payload.department);
-          alert(message);
+          // 초안과 발주 상태 기록이 끝났으면 UI 응답을 먼저 보내고, 전체 대장 새로고침은 백그라운드로 한다.
+          void loadQuotes(payload.year, payload.department);
+          showToast(message);
           window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
         } catch (err) {
           message = `${t(UI.quoteOrderCreateFailed)}: ${String(err)}`;
@@ -715,7 +731,7 @@ export default function QuoteListPage({
 
       setOrderEmailOpen(false);
       await applyOrderChange(row, true);
-      alert(result.message || '발주등록 요청 메일 초안이 생성되었습니다.');
+      showToast(result.message || '발주등록 요청 메일 초안이 생성되었습니다.');
       window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
     } catch (err) {
       setOrderEmailError(`${t(UI.quoteOrderCreateFailed)}: ${String(err)}`);
@@ -726,6 +742,11 @@ export default function QuoteListPage({
 
   return (
     <div className="max-w-[1800px] mx-auto w-full px-4 sm:px-6 py-6">
+      {toastMessage && (
+        <div role="status" className="fixed right-5 top-20 z-[90] max-w-md rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white shadow-lg">
+          {toastMessage}
+        </div>
+      )}
       <div className="flex items-center justify-between mb-5">
         <div className="flex flex-wrap items-center gap-3">
           <button

@@ -14,14 +14,14 @@
  * 요구: Node.js 18+, Windows + Excel(이 PC), Google Drive 데스크톱(로그인), 상시 가동 권장
  */
 
-import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync, appendFileSync, rmSync } from 'fs';
+import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync, appendFileSync, rmSync, renameSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { join, dirname, resolve, sep, basename, extname } from 'path';
 import { fileURLToPath } from 'url';
 import { createHmac, timingSafeEqual } from 'crypto';
 import express from 'express';
 import { fillQuoteTemplate } from '../server/fillTemplate.js';
-import { excelToPdf } from '../server/excelToPdf.js';
+import { excelToPdfBatch } from '../server/excelToPdf.js';
 import { appendQuoteToStatsJson, refreshDepartmentStats } from './quoteStats.js';
 import {
   getOrderHistoryDir,
@@ -464,6 +464,79 @@ function resolveExistingQuoteFolder_(yearDir, baseQuoteNumber, computedFolderNam
   return computedPath;
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function quoteOutputFilePattern(quoteNumber) {
+  // 견적번호 자체에 포함된 '_'가 있어도 안전하게 파일명 접두사를 비교한다.
+  return new RegExp(`^${escapeRegExp(quoteNumber)}(?:_(\\d+))?_.+_견적서\\.(xlsx|pdf)$`, 'i');
+}
+
+function outputPartIndex(fileName, quoteNumber) {
+  const match = fileName.match(quoteOutputFilePattern(quoteNumber));
+  return match?.[1] ? Number(match[1]) : 1;
+}
+
+function backupPathFor(filePath) {
+  const extension = extname(filePath);
+  const stem = filePath.slice(0, -extension.length);
+  const firstBackup = `${stem}_bak${extension}`;
+  if (!existsSync(firstBackup)) return firstBackup;
+
+  const stamp = new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0, 14);
+  let candidate = `${stem}_bak_${stamp}${extension}`;
+  let index = 2;
+  while (existsSync(candidate)) {
+    candidate = `${stem}_bak_${stamp}_${index}${extension}`;
+    index += 1;
+  }
+  return candidate;
+}
+
+function findExistingOverwriteFiles(folder, quoteNumber) {
+  const pattern = quoteOutputFilePattern(quoteNumber);
+  return readdirSync(folder)
+    .filter((name) => pattern.test(name) && !/_bak(?:_|\.)/i.test(name))
+    .map((name) => join(folder, name));
+}
+
+function moveExistingFilesToBackup(filePaths) {
+  const moved = [];
+  try {
+    for (const source of filePaths) {
+      const backup = backupPathFor(source);
+      renameSync(source, backup);
+      moved.push({ source, backup });
+    }
+    return moved;
+  } catch (error) {
+    for (let index = moved.length - 1; index >= 0; index -= 1) {
+      const { source, backup } = moved[index];
+      try { renameSync(backup, source); } catch { /* 복구 실패는 원래 오류를 유지한다. */ }
+    }
+    throw error;
+  }
+}
+
+function restoreBackups(moved) {
+  for (const { source, backup } of [...moved].reverse()) {
+    if (!existsSync(backup)) continue;
+    try {
+      if (existsSync(source)) unlinkSync(source);
+      renameSync(backup, source);
+    } catch (error) {
+      console.error(`[에이전트] 백업 복구 실패: ${backup} -> ${source}: ${describeError(error)}`);
+    }
+  }
+}
+
+function removeFiles(filePaths) {
+  for (const filePath of filePaths) {
+    try { if (existsSync(filePath)) unlinkSync(filePath); } catch { /* 정리 실패는 원래 오류를 유지한다. */ }
+  }
+}
+
 // 견적 폴더 삭제 작업 — pending의 delete_<견적번호>.json을 처리해 로컬 폴더를 영구 삭제한다.
 function processDeleteJob(fileName, payload) {
   const department = safeDepartmentSegment(payload.department || DEFAULT_DEPARTMENT);
@@ -496,6 +569,7 @@ async function processJob(fileName) {
   const payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
   const details = payload.details || {};
   const items = payload.items || [];
+  const queueWaitMs = Number(details.agentQueuedAt) > 0 ? Math.max(0, Date.now() - Number(details.agentQueuedAt)) : 0;
 
   const department = safeDepartmentSegment(details.authorDepartment || DEFAULT_DEPARTMENT);
   const year = quoteYear(details);
@@ -509,14 +583,44 @@ async function processJob(fileName) {
   // 사람이 폴더명을 수정했거나 기존 폴더를 재사용한 경우에도 실제 폴더명으로 링크를 만든다.
   const actualFolderName = basename(folder);
 
+  const isOverwrite = Boolean(details.overwrite);
+  const existingOverwriteFiles = isOverwrite
+    ? findExistingOverwriteFiles(folder, outputQuoteNumber)
+    : [];
+  if (isOverwrite && existingOverwriteFiles.length === 0) {
+    throw new Error(`대체할 기존 견적서 파일을 찾을 수 없습니다: ${outputQuoteNumber}`);
+  }
+
   const pdfFileNames = [];
+  const generatedFiles = [];
+  const temporaryFiles = [];
+  const pendingPdfConversions = [];
+  const xlsxBuildStartedAt = Date.now();
+  const existingByPartAndExtension = new Map();
+  existingOverwriteFiles.forEach((filePath) => {
+    const name = basename(filePath);
+    const key = `${outputPartIndex(name, outputQuoteNumber)}:${extname(name).toLowerCase()}`;
+    existingByPartAndExtension.set(key, name);
+  });
+
+  // 대체 작업은 기존 파일명(업체명 표기 포함)을 그대로 재사용한다.
+  // 기존 파일이 없는 새 분할 파트만 현재 업체명으로 새 이름을 만든다.
   for (let partIndex = 0; partIndex < itemParts.length; partIndex += 1) {
     const partItems = itemParts[partIndex];
     const partNumber = partQuoteNumber(outputQuoteNumber, partIndex, itemParts.length);
-    const xlsxFileName = `${partNumber}_${safeSegment(details.clientName)}_견적서.xlsx`;
-    const pdfFileName = xlsxFileName.replace(/\.xlsx$/, '.pdf');
+    const partNumberIndex = partIndex + 1;
+    const canonicalStem = `${partNumber}_${safeSegment(details.clientName)}_견적서`;
+    const existingXlsxName = existingByPartAndExtension.get(`${partNumberIndex}:.xlsx`);
+    const existingPdfName = existingByPartAndExtension.get(`${partNumberIndex}:.pdf`);
+    const xlsxFileName = isOverwrite && existingXlsxName
+      ? existingXlsxName
+      : `${canonicalStem}.xlsx`;
+    const pdfFileName = existingPdfName || xlsxFileName.replace(/\.xlsx$/, '.pdf');
     const xlsxPath = join(folder, xlsxFileName);
-    const pdfPath = join(folder, pdfFileName);
+    const pdfPath = join(folder, isOverwrite && existingPdfName ? existingPdfName : pdfFileName);
+    const tempStem = `.cimon-replace-${Date.now()}-${partIndex}-${Math.random().toString(36).slice(2, 8)}`;
+    const tempXlsxPath = join(folder, `${tempStem}.xlsx`);
+    const tempPdfPath = join(folder, `${tempStem}.pdf`);
     const quote = {
       quoteNumber: partNumber,
       client: {
@@ -543,9 +647,50 @@ async function processJob(fileName) {
       vatTotal: vatTotalForItems(partItems),
     };
 
-    await fillQuoteTemplate(quote, xlsxPath, TEMPLATE_PATH);
-    excelToPdf(xlsxPath, pdfPath);
-    pdfFileNames.push(pdfFileName);
+    if (isOverwrite) {
+      await fillQuoteTemplate(quote, tempXlsxPath, TEMPLATE_PATH);
+      temporaryFiles.push(tempXlsxPath, tempPdfPath);
+      generatedFiles.push({ temp: tempXlsxPath, target: xlsxPath }, { temp: tempPdfPath, target: pdfPath });
+      pendingPdfConversions.push({ xlsxPath: tempXlsxPath, pdfPath: tempPdfPath });
+    } else {
+      await fillQuoteTemplate(quote, xlsxPath, TEMPLATE_PATH);
+      pendingPdfConversions.push({ xlsxPath, pdfPath });
+    }
+    pdfFileNames.push(basename(pdfPath));
+  }
+  const xlsxBuildMs = Date.now() - xlsxBuildStartedAt;
+
+  // 분할된 XLSX도 묶어서 변환해 파일마다 PowerShell/Excel COM을 새로 띄우는 비용을 줄인다.
+  const pdfConversionStartedAt = Date.now();
+  try {
+    excelToPdfBatch(pendingPdfConversions);
+  } catch (error) {
+    if (isOverwrite) removeFiles(temporaryFiles);
+    throw error;
+  }
+  const pdfConversionMs = Date.now() - pdfConversionStartedAt;
+  console.log(`[성능] ${outputQuoteNumber}: Drive 대기 ${queueWaitMs}ms, XLSX ${xlsxBuildMs}ms, PDF ${pdfConversionMs}ms, 파일 ${itemParts.length}개`);
+
+  let movedBackups = [];
+  if (isOverwrite) {
+    try {
+      movedBackups = moveExistingFilesToBackup(existingOverwriteFiles);
+      for (const generated of generatedFiles) {
+        renameSync(generated.temp, generated.target);
+      }
+      // 수정 후 파일 수가 줄어든 경우, 기존의 남은 분할 파일도 백업 상태로 유지한다.
+      const generatedTargets = new Set(generatedFiles.map((generated) => generated.target));
+      const staleFiles = existingOverwriteFiles.filter((filePath) => !generatedTargets.has(filePath));
+      if (staleFiles.length > 0) {
+        // stale 파일은 이미 moveExistingFilesToBackup()에서 백업되었으므로 별도 삭제하지 않는다.
+        console.log(`[에이전트] 대체 대상에서 제외된 기존 분할 파일 ${staleFiles.length}개를 백업으로 보존했습니다.`);
+      }
+    } catch (error) {
+      removeFiles(temporaryFiles);
+      removeFiles(generatedFiles.map((generated) => generated.target));
+      restoreBackups(movedBackups);
+      throw error;
+    }
   }
 
   // 견적 연도 폴더에 최신 견적관리대장 사본을 비동기로 동기화하기 위해 지연 대기열에 등록한다.
@@ -586,6 +731,7 @@ async function processJob(fileName) {
       return PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/files/${partPath}?k=${partSignature}` : '';
     }),
     localPath: folder,
+    overwrite: isOverwrite,
   };
   writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber)}.json`), JSON.stringify(result), 'utf8');
   unlinkSync(jsonPath);
@@ -596,7 +742,10 @@ async function processJob(fileName) {
   const totalPriceNum = Number(payload.vatTotal || vatTotalForItems(items));
   const amountStr = Number.isFinite(totalPriceNum) ? `${totalPriceNum.toLocaleString('ko-KR')}원` : '-';
 
-  if (isRevision) {
+  if (isOverwrite) {
+    const detail = `견적번호: ${details.quoteNumber || ''} (기존 파일 대체) | 원본번호: ${details.baseQuoteNumber || ''} | 업체명: ${details.clientName || ''} | 부서: ${department} | 작성자: ${details.authorName || ''} | 금액: ${amountStr} | 파일수: ${pdfFileNames.length}개 | 기존 파일 백업 완료`;
+    appendActivityLog(account, '대체', detail);
+  } else if (isRevision) {
     const revStr = `Rev${String(details.revisionNumber).padStart(2, '0')}`;
     const detail = `견적번호: ${details.quoteNumber || ''} (${revStr}) | 원본번호: ${details.baseQuoteNumber || ''} | 업체명: ${details.clientName || ''} | 부서: ${department} | 작성자: ${details.authorName || ''} | 금액: ${amountStr} | 파일수: ${pdfFileNames.length}개`;
     appendActivityLog(account, '수정', detail);
@@ -621,6 +770,7 @@ function reportJobFailure(fileName, payload, errorMessage) {
 
   const result = {
     quoteNumber: details.quoteNumber ?? '',
+    operationId: details.operationId ?? '',
     department: details.authorDepartment ?? '',
     year: quoteYear(details),
     ok: false,
@@ -1096,13 +1246,20 @@ document.getElementById('submit').addEventListener('click', async () => {
       }).catch(() => {});
     } catch (e) {}
 
-    let totalBytes = 0; const attachments = [];
-    for (const name of selectedNames) {
-      const meta = files.find((file) => file.name === name); if (!meta) continue;
-      totalBytes += Number(meta.size || 0); if (totalBytes > MAX_TOTAL_BYTES) throw new Error('메일 첨부 파일 합계는 20MB 이하만 가능합니다.');
-      const response = await fetch(meta.url); if (!response.ok) throw new Error(name + ' 파일을 읽지 못했습니다.');
-      attachments.push({ name, mimeType: meta.mimeType, base64: toBase64(await response.arrayBuffer()) });
-    }
+    const selectedFiles = selectedNames.map((name) => files.find((file) => file.name === name)).filter(Boolean);
+    const totalBytes = selectedFiles.reduce((sum, file) => sum + Number(file.size || 0), 0);
+    if (totalBytes > MAX_TOTAL_BYTES) throw new Error('메일 첨부 파일 합계는 20MB 이하만 가능합니다.');
+    if (selectedFiles.length !== selectedNames.length) throw new Error('선택한 첨부 파일 목록이 변경되었습니다. 다시 선택해 주세요.');
+
+    let loadedFiles = 0;
+    const attachments = await Promise.all(selectedFiles.map(async (meta) => {
+      const response = await fetch(meta.url);
+      if (!response.ok) throw new Error(meta.name + ' 파일을 읽지 못했습니다.');
+      const base64 = toBase64(await response.arrayBuffer());
+      loadedFiles += 1;
+      setStatus('첨부 파일 읽는 중... ' + loadedFiles + '/' + selectedFiles.length);
+      return { name: meta.name, mimeType: meta.mimeType, base64 };
+    }));
     if (!window.opener) throw new Error('원래 견적 목록에서 열린 창이 아닙니다. 견적 목록에서 다시 시도해 주세요.');
     window.opener.postMessage({ source: 'cimon-order-email-agent', type: 'ORDER_EMAIL_SUBMIT', payload: { ...orderData, deliveryAddress: address, files: attachments } }, '*');
     document.getElementById('submit').disabled = true;

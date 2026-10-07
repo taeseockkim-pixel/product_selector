@@ -1,6 +1,8 @@
 import ExcelJS from 'exceljs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { readFile, writeFile } from 'node:fs/promises';
+import JSZip from 'jszip';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = join(__dirname, '..', 'Quote_manage', '기본자료', '견적서 샘플.xlsx');
@@ -17,6 +19,109 @@ const TEMPLATE_PATH = join(__dirname, '..', 'Quote_manage', '기본자료', '견
  *   H37=작성자, H38=연락처, H39=이메일
  */
 const MAX_ITEMS = 14; // 템플릿 품목 행이 16~29행(14행)까지만 준비되어 있음 — 초과 시 총액 행(A30)을 덮어씀
+
+/**
+ * ExcelJS는 템플릿의 PNG 그림은 보존하지만, 셀 위에 떠 있는 DrawingML 텍스트 상자(xdr:sp)는
+ * XLSX를 다시 쓸 때 제거한다. 견적서 하단의 '(주)싸이몬 대표이사 안재봉' 문구가 이 텍스트 상자여서,
+ * 저장 시 원본 템플릿에서 관계 파일이 필요 없는 텍스트 상자 앵커만 결과 XLSX에 되돌려 넣는다.
+ */
+async function restoreTemplateTextShapes(templatePath, outputPath) {
+  const [templateBuffer, outputBuffer] = await Promise.all([
+    readFile(templatePath),
+    readFile(outputPath),
+  ]);
+  const [templateZip, outputZip] = await Promise.all([
+    JSZip.loadAsync(templateBuffer),
+    JSZip.loadAsync(outputBuffer),
+  ]);
+
+  const drawingPaths = Object.keys(templateZip.files)
+    .filter((path) => /^xl\/drawings\/drawing\d+\.xml$/.test(path));
+  let restoredShapeCount = 0;
+
+  for (const drawingPath of drawingPaths) {
+    const templateDrawingEntry = templateZip.file(drawingPath);
+    const outputDrawingEntry = outputZip.file(drawingPath);
+    if (!templateDrawingEntry || !outputDrawingEntry) continue;
+
+    const [templateXml, outputXmlOriginal] = await Promise.all([
+      templateDrawingEntry.async('string'),
+      outputDrawingEntry.async('string'),
+    ]);
+
+    // ExcelJS가 텍스트 상자를 이미 보존했다면 중복 삽입하지 않는다.
+    if (/<xdr:sp(?:\s|>)/.test(outputXmlOriginal)) continue;
+
+    const anchors = templateXml.match(/<xdr:(?:oneCellAnchor|twoCellAnchor|absoluteAnchor)>[\s\S]*?<\/xdr:(?:oneCellAnchor|twoCellAnchor|absoluteAnchor)>/g) || [];
+    // 현재 견적 템플릿의 회사명/대표이사 텍스트 상자는 이미지·하이퍼링크 관계를 갖지 않는다.
+    const textShapeAnchors = anchors.filter((anchor) => (
+      /<xdr:sp(?:\s|>)/.test(anchor) &&
+      !/<xdr:pic(?:\s|>)/.test(anchor) &&
+      !/\br:(?:id|embed|link)=/.test(anchor)
+    ));
+    if (textShapeAnchors.length === 0) continue;
+
+    const rootStart = outputXmlOriginal.indexOf('<xdr:wsDr');
+    const rootEnd = rootStart >= 0 ? outputXmlOriginal.indexOf('>', rootStart) : -1;
+    if (rootEnd < 0) continue;
+
+    // 원본 drawing의 순서처럼 텍스트 상자를 그림 앵커들보다 먼저 둔다.
+    const prefix = outputXmlOriginal.slice(0, rootEnd + 1);
+    const suffix = outputXmlOriginal.slice(rootEnd + 1);
+    outputZip.file(drawingPath, prefix + textShapeAnchors.join('') + suffix);
+    restoredShapeCount += textShapeAnchors.length;
+  }
+
+  if (restoredShapeCount > 0) {
+    await writeFile(outputPath, await outputZip.generateAsync({
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 6 },
+    }));
+  }
+  return restoredShapeCount;
+}
+
+function normalizedTemplateLabel(value) {
+  return String(value ?? '').replace(/[\s:：]/g, '').toLowerCase();
+}
+
+/** 템플릿 버전마다 작성자 표의 행/열이 달라도 라벨 옆 값 셀을 찾아 기록한다. */
+function findTemplateValueCellByLabel(worksheet, label) {
+  const wanted = normalizedTemplateLabel(label);
+  const merges = worksheet.model.merges || [];
+  for (let row = 30; row <= worksheet.rowCount; row += 1) {
+    for (let column = 1; column <= worksheet.columnCount; column += 1) {
+      const cell = worksheet.getCell(row, column);
+      const cellValue = cell.value;
+      const labelText = typeof cellValue === 'string'
+        ? cellValue
+        : (cellValue && Array.isArray(cellValue.richText)
+          ? cellValue.richText.map((part) => part.text || '').join('')
+          : '');
+      if (normalizedTemplateLabel(labelText) !== wanted) continue;
+
+      let valueColumn = column + 1;
+      for (const mergeRange of merges) {
+        const parts = mergeRange.split(':');
+        if (parts.length !== 2) continue;
+        const start = worksheet.getCell(parts[0]);
+        const end = worksheet.getCell(parts[1]);
+        if (row === start.row && column >= start.col && column <= end.col) {
+          valueColumn = end.col + 1;
+          break;
+        }
+      }
+      if (valueColumn <= worksheet.columnCount) return worksheet.getCell(row, valueColumn);
+    }
+  }
+  return null;
+}
+
+function setTemplateLabelValue(worksheet, label, fallbackCell, value) {
+  const target = findTemplateValueCellByLabel(worksheet, label) || worksheet.getCell(fallbackCell);
+  target.value = value;
+}
 
 export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_PATH) {
   if (quote.items.length > MAX_ITEMS) {
@@ -91,10 +196,11 @@ export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_
   // 비고 (B34)
   if (quote.details.notes) set('B34', quote.details.notes);
 
-  // 작성자 (H37~H39)
-  set('H37', quote.author.name);
-  set('H38', quote.author.phone);
-  set('H39', quote.author.email);
+  // 작성자 정보: 템플릿의 라벨 위치를 찾아 바로 오른쪽 값 셀에 기록한다.
+  // 기본 위치(H37~H39)는 구형/라벨 없는 템플릿을 위한 fallback이다.
+  setTemplateLabelValue(ws, '작성자', 'H37', quote.author.name);
+  setTemplateLabelValue(ws, '연락처', 'H38', quote.author.phone);
+  setTemplateLabelValue(ws, '이메일', 'H39', quote.author.email);
 
   // 템플릿 기본값은 고정 76% 배율이라, 사용하지 않는 우측 여백 열까지 인쇄
   // 영역에 걸리면 2페이지로 잘린다. 항상 1페이지에 맞춰 인쇄되도록 강제한다.
@@ -103,4 +209,5 @@ export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_
   ws.pageSetup.fitToHeight = 1;
 
   await wb.xlsx.writeFile(outPath);
+  await restoreTemplateTextShapes(templatePath, outPath);
 }
