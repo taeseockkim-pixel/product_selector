@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useT } from '../context/LangContext';
+import { useLang, useT } from '../context/LangContext';
 import { UI } from '../i18n/ui';
 import {
   fetchLedger,
@@ -169,6 +169,7 @@ export default function QuoteListPage({
   authorName,
 }: Props) {
   const t = useT();
+  const { lang } = useLang();
   const currentYear = new Date().getFullYear();
   const deptList = availableDepartments?.length ? availableDepartments : ['기술영업', '영업', '프로젝트'];
   const [currentDepartment, setCurrentDepartment] = useState(department || '기술영업');
@@ -185,6 +186,7 @@ export default function QuoteListPage({
   const [aiSearchOpen, setAiSearchOpen] = useState(false);
   const [orderStatus, setOrderStatus] = useState<Record<string, boolean>>({});
   const [orderUpdatingKey, setOrderUpdatingKey] = useState<string | null>(null);
+  const [showStruckRows, setShowStruckRows] = useState(false);
 
   const [pageSize, setPageSize] = useState<number>(50);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -339,8 +341,8 @@ export default function QuoteListPage({
 
   const normalizedSearch = searchTerm.trim().toLocaleLowerCase('ko-KR');
   const searchedRows = rows.filter((row) => {
-    // 1. 삭제(취소선)된 행은 검색 시 결과에서 완전 제외
-    if (row.struck) return false;
+    // 1. 삭제(취소선)된 행은 기본적으로 숨기며, 사용자가 "삭제건 포함"을 체크했을 때만 표시
+    if (row.struck && !showStruckRows) return false;
     // 2. 견적번호와 업체명이 모두 비어 있는 빈 유령 행도 제외
     const quoteNum = ledgerValue(headers, row, ['견적번호']).trim();
     const company = ledgerValue(headers, row, ['업체명', '회사명']).trim();
@@ -817,6 +819,18 @@ export default function QuoteListPage({
           <button onClick={() => void loadQuotes()} className="px-3 py-1.5 rounded-lg border border-[#ddd9d2] text-sm text-[#555555] hover:bg-[#e6e2dc] transition-colors">
             {t(UI.quoteRefresh)}
           </button>
+          <label className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#ddd9d2] text-xs font-medium text-[#555555] hover:bg-[#f0ede8] transition-colors cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showStruckRows}
+              onChange={(e) => {
+                setShowStruckRows(e.target.checked);
+                setCurrentPage(1);
+              }}
+              className="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-0 cursor-pointer"
+            />
+            <span>{lang === 'ko' ? '삭제건 포함' : 'Show Deleted'}</span>
+          </label>
           <button
             type="button"
             onClick={() => setColumnSettingsOpen(true)}
