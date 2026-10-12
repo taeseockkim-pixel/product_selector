@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:quote-auth": "node scripts/test-quote-department-auth.mjs",
+    "test:quote-layout": "node scripts/test-quote-spec-layout.mjs",
     "preview": "vite preview",
     "validate:specs": "node scripts/validate-specs.mjs",
     "check:i18n": "node scripts/check-i18n.mjs",

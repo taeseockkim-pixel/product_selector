@@ -19,6 +19,7 @@ npm run preview                # dist/ 로컬 미리보기
 
 npm run verify                 # 커밋 전 전체 검증 (타입 체크 + 빌드 + 무결성)
 npm run test:quote-auth        # 작성자 이메일·부서별 견적 목록 권한 회귀 테스트
+npm run test:quote-layout      # 긴 규격 텍스트의 XLSX 줄바꿈·행 높이 회귀 테스트
 npm run validate:specs         # catalog/estimated 비율 검사
 npm run check:i18n             # 영문 번역 누수 0건 검사
 npm run check:spec-consistency # 같은 시리즈 내 스펙 라벨 일관성 검사

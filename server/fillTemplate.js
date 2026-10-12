@@ -123,6 +123,65 @@ function setTemplateLabelValue(worksheet, label, fallbackCell, value) {
   target.value = value;
 }
 
+/** Merged cell이면 병합 범위의 모든 열 너비를 합산한다. */
+function mergedCellWidthChars(worksheet, address) {
+  const cell = worksheet.getCell(address);
+  let firstColumn = cell.col;
+  let lastColumn = cell.col;
+
+  for (const mergeRange of worksheet.model.merges || []) {
+    const [startAddress, endAddress] = mergeRange.split(':');
+    if (!startAddress || !endAddress) continue;
+    const start = worksheet.getCell(startAddress);
+    const end = worksheet.getCell(endAddress);
+    if (cell.row === start.row && cell.col >= start.col && cell.col <= end.col) {
+      firstColumn = start.col;
+      lastColumn = end.col;
+      break;
+    }
+  }
+
+  let width = 0;
+  for (let column = firstColumn; column <= lastColumn; column += 1) {
+    width += Number(
+      worksheet.getColumn(column).width || worksheet.properties.defaultColWidth || 8.43,
+    );
+  }
+  return Math.max(width, 8);
+}
+
+function displayWidthUnits(text) {
+  return Array.from(String(text ?? '')).reduce((width, character) => {
+    // 한글/전각 문자는 일반 영문보다 대략 두 배 넓게 차지한다.
+    return width + (/^[\u1100-\u11FF\u2E80-\uA4CF\uAC00-\uD7AF\uF900-\uFAFF\uFE10-\uFE6F\uFF00-\uFFEF]$/u.test(character) ? 2 : 1);
+  }, 0);
+}
+
+function estimateWrappedLines(text, mergedWidthChars) {
+  // 실제 Excel 글꼴 메트릭보다 보수적으로 줄 수를 계산해 긴 규격이 행 높이를 넘지 않게 한다.
+  const charactersPerLine = Math.max(8, Math.floor(mergedWidthChars * 0.5));
+  return String(text ?? '').replace(/\r\n?/g, '\n').split('\n').reduce((lineCount, line) => (
+    lineCount + Math.max(1, Math.ceil(displayWidthUnits(line) / charactersPerLine))
+  ), 0);
+}
+
+function setItemRowHeight(worksheet, rowNumber, item) {
+  const name = String(item.name ?? '');
+  const spec = String(item.spec ?? '');
+  const nameLines = estimateWrappedLines(name, mergedCellWidthChars(worksheet, `B${rowNumber}`));
+  const specLines = estimateWrappedLines(spec, mergedCellWidthChars(worksheet, `D${rowNumber}`));
+  const fontSize = Math.max(
+    Number(worksheet.getCell(`B${rowNumber}`).font?.size || 10),
+    Number(worksheet.getCell(`D${rowNumber}`).font?.size || 10),
+  );
+  const estimatedHeight = Math.ceil(Math.max(nameLines, specLines) * fontSize * 1.4 + 8);
+
+  // 기존 행 높이와 종전 긴 텍스트 최소 높이는 유지하면서, 실제 줄 수가 더 많으면 추가 확장한다.
+  const previousMinimum = spec.length > 90 ? 54 : spec.length > 60 ? 42 : spec.length > 30 ? 32 : 22;
+  const row = worksheet.getRow(rowNumber);
+  row.height = Math.max(row.height || 22, previousMinimum, estimatedHeight);
+}
+
 export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_PATH) {
   if (quote.items.length > MAX_ITEMS) {
     throw new Error(`품목은 최대 ${MAX_ITEMS}개까지 견적서에 담을 수 있습니다. (현재 ${quote.items.length}개)`);
@@ -165,18 +224,8 @@ export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_
       c.alignment = { ...(c.alignment || {}), wrapText: true, vertical: 'middle' };
     });
 
-    // 규격 텍스트 길이에 맞춰 행 높이를 자동 확장하여 PDF 출력 시 잘리지 않도록 처리
-    const specText = String(item.spec ?? '');
-    const lineBreaks = (specText.match(/\n/g) || []).length;
-    const textLen = specText.length;
-    const rowObj = ws.getRow(row);
-    if (lineBreaks >= 3 || textLen > 90) {
-      rowObj.height = Math.max(rowObj.height || 22, 54);
-    } else if (lineBreaks >= 2 || textLen > 60) {
-      rowObj.height = Math.max(rowObj.height || 22, 42);
-    } else if (lineBreaks >= 1 || textLen > 30) {
-      rowObj.height = Math.max(rowObj.height || 22, 32);
-    }
+    // 병합된 규격/제품명 셀의 너비와 실제 문자열을 고려해 필요한 만큼만 행 높이를 늘린다.
+    setItemRowHeight(ws, row, item);
     const quantity = Number(item.quantity ?? 0);
     const unitPrice = Number(item.unitPrice ?? 0);
     const multiplierValue = Number(item.multiplier ?? 1);
