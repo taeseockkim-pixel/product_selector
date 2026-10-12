@@ -2067,6 +2067,64 @@ function setQuoteTemplateValueByLabel_(sheet, label, fallbackA1, value) {
   }
 }
 
+function mergedSheetCellWidthPx_(sheet, row, column) {
+  const cell = sheet.getRange(row, column);
+  const merges = cell.getMergedRanges();
+  let startColumn = column;
+  let endColumn = column;
+  for (const merged of merges) {
+    if (row >= merged.getRow() && row <= merged.getLastRow() &&
+        column >= merged.getColumn() && column <= merged.getLastColumn()) {
+      startColumn = merged.getColumn();
+      endColumn = merged.getLastColumn();
+      break;
+    }
+  }
+
+  let width = 0;
+  for (let col = startColumn; col <= endColumn; col += 1) width += sheet.getColumnWidth(col);
+  return Math.max(width, 24);
+}
+
+function quoteTextDisplayUnits_(value) {
+  return Array.from(String(value || '')).reduce(function(total, character) {
+    return total + (/^[\u1100-\u11FF\u2E80-\uA4CF\uAC00-\uD7AF\uF900-\uFAFF\uFE10-\uFE6F\uFF00-\uFFEF]$/u.test(character) ? 2 : 1);
+  }, 0);
+}
+
+function estimateQuoteCellLines_(value, widthPx, fontSizePt) {
+  const fontSize = Math.max(Number(fontSizePt) || 10, 8);
+  const averageCharacterPx = fontSize * 96 / 72 * 0.53;
+  const charactersPerLine = Math.max(8, Math.floor(Math.max(averageCharacterPx * 8, widthPx - 12) / averageCharacterPx));
+  return String(value || '').replace(/\r\n?/g, '\n').split('\n').reduce(function(total, line) {
+    return total + Math.max(1, Math.ceil(quoteTextDisplayUnits_(line) / charactersPerLine));
+  }, 0);
+}
+
+function sizeQuotePdfItemRows_(sheet, items, firstRow) {
+  if (!items || items.length === 0) return;
+
+  sheet.getRange(firstRow, 2, items.length, 1).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+  sheet.getRange(firstRow, 4, items.length, 1).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+
+  items.forEach(function(item, index) {
+    const row = firstRow + index;
+    const nameCell = sheet.getRange(row, 2);
+    const specCell = sheet.getRange(row, 4);
+    const nameFontSize = Number(nameCell.getFontSize()) || 10;
+    const specFontSize = Number(specCell.getFontSize()) || 10;
+    const lineCount = Math.max(
+      estimateQuoteCellLines_(item.name, mergedSheetCellWidthPx_(sheet, row, 2), nameFontSize),
+      estimateQuoteCellLines_(item.spec, mergedSheetCellWidthPx_(sheet, row, 4), specFontSize)
+    );
+    const fontSize = Math.max(nameFontSize, specFontSize);
+    const estimatedHeightPx = Math.ceil(lineCount * fontSize * 96 / 72 * 1.4 + 8);
+    const specLength = String(item.spec || '').length;
+    const legacyMinimumPx = specLength > 90 ? 72 : specLength > 60 ? 56 : specLength > 30 ? 44 : 0;
+    sheet.setRowHeight(row, Math.max(sheet.getRowHeight(row), legacyMinimumPx, estimatedHeightPx));
+  });
+}
+
 function fillSheetData(spreadsheet, quoteData) {
   const sheet = spreadsheet.getSheets()[0];
   const details = quoteData.details || {};
@@ -2098,12 +2156,6 @@ function fillSheetData(spreadsheet, quoteData) {
   setQuoteTemplateValueByLabel_(sheet, '연락처', 'H38', details.authorPhone || '');
   setQuoteTemplateValueByLabel_(sheet, '이메일', 'H39', details.authorEmail || '');
   setRangeValuesIfRangeExists(sheet, CELL_MAP.notes, [[details.notes || '']]);
-
-  try {
-    sheet.getRange('D16:D100').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
-  } catch (err) {
-    // Ignore wrapping failures on templates with different ranges.
-  }
 
   let supplyTotal = 0;
   const itemNumbers = [];
@@ -2141,6 +2193,17 @@ function fillSheetData(spreadsheet, quoteData) {
     // 템플릿에는 배율 열이 없으므로 단가 칸에 배율을 반영한 유효 단가를 기록한다.
     setRangeValuesIfRangeExists(sheet, `H${firstRow}:H${lastRow}`, effectiveUnitPrices);
     setRangeValuesIfRangeExists(sheet, `I${firstRow}:I${lastRow}`, itemTotals);
+
+    try {
+      sizeQuotePdfItemRows_(sheet, items, firstRow);
+    } catch (err) {
+      Logger.log('메일 첨부 PDF 규격 행 높이 자동 조정 실패: ' + err.toString());
+      // 템플릿 구조가 달라도 최소한 이름/규격 셀 줄바꿈은 유지한다.
+      try {
+        sheet.getRange(`B${firstRow}:B${lastRow}`).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+        sheet.getRange(`D${firstRow}:D${lastRow}`).setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
+      } catch (wrapErr) { /* 템플릿 차이가 큰 경우에도 견적 데이터 기록은 계속한다. */ }
+    }
   }
 
   const vatIncludedPrice = Math.round(supplyTotal * 1.1);

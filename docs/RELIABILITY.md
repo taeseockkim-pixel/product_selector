@@ -212,6 +212,7 @@ agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
 - Gmail 첨부용 Apps Script 임시 PDF의 작성자/연락처/이메일은 `fillSheetData()`가 견적 템플릿의 같은 라벨을 찾아 바로 오른쪽 값 셀에 기록한다. 템플릿별 라벨 위치가 달라도 작성자 정보가 행·열에서 어긋나지 않는지 임시 PDF 회귀 확인을 한다.
 - 견적 저장 화면은 `getQuoteOperationStatusFromReact(operationId)`의 짧은 캐시 상태를 조회한다. 대장 전체와 모든 RichText 파일링크를 반복 재조회하지 않는다. 링크 작업 결과 처리 후 Apps Script가 `pending/completed/failed` 상태를 갱신한다.
 - Gmail 초안 첨부용 임시 PDF는 연속 셀 값을 일괄 기록해 시트 서비스 호출 수를 줄인다. 에이전트는 한 견적에 분할 파일이 여러 개여도 Excel COM 인스턴스 하나로 PDF를 일괄 변환한다.
+- Gmail 초안용 임시 PDF는 에이전트 XLSX/PDF와 별도의 Google Sheets 내보내기 경로다. `fillSheetData()`가 제품명(B:C)과 규격(D:F)에 줄바꿈을 적용하고, 병합 폭·한글/영문 글자 폭·글꼴 크기로 품목별 행 높이를 계산한다. PDF를 비교할 때는 파일 생성 경로와 견적/리비전이 같은지 확인한다.
 - 에이전트 실행: 대상 PC에 프로젝트 복제 → `npm install` → Google Drive 데스크톱 설치·로그인 →
   `agent/config.example.json`을 `agent/config.json`으로 복사해 값 입력
   (`agentFolderPath`는 Drive 동기화된 `견적에이전트` 폴더의 로컬 경로 — 첫 저장 1회 후 자동 생성됨)
