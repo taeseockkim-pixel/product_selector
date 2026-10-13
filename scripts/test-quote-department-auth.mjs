@@ -27,6 +27,7 @@ function makeHarness({ email, rows }) {
     'SpreadsheetApp',
     'Session',
     'Logger',
+    'CacheService',
     `${appsScript}\nreturn {
       CONFIG,
       getAuthorizedUserFromReact,
@@ -41,6 +42,7 @@ function makeHarness({ email, rows }) {
         if (overrides.exportLedgerToAgent) exportLedgerToAgent_ = overrides.exportLedgerToAgent;
         if (overrides.setQuoteOperationStatus) setQuoteOperationStatus_ = overrides.setQuoteOperationStatus;
         if (overrides.permanentlyDeleteFile) permanentlyDeleteFile_ = overrides.permanentlyDeleteFile;
+        if (overrides.finalizePendingQuoteDrafts) finalizePendingQuoteDraftsForUser_ = overrides.finalizePendingQuoteDrafts;
       }
     };`,
   );
@@ -50,7 +52,10 @@ function makeHarness({ email, rows }) {
     { openById: () => spreadsheet },
     { getActiveUser: () => ({ getEmail: () => email }) },
     { log: () => {} },
+    // 작성자 DB 캐시는 시험마다 새로 읽도록 항상 비어 있는 캐시를 쓴다.
+    { getScriptCache: () => ({ get: () => null, put: () => {}, remove: () => {} }) },
   );
+  api.installTestOverrides({ finalizePendingQuoteDrafts: () => {} });
   api.CONFIG.AUTHOR_DB_SHEET_ID = 'mock-author-db';
   api.CONFIG.AUTHOR_DB_SHEET_NAME = '시트1';
   api.CONFIG.DEFAULT_DEPARTMENT = '기술영업';

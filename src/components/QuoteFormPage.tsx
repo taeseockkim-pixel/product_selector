@@ -19,6 +19,7 @@ import {
   fetchQuoteOperationStatus,
   fetchQuoteForEdit,
   type QuoteProcessResult,
+  type QuoteOperationStatusResult,
   type QuoteEditData,
   type QuoteEditVersion,
   type AppsScriptBridgeResponse,
@@ -28,7 +29,7 @@ import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
-const MAX_QUOTE_NOTES_LENGTH = 150;
+const MAX_QUOTE_NOTES_LENGTH = 300;
 
 const AUTHOR_LABELS: Record<string, string> = {
   '조규광 이사': 'Kyukwang Jo, Director',
@@ -745,7 +746,11 @@ async function waitForLedgerFileLink(
   throw new Error('파일 생성 또는 견적관리대장 반영 시간이 초과되었습니다. 에이전트 상태를 확인한 뒤 견적 목록에서 다시 확인해 주세요.');
 }
 
-/** 대장 전체를 반복 조회하지 않고 Apps Script의 작업 상태 캐시를 폴링한다. */
+/**
+ * 대장 전체를 반복 조회하지 않고 Apps Script의 작업 상태 캐시를 폴링한다.
+ * 메일 초안을 요청한 경우 Apps Script가 Excel PDF 첨부를 마칠 때까지 pending(stage: draft)을 돌려주며,
+ * 완료 시 draft 값(created/failed)이 함께 온다. 이전 버전 Apps Script는 draft 값을 주지 않는다.
+ */
 async function waitForQuoteOperation(
   year: number,
   department: string,
@@ -753,36 +758,42 @@ async function waitForQuoteOperation(
   operationId: string,
   onProgress?: (msg: string) => void,
   timeoutMs = 240000,
-) {
+): Promise<QuoteOperationStatusResult | null> {
   if (!operationId) {
-    return waitForLedgerFileLink(year, department, quoteNumber, onProgress, timeoutMs);
+    await waitForLedgerFileLink(year, department, quoteNumber, onProgress, timeoutMs);
+    return null;
   }
 
   const startedAt = Date.now();
+  // 에이전트가 Drive 동기화를 받아 파일을 만들기 전에는 완료될 수 없으므로 첫 확인을 늦춰 헛호출을 줄인다.
+  if (onProgress) onProgress('견적서 엑셀/PDF를 생성하고 있습니다...');
+  await wait(2500);
   while (Date.now() - startedAt < timeoutMs) {
     const elapsed = Date.now() - startedAt;
-    if (onProgress) {
-      if (elapsed < 8000) onProgress('견적서 엑셀/PDF를 생성하고 있습니다...');
-      else if (elapsed < 20000) onProgress('파일 생성이 끝나면 대장에 반영합니다...');
-      else onProgress('견적 작업 상태를 확인하고 있습니다...');
-    }
 
-    let result;
+    let result: QuoteOperationStatusResult;
     try {
       result = await fetchQuoteOperationStatus({ operationId, quoteNumber, year, department });
     } catch {
       // Apps Script가 아직 새 status API로 배포되지 않았다면 기존 파일링크 폴링으로 호환한다.
-      return waitForLedgerFileLink(year, department, quoteNumber, onProgress, Math.max(1000, timeoutMs - elapsed), operationId);
+      await waitForLedgerFileLink(year, department, quoteNumber, onProgress, Math.max(1000, timeoutMs - elapsed), operationId);
+      return null;
     }
 
     if (!result.success) {
       throw new Error(result.message || '견적 작업 상태를 확인하지 못했습니다.');
     }
-    if (result.status === 'completed') return;
+    if (result.status === 'completed') return result;
     if (result.status === 'failed') {
       throw new Error(result.message || `견적 파일 생성에 실패했습니다 (${result.quoteNumber || quoteNumber}).`);
     }
 
+    if (onProgress) {
+      if (result.stage === 'draft') onProgress('견적서 PDF를 확인하고 메일 초안을 만들고 있습니다...');
+      else if (elapsed < 8000) onProgress('견적서 엑셀/PDF를 생성하고 있습니다...');
+      else if (elapsed < 20000) onProgress('파일 생성이 끝나면 대장에 반영합니다...');
+      else onProgress('견적 작업 상태를 확인하고 있습니다...');
+    }
     await wait(elapsed < 12000 ? 1000 : 2000);
   }
 
@@ -1398,6 +1409,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         overwriteTargetNumber,
       );
       if (!result.success) {
+        if (result.agentUnavailable) {
+          // 에이전트가 꺼져 있으면 저장이 접수되지 않았다. 입력한 내용은 그대로 두고 점검 후 다시 시도하게 한다.
+          alert(`견적 에이전트 점검이 필요합니다.\n\n${result.message ?? ''}`);
+          return;
+        }
         throw new Error(result.message ?? t(UI.quoteGoogleConfigMissing));
       }
 
@@ -1416,17 +1432,26 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       const targetDepartment = revisionDepartment || department || quote.author.department || '';
       const targetQuoteNumber = result.baseQuoteNumber || result.newQuoteNumber || finalQuote.quoteNumber;
       const targetYear = revisionYear || Number(String(quote.details.quoteDate || '').match(/\d{4}/)?.[0]) || new Date().getFullYear();
-      await waitForQuoteOperation(
+      const operation = await waitForQuoteOperation(
         targetYear,
         targetDepartment,
         targetQuoteNumber,
         result.operationId ?? '',
         (msg) => setProcessingMessage(msg),
+        // 메일 초안은 Excel PDF가 Drive를 거쳐 도착해야 만들어지므로 조금 더 기다린다.
+        createDraft ? 300000 : 240000,
       );
 
       // 수정(editQuote) 세션은 애초에 공용 "새 견적" 초안 키에 저장한 적이 없으므로 지우지 않는다.
       if (!editQuote || asNewQuote) clearQuoteFormDraft(draftStorageKey);
-      if (createDraft) window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
+      if (createDraft) {
+        if (operation?.draft === 'failed') {
+          // 견적 저장은 끝났지만 Excel PDF를 첨부하지 못했다. 모양이 다른 PDF를 대신 보내지 않는다.
+          alert(`견적서는 저장되었지만 메일 초안은 만들지 않았습니다.\n\n${operation.draftMessage || '첨부할 Excel PDF를 확인하지 못했습니다.'}\n\n견적서 PDF는 견적 목록의 파일링크에서 열 수 있습니다. 같은 견적을 다시 저장하지 말고, 에이전트를 점검한 뒤 해당 PDF를 직접 첨부해 메일을 작성해 주세요.`);
+        } else {
+          window.open('https://mail.google.com/mail/u/0/#drafts', '_blank', 'noopener,noreferrer');
+        }
+      }
       // 모든 파일 생성 및 대장 반영이 끝난 뒤 견적 목록으로 이동한다.
       onSuccess();
     } catch (err) {

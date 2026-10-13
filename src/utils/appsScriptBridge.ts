@@ -12,13 +12,20 @@ export interface QuoteProcessResult {
   sheetUrl?: string;
   url?: string;
   operationId?: string;
+  /** 견적 에이전트가 꺼져 있거나 응답하지 않아 저장 접수를 거부한 경우 */
+  agentUnavailable?: boolean;
 }
 
 export interface QuoteOperationStatusResult {
   success: boolean;
   status?: 'pending' | 'completed' | 'failed';
+  /** 'draft'면 저장은 끝났고 메일 첨부용 Excel PDF를 기다리는 중 */
+  stage?: 'draft';
   quoteNumber?: string;
   message?: string;
+  /** 메일 초안을 요청한 경우의 결과. 이전 버전 Apps Script는 값을 주지 않는다. */
+  draft?: 'created' | 'failed';
+  draftMessage?: string;
 }
 
 export interface QuoteEditDetails {

@@ -9,6 +9,39 @@ import { execFileSync } from 'child_process';
  * cmd.exe의 인자 파싱 과정에서 줄바꿈이 깨져 스크립트가 조용히 일부만
  * 실행되거나 무시된다(한글 경로 + 공백이 섞인 파일명에서 재현됨).
  */
+
+/**
+ * 견적서 1개를 PDF로 변환하는 PowerShell 함수. 일회성 변환(아래)과 상시 대기 워커(excelPdfWorker.js)가
+ * 같은 인쇄 설정을 쓰도록 한 곳에서 관리한다.
+ */
+export const POWERSHELL_CONVERT_FUNCTION = `
+function Convert-QuotePdf($xl, $task) {
+  $wb = $null
+  $ws = $null
+  try {
+    $wb = $xl.Workbooks.Open([string]$task.xlsxPath)
+    $ws = $wb.Worksheets.Item(1)
+    $ws.Range("B16:F29").WrapText = $true
+    $note = $ws.Range("B34")
+    $note.WrapText = $true
+    $note.VerticalAlignment = -4160
+    $pageSetup = $ws.PageSetup
+    $pageSetup.PrintArea = '$A$1:$J$42'
+    $pageSetup.Zoom = $false
+    $pageSetup.FitToPagesWide = 1
+    $pageSetup.FitToPagesTall = 1
+    $wb.ExportAsFixedFormat(0, [string]$task.pdfPath)
+    $wb.Close($false)
+  } finally {
+    if ($wb) {
+      try { $wb.Close($false) } catch { }
+    }
+    if ($ws) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($ws) | Out-Null }
+    if ($wb) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($wb) | Out-Null }
+  }
+}
+`.trim();
+
 export function excelToPdf(xlsxPath, pdfPath) {
   return excelToPdfBatch([{ xlsxPath, pdfPath }]);
 }
@@ -27,6 +60,7 @@ function convertPdfBatch(filePairs) {
   const encodedPairs = Buffer.from(JSON.stringify(filePairs), 'utf8').toString('base64');
   const ps = `
 $ErrorActionPreference = 'Stop'
+${POWERSHELL_CONVERT_FUNCTION}
 $tasksJson = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('${encodedPairs}'))
 $tasks = @($tasksJson | ConvertFrom-Json)
 $xl = $null
@@ -35,30 +69,8 @@ try {
   $xl.Visible = $false
   $xl.DisplayAlerts = $false
   foreach ($task in $tasks) {
-    $wb = $null
-    $ws = $null
-    try {
-      $wb = $xl.Workbooks.Open([string]$task.xlsxPath)
-      $ws = $wb.Worksheets.Item(1)
-      $ws.Range("B16:F29").WrapText = $true
-      $note = $ws.Range("B34")
-      $note.WrapText = $true
-      $note.VerticalAlignment = -4160
-      $pageSetup = $ws.PageSetup
-      $pageSetup.PrintArea = '$A$1:$J$42'
-      $pageSetup.Zoom = $false
-      $pageSetup.FitToPagesWide = 1
-      $pageSetup.FitToPagesTall = 1
-      $wb.ExportAsFixedFormat(0, [string]$task.pdfPath)
-      $wb.Close($false)
-      Write-Output 'OK'
-    } finally {
-      if ($wb) {
-        try { $wb.Close($false) } catch { }
-      }
-      if ($ws) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($ws) | Out-Null }
-      if ($wb) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($wb) | Out-Null }
-    }
+    Convert-QuotePdf $xl $task
+    Write-Output 'OK'
   }
 } catch {
   [Console]::Error.WriteLine($_.ToString())

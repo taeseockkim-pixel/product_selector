@@ -183,7 +183,7 @@ Apps Script 프로젝트는 `CIMON의 모든 사용자` 접근 권한으로 배�
 |---|---|---|
 | `DEPARTMENT_ROOTS` | 부서별 견적 저장 루트 폴더 (`기술영업`/`영업`/`프로젝트`) | 견적 목록 권한은 작성자 DB의 이메일·부서 검증을 통과한 뒤 해당 루트만 사용한다. 부서가 불명확한 일반 계정은 기본 기술영업으로 넘기지 않고 거부한다 |
 | `AUTHOR_DB_SHEET_ID` / `AUTHOR_DB_SHEET_NAME` | 공유 폴더의 `견적관리시스템_작성자` 스프레드시트 및 탭 이름 | 열 구성: 작성자/연락처/이메일/부서. 작성자 목록과 이메일·부서 권한 판정이 동일한 시트를 사용 |
-| `TEMPLATE_ID` | "견적서 샘플" 시트 | Gmail 초안 첨부용 임시 PDF 생성에만 사용 (저장 후 즉시 영구 삭제) |
+| `TEMPLATE_ID` | "견적서 샘플" 시트 | 더 이상 PDF 생성에 쓰지 않음(메일 첨부는 에이전트의 Excel PDF 사용). 진단 함수의 접근 점검 용도로만 남아 있음 |
 | `LEDGER_TEMPLATE_ID` | "견적관리대장 샘플" 시트 | 새 연도 폴더가 생성될 때만 `makeCopy()`로 복사, 탭 이름이 `LEDGER_SHEET_NAME`(`견적관리대장`)과 정확히 일치해야 함 |
 | `AGENT_QUEUE_FOLDER_NAME` | "견적에이전트" 폴더 (작성자 DB 시트와 같은 위치에 자동 생성) | 로컬 저장 에이전트와 pending/results 파일을 주고받는 대기열 폴더 |
 
@@ -208,16 +208,18 @@ agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
 ```
 
 - 대기/완료 JSON은 KB 단위 텍스트라 Drive 용량 영향이 미미하며, 처리 후 즉시 삭제된다
-- Gmail 초안(이메일 발송)은 첨부 PDF가 필요하므로 예외적으로 임시 시트/PDF를 만들고, **초안 생성 직후 영구 삭제**한다. 임시 PDF의 작성자 정보는 `fillSheetData()`가 템플릿의 `작성자`·`연락처`·`이메일` 라벨 위치를 찾아 인접 셀에 기록한다(고정 H37:H39 위치를 사용하지 않음).
-- Gmail 첨부용 Apps Script 임시 PDF의 작성자/연락처/이메일은 `fillSheetData()`가 견적 템플릿의 같은 라벨을 찾아 바로 오른쪽 값 셀에 기록한다. 템플릿별 라벨 위치가 달라도 작성자 정보가 행·열에서 어긋나지 않는지 임시 PDF 회귀 확인을 한다.
+- **Gmail 초안(이메일 발송)**: 저장된 Excel PDF를 그대로 첨부한다. 에이전트가 최종 PDF를 `attachments/`에 복사하고 manifest를 마지막에 쓰면, 요청자의 상태 조회(`getQuoteOperationStatusFromReact`) 또는 견적 목록 조회 때 Apps Script가 요청자 본인 Gmail에 초안을 만들고 요청/첨부 파일을 영구 삭제한다. 대장 반영이 끝나도 초안이 아직이면 상태는 `pending(stage: draft)`로 유지된다.
+- **메일 초안 실패 정책**: 에이전트가 PDF 생성/전달에 실패하면(manifest `ok:false`, 파일 수 불일치, Gmail 오류, 24시간 경과) **초안을 만들지 않고** 화면에 오류와 파일링크 안내를 보여 준다. 모양이 다른 PDF를 대신 첨부하지 않는다. 견적 저장 자체는 유지된다. 요청 파일은 요청자만 처리하며(`requesterEmail`), 24시간 지난 요청/첨부는 1분 트리거가 정리한다.
+- **에이전트 가동 확인**: 에이전트는 20초마다 `견적에이전트/heartbeat.json`을 쓴다(`features: ["draftAttachments"]`). `processQuote`는 접수 전에 수정 시각이 150초보다 오래되었거나 `stopped`가 true이거나 파일이 없으면 접수하지 않는다. 이메일 요청은 기능 목록에 `draftAttachments`가 있어야 한다. 에이전트가 정상 종료(Ctrl+C 등)하면 `stopped` 표시를 남겨 즉시 거부되고, 중복 실행으로 바로 종료되는 프로세스는 신호를 덮어쓰지 않는다. 에이전트가 PDF 변환으로 오래 응답하지 못해도 150초 안에는 접수된다.
 - 견적 저장 화면은 `getQuoteOperationStatusFromReact(operationId)`의 짧은 캐시 상태를 조회한다. 대장 전체와 모든 RichText 파일링크를 반복 재조회하지 않는다. 링크 작업 결과 처리 후 Apps Script가 `pending/completed/failed` 상태를 갱신한다.
-- Gmail 초안 첨부용 임시 PDF는 연속 셀 값을 일괄 기록해 시트 서비스 호출 수를 줄인다. 에이전트는 한 견적에 분할 파일이 여러 개여도 Excel COM 인스턴스 하나로 PDF를 일괄 변환한다.
-- Gmail 초안용 임시 PDF는 에이전트 XLSX/PDF와 별도의 Google Sheets 내보내기 경로다. `fillSheetData()`가 제품명(B:C)과 규격(D:F)에 줄바꿈/행 높이·글꼴 크기를 적용하고, PDF 내보내기는 `scale=4`(페이지 맞춤) 및 A1:J42 범위를 사용한다. PDF 페이지 수가 1이 아니면 8pt 품목/7pt 비고로 한 번 재시도하고, 그래도 한 장이 아니면 메일 초안 생성을 실패 처리해 2쪽 PDF를 첨부하지 않는다. 비고(B34:F40)는 자동 줄바꿈하며 7~9pt로 맞춘다. 비고는 UI와 Apps Script 양쪽에서 150자 초과를 거부한다. PDF를 비교할 때는 파일 생성 경로와 견적/리비전이 같은지 확인한다.
+- **속도 개선**: ① 숨김 Excel 상시 대기 워커(`server/excelPdfWorker.js`, 재사용 변환 약 0.6초 vs 일회성 약 2.6초, 실패 시 일회성 변환으로 자동 전환, `useExcelWorker:false`로 끌 수 있음) ② 작성자 DB 3분 캐시(권한 확인·폴링 가속) ③ 대장 사본 내보내기를 대기열로 넘겨 완료 상태를 먼저 기록 ④ 같은 대장을 두 번 열지 않음(`getNextQuoteNumber`, `updateLedgerLink_`) ⑤ 에이전트 폴링 1초, 화면 첫 상태 조회 2.5초 지연. 에이전트 완료 보고의 `timings`와 Apps Script 로그 `[성능] 단계별 시간`으로 단계별 소요 시간을 확인한다.
+- **잔여 Excel 정리**: Node가 갑자기 종료되면 Windows가 PowerShell 워커도 함께 종료해 숨김 Excel이 남을 수 있다. 워커가 만든 Excel PID를 `agent/excel-worker.pid`에 기록하고, 다음 에이전트 시작 때 창이 없는 EXCEL 프로세스만 종료한다(사용자가 직접 연 Excel은 건드리지 않는다).
+- 비고는 UI, Apps Script, 로컬 XLSX/PDF 생성에서 **최대 300자**로 제한하며, 서버 Excel PDF는 필요할 때만 글자를 줄인다(품목 최소 8pt, 비고 9~7pt).
 - 에이전트 실행: 대상 PC에 프로젝트 복제 → `npm install` → Google Drive 데스크톱 설치·로그인 →
   `agent/config.example.json`을 `agent/config.json`으로 복사해 값 입력
   (`agentFolderPath`는 Drive 동기화된 `견적에이전트` 폴더의 로컬 경로 — 첫 저장 1회 후 자동 생성됨)
   → `start-agent.bat` 실행
-- **1페이지 견적 PDF/비고 잘림 방지**: `server/fillTemplate.js`는 A1:J42 인쇄 범위, FitToPage 1×1, 제품명(B:C)·규격(D:F)의 줄바꿈/행별 높이 및 8pt 최소 글꼴을 설정한다. 8pt에서도 내용이 더 길면 잘라내지 않고 행을 키우며, Excel COM이 최종 1페이지에 맞춘다. `server/excelToPdf.js`도 PrintArea·Zoom=false·FitToPagesWide/Tall=1을 변환 시 다시 지정한다. 비고(B34:F40)는 높이를 늘리지 않고 줄바꿈과 위쪽 정렬을 적용하며 9~7pt로 맞춘다. 견적 입력의 비고는 최대 150자이고, 서버 생성 함수도 초과 값을 거부한다. 에이전트 PC 코드를 교체한 뒤에는 에이전트를 재시작해야 새 PDF에 반영된다.
+- **1페이지 견적 PDF/비고 잘림 방지**: `server/fillTemplate.js`는 A1:J42 인쇄 범위, FitToPage 1×1, 제품명(B:C)·규격(D:F)의 줄바꿈/행별 높이 및 8pt 최소 글꼴을 설정한다. 8pt에서도 내용이 더 길면 잘라내지 않고 행을 키우며, Excel COM이 최종 1페이지에 맞춘다. `server/excelToPdf.js`도 PrintArea·Zoom=false·FitToPagesWide/Tall=1을 변환 시 다시 지정한다. 비고(B34:F40)는 높이를 늘리지 않고 줄바꿈과 위쪽 정렬을 적용하며 9~7pt로 맞춘다. 견적 입력의 비고는 최대 300자이고, 서버 생성 함수도 초과 값을 거부한다. 에이전트 PC 코드를 교체한 뒤에는 에이전트를 재시작해야 새 PDF에 반영된다.
 - **입력 한글/자모 글꼴**: `server/fillTemplate.js`는 업체·연락처·거래조건·제품명/규격·비고·작성자 등 값에 한글 음절이나 호환 자모가 있으면 해당 셀만 `Malgun Gothic`으로 바꾼다. ExcelJS 템플릿의 공유 스타일이 옆 셀에 번지지 않도록 셀 스타일을 복제하며, 영문 전용 값은 원래 글꼴을 유지한다. 자모(예: `ㅅㄷㄴㅅ`)의 □ 대체 문자를 시험 PDF에서 확인하고, 에이전트 PC 업데이트 뒤에는 새 견적으로도 확인한다.
 - **대표이사 텍스트/직인 출력**: `견적서 샘플.xlsx`의 회사명·대표이사 문구는 그림이 아닌 Excel floating text box(`xdr:sp`)다. ExcelJS는 셀 값을 기록하며 이 도형을 버리므로 `server/fillTemplate.js`가 XLSX 저장 후 원본 도형 앵커를 복원한다. 이 후처리를 제거하거나 템플릿/ExcelJS를 바꾸면 PDF 우측 하단의 “㈜ 싸이몬 대표이사 안재봉” 문구가 누락될 수 있다. 새 템플릿 변경 후 시험 견적 XLSX와 PDF에서 해당 문구 및 직인을 확인한다.
 - 저장 직후에는 견적번호만 예약되고 목록 행은 아직 없을 수 있다. 에이전트가 XLSX/PDF 생성에 성공한 뒤(통상 1~3분) 대장 행과 파일링크가 함께 생성된다. 실패 시 대장에 파일 없는 행이 남지 않는다.

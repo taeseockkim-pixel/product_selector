@@ -79,7 +79,7 @@ try {
   const stressWorkbook = new ExcelJS.Workbook();
   await stressWorkbook.xlsx.readFile(stressOutputPath);
   const stressSheet = stressWorkbook.worksheets[0];
-  assert.equal(stressSheet.getCell('B34').value, stressNotes, '비고 원문 150자 전체를 보존해야 합니다.');
+  assert.equal(stressSheet.getCell('B34').value, stressNotes, '비고 원문 300자 전체를 보존해야 합니다.');
   assert.equal(stressSheet.getCell('B34').alignment.wrapText, true, '비고 셀은 자동 줄바꿈이어야 합니다.');
   assert.equal(stressSheet.getCell('B34').alignment.vertical, 'top', '비고는 위쪽 정렬이어야 합니다.');
   assert.ok(stressSheet.getCell('B34').font.size >= 7, '비고 글꼴은 7pt 미만으로 축소하면 안 됩니다.');
@@ -112,86 +112,22 @@ try {
   const stressPdfPageCount = (stressPdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
   assert.equal(stressPdfPageCount, 1, `극단 조건 PDF는 반드시 1페이지여야 합니다. (현재 ${stressPdfPageCount}페이지)`);
   assert.match(stressPdf.toString('latin1'), /MalgunGothic/i, 'PDF에 맑은 고딕 글꼴이 포함되어야 합니다.');
-  console.log(`✅ Excel COM 극단 조건 1페이지 PDF 검증 통과 (14개 긴 품목 + 150자 비고)`);
+  console.log(`✅ Excel COM 극단 조건 1페이지 PDF 검증 통과 (14개 긴 품목 + ${MAX_QUOTE_NOTES_LENGTH}자 비고)`);
 
   await assert.rejects(
     fillQuoteTemplate({ ...stressQuote, details: { ...stressQuote.details, notes: '비'.repeat(MAX_QUOTE_NOTES_LENGTH + 1) } }, join(tempDir, 'too-long-notes.xlsx'), templatePath),
-    /비고는 150자까지 입력할 수 있습니다/,
-    '151자 비고는 서버 XLSX 생성 단계에서 거부되어야 합니다.',
+    /비고는 300자까지 입력할 수 있습니다/,
+    '301자 비고는 서버 XLSX 생성 단계에서 거부되어야 합니다.',
   );
 
-  // Gmail 첨부용 Apps Script PDF 경로도 병합 셀 폭에 맞춰 행 높이를 조정하는지 별도 검증한다.
+  // 메일 첨부도 에이전트가 만든 Excel PDF를 그대로 쓰므로, 입력 제한(300자)이 화면·Apps Script·서버에서 같은지만 확인한다.
+  // (Google 시트 임시 PDF 경로는 제거되었으며 메일 초안 흐름은 test-quote-draft-flow.mjs가 검증한다.)
   const scriptText = await readFile(appsScriptPath, 'utf8');
-  function extractFunction(name) {
-    const start = scriptText.indexOf(`function ${name}(`);
-    assert.notEqual(start, -1, `Apps Script 함수가 없습니다: ${name}`);
-    const next = scriptText.indexOf('\nfunction ', start + 10);
-    return scriptText.slice(start, next < 0 ? scriptText.length : next);
-  }
-  const helpers = [
-    'mergedSheetCellWidthPx_',
-    'quoteTextDisplayUnits_',
-    'estimateQuoteCellLines_',
-    'sizeQuotePdfItemRows_',
-    'sizeQuotePdfNotes_',
-  ].map(extractFunction).join('\n\n');
-  const sizeRows = new Function(
-    'SpreadsheetApp', 'CELL_MAP', 'MAX_QUOTE_PDF_ITEM_ROW_HEIGHT_PX',
-    `${helpers}\nreturn sizeQuotePdfItemRows_;`,
-  )({ WrapStrategy: { WRAP: 'WRAP' } }, { notes: 'B34' }, 120);
-  const sizeNotes = new Function(
-    'SpreadsheetApp', 'CELL_MAP',
-    `${helpers}\nreturn sizeQuotePdfNotes_;`,
-  )({ WrapStrategy: { WRAP: 'WRAP' } }, { notes: 'B34' });
-  const rowHeights = new Map([[16, 36], [17, 36]]);
-  const wrapCalls = [];
-  const columnWidths = { 2: 75, 3: 70, 4: 160, 5: 90, 6: 120 };
-  const fontSizes = new Map();
-  const noteStyle = { wrap: false, vertical: 'middle', fontSize: 9 };
-  const mockSheet = {
-    getRange: (row, column) => {
-      if (typeof row === 'string') {
-        return {
-          setWrap: (value) => { noteStyle.wrap = value; return this; },
-          setVerticalAlignment: (value) => { noteStyle.vertical = value; return this; },
-          setFontSize: (value) => { noteStyle.fontSize = value; return this; },
-        };
-      }
-      const key = `${row}:${column}`;
-      return {
-        setWrapStrategy: (strategy) => wrapCalls.push({ row, column, strategy }),
-        getFontSize: () => fontSizes.get(key) || (row >= 34 ? 9 : 10),
-        setFontSize: (value) => fontSizes.set(key, value),
-        setWrap: (value) => { noteStyle.wrap = value; return this; },
-        setVerticalAlignment: (value) => { noteStyle.vertical = value; return this; },
-        getMergedRanges: () => {
-          if (column === 2 && row === 34) return [{ getRow: () => 34, getLastRow: () => 40, getColumn: () => 2, getLastColumn: () => 6 }];
-          if (column === 2) return [{ getRow: () => row, getLastRow: () => row, getColumn: () => 2, getLastColumn: () => 3 }];
-          if (column === 4) return [{ getRow: () => row, getLastRow: () => row, getColumn: () => 4, getLastColumn: () => 6 }];
-          return [];
-        },
-      };
-    },
-    getColumnWidth: (column) => columnWidths[column] || 80,
-    getRowHeight: (row) => rowHeights.get(row) || 36,
-    setRowHeight: (row, height) => rowHeights.set(row, height),
-  };
-  sizeRows(mockSheet, [
-    { name: 'CM-INP515-A', spec: longSpec },
-    { name: 'SHORT', spec: '기본 규격' },
-  ], 16);
-  assert.ok(rowHeights.get(16) > rowHeights.get(17), '메일 첨부용 PDF도 긴 규격 행을 확장해야 합니다.');
-  assert.equal(wrapCalls.length, 2, '제품명과 규격 셀 모두 줄바꿈이 설정되어야 합니다.');
-  console.log(`✅ 메일 첨부용 Google Sheets PDF 행 높이 검증 통과 (${rowHeights.get(16)}px / ${rowHeights.get(17)}px)`);
-
-  for (let row = 34; row <= 40; row += 1) rowHeights.set(row, 12);
-  sizeNotes(mockSheet, stressNotes);
-  assert.equal(noteStyle.wrap, true, '메일 첨부 PDF 비고 셀은 자동 줄바꿈이어야 합니다.');
-  assert.equal(noteStyle.vertical, 'top', '메일 첨부 PDF 비고 셀은 위쪽 정렬이어야 합니다.');
-  assert.ok(noteStyle.fontSize >= 7 && noteStyle.fontSize <= 9, '메일 첨부 PDF 비고 글꼴은 7~9pt 범위여야 합니다.');
-  assert.match(scriptText, /scale=4/, 'Google Sheets PDF 내보내기는 페이지 맞춤(scale=4)을 지정해야 합니다.');
-  assert.match(scriptText, /r1=0&c1=0&r2=42&c2=10/, 'Google Sheets PDF 인쇄 범위는 A1:J42여야 합니다.');
-  console.log(`✅ 메일 첨부용 비고 150자 줄바꿈/글꼴 검증 통과 (${noteStyle.fontSize}pt)`);
+  const quoteFormText = await readFile(join(root, 'src', 'components', 'QuoteFormPage.tsx'), 'utf8');
+  assert.match(scriptText, /const MAX_QUOTE_NOTES_LENGTH = 300;/, 'Apps Script의 비고 최대 길이는 300자여야 합니다.');
+  assert.match(quoteFormText, /const MAX_QUOTE_NOTES_LENGTH = 300;/, '견적 입력 화면의 비고 최대 길이는 300자여야 합니다.');
+  assert.equal(MAX_QUOTE_NOTES_LENGTH, 300, '서버 XLSX 생성의 비고 최대 길이는 300자여야 합니다.');
+  console.log('✅ 비고 300자 제한이 화면·Apps Script·서버에서 일치합니다.');
 } finally {
   await rm(tempDir, { recursive: true, force: true });
 }

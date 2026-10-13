@@ -208,7 +208,9 @@ QuotePrintView.tsx → quoteHtml.ts (HTML 생성) → iframe → 브라우저 �
 - **발주 체크박스 / 서류 업로드**: `updateQuoteOrderFromReact()`가 대장 E열(발주)에 기록하고,
   `saveToLedgerSheet()`는 이 열을 절대 덮어쓰지 않는다. 서류 업로드는 Apps Script를 거치지 않고
   로컬 에이전트의 `POST /upload`로 직접 처리된다(부서 비밀번호 세션 필요).
-- **발주등록 메일 첨부**: 에이전트 order-email 페이지는 선택 파일 크기를 먼저 검사한 뒤 첨부 다운로드를 병렬화한다. Apps Script 임시 견적 PDF의 시트 값은 연속 범위 단위로 기록하며, 작성자 정보는 템플릿의 `작성자`·`연락처`·`이메일` 라벨을 찾아 오른쪽 값 셀에 기록한다. 에이전트는 분할 PDF를 Excel COM 최대 12개씩 묶어 변환한다.
+- **발주등록 메일 첨부**: 에이전트 order-email 페이지는 선택 파일 크기를 먼저 검사한 뒤 첨부 다운로드를 병렬화한다. 에이전트는 분할 PDF를 한 번의 요청으로 변환하며, 숨김 Excel을 유지하는 워커(`server/excelPdfWorker.js`)로 작업마다 Excel을 새로 띄우는 비용을 없앤다.
+- **견적 메일 초안(Excel PDF 그대로 첨부)**: Apps Script는 더 이상 Google 시트로 임시 PDF를 만들지 않는다. 에이전트가 저장한 최종 Excel PDF를 Drive 동기화 폴더 `attachments/`로 복사하면(`agent/queueFiles.js`), 요청자가 상태를 조회할 때 Apps Script가 그 PDF를 첨부해 요청자 본인의 Gmail 초안을 만든다. 초안 요청은 `drafts/`에 저장되고, 첨부와 요청 파일은 초안 생성 직후 영구 삭제된다.
+- **에이전트 생존 신호**: 에이전트는 20초마다 `견적에이전트/heartbeat.json`을 갱신한다. Apps Script `processQuote`는 접수 전에 이 파일의 수정 시각(구글 서버 시계)을 확인하고, 150초 넘게 갱신되지 않았거나 종료 표시가 있으면 **저장을 접수하지 않고** 에이전트 점검 안내 오류를 돌려준다. `/health`(에이전트 HTTP, 인증 불필요)로 실행 중인 버전과 기능을 확인할 수 있다.
 - Apps Script가 Gmail 첨부용 임시 스프레드시트/PDF를 만들 때 작성자 정보는 고정 셀 위치가 아니라 템플릿의 `작성자`·`연락처`·`이메일` 라벨 옆에 기록한다. 라벨이 없는 구형 템플릿에서만 H37:H39로 fallback한다.
 - AI 검색은 현재 로그인한 작성자의 부서로 조회된 선택 연도의 대장 요약 행만 사용한다. 개인 OpenRouter API 키는 요청 본문으로만 전달하며 애플리케이션 저장소에 기록하지 않는다. 담당자·연락처·이메일을 포함하므로 ZDR 제공자 사용을 기본값으로 권장한다.
 

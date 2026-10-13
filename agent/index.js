@@ -19,9 +19,18 @@ import { writeFile } from 'fs/promises';
 import { join, dirname, resolve, sep, basename, extname } from 'path';
 import { fileURLToPath } from 'url';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { hostname } from 'os';
 import express from 'express';
 import { fillQuoteTemplate } from '../server/fillTemplate.js';
 import { excelToPdfBatch } from '../server/excelToPdf.js';
+import {
+  configureExcelPdfWorker,
+  excelToPdfBatchWarm,
+  excelWorkerStatus,
+  reapStaleExcelWorker,
+  shutdownExcelPdfWorker,
+} from '../server/excelPdfWorker.js';
+import { publishDraftAttachments, writeHeartbeatFile, writeStoppedHeartbeatFile } from './queueFiles.js';
 import { appendQuoteToStatsJson, refreshDepartmentStats } from './quoteStats.js';
 import {
   getOrderHistoryDir,
@@ -34,7 +43,10 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── 설정 로드 ──────────────────────────────────────────────────────────────
-const configPath = join(__dirname, 'config.json');
+// 통합 시험은 운영 설정을 건드리지 않도록 CIMON_AGENT_CONFIG로 다른 설정 파일을 지정한다.
+const configPath = process.env.CIMON_AGENT_CONFIG
+  ? resolve(process.env.CIMON_AGENT_CONFIG)
+  : join(__dirname, 'config.json');
 if (!existsSync(configPath)) {
   console.error('[에이전트] agent/config.json 파일이 없습니다.');
   console.error('[에이전트] agent/config.example.json을 복사해 config.json으로 만들고 값을 채워 주세요.');
@@ -64,15 +76,27 @@ const FILE_LINK_SECRET = String(config.fileLinkSecret || '');
 const FOLDER_PASSWORDS = config.folderPasswords && typeof config.folderPasswords === 'object' ? config.folderPasswords : {};
 const ADMIN_PASSWORD = String(config.adminPassword || '');
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 로그인 유지 12시간
-const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 2000);
+const POLL_INTERVAL_MS = Number(config.pollIntervalMs || 1000);
 const TEMPLATE_PATH = resolve(__dirname, String(config.templatePath || 'templates/견적서 샘플.xlsx'));
 const MAX_JOB_ATTEMPTS = 3;
 const ITEMS_PER_FILE = 14;
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
+// 에이전트 생존 신호. Apps Script가 이 신호가 오래되면 견적 접수를 거부한다.
+const AGENT_VERSION = '2026-10-13-excel-pdf-attachments';
+const AGENT_FEATURES = ['draftAttachments'];
+const HEARTBEAT_INTERVAL_MS = Number(config.heartbeatIntervalMs || 20000);
+// 숨김 Excel을 유지해 작업마다 Excel을 새로 띄우는 시간을 줄인다. 문제가 있으면 config에서 false로 끈다.
+const USE_EXCEL_WORKER = config.useExcelWorker !== false;
+// 에이전트가 갑자기 종료되면 숨김 Excel이 남을 수 있어, 그 PID를 로컬 파일에 기록해 다음 시작 때 정리한다.
+const EXCEL_PID_FILE = resolve(String(config.excelWorkerPidFile || join(__dirname, 'excel-worker.pid')));
+configureExcelPdfWorker({ pidFile: EXCEL_PID_FILE });
 
 const PENDING_DIR = join(AGENT_FOLDER, 'pending');
 const RESULTS_DIR = join(AGENT_FOLDER, 'results');
 const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
+// 메일 초안에 첨부할 Excel PDF를 Apps Script로 전달하는 Drive 동기화 폴더
+const ATTACHMENTS_DIR = join(AGENT_FOLDER, 'attachments');
+const HEARTBEAT_FILE = join(AGENT_FOLDER, 'heartbeat.json');
 const FAILED_JOBS_DIR = join(__dirname, 'failed-jobs');
 // Apps Script가 로컬 LOG에 남기고 싶은 활동 로그를 큐잉하는 폴더 (Drive 동기화 → 에이전트가 LOG 폴더로 복사)
 const LOG_QUEUE_DIR = join(AGENT_FOLDER, 'logs');
@@ -138,6 +162,7 @@ try {
   mkdirSync(PENDING_DIR, { recursive: true });
   mkdirSync(RESULTS_DIR, { recursive: true });
   mkdirSync(DELIVERY_DIR, { recursive: true });
+  mkdirSync(ATTACHMENTS_DIR, { recursive: true });
   // 업로드 문서(발주서, 사업자등록증 등) 미러 전용 — Apps Script가 목록/첨부를 읽도록 Drive 동기화 폴더 사용
   mkdirSync(LOG_QUEUE_DIR, { recursive: true });
 } catch (err) {
@@ -569,6 +594,7 @@ async function processJob(fileName) {
   const payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
   const details = payload.details || {};
   const items = payload.items || [];
+  const jobStartedAt = Date.now();
   const queueWaitMs = Number(details.agentQueuedAt) > 0 ? Math.max(0, Date.now() - Number(details.agentQueuedAt)) : 0;
 
   const department = safeDepartmentSegment(details.authorDepartment || DEFAULT_DEPARTMENT);
@@ -592,6 +618,8 @@ async function processJob(fileName) {
   }
 
   const pdfFileNames = [];
+  // 저장이 확정된 뒤의 최종 PDF 경로. 메일 첨부에도 이 파일을 그대로 쓴다.
+  const finalPdfPaths = [];
   const generatedFiles = [];
   const temporaryFiles = [];
   const pendingPdfConversions = [];
@@ -657,19 +685,25 @@ async function processJob(fileName) {
       pendingPdfConversions.push({ xlsxPath, pdfPath });
     }
     pdfFileNames.push(basename(pdfPath));
+    finalPdfPaths.push(pdfPath);
   }
   const xlsxBuildMs = Date.now() - xlsxBuildStartedAt;
 
-  // 분할된 XLSX도 묶어서 변환해 파일마다 PowerShell/Excel COM을 새로 띄우는 비용을 줄인다.
+  // 분할된 XLSX도 묶어서 변환한다. 숨김 Excel을 유지하는 워커를 쓰면 작업마다 Excel을 새로 띄우지 않는다.
   const pdfConversionStartedAt = Date.now();
+  let pdfConversionMode = 'one-shot';
   try {
-    excelToPdfBatch(pendingPdfConversions);
+    if (USE_EXCEL_WORKER) {
+      pdfConversionMode = (await excelToPdfBatchWarm(pendingPdfConversions, console)).mode;
+    } else {
+      excelToPdfBatch(pendingPdfConversions);
+    }
   } catch (error) {
     if (isOverwrite) removeFiles(temporaryFiles);
     throw error;
   }
   const pdfConversionMs = Date.now() - pdfConversionStartedAt;
-  console.log(`[성능] ${outputQuoteNumber}: Drive 대기 ${queueWaitMs}ms, XLSX ${xlsxBuildMs}ms, PDF ${pdfConversionMs}ms, 파일 ${itemParts.length}개`);
+  console.log(`[성능] ${outputQuoteNumber}: Drive 대기 ${queueWaitMs}ms, XLSX ${xlsxBuildMs}ms, PDF ${pdfConversionMs}ms(${pdfConversionMode}), 파일 ${itemParts.length}개`);
 
   let movedBackups = [];
   if (isOverwrite) {
@@ -690,6 +724,28 @@ async function processJob(fileName) {
       removeFiles(generatedFiles.map((generated) => generated.target));
       restoreBackups(movedBackups);
       throw error;
+    }
+  }
+
+  // 메일 초안이 요청된 견적은 저장된 최종 Excel PDF를 그대로 Apps Script에 전달한다.
+  // 완료 보고(results)보다 먼저 올려 두 동기화가 동시에 진행되게 한다. 실패해도 저장은 유지하고,
+  // manifest에 오류를 남겨 Apps Script가 모양이 다른 PDF 대신 초안 생성을 포기하고 오류를 안내하게 한다.
+  let attachmentMs = 0;
+  let attachmentManifest = null;
+  if (payload.attachPdf && details.operationId) {
+    const attachmentStartedAt = Date.now();
+    try {
+      attachmentManifest = publishDraftAttachments({
+        attachmentsDir: ATTACHMENTS_DIR,
+        operationId: String(details.operationId),
+        pdfPaths: finalPdfPaths,
+      });
+    } catch (attachmentError) {
+      console.error(`[에이전트] 메일 첨부 PDF 전달 실패 ${details.quoteNumber}: ${describeError(attachmentError)}`);
+    }
+    attachmentMs = Date.now() - attachmentStartedAt;
+    if (attachmentManifest && !attachmentManifest.ok) {
+      console.error(`[에이전트] 메일 첨부 PDF 전달 실패 ${details.quoteNumber}: ${attachmentManifest.error}`);
     }
   }
 
@@ -732,6 +788,15 @@ async function processJob(fileName) {
     }),
     localPath: folder,
     overwrite: isOverwrite,
+    timings: {
+      queueWaitMs,
+      xlsxBuildMs,
+      pdfConversionMs,
+      pdfConversionMode,
+      attachmentMs,
+      agentTotalMs: Date.now() - jobStartedAt,
+      completedAt: Date.now(),
+    },
   };
   writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber)}.json`), JSON.stringify(result), 'utf8');
   unlinkSync(jsonPath);
@@ -913,6 +978,54 @@ async function processDeferredLedgerCopies() {
 function startPolling() {
   void pollPending().finally(() => {
     setTimeout(startPolling, POLL_INTERVAL_MS);
+  });
+}
+
+// ── 생존 신호 ──────────────────────────────────────────────────────────────
+// Apps Script는 agent 폴더의 heartbeat.json 수정 시각이 오래되면 에이전트가 꺼진 것으로 보고
+// 견적 접수를 거부한다(에이전트가 꺼진 상태에서 접수된 작업이 쌓여 다른 작업과 충돌하는 것을 막는다).
+let lastHeartbeatAt = 0;
+const heartbeatInfo = () => ({
+  version: AGENT_VERSION,
+  features: AGENT_FEATURES,
+  host: hostname(),
+  pid: process.pid,
+});
+
+function emitHeartbeat() {
+  try {
+    writeHeartbeatFile(HEARTBEAT_FILE, heartbeatInfo());
+    lastHeartbeatAt = Date.now();
+  } catch (err) {
+    console.warn(`[에이전트] 생존 신호 기록 실패: ${describeError(err)}`);
+  }
+}
+
+let heartbeatStarted = false;
+function startHeartbeat() {
+  heartbeatStarted = true;
+  emitHeartbeat();
+  const timer = setInterval(emitHeartbeat, HEARTBEAT_INTERVAL_MS);
+  timer.unref?.();
+}
+
+let shutdownMarked = false;
+function markAgentStopped() {
+  // 포트 충돌로 바로 종료되는 중복 실행 프로세스는 실행 중인 에이전트의 신호를 덮어쓰면 안 된다.
+  if (shutdownMarked || !heartbeatStarted) return;
+  shutdownMarked = true;
+  try {
+    shutdownExcelPdfWorker();
+  } catch { /* 종료 중 오류는 무시 */ }
+  try {
+    writeStoppedHeartbeatFile(HEARTBEAT_FILE, heartbeatInfo());
+  } catch { /* 종료 중 오류는 무시 */ }
+}
+process.on('exit', markAgentStopped);
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGBREAK']) {
+  process.on(signal, () => {
+    markAgentStopped();
+    process.exit(0);
   });
 }
 
@@ -1355,6 +1468,20 @@ function uploadPageHtml(session, targetInfo, message = '', isError = false) {
 </body></html>`;
 }
 
+// 에이전트 상태 확인용(인증 불필요, 비밀 정보 없음). 배포 전후로 어떤 버전이 실행 중인지 점검할 때 쓴다.
+app.get('/health', (req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json({
+    ok: true,
+    version: AGENT_VERSION,
+    features: AGENT_FEATURES,
+    heartbeatAt: lastHeartbeatAt,
+    heartbeatAgeMs: lastHeartbeatAt ? Date.now() - lastHeartbeatAt : null,
+    pollIntervalMs: POLL_INTERVAL_MS,
+    excelWorker: USE_EXCEL_WORKER ? excelWorkerStatus() : { disabled: true },
+  });
+});
+
 app.get('/', (req, res) => {
   const nextPath = safeNextPath(req.query.next);
   if (readSession(req)) return res.redirect(nextPath);
@@ -1789,6 +1916,10 @@ const server = app.listen(HTTP_PORT, '0.0.0.0', () => {
   console.log(`[에이전트] 저장 루트: ${STORAGE_ROOT}`);
   console.log(`[에이전트] 템플릿: ${TEMPLATE_PATH}`);
   console.log(`[에이전트] 폴링 주기: ${POLL_INTERVAL_MS}ms`);
+  console.log(`[에이전트] 버전 ${AGENT_VERSION} / Excel 상시 변환: ${USE_EXCEL_WORKER ? '사용' : '끔'}`);
+  // 포트를 실제로 차지한 인스턴스만 이전 실행의 잔여 Excel을 정리한다(중복 실행 프로세스는 여기까지 오지 않는다).
+  if (USE_EXCEL_WORKER) reapStaleExcelWorker(EXCEL_PID_FILE);
+  startHeartbeat();
   startPolling();
 });
 

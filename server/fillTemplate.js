@@ -6,7 +6,7 @@ import JSZip from 'jszip';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = join(__dirname, '..', 'Quote_manage', '기본자료', '견적서 샘플.xlsx');
-export const MAX_QUOTE_NOTES_LENGTH = 150;
+export const MAX_QUOTE_NOTES_LENGTH = 300;
 const MAX_ITEM_ROW_HEIGHT_PT = 96;
 
 /**

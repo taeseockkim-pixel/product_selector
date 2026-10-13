@@ -45,3 +45,4 @@ agent/config.json
 agent/failed-jobs/
 .vercel
 .env*
+agent/excel-worker.pid
