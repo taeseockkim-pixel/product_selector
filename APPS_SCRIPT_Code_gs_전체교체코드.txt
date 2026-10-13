@@ -487,6 +487,23 @@ function checkAgentAvailable_(needsDraftAttachments) {
   return { ok: true, ageMs: ageMs, version: heartbeat.version };
 }
 
+// 에이전트 상태 점검: 편집기 또는 google.script.run에서 실행해 신호의 나이·버전·기능과 접수 가능 여부를 확인한다.
+function diagnoseAgentStatus() {
+  const heartbeat = readAgentHeartbeat_();
+  const check = checkAgentAvailable_(true);
+  const summary = {
+    found: heartbeat.found,
+    stopped: Boolean(heartbeat.stopped),
+    ageSeconds: heartbeat.found ? Math.round((Date.now() - heartbeat.updatedAt) / 1000) : null,
+    version: heartbeat.version || '',
+    features: heartbeat.features || [],
+    acceptsDraftRequests: check.ok,
+    message: check.ok ? '' : check.message
+  };
+  Logger.log('에이전트 상태: ' + JSON.stringify(summary));
+  return summary;
+}
+
 // ── 메일 초안: 에이전트가 만든 Excel PDF를 그대로 첨부한다 ─────────────────────────
 // Google 서버는 사내 PC에 접근할 수 없어 Drive 동기화 폴더(drafts/attachments)로 주고받는다.
 // 초안은 요청한 사용자 본인의 Gmail에 만들어야 하므로, 관리자 계정으로 도는 1분 트리거가 아니라

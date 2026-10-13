@@ -24,9 +24,17 @@
 - [x] 단계별 시간 기록(에이전트 `timings` + Apps Script 로그 `[성능] 단계별 시간`)
 - [x] 잔여 Excel 정리(`agent/excel-worker.pid`)
 - [x] 시험: `test:quote-draft`, `test:agent-queue`, `test:excel-worker`, `test:agent-e2e`, `test:quote-layout`, `test:quote-auth`
-- [ ] 서버 PC에 에이전트 패치 ZIP 적용·재시작 후 `http://172.35.12.36:8790/health` 확인
-- [ ] 에이전트 확인 후 Apps Script 새 버전 배포(기존 URL 유지)
-- [ ] 테스트 수신자로 실제 Gmail 초안 1건 시험(첨부 PDF와 파일링크 PDF 해시 비교)
+- [x] 서버 PC에 에이전트 패치 ZIP 적용·재시작 후 `http://172.35.12.36:8790/health` 확인(`features: ["draftAttachments"]`)
+- [x] 에이전트 확인 후 Apps Script **v119** 배포(기존 배포 ID/URL 유지, 편집기 코드와 로컬 파일 SHA-256 일치 확인)
+- [x] 실제 Gmail 초안 1건 시험(견적 2610-490, 수신자 본인): 첨부 PDF가 파일링크 PDF와 크기(112,638 bytes)·SHA-256까지 동일
+- [x] `diagnoseAgentStatus()` 점검 함수 추가(신호 나이·버전·기능·접수 가능 여부)
+- [ ] 시험 견적(2610-490)과 Gmail 초안 `[자동시험] Excel PDF 첨부 확인` 정리(사용자 확인 후)
+
+## 운영 시험 결과 (2026-10-13)
+
+- 접수 응답 약 9.6초(첫 호출), 이후 대장 반영과 초안 생성까지 약 25초(합계 약 35초, 1개 파일).
+- 이전 방식(Google 임시 PDF) 초안의 첨부는 약 178~181KB, 새 방식은 저장 PDF와 같은 112,638 bytes.
+- 서버 에이전트 `/health`: `pollIntervalMs: 1000`, Excel 워커 시작 1회(1.35초), 변환 2.4초(첫 변환, 이후 재사용 시 단축).
 
 ## 배포 순서 (중요)
 
