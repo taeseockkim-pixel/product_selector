@@ -88,6 +88,25 @@ function normalizedTemplateLabel(value) {
   return String(value ?? '').replace(/[\s:：]/g, '').toLowerCase();
 }
 
+function containsKoreanText(value) {
+  return /[\u1100-\u11FF\u3130-\u318F\uA960-\uA97F\uAC00-\uD7A3\uD7B0-\uD7FF\uFFA0-\uFFDC]/u.test(String(value ?? ''));
+}
+
+function setCellFontProperties(cell, properties) {
+  // ExcelJS templates often share style objects among same-formatted cells.
+  // Clone the cell-level style before changing it to avoid leaking to siblings.
+  cell.style = {
+    ...(cell.style || {}),
+    font: { ...(cell.font || {}), ...properties },
+  };
+}
+
+/** 입력값에 한글/호환 자모가 있으면 해당 셀만 한글 지원 글꼴로 바꾼다. */
+function applyKoreanFontForValue(cell, value) {
+  if (!containsKoreanText(value)) return;
+  setCellFontProperties(cell, { name: 'Malgun Gothic' });
+}
+
 /** 템플릿 버전마다 작성자 표의 행/열이 달라도 라벨 옆 값 셀을 찾아 기록한다. */
 function findTemplateValueCellByLabel(worksheet, label) {
   const wanted = normalizedTemplateLabel(label);
@@ -123,6 +142,7 @@ function findTemplateValueCellByLabel(worksheet, label) {
 function setTemplateLabelValue(worksheet, label, fallbackCell, value) {
   const target = findTemplateValueCellByLabel(worksheet, label) || worksheet.getCell(fallbackCell);
   target.value = value;
+  applyKoreanFontForValue(target, value);
 }
 
 /** Merged cell이면 병합 범위의 모든 열 너비를 합산한다. */
@@ -189,8 +209,8 @@ function setItemRowHeight(worksheet, rowNumber, item) {
 
   // 글자를 8pt보다 작게 만들지 않는다. 그 크기로도 필요한 행이 상한을 넘으면
   // 내용이 잘리지 않도록 행을 더 키우고, 인쇄 시 1페이지 맞춤이 전체를 축소한다.
-  nameCell.font = { ...(nameCell.font || {}), size: fontSize };
-  specCell.font = { ...(specCell.font || {}), size: fontSize };
+  setCellFontProperties(nameCell, { size: fontSize });
+  setCellFontProperties(specCell, { size: fontSize });
   const row = worksheet.getRow(rowNumber);
   row.height = Math.max(row.height || 22, Math.min(estimatedHeight, MAX_ITEM_ROW_HEIGHT_PT));
   if (estimatedHeight > MAX_ITEM_ROW_HEIGHT_PT && fontSize === 8) row.height = estimatedHeight;
@@ -212,7 +232,7 @@ function setQuoteNotesLayout(worksheet, notes) {
     if (lines * fontSize * 1.25 + 6 <= availableHeight) break;
     fontSize -= 1;
   }
-  cell.font = { ...(cell.font || {}), size: Math.max(7, fontSize) };
+  setCellFontProperties(cell, { size: Math.max(7, fontSize) });
 }
 
 export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_PATH) {
@@ -230,6 +250,7 @@ export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_
   const set = (cell, value) => {
     const c = ws.getCell(cell);
     c.value = value;
+    applyKoreanFontForValue(c, value);
   };
 
   // 고객 정보

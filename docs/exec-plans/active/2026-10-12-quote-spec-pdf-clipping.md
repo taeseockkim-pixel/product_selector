@@ -25,8 +25,12 @@
 - [x] Apps Script 변경분을 기존 운영 URL의 **v118**로 배포(배포 ID/URL 유지)
 - [x] 운영 URL에서 읽기 전용 관리자 권한 확인 성공
 - [x] 임시 템플릿 사본으로 Apps Script PDF 진단: 14개 장문 품목+150자 비고, 1페이지(178,109 bytes); 임시 사본 삭제 확인
+- [x] `fillTemplate.js`에서 한글 음절/호환 자모가 있는 사용자 입력 셀만 Malgun Gothic으로 지정(셀 공유 스타일 누수 방지)
+- [x] 자모·완성형 한글 혼합 PDF 시험에서 □ 대체 없이 보이고 영문 전용 셀은 Arial을 유지함을 확인
+- [x] 새 `server/fillTemplate.js`와 `server/excelToPdf.js`를 포함한 서버 패치 ZIP을 생성
+- [x] 기존 2610-487 PDF는 재생성하지 않음
 - [ ] 서버 PC에 ZIP 적용 후 새 견적으로 두 PDF 경로를 최종 검증
 
 ## 서버 PC 반영
 
-패치 ZIP: `C:\Users\CIMON\Downloads\CIMON_견적PDF_한장출력_비고줄바꿈_패치_20261013.zip` (server의 `fillTemplate.js`, `excelToPdf.js` 포함). 서버 PC에서는 두 파일을 교체하고 에이전트를 재시작한다. Excel COM 스트레스 PDF와 Apps Script/Google Sheets 스트레스 PDF 모두 1페이지임을 확인했다. Apps Script는 기존 운영 배포 ID/URL을 유지해 v118로 갱신했고 관리자 권한 확인도 성공했다. 남은 작업은 서버 PC에 ZIP을 적용한 뒤 새 견적으로 현장 PDF를 최종 검증하는 것이다. 기존 견적/PDF/메일 초안은 수정하지 않는다.
+패치 ZIP: `C:\Users\CIMON\Downloads\CIMON_견적PDF_한장출력_비고줄바꿈_한글글꼴_패치_20261013.zip` (`server/fillTemplate.js`, `server/excelToPdf.js` 포함). 서버 PC에서는 두 파일을 교체하고 에이전트를 재시작한다. Excel COM 스트레스 PDF와 Apps Script/Google Sheets 스트레스 PDF 모두 1페이지였고, 한글/자모 글꼴 시험에서도 □ 대체 없이 렌더링되었다. Apps Script는 기존 운영 배포 ID/URL을 유지해 v118로 갱신했고 관리자 권한 확인도 성공했다. 남은 작업은 최신 ZIP을 서버 PC에 적용한 뒤 새 견적으로 파일서버 PDF를 확인하는 것이다. 기존 견적/PDF/메일 초안은 수정하지 않는다.

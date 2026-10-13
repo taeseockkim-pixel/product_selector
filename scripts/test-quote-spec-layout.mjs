@@ -17,7 +17,7 @@ try {
   const outputPath = join(tempDir, 'spec-row-height.xlsx');
   const stressOutputPath = join(tempDir, 'one-page-stress.xlsx');
   const stressPdfPath = join(tempDir, 'one-page-stress.pdf');
-  const longSpec = 'Intel Celeron Quad-Core J6412 SoC (FANLESS) / DDR4 SDRAM 8GB (Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise / Development + Runtime Keylock / Dual Ethernet / extended product configuration';
+  const longSpec = 'Intel Celeron Quad-Core J6412 SoC (FANLESS) / DDR4 SDRAM 8GB (Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise / Development + Runtime Keylock / Dual Ethernet / 내장 한글 글꼴 확인 / extended product configuration';
 
   await fillQuoteTemplate({
     client: { company: '규격 줄바꿈 테스트', contact: '테스트', phone: '000', email: 'test@example.com' },
@@ -53,7 +53,7 @@ try {
 
   const stressNotes = '비'.repeat(MAX_QUOTE_NOTES_LENGTH);
   const stressQuote = {
-    client: { company: '한 장 출력 검증', contact: '테스트 담당자', phone: '000-0000-0000', email: 'test@example.com' },
+    client: { company: 'ㅅㄷㄴㅅ1', contact: '테스트 담당자 ㅅㄷㄴㅅ2', phone: 'ㅅㄷㄴㅅ3', email: 'test@example.com' },
     quoteNumber: '기술영업 2610-STRESS',
     details: {
       quoteDate: '2026년 10월 13일',
@@ -84,6 +84,24 @@ try {
   assert.equal(stressSheet.getCell('B34').alignment.vertical, 'top', '비고는 위쪽 정렬이어야 합니다.');
   assert.ok(stressSheet.getCell('B34').font.size >= 7, '비고 글꼴은 7pt 미만으로 축소하면 안 됩니다.');
   assert.ok(stressSheet.getCell('B34').font.size <= 9, '비고 글꼴은 9pt를 넘지 않아야 합니다.');
+  assert.equal(stressSheet.getCell('C3').font.name, 'Malgun Gothic', '자모가 포함된 업체명은 한글 글꼴이어야 합니다.');
+  assert.equal(stressSheet.getCell('C4').font.name, 'Malgun Gothic', '자모가 포함된 담당자명은 한글 글꼴이어야 합니다.');
+  assert.equal(stressSheet.getCell('F3').font.name, 'Malgun Gothic', '자모가 포함된 연락처는 한글 글꼴이어야 합니다.');
+  assert.equal(stressSheet.getCell('F4').font.name, 'Arial', '영문 전용 이메일 셀의 기존 글꼴은 유지해야 합니다.');
+  assert.equal(stressSheet.getCell('I3').font.name, 'Malgun Gothic', '한글 견적번호는 한글 글꼴이어야 합니다.');
+  assert.equal(stressSheet.getCell('B16').font.name, 'Arial', '영문 전용 제품명은 기존 글꼴을 유지해야 합니다.');
+  assert.equal(stressSheet.getCell('D16').font.name, 'Malgun Gothic', '한글이 포함된 규격은 한글 글꼴이어야 합니다.');
+  assert.equal(stressSheet.getCell('B34').font.name, 'Malgun Gothic', '한글 비고는 한글 글꼴이어야 합니다.');
+  assert.equal(stressSheet.getCell('C3').font.size, 11, '업체명 글꼴 크기는 변경하지 않아야 합니다.');
+  assert.equal(stressSheet.getCell('C3').font.bold, true, '업체명 굵기는 변경하지 않아야 합니다.');
+  let authorCell = null;
+  stressSheet.eachRow((row) => row.eachCell((cell) => {
+    if (cell.value === '테스트 작성자' && (
+      !authorCell || cell.row < authorCell.row || (cell.row === authorCell.row && cell.col < authorCell.col)
+    )) authorCell = cell;
+  }));
+  assert.ok(authorCell, '작성자 값을 기록한 셀을 찾아야 합니다.');
+  assert.equal(authorCell.font.name, 'Malgun Gothic', '한글 작성자 정보는 한글 글꼴이어야 합니다.');
   assert.equal(stressSheet.pageSetup.fitToPage, true, 'Excel 인쇄는 페이지 맞춤이 활성화되어야 합니다.');
   assert.equal(stressSheet.pageSetup.fitToWidth, 1, 'Excel 인쇄 너비는 1페이지여야 합니다.');
   assert.equal(stressSheet.pageSetup.fitToHeight, 1, 'Excel 인쇄 높이는 1페이지여야 합니다.');
@@ -93,6 +111,7 @@ try {
   const stressPdf = await readFile(stressPdfPath);
   const stressPdfPageCount = (stressPdf.toString('latin1').match(/\/Type\s*\/Page\b/g) || []).length;
   assert.equal(stressPdfPageCount, 1, `극단 조건 PDF는 반드시 1페이지여야 합니다. (현재 ${stressPdfPageCount}페이지)`);
+  assert.match(stressPdf.toString('latin1'), /MalgunGothic/i, 'PDF에 맑은 고딕 글꼴이 포함되어야 합니다.');
   console.log(`✅ Excel COM 극단 조건 1페이지 PDF 검증 통과 (14개 긴 품목 + 150자 비고)`);
 
   await assert.rejects(
