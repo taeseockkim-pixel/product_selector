@@ -16,6 +16,8 @@ function esc(s: unknown) {
 /** 견적서 샘플.xlsx 셀 구조 기반 HTML — 인쇄/PDF 용 */
 export function generateQuoteHtml(quote: Quote, lang: Lang = 'ko'): string {
   const { client, author, details, items, vatTotal, quoteNumber } = quote;
+  const notesLength = Array.from(details.notes ?? '').length;
+  const noteSizeClass = notesLength > 110 ? 'note-small' : notesLength > 70 ? 'note-medium' : '';
   const label = {
     title: lang === 'en' ? 'QUOTATION' : '견 적 서',
     company: lang === 'en' ? 'Company' : '업체명',
@@ -98,7 +100,9 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 .b { font-weight: 600; }
 .sm { font-size: 8pt; white-space: pre-wrap; word-break: break-all; }
 .total { border: 2px solid #222; text-align: right; padding: 5px 8px; font-size: 11pt; font-weight: bold; margin-bottom: 7px; }
-.note { border: 1px solid #888; padding: 5px 8px; min-height: 34px; font-size: 9pt; margin-bottom: 14px; }
+.note { border: 1px solid #888; padding: 5px 8px; min-height: 34px; font-size: 9pt; margin-bottom: 14px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.note-medium { font-size: 8pt; }
+.note-small { font-size: 7pt; }
 .footer { display: flex; justify-content: space-between; align-items: flex-end; }
 .co { font-size: 9pt; line-height: 1.7; }
 .co-name { font-size: 12pt; font-weight: bold; margin-bottom: 3px; }
@@ -157,7 +161,7 @@ body { font-family: 'Malgun Gothic','맑은 고딕',sans-serif; font-size: 10pt;
 
   <div class="total">${label.total} : ${fmt(vatTotal)} ${label.currency}</div>
 
-  <div class="note"><strong>${label.notes}:</strong> ${esc(details.notes ?? '')}</div>
+  <div class="note ${noteSizeClass}"><strong>${label.notes}:</strong> ${esc(details.notes ?? '')}</div>
 
   <div class="footer">
     <div class="co">

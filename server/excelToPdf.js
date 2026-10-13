@@ -41,6 +41,14 @@ try {
       $wb = $xl.Workbooks.Open([string]$task.xlsxPath)
       $ws = $wb.Worksheets.Item(1)
       $ws.Range("B16:F29").WrapText = $true
+      $note = $ws.Range("B34")
+      $note.WrapText = $true
+      $note.VerticalAlignment = -4160
+      $pageSetup = $ws.PageSetup
+      $pageSetup.PrintArea = '$A$1:$J$42'
+      $pageSetup.Zoom = $false
+      $pageSetup.FitToPagesWide = 1
+      $pageSetup.FitToPagesTall = 1
       $wb.ExportAsFixedFormat(0, [string]$task.pdfPath)
       $wb.Close($false)
       Write-Output 'OK'

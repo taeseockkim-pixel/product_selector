@@ -212,12 +212,12 @@ agent/index.js (172.35.12.36 PC, Node 18+, Excel 필요)
 - Gmail 첨부용 Apps Script 임시 PDF의 작성자/연락처/이메일은 `fillSheetData()`가 견적 템플릿의 같은 라벨을 찾아 바로 오른쪽 값 셀에 기록한다. 템플릿별 라벨 위치가 달라도 작성자 정보가 행·열에서 어긋나지 않는지 임시 PDF 회귀 확인을 한다.
 - 견적 저장 화면은 `getQuoteOperationStatusFromReact(operationId)`의 짧은 캐시 상태를 조회한다. 대장 전체와 모든 RichText 파일링크를 반복 재조회하지 않는다. 링크 작업 결과 처리 후 Apps Script가 `pending/completed/failed` 상태를 갱신한다.
 - Gmail 초안 첨부용 임시 PDF는 연속 셀 값을 일괄 기록해 시트 서비스 호출 수를 줄인다. 에이전트는 한 견적에 분할 파일이 여러 개여도 Excel COM 인스턴스 하나로 PDF를 일괄 변환한다.
-- Gmail 초안용 임시 PDF는 에이전트 XLSX/PDF와 별도의 Google Sheets 내보내기 경로다. `fillSheetData()`가 제품명(B:C)과 규격(D:F)에 줄바꿈을 적용하고, 병합 폭·한글/영문 글자 폭·글꼴 크기로 품목별 행 높이를 계산한다. PDF를 비교할 때는 파일 생성 경로와 견적/리비전이 같은지 확인한다.
+- Gmail 초안용 임시 PDF는 에이전트 XLSX/PDF와 별도의 Google Sheets 내보내기 경로다. `fillSheetData()`가 제품명(B:C)과 규격(D:F)에 줄바꿈/행 높이·글꼴 크기를 적용하고, PDF 내보내기는 `scale=4`(페이지 맞춤) 및 A1:J42 범위를 사용한다. PDF 페이지 수가 1이 아니면 8pt 품목/7pt 비고로 한 번 재시도하고, 그래도 한 장이 아니면 메일 초안 생성을 실패 처리해 2쪽 PDF를 첨부하지 않는다. 비고(B34:F40)는 자동 줄바꿈하며 7~9pt로 맞춘다. 비고는 UI와 Apps Script 양쪽에서 150자 초과를 거부한다. PDF를 비교할 때는 파일 생성 경로와 견적/리비전이 같은지 확인한다.
 - 에이전트 실행: 대상 PC에 프로젝트 복제 → `npm install` → Google Drive 데스크톱 설치·로그인 →
   `agent/config.example.json`을 `agent/config.json`으로 복사해 값 입력
   (`agentFolderPath`는 Drive 동기화된 `견적에이전트` 폴더의 로컬 경로 — 첫 저장 1회 후 자동 생성됨)
   → `start-agent.bat` 실행
-- **규격 셀 잘림 방지**: `server/fillTemplate.js`는 병합된 제품명(B:C)·규격(D:F) 셀의 폭, 한글/영문 표시 폭, 글꼴 크기 및 명시적 줄바꿈을 고려해 각 품목 행 높이를 계산한다. `server/excelToPdf.js`도 Excel COM 변환 시 줄바꿈을 켠다. 템플릿의 모든 행 높이를 일괄 확대하면 1페이지 인쇄 배율이 작아질 수 있으므로, 행별 자동 높이 계산을 우선 사용한다. 에이전트 PC 코드를 교체한 뒤에는 에이전트를 재시작해야 새 PDF에 반영된다.
+- **1페이지 견적 PDF/비고 잘림 방지**: `server/fillTemplate.js`는 A1:J42 인쇄 범위, FitToPage 1×1, 제품명(B:C)·규격(D:F)의 줄바꿈/행별 높이 및 8pt 최소 글꼴을 설정한다. 8pt에서도 내용이 더 길면 잘라내지 않고 행을 키우며, Excel COM이 최종 1페이지에 맞춘다. `server/excelToPdf.js`도 PrintArea·Zoom=false·FitToPagesWide/Tall=1을 변환 시 다시 지정한다. 비고(B34:F40)는 높이를 늘리지 않고 줄바꿈과 위쪽 정렬을 적용하며 9~7pt로 맞춘다. 견적 입력의 비고는 최대 150자이고, 서버 생성 함수도 초과 값을 거부한다. 에이전트 PC 코드를 교체한 뒤에는 에이전트를 재시작해야 새 PDF에 반영된다.
 - **대표이사 텍스트/직인 출력**: `견적서 샘플.xlsx`의 회사명·대표이사 문구는 그림이 아닌 Excel floating text box(`xdr:sp`)다. ExcelJS는 셀 값을 기록하며 이 도형을 버리므로 `server/fillTemplate.js`가 XLSX 저장 후 원본 도형 앵커를 복원한다. 이 후처리를 제거하거나 템플릿/ExcelJS를 바꾸면 PDF 우측 하단의 “㈜ 싸이몬 대표이사 안재봉” 문구가 누락될 수 있다. 새 템플릿 변경 후 시험 견적 XLSX와 PDF에서 해당 문구 및 직인을 확인한다.
 - 저장 직후에는 견적번호만 예약되고 목록 행은 아직 없을 수 있다. 에이전트가 XLSX/PDF 생성에 성공한 뒤(통상 1~3분) 대장 행과 파일링크가 함께 생성된다. 실패 시 대장에 파일 없는 행이 남지 않는다.
 - **폴더 브라우저 비밀번호 접속**: `http://172.35.12.36:8790` 접속 시 부서 비밀번호를 입력하면

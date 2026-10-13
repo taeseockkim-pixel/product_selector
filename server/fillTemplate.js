@@ -6,6 +6,8 @@ import JSZip from 'jszip';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = join(__dirname, '..', 'Quote_manage', '기본자료', '견적서 샘플.xlsx');
+export const MAX_QUOTE_NOTES_LENGTH = 150;
+const MAX_ITEM_ROW_HEIGHT_PT = 96;
 
 /**
  * 견적서 샘플.xlsx 템플릿에 데이터를 채워 outPath에 XLSX 저장
@@ -157,9 +159,9 @@ function displayWidthUnits(text) {
   }, 0);
 }
 
-function estimateWrappedLines(text, mergedWidthChars) {
+function estimateWrappedLines(text, mergedWidthChars, fontSize = 10) {
   // 실제 Excel 글꼴 메트릭보다 보수적으로 줄 수를 계산해 긴 규격이 행 높이를 넘지 않게 한다.
-  const charactersPerLine = Math.max(8, Math.floor(mergedWidthChars * 0.5));
+  const charactersPerLine = Math.max(8, Math.floor(mergedWidthChars * 0.5 * (10 / fontSize)));
   return String(text ?? '').replace(/\r\n?/g, '\n').split('\n').reduce((lineCount, line) => (
     lineCount + Math.max(1, Math.ceil(displayWidthUnits(line) / charactersPerLine))
   ), 0);
@@ -168,21 +170,56 @@ function estimateWrappedLines(text, mergedWidthChars) {
 function setItemRowHeight(worksheet, rowNumber, item) {
   const name = String(item.name ?? '');
   const spec = String(item.spec ?? '');
-  const nameLines = estimateWrappedLines(name, mergedCellWidthChars(worksheet, `B${rowNumber}`));
-  const specLines = estimateWrappedLines(spec, mergedCellWidthChars(worksheet, `D${rowNumber}`));
-  const fontSize = Math.max(
-    Number(worksheet.getCell(`B${rowNumber}`).font?.size || 10),
-    Number(worksheet.getCell(`D${rowNumber}`).font?.size || 10),
-  );
-  const estimatedHeight = Math.ceil(Math.max(nameLines, specLines) * fontSize * 1.4 + 8);
+  const nameCell = worksheet.getCell(`B${rowNumber}`);
+  const specCell = worksheet.getCell(`D${rowNumber}`);
+  const nameWidth = mergedCellWidthChars(worksheet, `B${rowNumber}`);
+  const specWidth = mergedCellWidthChars(worksheet, `D${rowNumber}`);
+  const originalNameFontSize = Number(nameCell.font?.size || 10);
+  const originalSpecFontSize = Number(specCell.font?.size || 10);
+  const initialFontSize = Math.min(Math.floor(originalNameFontSize), Math.floor(originalSpecFontSize), 10);
+  let fontSize = Math.max(8, initialFontSize);
+  let estimatedHeight = 0;
 
-  // 기존 행 높이와 종전 긴 텍스트 최소 높이는 유지하면서, 실제 줄 수가 더 많으면 추가 확장한다.
-  const previousMinimum = spec.length > 90 ? 54 : spec.length > 60 ? 42 : spec.length > 30 ? 32 : 22;
+  for (; fontSize >= 8; fontSize -= 1) {
+    const nameLines = estimateWrappedLines(name, nameWidth, fontSize);
+    const specLines = estimateWrappedLines(spec, specWidth, fontSize);
+    estimatedHeight = Math.ceil(Math.max(nameLines, specLines) * fontSize * 1.35 + 8);
+    if (estimatedHeight <= MAX_ITEM_ROW_HEIGHT_PT || fontSize === 8) break;
+  }
+
+  // 글자를 8pt보다 작게 만들지 않는다. 그 크기로도 필요한 행이 상한을 넘으면
+  // 내용이 잘리지 않도록 행을 더 키우고, 인쇄 시 1페이지 맞춤이 전체를 축소한다.
+  nameCell.font = { ...(nameCell.font || {}), size: fontSize };
+  specCell.font = { ...(specCell.font || {}), size: fontSize };
   const row = worksheet.getRow(rowNumber);
-  row.height = Math.max(row.height || 22, previousMinimum, estimatedHeight);
+  row.height = Math.max(row.height || 22, Math.min(estimatedHeight, MAX_ITEM_ROW_HEIGHT_PT));
+  if (estimatedHeight > MAX_ITEM_ROW_HEIGHT_PT && fontSize === 8) row.height = estimatedHeight;
+}
+
+function setQuoteNotesLayout(worksheet, notes) {
+  const cell = worksheet.getCell('B34');
+  cell.alignment = { ...(cell.alignment || {}), wrapText: true, vertical: 'top' };
+
+  const mergeWidth = mergedCellWidthChars(worksheet, 'B34');
+  const availableHeight = Array.from({ length: 7 }, (_, index) => (
+    Number(worksheet.getRow(34 + index).height || 12)
+  )).reduce((total, height) => total + height, 0);
+  let fontSize = Math.min(Number(cell.font?.size || 9), 9);
+  const note = String(notes ?? '');
+
+  while (fontSize > 7) {
+    const lines = estimateWrappedLines(note, mergeWidth, fontSize);
+    if (lines * fontSize * 1.25 + 6 <= availableHeight) break;
+    fontSize -= 1;
+  }
+  cell.font = { ...(cell.font || {}), size: Math.max(7, fontSize) };
 }
 
 export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_PATH) {
+  const notes = String(quote.details.notes ?? '');
+  if (notes.length > MAX_QUOTE_NOTES_LENGTH) {
+    throw new Error(`비고는 ${MAX_QUOTE_NOTES_LENGTH}자까지 입력할 수 있습니다. (현재 ${notes.length}자)`);
+  }
   if (quote.items.length > MAX_ITEMS) {
     throw new Error(`품목은 최대 ${MAX_ITEMS}개까지 견적서에 담을 수 있습니다. (현재 ${quote.items.length}개)`);
   }
@@ -243,7 +280,8 @@ export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_
   set('A30', vatStr);
 
   // 비고 (B34)
-  if (quote.details.notes) set('B34', quote.details.notes);
+  set('B34', notes);
+  setQuoteNotesLayout(ws, notes);
 
   // 작성자 정보: 템플릿의 라벨 위치를 찾아 바로 오른쪽 값 셀에 기록한다.
   // 기본 위치(H37~H39)는 구형/라벨 없는 템플릿을 위한 fallback이다.
@@ -251,11 +289,12 @@ export async function fillQuoteTemplate(quote, outPath, templatePath = TEMPLATE_
   setTemplateLabelValue(ws, '연락처', 'H38', quote.author.phone);
   setTemplateLabelValue(ws, '이메일', 'H39', quote.author.email);
 
-  // 템플릿 기본값은 고정 76% 배율이라, 사용하지 않는 우측 여백 열까지 인쇄
-  // 영역에 걸리면 2페이지로 잘린다. 항상 1페이지에 맞춰 인쇄되도록 강제한다.
+  // 고정 배율과 기본 인쇄 영역 대신 템플릿 실제 사용 영역을 명시하고 1×1페이지로 맞춘다.
   ws.pageSetup.fitToPage = true;
   ws.pageSetup.fitToWidth = 1;
   ws.pageSetup.fitToHeight = 1;
+  ws.pageSetup.scale = undefined;
+  ws.pageSetup.printArea = 'A1:J42';
 
   await wb.xlsx.writeFile(outPath);
   await restoreTemplateTextShapes(templatePath, outPath);

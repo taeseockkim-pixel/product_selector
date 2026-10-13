@@ -28,6 +28,7 @@ import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
+const MAX_QUOTE_NOTES_LENGTH = 150;
 
 const AUTHOR_LABELS: Record<string, string> = {
   '조규광 이사': 'Kyukwang Jo, Director',
@@ -1307,6 +1308,12 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       alert(t(UI.quoteAuthorsLoading));
       return false;
     }
+    if (notes.length > MAX_QUOTE_NOTES_LENGTH) {
+      alert(lang === 'en'
+        ? `Notes must be ${MAX_QUOTE_NOTES_LENGTH} characters or fewer.`
+        : `비고는 ${MAX_QUOTE_NOTES_LENGTH}자까지 입력할 수 있습니다. 현재 ${notes.length}자입니다.`);
+      return false;
+    }
     if (!company.trim() || !contact.trim() || !phone.trim() || !email.trim()) {
       alert(t(UI.quoteFieldRequired));
       return false;
@@ -2025,7 +2032,28 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                 )}
                 <div>
                   <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteNotes)}</label>
-                  <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919] resize-none" placeholder={lang === 'en' ? 'Notes to show on the quote' : '견적서에 표시할 특이사항'} />
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    maxLength={MAX_QUOTE_NOTES_LENGTH}
+                    aria-invalid={notes.length > MAX_QUOTE_NOTES_LENGTH}
+                    aria-describedby="quote-notes-counter"
+                    rows={3}
+                    className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919] resize-none"
+                    placeholder={lang === 'en' ? 'Notes to show on the quote' : '견적서에 표시할 특이사항'}
+                  />
+                  <p
+                    id="quote-notes-counter"
+                    aria-live="polite"
+                    className={`mt-1 text-[11px] ${notes.length > MAX_QUOTE_NOTES_LENGTH ? 'text-red-600' : 'text-[#999999]'}`}
+                  >
+                    {lang === 'en'
+                      ? `${notes.length}/${MAX_QUOTE_NOTES_LENGTH} characters`
+                      : `${notes.length}/${MAX_QUOTE_NOTES_LENGTH}자`}
+                    {notes.length > MAX_QUOTE_NOTES_LENGTH && (
+                      <span>{lang === 'en' ? ' — shorten notes to continue.' : ' — 저장하려면 비고를 줄여 주세요.'}</span>
+                    )}
+                  </p>
                 </div>
               </div>
             </section>

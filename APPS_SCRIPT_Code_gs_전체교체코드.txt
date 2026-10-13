@@ -67,6 +67,8 @@ const CELL_MAP = {
 };
 
 const ITEMS_PER_FILE = 14;
+const MAX_QUOTE_NOTES_LENGTH = 150;
+const MAX_QUOTE_PDF_ITEM_ROW_HEIGHT_PX = 120;
 const QUOTE_SNAPSHOT_SHEET_NAME = '견적원본데이터';
 
 // 견적관리대장 열 번호 (1부터 시작). 운영 대장은 E열 발주, F열 작성자,
@@ -1815,6 +1817,14 @@ function enqueueLocalDelete_(department, year, baseQuoteNumber) {
 }
 
 function processQuote(quoteData, createDraft, customSubject, customBody, revisionOf, revisionYear, revisionDepartment, saveMode, overwriteTargetNumber) {
+  const submittedNotes = String(quoteData && quoteData.details && quoteData.details.notes || '');
+  if (submittedNotes.length > MAX_QUOTE_NOTES_LENGTH) {
+    return {
+      success: false,
+      message: '비고는 ' + MAX_QUOTE_NOTES_LENGTH + '자까지 입력할 수 있습니다. (현재 ' + submittedNotes.length + '자)'
+    };
+  }
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(30000);
@@ -1992,10 +2002,21 @@ function createTempQuotePdf_(quoteData, system, details) {
   const newFile = templateFile.makeCopy(tempName, system.folder);
   try {
     const spreadsheet = SpreadsheetApp.open(newFile);
+    const sheet = spreadsheet.getSheets()[0];
+    const baseItemRowHeights = (quoteData.items || []).map(function(item, index) {
+      return sheet.getRowHeight(CELL_MAP.itemStartRow + index);
+    });
     fillSheetData(spreadsheet, quoteData);
     SpreadsheetApp.flush();
-    const sheetId = spreadsheet.getSheets()[0].getSheetId();
-    return createPdfBlob(newFile.getId(), sheetId, `${sanitizeDriveName(details.quoteNumber)}_${sanitizeDriveName(details.clientName)}_견적서`);
+    const sheetId = sheet.getSheetId();
+    return createPdfBlob(
+      newFile.getId(),
+      sheetId,
+      `${sanitizeDriveName(details.quoteNumber)}_${sanitizeDriveName(details.clientName)}_견적서`,
+      sheet,
+      quoteData.items || [],
+      baseItemRowHeights
+    );
   } finally {
     permanentlyDeleteFile_(newFile.getId());
   }
@@ -2113,22 +2134,76 @@ function sizeQuotePdfItemRows_(sheet, items, firstRow) {
     const specCell = sheet.getRange(row, 4);
     const nameFontSize = Number(nameCell.getFontSize()) || 10;
     const specFontSize = Number(specCell.getFontSize()) || 10;
-    const lineCount = Math.max(
-      estimateQuoteCellLines_(item.name, mergedSheetCellWidthPx_(sheet, row, 2), nameFontSize),
-      estimateQuoteCellLines_(item.spec, mergedSheetCellWidthPx_(sheet, row, 4), specFontSize)
-    );
-    const fontSize = Math.max(nameFontSize, specFontSize);
-    const estimatedHeightPx = Math.ceil(lineCount * fontSize * 96 / 72 * 1.4 + 8);
-    const specLength = String(item.spec || '').length;
-    const legacyMinimumPx = specLength > 90 ? 72 : specLength > 60 ? 56 : specLength > 30 ? 44 : 0;
-    sheet.setRowHeight(row, Math.max(sheet.getRowHeight(row), legacyMinimumPx, estimatedHeightPx));
+    const nameWidth = mergedSheetCellWidthPx_(sheet, row, 2);
+    const specWidth = mergedSheetCellWidthPx_(sheet, row, 4);
+    let fontSize = Math.max(8, Math.floor(Math.min(nameFontSize, specFontSize, 10)));
+    let estimatedHeightPx = 0;
+
+    for (; fontSize >= 8; fontSize -= 1) {
+      const lineCount = Math.max(
+        estimateQuoteCellLines_(item.name, nameWidth, fontSize),
+        estimateQuoteCellLines_(item.spec, specWidth, fontSize)
+      );
+      estimatedHeightPx = Math.ceil(lineCount * fontSize * 96 / 72 * 1.35 + 8);
+      if (estimatedHeightPx <= MAX_QUOTE_PDF_ITEM_ROW_HEIGHT_PX || fontSize === 8) break;
+    }
+
+    nameCell.setFontSize(fontSize);
+    specCell.setFontSize(fontSize);
+    // 8pt에서도 상한을 넘는 극단 길이에서는 텍스트를 자르지 않고 필요한 높이를 허용한다.
+    sheet.setRowHeight(row, Math.max(sheet.getRowHeight(row), estimatedHeightPx));
   });
+}
+
+function sizeQuotePdfNotes_(sheet, notes) {
+  const noteRange = sheet.getRange('B34:F40');
+  noteRange.setWrap(true);
+  noteRange.setVerticalAlignment('top');
+
+  const noteCell = sheet.getRange(34, 2);
+  const widthPx = mergedSheetCellWidthPx_(sheet, 34, 2);
+  let availableHeightPx = 0;
+  for (let row = 34; row <= 40; row += 1) availableHeightPx += sheet.getRowHeight(row);
+
+  let fontSize = Math.min(Math.floor(Number(noteCell.getFontSize()) || 9), 9);
+  while (fontSize > 7) {
+    const lines = estimateQuoteCellLines_(notes, widthPx, fontSize);
+    if (lines * fontSize * 96 / 72 * 1.25 + 6 <= availableHeightPx) break;
+    fontSize -= 1;
+  }
+  noteRange.setFontSize(Math.max(7, fontSize));
+}
+
+function compactQuotePdfLayoutForRetry_(sheet, items, firstRow, baseRowHeights) {
+  items.forEach(function(item, index) {
+    const row = firstRow + index;
+    const nameCell = sheet.getRange(row, 2);
+    const specCell = sheet.getRange(row, 4);
+    nameCell.setFontSize(8);
+    specCell.setFontSize(8);
+
+    const lineCount = Math.max(
+      estimateQuoteCellLines_(item.name, mergedSheetCellWidthPx_(sheet, row, 2), 8),
+      estimateQuoteCellLines_(item.spec, mergedSheetCellWidthPx_(sheet, row, 4), 8)
+    );
+    const height = Math.ceil(lineCount * 8 * 96 / 72 * 1.2 + 6);
+    sheet.setRowHeight(row, Math.max(Number(baseRowHeights[index]) || 36, height));
+  });
+
+  const noteRange = sheet.getRange('B34:F40');
+  noteRange.setWrap(true);
+  noteRange.setVerticalAlignment('top');
+  noteRange.setFontSize(7);
 }
 
 function fillSheetData(spreadsheet, quoteData) {
   const sheet = spreadsheet.getSheets()[0];
   const details = quoteData.details || {};
   const items = quoteData.items || [];
+  const notes = String(details.notes || '');
+  if (notes.length > MAX_QUOTE_NOTES_LENGTH) {
+    throw new Error('비고는 ' + MAX_QUOTE_NOTES_LENGTH + '자까지 입력할 수 있습니다. (현재 ' + notes.length + '자)');
+  }
 
   // PDF 메일 첨부용 임시 시트는 기존에 셀마다 setValue를 반복했다.
   // Google Sheets 서비스 호출 수를 줄이기 위해 연속된 셀은 한 번에 기록한다.
@@ -2155,7 +2230,8 @@ function fillSheetData(spreadsheet, quoteData) {
   setQuoteTemplateValueByLabel_(sheet, '작성자', 'H37', details.authorName || '');
   setQuoteTemplateValueByLabel_(sheet, '연락처', 'H38', details.authorPhone || '');
   setQuoteTemplateValueByLabel_(sheet, '이메일', 'H39', details.authorEmail || '');
-  setRangeValuesIfRangeExists(sheet, CELL_MAP.notes, [[details.notes || '']]);
+  setRangeValuesIfRangeExists(sheet, CELL_MAP.notes, [[notes]]);
+  sizeQuotePdfNotes_(sheet, notes);
 
   let supplyTotal = 0;
   const itemNumbers = [];
@@ -2213,20 +2289,112 @@ function fillSheetData(spreadsheet, quoteData) {
   return vatIncludedPrice;
 }
 
-function createPdfBlob(spreadsheetId, sheetId, fileName) {
-  const url =
-    'https://docs.google.com/spreadsheets/d/' +
-    spreadsheetId +
-    '/export?format=pdf&size=A4&portrait=true&fitw=true&gridlines=false&gid=' +
-    sheetId;
+function quotePdfPageCount_(blob) {
+  const bytes = blob.getBytes();
+  let ascii = '';
+  for (let i = 0; i < bytes.length; i += 1) ascii += String.fromCharCode(bytes[i] & 255);
+  const pages = ascii.match(/\/Type\s*\/Page\b/g);
+  return pages ? pages.length : 0;
+}
 
+function fetchQuotePdfBlob_(spreadsheetId, sheetId, fileName) {
+  // scale=4는 Google Sheets PDF 내보내기의 "페이지에 맞춤"이며, 범위는 A1:J42로 제한한다.
+  const url = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId +
+    '/export?format=pdf&size=A4&portrait=true&scale=4&gridlines=false&sheetnames=false' +
+    '&printtitle=false&pagenum=UNDEFINED&attachment=true&gid=' + sheetId +
+    '&r1=0&c1=0&r2=42&c2=10';
   const params = {
     method: 'GET',
     headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
     muteHttpExceptions: true
   };
 
-  return UrlFetchApp.fetch(url, params).getBlob().setName(fileName + '.pdf');
+  const response = UrlFetchApp.fetch(url, params);
+  if (response.getResponseCode() !== 200) {
+    throw new Error('메일 첨부 PDF 내보내기 실패: HTTP ' + response.getResponseCode());
+  }
+  return response.getBlob().setName(fileName + '.pdf');
+}
+
+function createPdfBlob(spreadsheetId, sheetId, fileName, sheet, items, baseRowHeights) {
+  let blob = fetchQuotePdfBlob_(spreadsheetId, sheetId, fileName);
+  let pageCount = quotePdfPageCount_(blob);
+  if (pageCount === 1) return blob;
+
+  if (pageCount > 1) {
+    Logger.log('페이지 맞춤 PDF가 ' + pageCount + '쪽입니다. 8pt/7pt 압축 설정으로 한 번 더 내보냅니다.');
+    compactQuotePdfLayoutForRetry_(sheet, items, CELL_MAP.itemStartRow, baseRowHeights);
+    SpreadsheetApp.flush();
+    blob = fetchQuotePdfBlob_(spreadsheetId, sheetId, fileName);
+    pageCount = quotePdfPageCount_(blob);
+    if (pageCount === 1) return blob;
+  }
+
+  if (pageCount !== 1) {
+    throw new Error('메일 첨부 PDF가 1장으로 맞춰지지 않았습니다. 내보낸 페이지 수: ' + (pageCount || '확인 불가'));
+  }
+  return blob;
+}
+
+// Apps Script 편집기에서만 실행하는 레이아웃 진단. 임시 템플릿 사본을 만든 뒤 finally에서 삭제하며,
+// Gmail 초안·견적 대장·에이전트 큐는 생성하거나 수정하지 않는다.
+function runQuotePdfLayoutDiagnostic_() {
+  const quoteNumber = 'PDF-LAYOUT-DIAGNOSTIC-' + Date.now();
+  const notes = Array(150).fill('비').join('');
+  const longSpec = 'Intel Celeron Quad-Core J6412 SoC (FANLESS) / DDR4 SDRAM 8GB (Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise / Development + Runtime Keylock / Dual Ethernet / extended product configuration';
+  const items = Array.from({ length: ITEMS_PER_FILE }, function(_, index) {
+    return {
+      name: '레이아웃 시험 장비 CM-HNT515-A-' + (index + 1),
+      spec: longSpec,
+      quantity: 1,
+      unitPrice: 100000,
+      multiplier: 1
+    };
+  });
+  const quoteData = {
+    details: {
+      clientName: '한 장 출력 검증',
+      clientContactPerson: '진단',
+      clientPhone: '000-0000-0000',
+      clientEmail: 'diagnostic@example.com',
+      quoteNumber: quoteNumber,
+      quoteDate: '2026년 10월 13일',
+      authorName: '레이아웃 진단',
+      authorPhone: '000-0000-0000',
+      authorEmail: 'diagnostic@example.com',
+      deliveryLocation: '테스트',
+      deliveryDeadline: '협의',
+      paymentTerms: '협의',
+      validityPeriod: '30일',
+      packing: '제조사 기본',
+      notes: notes
+    },
+    items: items
+  };
+  const temporaryFile = DriveApp.getFileById(CONFIG.TEMPLATE_ID).makeCopy('임시_' + quoteNumber);
+  try {
+    const spreadsheet = SpreadsheetApp.open(temporaryFile);
+    const sheet = spreadsheet.getSheets()[0];
+    const baseRowHeights = items.map(function(item, index) {
+      return sheet.getRowHeight(CELL_MAP.itemStartRow + index);
+    });
+    fillSheetData(spreadsheet, quoteData);
+    SpreadsheetApp.flush();
+    const blob = createPdfBlob(temporaryFile.getId(), sheet.getSheetId(), quoteNumber, sheet, items, baseRowHeights);
+    const pageCount = quotePdfPageCount_(blob);
+    if (pageCount !== 1) throw new Error('레이아웃 진단 PDF 페이지 수가 1이 아닙니다: ' + pageCount);
+    return {
+      success: true,
+      pageCount: pageCount,
+      pdfBytes: blob.getBytes().length,
+      itemRows: items.length,
+      notesLength: notes.length,
+      lastItemRowHeightPx: sheet.getRowHeight(CELL_MAP.itemStartRow + items.length - 1),
+      notesFontSize: sheet.getRange(CELL_MAP.notes).getFontSize()
+    };
+  } finally {
+    permanentlyDeleteFile_(temporaryFile.getId());
+  }
 }
 
 function saveToLedgerSheet(sheet, details, items, totalPrice, fileUrl) {
