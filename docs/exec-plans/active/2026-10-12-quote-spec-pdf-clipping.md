@@ -22,11 +22,11 @@
 - [x] 견적 UI와 서버에서 비고 150자 제한을 적용(초과 초안은 자르지 않고 표시·저장 차단)
 - [x] Excel COM 스트레스 시험(14개 장문 품목+150자 비고)에서 PDF 1페이지 확인
 - [x] Apps Script 로컬 진단 함수를 추가해 임시 템플릿 사본만 내보내고 삭제하도록 구성
-- [ ] Apps Script 변경분을 기존 운영 URL에 배포하고 진단 함수를 실행(브라우저 인증 세션이 없어 대기)
+- [x] Apps Script 변경분을 기존 운영 URL의 **v118**로 배포(배포 ID/URL 유지)
+- [x] 운영 URL에서 읽기 전용 관리자 권한 확인 성공
+- [x] 임시 템플릿 사본으로 Apps Script PDF 진단: 14개 장문 품목+150자 비고, 1페이지(178,109 bytes); 임시 사본 삭제 확인
 - [ ] 서버 PC에 ZIP 적용 후 새 견적으로 두 PDF 경로를 최종 검증
 
 ## 서버 PC 반영
 
-패치 ZIP: `C:\Users\CIMON\Downloads\CIMON_견적규격_자동행높이_에이전트패치_20261012080328.zip`
-
-패치 ZIP: `C:\Users\CIMON\Downloads\CIMON_견적PDF_한장출력_비고줄바꿈_패치_20261013.zip` (server의 `fillTemplate.js`, `excelToPdf.js` 포함). 서버 PC에서는 두 파일을 교체하고 에이전트를 재시작한다. Excel COM 스트레스 PDF는 로컬에서 1페이지임을 확인했다. Apps Script 전체 교체 소스와 진단 함수는 저장소에 반영했으나, 현재 Google 로그인/Clasp 인증이 없어 운영 v117 URL의 다음 버전 배포와 Google Sheets 내보내기 진단은 아직 실행하지 못했다. 기존 견적/PDF/메일 초안은 수정하지 않는다.
+패치 ZIP: `C:\Users\CIMON\Downloads\CIMON_견적PDF_한장출력_비고줄바꿈_패치_20261013.zip` (server의 `fillTemplate.js`, `excelToPdf.js` 포함). 서버 PC에서는 두 파일을 교체하고 에이전트를 재시작한다. Excel COM 스트레스 PDF와 Apps Script/Google Sheets 스트레스 PDF 모두 1페이지임을 확인했다. Apps Script는 기존 운영 배포 ID/URL을 유지해 v118로 갱신했고 관리자 권한 확인도 성공했다. 남은 작업은 서버 PC에 ZIP을 적용한 뒤 새 견적으로 현장 PDF를 최종 검증하는 것이다. 기존 견적/PDF/메일 초안은 수정하지 않는다.
