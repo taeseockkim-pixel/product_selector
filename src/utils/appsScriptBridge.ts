@@ -14,6 +14,13 @@ export interface QuoteProcessResult {
   operationId?: string;
   /** 견적 에이전트가 꺼져 있거나 응답하지 않아 저장 접수를 거부한 경우 */
   agentUnavailable?: boolean;
+  /** 사용자가 선택한 누락/연속 번호가 동시 저장으로 이미 달라진 경우 */
+  quoteNumberChoiceStale?: boolean;
+  quoteNumberOptions?: {
+    firstMissingSequence: number;
+    nextSequentialSequence: number;
+    hasGap: boolean;
+  };
 }
 
 export interface QuoteOperationStatusResult {

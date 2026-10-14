@@ -49,6 +49,8 @@ function toAppsScriptPayload(quote, options = {}) {
     revisionOf: options.revisionOf ?? '',
     revisionYear: options.revisionYear,
     revisionDepartment: options.revisionDepartment ?? '',
+    quoteNumberMode: options.quoteNumberMode ?? 'reuseGap',
+    quoteNumberSequence: options.quoteNumberSequence,
     // Apps Script doPost의 토큰 검증용 (APPS_SCRIPT_AGENT_TOKEN 환경변수)
     agentToken: process.env.APPS_SCRIPT_AGENT_TOKEN ?? '',
   };

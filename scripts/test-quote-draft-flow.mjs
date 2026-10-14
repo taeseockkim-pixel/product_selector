@@ -16,6 +16,9 @@ assert.match(source, /const AGENT_DRAFT_FEATURE = 'draftAttachments';/);
 assert.match(source, /attachPdf: Boolean\(createDraft\)/, '에이전트 대기열에 첨부 요청 표시가 있어야 합니다.');
 assert.match(source, /bcc: request\.requesterEmail/, '견적 메일에는 작성자 본인을 BCC로 넣어야 합니다.');
 assert.match(source, /bcc: authorBcc/, '발주요청 메일에는 작성자 본인을 BCC로 넣어야 합니다.');
+assert.match(source, /payload\.quoteNumberMode \|\| 'reuseGap'/, 'Apps Script는 누락 번호 재사용을 이전 버전 기본 동작으로 유지해야 합니다.');
+assert.match(source, /quoteNumberChoiceStale: true/, '동시 저장으로 선택 번호가 바뀌면 접수 전에 거부해야 합니다.');
+assert.match(source, /QUOTE_NUMBER_RESERVATION_PREFIX/, '아직 대장에 기록되지 않은 대기 견적도 번호를 예약해야 합니다.');
 
 // ── 메모리 Drive / Gmail / Cache / Lock ──────────────────────────────────────────────
 const state = { userEmail: 'taeseock.kim@cimon.com', now: Date.now(), gmailDrafts: [], logs: [], exports: [] };
@@ -95,6 +98,7 @@ const sandbox = {
   PropertiesService: {
     getScriptProperties: () => ({
       getProperty: (key) => (properties.has(key) ? properties.get(key) : null),
+      getProperties: () => Object.fromEntries(properties),
       setProperty: (key, value) => { properties.set(key, String(value)); },
       deleteProperty: (key) => { properties.delete(key); },
     }),
@@ -439,6 +443,39 @@ const thisYear = new Date().getFullYear();
 const nextNumber = sandbox.getNextQuoteNumber('root', '기술영업', knownSystem, thisYear);
 assert.match(nextNumber, /^기술영업 \d{4}-001$/);
 assert.throws(() => sandbox.getNextQuoteNumber('root', '기술영업', knownSystem, thisYear - 1), /견적번호 생성 실패/, '연도가 다르면 해당 연도 대장을 열어야 합니다.');
+
+// NO 482가 비어 있고 마지막 번호가 488이면 사용자가 선택한 방식대로 482 또는 489를 발급한다.
+const usedSequences = Array.from({ length: 488 }, (_, index) => index + 1).filter((sequence) => sequence !== 482);
+const gapLedgerSystem = {
+  ledgerSheet: {
+    getLastRow: () => usedSequences.length + 1,
+    getRange: () => ({
+      getDisplayValues: () => usedSequences.map((sequence) => {
+        const row = Array(7).fill('');
+        row[0] = String(sequence);
+        row[6] = `기술영업 2610-${String(sequence).padStart(3, '0')}`;
+        return row;
+      }),
+    }),
+  },
+};
+assert.equal(sandbox.getNextQuoteNumber('root', '기술영업', gapLedgerSystem, thisYear, 'reuseGap'), '기술영업 2610-482');
+assert.equal(sandbox.getNextQuoteNumber('root', '기술영업', gapLedgerSystem, thisYear, 'continue'), '기술영업 2610-489');
+const gapOptions = sandbox.quoteNumberSequenceOptions_(gapLedgerSystem.ledgerSheet, '기술영업', thisYear);
+assert.deepEqual({
+  firstMissingSequence: gapOptions.firstMissingSequence,
+  nextSequentialSequence: gapOptions.nextSequentialSequence,
+  hasGap: gapOptions.hasGap,
+}, { firstMissingSequence: 482, nextSequentialSequence: 489, hasGap: true });
+sandbox.reserveQuoteNumber_('기술영업 2610-482', {
+  operationId: 'pending-482',
+  authorDepartment: '기술영업',
+  year: thisYear,
+}, 482);
+const reservedOptions = sandbox.quoteNumberSequenceOptions_(gapLedgerSystem.ledgerSheet, '기술영업', thisYear);
+assert.equal(reservedOptions.firstMissingSequence, 489, '접수 대기 중인 번호는 다음 저장에 예약되어야 합니다.');
+sandbox.releaseQuoteNumberReservation_('기술영업 2610-482', 'pending-482');
+assert.equal(sandbox.quoteNumberSequenceOptions_(gapLedgerSystem.ledgerSheet, '기술영업', thisYear).firstMissingSequence, 482);
 
 // ── 11. 작성자 DB 캐시 ─────────────────────────────────────────────────────────────────────────
 resetWorld();

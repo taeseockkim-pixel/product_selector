@@ -13,6 +13,7 @@ import {
   type QuoteCatalogItem,
 } from '../data/quoteProductCatalog';
 import { getSeq, saveQuote } from '../utils/quoteStorage';
+import { deriveQuoteNumberSequenceOptions } from '../utils/quoteNumbering';
 import {
   fetchAuthors,
   fetchLedger,
@@ -363,6 +364,17 @@ interface AppsScriptPayload {
   revisionDepartment?: string;
   saveMode?: 'newRevision' | 'overwrite';
   overwriteTargetNumber?: string;
+  quoteNumberMode?: 'reuseGap' | 'continue';
+  quoteNumberSequence?: number;
+}
+
+type QuoteNumberMode = 'reuseGap' | 'continue';
+
+interface PendingNewQuoteNumberAction {
+  createDraft: boolean;
+  subject: string;
+  body: string;
+  asNewQuote: boolean;
 }
 
 function createKey(prefix: string) {
@@ -533,6 +545,8 @@ function quoteToAppsScriptPayload(
   revisionDepartment = '',
   saveMode?: 'newRevision' | 'overwrite',
   overwriteTargetNumber?: string,
+  quoteNumberMode: QuoteNumberMode = 'continue',
+  quoteNumberSequence?: number,
 ): AppsScriptPayload {
   return {
     details: {
@@ -570,6 +584,8 @@ function quoteToAppsScriptPayload(
     revisionDepartment: revisionDepartment || undefined,
     saveMode,
     overwriteTargetNumber: overwriteTargetNumber || undefined,
+    quoteNumberMode,
+    quoteNumberSequence: Number.isInteger(quoteNumberSequence) ? quoteNumberSequence : undefined,
   };
 }
 
@@ -635,6 +651,8 @@ async function processQuoteRequest(
   revisionDepartment = '',
   saveMode?: 'newRevision' | 'overwrite',
   overwriteTargetNumber?: string,
+  quoteNumberMode: QuoteNumberMode = 'continue',
+  quoteNumberSequence?: number,
 ): Promise<QuoteProcessResult> {
   const appsScriptPayload = quoteToAppsScriptPayload(
     quote,
@@ -646,6 +664,8 @@ async function processQuoteRequest(
     revisionDepartment,
     saveMode,
     overwriteTargetNumber,
+    quoteNumberMode,
+    quoteNumberSequence,
   );
 
   if (window.parent && window.parent !== window) {
@@ -669,6 +689,8 @@ async function processQuoteRequest(
       revisionDepartment,
       saveMode,
       overwriteTargetNumber,
+      quoteNumberMode,
+      quoteNumberSequence,
     }),
   });
   const result = await readJsonResponse<QuoteProcessResult>(res);
@@ -872,6 +894,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   // ── 수정 시 미리보기 저장 모드: 'revision'(기존 견적서에 Rev으로 생성) vs 'newQuote'(신규 견적서로 생성) ──
   const [editSaveType, setEditSaveType] = useState<'newQuote' | 'revision' | 'overwrite'>('revision');
 
+  // 누락된 일련번호와 마지막 번호 다음 중 사용자가 선택할 신규 견적 번호 방식
+  const [ledgerFirstMissingSeq, setLedgerFirstMissingSeq] = useState<number | null>(null);
+  const [numberingChoiceOpen, setNumberingChoiceOpen] = useState(false);
+  const [pendingNumberingAction, setPendingNumberingAction] = useState<PendingNewQuoteNumberAction | null>(null);
+
   // ── 견적 수정 시 저장 방식 선택 모달 상태 ──
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
   const [revisionSaveMode, setRevisionSaveMode] = useState<'newRevision' | 'overwrite'>('newRevision');
@@ -993,22 +1020,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       if (!cancelled && result.success) {
         setCustomerRecords(customerRecordsFromLedger(result.headers ?? [], result.rows ?? []));
 
-        // 대장의 A열(NO) 또는 F열(견적번호)에서 가장 큰 일련번호를 찾아 미리보기 번호로 동기화
+        // 대장의 NO/견적번호에서 누락 번호와 마지막 번호 다음을 계산한다.
         const quoteIndex = (result.headers ?? []).findIndex((h) => h.includes('견적번호'));
-        let maxNo = 0;
-        (result.rows ?? []).forEach((row) => {
-          const noVal = Number(row.values[0]);
-          if (Number.isInteger(noVal) && noVal > maxNo) maxNo = noVal;
-          if (quoteIndex >= 0) {
-            const qStr = String(row.values[quoteIndex] || '');
-            const m = qStr.match(/-(\d+)(?:_Rev\d+)?$/i);
-            if (m) {
-              const parsed = parseInt(m[1], 10);
-              if (parsed > maxNo) maxNo = parsed;
-            }
-          }
-        });
-        if (maxNo > 0) setLedgerNextSeq(maxNo + 1);
+        const sequenceOptions = deriveQuoteNumberSequenceOptions(result.rows ?? [], quoteIndex);
+        setLedgerNextSeq(sequenceOptions.nextSequentialSequence);
+        setLedgerFirstMissingSeq(sequenceOptions.hasGap ? sequenceOptions.firstMissingSequence : null);
       }
     }).catch((err) => {
       console.warn('기존 고객 정보 및 대장 번호 조회 실패:', err);
@@ -1379,6 +1395,8 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     saveMode: 'newRevision' | 'overwrite' = 'newRevision',
     overwriteTargetNumber = '',
     asNewQuote = false,
+    quoteNumberMode: QuoteNumberMode = 'continue',
+    quoteNumberSequence?: number,
   ) {
     if (acceptedQuoteNumber) {
       alert(t(UI.quoteAcceptedCompletionDelayed).replace('{quoteNumber}', acceptedQuoteNumber));
@@ -1407,8 +1425,22 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         revisionDepartment,
         saveMode,
         overwriteTargetNumber,
+        quoteNumberMode,
+        quoteNumberSequence,
       );
       if (!result.success) {
+        if (result.quoteNumberChoiceStale) {
+          if (result.quoteNumberOptions) {
+            setLedgerNextSeq(result.quoteNumberOptions.nextSequentialSequence);
+            setLedgerFirstMissingSeq(result.quoteNumberOptions.hasGap ? result.quoteNumberOptions.firstMissingSequence : null);
+            if (result.quoteNumberOptions.hasGap) {
+              setPendingNumberingAction({ createDraft, subject, body, asNewQuote });
+              setNumberingChoiceOpen(true);
+            }
+          }
+          alert(result.message || '견적번호 상태가 변경됐습니다. 번호 선택을 확인해 주세요.');
+          return;
+        }
         if (result.agentUnavailable) {
           // 에이전트가 꺼져 있으면 저장이 접수되지 않았다. 입력한 내용은 그대로 두고 점검 후 다시 시도하게 한다.
           alert(`견적 에이전트 점검이 필요합니다.\n\n${result.message ?? ''}`);
@@ -1470,11 +1502,68 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     }
   }
 
+  function formatQuoteNumberSequence(sequence: number) {
+    const departmentPrefix = authorDepartment || '기술영업';
+    return `${departmentPrefix} ${nextQuoteYymm()}-${String(sequence).padStart(3, '0')}`;
+  }
+
+  function requestNewQuoteNumber(action: PendingNewQuoteNumberAction) {
+    if (ledgerNextSeq === null) {
+      alert('견적번호 확인 중입니다. 잠시 후 다시 저장해 주세요.');
+      return;
+    }
+    const hasGap = ledgerFirstMissingSeq !== null && ledgerFirstMissingSeq < ledgerNextSeq;
+    if (hasGap) {
+      setPendingNumberingAction(action);
+      setNumberingChoiceOpen(true);
+      return;
+    }
+    void processGoogleQuote(
+      action.createDraft,
+      action.subject,
+      action.body,
+      'newRevision',
+      '',
+      action.asNewQuote,
+      'continue',
+      ledgerNextSeq,
+    );
+  }
+
+  function confirmNewQuoteNumber(mode: QuoteNumberMode) {
+    const action = pendingNumberingAction;
+    if (!action) return;
+    const sequence = mode === 'reuseGap' ? ledgerFirstMissingSeq : ledgerNextSeq;
+    if (sequence === null) {
+      setNumberingChoiceOpen(false);
+      setPendingNumberingAction(null);
+      alert('견적번호 목록을 다시 확인한 뒤 시도해 주세요.');
+      return;
+    }
+    setNumberingChoiceOpen(false);
+    setPendingNumberingAction(null);
+    void processGoogleQuote(
+      action.createDraft,
+      action.subject,
+      action.body,
+      'newRevision',
+      '',
+      action.asNewQuote,
+      mode,
+      sequence,
+    );
+  }
+
+  function cancelNewQuoteNumberChoice() {
+    setNumberingChoiceOpen(false);
+    setPendingNumberingAction(null);
+  }
+
   function handleSave() {
     if (editQuote && editSaveType === 'newQuote') {
       if (!window.confirm(t(UI.quoteConfirmNewSave))) return;
       // 사용자가 미리보기에서 '신규 견적서로 생성'을 체크한 경우: 신규 생성 프로세스로 진행!
-      void processGoogleQuote(false, '', '', 'newRevision', '', true /* asNewQuote */);
+      requestNewQuoteNumber({ createDraft: false, subject: '', body: '', asNewQuote: true });
       return;
     }
     if (editQuote && (editSaveType === 'revision' || editSaveType === 'overwrite')) {
@@ -1485,7 +1574,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       setRevisionModalOpen(true);
       return;
     }
-    void processGoogleQuote(false);
+    requestNewQuoteNumber({ createDraft: false, subject: '', body: '', asNewQuote: false });
   }
 
   function handleEmailDraft() {
@@ -1493,7 +1582,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     if (editQuote && editSaveType === 'newQuote') {
       if (!window.confirm(t(UI.quoteConfirmNewSave))) return;
       // 사용자가 미리보기에서 '신규 견적서로 생성'을 체크한 경우: 신규 생성 프로세스로 진행!
-      void processGoogleQuote(true, emailSubject, emailBody, 'newRevision', '', true /* asNewQuote */);
+      requestNewQuoteNumber({ createDraft: true, subject: emailSubject, body: emailBody, asNewQuote: true });
       return;
     }
     if (editQuote && (editSaveType === 'revision' || editSaveType === 'overwrite')) {
@@ -1504,7 +1593,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       setRevisionModalOpen(true);
       return;
     }
-    void processGoogleQuote(true, emailSubject, emailBody);
+    requestNewQuoteNumber({ createDraft: true, subject: emailSubject, body: emailBody, asNewQuote: false });
   }
 
   function handleConfirmRevisionSave() {
@@ -1595,6 +1684,50 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                 className="px-5 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:bg-[#999999] transition-colors"
               >
                 {emailing ? t(UI.quoteProcessing) : t(UI.quoteSendBtn)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {numberingChoiceOpen && pendingNumberingAction && ledgerFirstMissingSeq !== null && ledgerNextSeq !== null && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true">
+          <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="border-b border-[#e2e8f0] px-5 py-4">
+              <h2 className="text-base font-bold text-[#191919]">견적번호 선택</h2>
+              <p className="mt-1 text-xs leading-5 text-[#64748b]">
+                삭제되어 비어 있는 번호와 마지막 번호 다음 중 사용할 번호를 선택해 주세요.
+              </p>
+            </div>
+            <div className="space-y-3 p-5">
+              <button
+                type="button"
+                onClick={() => confirmNewQuoteNumber('reuseGap')}
+                className="w-full rounded-xl border border-blue-300 bg-blue-50 p-4 text-left transition-colors hover:bg-blue-100"
+              >
+                <span className="block text-sm font-bold text-blue-900">
+                  누락 번호 재사용 — {formatQuoteNumberSequence(ledgerFirstMissingSeq)}
+                </span>
+                <span className="mt-1 block text-xs text-blue-800">비어 있는 가장 작은 견적번호를 사용합니다.</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmNewQuoteNumber('continue')}
+                className="w-full rounded-xl border border-[#cbd5e1] bg-white p-4 text-left transition-colors hover:bg-[#f8fafc]"
+              >
+                <span className="block text-sm font-bold text-[#334155]">
+                  마지막 번호 다음 — {formatQuoteNumberSequence(ledgerNextSeq)}
+                </span>
+                <span className="mt-1 block text-xs text-[#64748b]">누락 번호는 남겨 두고 새 번호로 이어갑니다.</span>
+              </button>
+            </div>
+            <div className="flex justify-end border-t border-[#e2e8f0] bg-[#f8fafc] px-5 py-3">
+              <button
+                type="button"
+                onClick={cancelNewQuoteNumberChoice}
+                className="rounded-lg border border-[#cbd5e1] px-4 py-2 text-sm font-semibold text-[#475569] hover:bg-white"
+              >
+                취소
               </button>
             </div>
           </div>

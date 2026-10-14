@@ -54,6 +54,8 @@ const AGENT_HEARTBEAT_MAX_AGE_MS = 150000;
 const AGENT_DRAFT_FEATURE = 'draftAttachments';
 // 메일 초안 요청/첨부 파일이 이 시간 안에 처리되지 않으면 폐기한다.
 const QUOTE_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+const QUOTE_NUMBER_RESERVATION_PREFIX = 'QUOTE_NUMBER_RESERVATION_';
+const QUOTE_NUMBER_RESERVATION_TTL_MS = 24 * 60 * 60 * 1000;
 const QUOTE_SNAPSHOT_SHEET_NAME = '견적원본데이터';
 
 // 견적관리대장 열 번호 (1부터 시작). 운영 대장은 E열 발주, F열 작성자,
@@ -130,7 +132,9 @@ function processQuoteFromReact(payload) {
     payload.revisionYear,
     payload.revisionDepartment || '',
     payload.saveMode || 'newRevision',
-    payload.overwriteTargetNumber || ''
+    payload.overwriteTargetNumber || '',
+    payload.quoteNumberMode || 'reuseGap',
+    payload.quoteNumberSequence
   );
 }
 
@@ -927,6 +931,7 @@ function processAgentResults(maxFiles, allowedDepartment) {
         // 파일 생성 성공을 먼저 확인한 뒤에만 대장 행을 만들고, 그 다음 링크를 기록한다.
         const system = commitLedgerAfterAgentSuccess_(result);
         updateLedgerLink_(result, system);
+        releaseQuoteNumberReservation_(result.quoteNumber, result.details && result.details.operationId);
         // 사용자가 기다리는 완료 상태를 먼저 기록하고, 로컬 대장 사본 내보내기는 대기열로 넘겨 1분 트리거가 처리한다.
         setQuoteOperationStatus_(result.details.operationId, 'completed', result.quoteNumber);
         queueLedgerExport_(system, Number(result.year), result.quoteNumber);
@@ -972,6 +977,7 @@ function processAgentResults(maxFiles, allowedDepartment) {
     } else if (result && result.ok === false) {
       setQuoteOperationStatus_(result.operationId, 'failed', result.quoteNumber, result.error || '견적 파일 생성에 실패했습니다.');
       movePendingToFailed_(result.quoteNumber, result.error || '알 수 없는 오류');
+      releaseQuoteNumberReservation_(result.quoteNumber, result.operationId);
     }
     permanentlyDeleteFile_(file.getId());
   }
@@ -2099,33 +2105,113 @@ function getOrderHistoryFromReact(payload) {
   }
 }
 
-function getNextQuoteNumber(rootFolderId, department, knownSystem, knownYear) {
+function readQuoteNumberReservations_() {
+  const props = PropertiesService.getScriptProperties();
+  let properties = {};
+  try { properties = props.getProperties(); } catch (err) { properties = {}; }
+  const reservations = {};
+  const now = Date.now();
+  Object.keys(properties).filter(function(key) { return key.indexOf(QUOTE_NUMBER_RESERVATION_PREFIX) === 0; }).forEach(function(key) {
+    let reservation = null;
+    try { reservation = JSON.parse(properties[key]); } catch (err) { reservation = null; }
+    if (!reservation) { props.deleteProperty(key); return; }
+    if (now - Number(reservation.createdAt || 0) > QUOTE_NUMBER_RESERVATION_TTL_MS) {
+      props.deleteProperty(key);
+      return;
+    }
+    reservations[String(reservation.quoteNumber || '')] = reservation;
+  });
+  return reservations;
+}
+
+function quoteNumberSequenceOptions_(sheet, department, year) {
+  const usedNumbers = {};
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    const rows = sheet.getRange(2, 1, lastRow - 1, LEDGER_COL.QUOTE_NUMBER).getDisplayValues();
+    rows.forEach(function(row) {
+      const noValue = Number(row[LEDGER_COL.NO - 1]);
+      if (Number.isInteger(noValue) && noValue > 0) usedNumbers[noValue] = true;
+      const quoteMatch = String(row[LEDGER_COL.QUOTE_NUMBER - 1] || '').match(/-(\d+)(?:_Rev\d+)?$/i);
+      if (quoteMatch) {
+        const quoteSequence = parseInt(quoteMatch[1], 10);
+        if (Number.isInteger(quoteSequence) && quoteSequence > 0) usedNumbers[quoteSequence] = true;
+      }
+    });
+  }
+
+  const dept = String(department || CONFIG.DEFAULT_DEPARTMENT).trim() || CONFIG.DEFAULT_DEPARTMENT;
+  const reservations = readQuoteNumberReservations_();
+  Object.keys(reservations).forEach(function(quoteNumber) {
+    const item = reservations[quoteNumber];
+    if (String(item.department || '') !== dept || Number(item.year) !== Number(year)) return;
+    const sequence = Number(item.sequence);
+    if (Number.isInteger(sequence) && sequence > 0) usedNumbers[sequence] = true;
+  });
+
+  let maxSequence = 0;
+  Object.keys(usedNumbers).forEach(function(value) { maxSequence = Math.max(maxSequence, Number(value) || 0); });
+  let firstMissingSequence = 1;
+  while (usedNumbers[firstMissingSequence]) firstMissingSequence += 1;
+  return {
+    firstMissingSequence: firstMissingSequence,
+    nextSequentialSequence: maxSequence + 1,
+    hasGap: firstMissingSequence <= maxSequence
+  };
+}
+
+function formatQuoteNumber_(department, date, sequence) {
+  const departmentName = String(department || CONFIG.DEFAULT_DEPARTMENT).trim() || CONFIG.DEFAULT_DEPARTMENT;
+  const quoteDate = date || new Date();
+  const year = Utilities.formatDate(quoteDate, Session.getScriptTimeZone(), 'yy');
+  const month = Utilities.formatDate(quoteDate, Session.getScriptTimeZone(), 'MM');
+  return `${departmentName} ${year}${month}-${String(sequence).padStart(3, '0')}`;
+}
+
+function reserveQuoteNumber_(quoteNumber, details, sequence) {
+  const props = PropertiesService.getScriptProperties();
+  const key = QUOTE_NUMBER_RESERVATION_PREFIX + sanitizeDriveName(quoteNumber);
+  const previous = props.getProperty(key);
+  if (previous) {
+    let existing = null;
+    try { existing = JSON.parse(previous); } catch (err) { existing = null; }
+    if (existing && String(existing.operationId || '') !== String(details.operationId || '')) {
+      throw new Error('견적번호가 다른 저장 작업에서 이미 예약되었습니다. 견적 목록을 새로고침한 뒤 다시 시도해 주세요.');
+    }
+  }
+  props.setProperty(key, JSON.stringify({
+    quoteNumber: String(quoteNumber),
+    operationId: String(details.operationId || ''),
+    department: String(details.authorDepartment || CONFIG.DEFAULT_DEPARTMENT),
+    year: Number(details.year) || new Date().getFullYear(),
+    sequence: Number(sequence),
+    createdAt: Date.now()
+  }));
+}
+
+function releaseQuoteNumberReservation_(quoteNumber, operationId) {
+  const key = String(quoteNumber || '').trim();
+  if (!key) return;
+  const props = PropertiesService.getScriptProperties();
+  const propertyKey = QUOTE_NUMBER_RESERVATION_PREFIX + sanitizeDriveName(key);
+  const raw = props.getProperty(propertyKey);
+  if (!raw) return;
+  let reservation = null;
+  try { reservation = JSON.parse(raw); } catch (err) { reservation = null; }
+  if (!reservation || (operationId && reservation.operationId && String(reservation.operationId) !== String(operationId))) return;
+  props.deleteProperty(propertyKey);
+}
+
+function getNextQuoteNumber(rootFolderId, department, knownSystem, knownYear, numberingMode, knownOptions) {
   try {
     const today = new Date();
     // processQuote가 이미 연 대장을 넘겨받으면 같은 스프레드시트를 한 번 더 열지 않는다.
     const system = (knownSystem && Number(knownYear) === today.getFullYear())
       ? knownSystem
       : getYearSystem(today.getFullYear(), rootFolderId);
-    const sheet = system.ledgerSheet;
-    const departmentName = String(department || CONFIG.DEFAULT_DEPARTMENT).trim() || CONFIG.DEFAULT_DEPARTMENT;
-    const yearPrefix = `${departmentName} ${Utilities.formatDate(today, Session.getScriptTimeZone(), 'yy')}`;
-    const lastRow = sheet.getLastRow();
-
-    // 영구삭제로 생긴 빈 번호는 가장 작은 빈 번호로 재사용한다.
-    // processQuote의 LockService가 동시 저장을 직렬화하므로 같은 번호 중복은 발생하지 않는다.
-    let seq = 1;
-    if (lastRow > 1) {
-      const nos = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-      const usedNumbers = {};
-      nos.forEach(function(row) {
-        const value = Number(row[0]);
-        if (Number.isInteger(value) && value > 0) usedNumbers[value] = true;
-      });
-      while (usedNumbers[seq]) seq += 1;
-    }
-
-    const seqStr = String(seq).padStart(3, '0');
-    return `${yearPrefix}${Utilities.formatDate(today, Session.getScriptTimeZone(), 'MM')}-${seqStr}`;
+    const options = knownOptions || quoteNumberSequenceOptions_(system.ledgerSheet, department, today.getFullYear());
+    const sequence = numberingMode === 'continue' ? options.nextSequentialSequence : options.firstMissingSequence;
+    return formatQuoteNumber_(department, today, sequence);
   } catch (err) {
     throw new Error('견적번호 생성 실패: ' + err.toString());
   }
@@ -2255,7 +2341,7 @@ function enqueueLocalDelete_(department, year, baseQuoteNumber) {
   }
 }
 
-function processQuote(quoteData, createDraft, customSubject, customBody, revisionOf, revisionYear, revisionDepartment, saveMode, overwriteTargetNumber) {
+function processQuote(quoteData, createDraft, customSubject, customBody, revisionOf, revisionYear, revisionDepartment, saveMode, overwriteTargetNumber, quoteNumberMode, quoteNumberSequence) {
   const submittedNotes = String(quoteData && quoteData.details && quoteData.details.notes || '');
   if (submittedNotes.length > MAX_QUOTE_NOTES_LENGTH) {
     return {
@@ -2276,6 +2362,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
   }
 
   const lock = LockService.getScriptLock();
+  let reservedQuoteNumber = '';
   try {
     lock.waitLock(30000);
   } catch (err) {
@@ -2359,9 +2446,30 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
       details.revisionNumber = revisionNumber;
       details.folderClientName = getQuoteFolderClientName_(system.ledger, baseQuoteNumber) || details.clientName;
     } else {
-      realQuoteNumber = getNextQuoteNumber(rootFolderId, details.authorDepartment, system, currentYear);
+      const mode = quoteNumberMode === 'continue' ? 'continue' : 'reuseGap';
+      const numberOptions = quoteNumberSequenceOptions_(system.ledgerSheet, details.authorDepartment, currentYear);
+      const allocatedSequence = mode === 'continue'
+        ? numberOptions.nextSequentialSequence
+        : numberOptions.firstMissingSequence;
+      const requestedSequence = Number(quoteNumberSequence);
+      if (Number.isInteger(requestedSequence) && requestedSequence > 0 && requestedSequence !== allocatedSequence) {
+        lock.releaseLock();
+        return {
+          success: false,
+          quoteNumberChoiceStale: true,
+          quoteNumberOptions: numberOptions,
+          message: '다른 사용자가 먼저 견적을 저장해 번호 목록이 바뀌었습니다. 아래 갱신된 번호 중에서 다시 선택해 주세요.'
+        };
+      }
+      realQuoteNumber = getNextQuoteNumber(rootFolderId, details.authorDepartment, system, currentYear, mode, numberOptions);
       baseQuoteNumber = realQuoteNumber;
       details.folderClientName = details.clientName;
+      reserveQuoteNumber_(realQuoteNumber, {
+        operationId: details.operationId,
+        authorDepartment: details.authorDepartment,
+        year: currentYear
+      }, allocatedSequence);
+      reservedQuoteNumber = realQuoteNumber;
     }
     details.quoteNumber = realQuoteNumber;
     // 로컬 에이전트는 details.quoteDate(항상 오늘 날짜)가 아니라 이 값으로 저장 연도 폴더를 결정해야
@@ -2385,6 +2493,8 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
       if (createDraft) discardQuoteDraft_(details.operationId);
       throw queueErr;
     }
+    // 대기열 파일이 생성되면 번호 예약은 processAgentResults가 완료/실패를 처리할 때 정리한다.
+    reservedQuoteNumber = '';
     setQuoteOperationStatus_(details.operationId, 'pending', realQuoteNumber);
 
     let returnMessage = '[접수] 견적번호: ' + realQuoteNumber;
@@ -2411,6 +2521,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
       message: returnMessage
     };
   } catch (err) {
+    if (reservedQuoteNumber) releaseQuoteNumberReservation_(reservedQuoteNumber, quoteData.details && quoteData.details.operationId);
     lock.releaseLock();
     const errorText = String(err && err.toString ? err.toString() : err);
     if (/DriveApp|액세스가 거부|Access denied|권한이 없습니다/i.test(errorText)) {

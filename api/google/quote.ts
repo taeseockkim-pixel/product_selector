@@ -10,10 +10,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method not allowed' });
 
   try {
-    const { quote, createDraft = false, subject = '', body = '', revisionOf = '', revisionYear, revisionDepartment = '' } = req.body ?? {};
+    const { quote, createDraft = false, subject = '', body = '', revisionOf = '', revisionYear, revisionDepartment = '', quoteNumberMode = 'reuseGap', quoteNumberSequence } = req.body ?? {};
     if (!quote) return res.status(400).json({ success: false, message: 'quote payload is required' });
 
-    const result = await processAppsScriptQuote(quote, { createDraft, subject, body, revisionOf, revisionYear, revisionDepartment });
+    const result = await processAppsScriptQuote(quote, { createDraft, subject, body, revisionOf, revisionYear, revisionDepartment, quoteNumberMode, quoteNumberSequence });
     return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ success: false, message: String(err) });
