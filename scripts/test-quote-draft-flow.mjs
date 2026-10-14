@@ -14,6 +14,8 @@ for (const removed of ['createTempQuotePdf_', 'fillSheetData', 'createPdfBlob', 
 assert.match(source, /const MAX_QUOTE_NOTES_LENGTH = 300;/);
 assert.match(source, /const AGENT_DRAFT_FEATURE = 'draftAttachments';/);
 assert.match(source, /attachPdf: Boolean\(createDraft\)/, '에이전트 대기열에 첨부 요청 표시가 있어야 합니다.');
+assert.match(source, /bcc: request\.requesterEmail/, '견적 메일에는 작성자 본인을 BCC로 넣어야 합니다.');
+assert.match(source, /bcc: authorBcc/, '발주요청 메일에는 작성자 본인을 BCC로 넣어야 합니다.');
 
 // ── 메모리 Drive / Gmail / Cache / Lock ──────────────────────────────────────────────
 const state = { userEmail: 'taeseock.kim@cimon.com', now: Date.now(), gmailDrafts: [], logs: [], exports: [] };
@@ -103,6 +105,12 @@ const sandbox = {
   },
   Utilities: {
     getUuid: () => '123e4567-e89b-12d3-a456-426614174000',
+    base64Decode: (value) => Array.from(Buffer.from(value, 'base64')),
+    newBlob: (bytes, contentType) => ({
+      bytes: Buffer.from(bytes),
+      contentType,
+      setName(name) { this.name = name; return this; },
+    }),
     formatDate: (date, zone, format) => {
       const year = String(date.getFullYear());
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -286,6 +294,7 @@ assert.equal(created.state, 'created');
 assert.equal(state.gmailDrafts.length, 1);
 const draft = state.gmailDrafts[0];
 assert.equal(draft.to, 'customer@example.com');
+assert.equal(draft.options.bcc, 'taeseock.kim@cimon.com', '견적 메일 BCC는 초안을 요청한 작성자여야 합니다.');
 assert.equal(draft.options.name, '김태석 차장');
 assert.equal(draft.options.attachments.length, 2);
 assert.deepEqual([...draft.options.attachments].map((blob) => blob.getName()), [
@@ -439,4 +448,29 @@ assert.equal(sandbox.readAuthorRows_().length, 1);
 assert.equal(sandbox.readAuthorRows_().length, 1);
 assert.equal(authorReads, 1, '작성자 DB는 캐시 시간 안에는 다시 읽지 않아야 합니다.');
 
-console.log('✅ 에이전트 상태 확인 · Excel PDF 메일 초안 · 속도 개선 로직 검증 통과');
+// ── 12. 발주요청 메일도 작성자 본인을 BCC에 추가하고 기존 CC를 유지한다 ─────────────────────
+resetWorld();
+const orderAuthorEmail = 'writer@cimon.com';
+state.userEmail = orderAuthorEmail;
+sandbox.readAuthorRowsUncached_ = () => [{
+  name: '시험 작성자',
+  phone: '010-1111-2222',
+  email: orderAuthorEmail,
+  department: '기술영업',
+}];
+cache.clear();
+const orderResult = sandbox.createOrderDraftFromReact({
+  clientName: '시험 고객',
+  productName: 'CM-E2E',
+  contactName: '시험 담당',
+  contactPhone: '010-0000-0000',
+  deliveryAddress: '경기도 성남시',
+  quoteNumber: '기술영업 TEST-PO',
+  files: [{ name: '발주서.pdf', mimeType: 'application/pdf', base64: Buffer.from('%PDF-1.7').toString('base64') }],
+});
+assert.equal(orderResult.success, true);
+assert.equal(state.gmailDrafts.length, 1);
+assert.equal(state.gmailDrafts[0].options.bcc, orderAuthorEmail, '발주요청 메일 BCC는 로그인한 작성자여야 합니다.');
+assert.ok(state.gmailDrafts[0].options.cc.includes('dept-36339@cimon.com'), '기존 발주요청 CC 목록을 유지해야 합니다.');
+
+console.log('✅ 에이전트 상태 확인 · Excel PDF 메일 초안 · 발주요청 BCC · 속도 개선 로직 검증 통과');

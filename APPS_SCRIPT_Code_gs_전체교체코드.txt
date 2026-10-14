@@ -649,6 +649,7 @@ function resolveQuoteDraft_(operationId, userEmail) {
     try {
       GmailApp.createDraft(request.to, request.subject, request.body, {
         attachments: attachments.blobs,
+        bcc: request.requesterEmail,
         name: request.authorName || 'CIMON',
         htmlBody: textToHtmlBody_(request.body)
       });
@@ -1930,6 +1931,8 @@ function createOrderDraftFromReact(payload) {
     });
 
     const subject = `[발주서] ${clientName}- ${productName} 발주서 공유`.trim();
+    const authorBcc = normalizeAccountEmail_(Session.getActiveUser().getEmail()) ||
+      normalizeAccountEmail_(access.author.email);
 
     // &부서 표기: 기술영업→기술영업실, 영업→자동화영업실, 프로젝트→프로젝트사업실
     const deptName = String((payload && payload.department) || access.author.department || '').trim();
@@ -1957,6 +1960,7 @@ function createOrderDraftFromReact(payload) {
     const htmlBody = textToHtmlBody_(body);
     GmailApp.createDraft(ORDER_EMAIL_TO, subject, body, {
       cc: ORDER_EMAIL_CC,
+      bcc: authorBcc,
       attachments: attachments,
       name: 'CIMON',
       htmlBody: htmlBody
