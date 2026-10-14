@@ -140,7 +140,8 @@ npm run build                   # 프로덕션 빌드 확인
 
 1. `npm run generate:quote-products` 실행
 2. `src/data/quoteProductCatalog.ts` 변경 확인
-3. `npm run verify` 실행
+3. 시트/대표 가격을 확인하고 `npm run test:quote-catalog` 실행
+4. `npm run verify` 실행
 
 견적서 품목 금액은 `단가 × 배율 × 수량`으로 계산한다. 배율을 변경하는 기능을 수정할 때는
 `QuoteFormPage.tsx`, 미리보기/인쇄 HTML, CSV 및 Apps Script 운영용 코드의 계산이

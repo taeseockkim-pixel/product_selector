@@ -357,6 +357,427 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
     ]
   },
   {
+    "sheet": "SCADA PRO. Web",
+    "items": [
+      {
+        "id": "SCADA PRO. Web:CM03-0150-01/WS#1",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-01/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 1 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 2550000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-0150-03/WS#2",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-03/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 3 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 4040000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-0150-05/WS#3",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-05/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 5 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 5540000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-0150-10/WS#4",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-10/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 10 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 7030000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-0150-15/WS#5",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-15/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 15 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 8530000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-0150-20/WS#6",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-20/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 20 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 10020000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-0150-25/WS#7",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-25/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 25 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 11520000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-0150-30/WS#8",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-0150-30/WS",
+        "spec": "150 Tag / Web + Development+Runtime+Keylock, 150 Tag, 동시접속 30 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 13010000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-01/WS#9",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-01/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 1 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 5610000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-03/WS#10",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-03/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 3 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 7110000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-05/WS#11",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-05/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 5 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 8600000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-10/WS#12",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-10/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 10 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 10100000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-15/WS#13",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-15/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 15 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 11590000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-20/WS#14",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-20/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 20 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 13090000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-25/WS#15",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-25/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 25 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 14580000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-500-30/WS#16",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-500-30/WS",
+        "spec": "500 Tag / Web + Development+Runtime+Keylock, 500 Tag, 동시접속 30 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 16080000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-01/WS#17",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-01/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 1 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 11220000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-03/WS#18",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-03/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 3 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 12710000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-05/WS#19",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-05/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 5 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 14210000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-10/WS#20",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-10/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 10 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 15700000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-15/WS#21",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-15/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 15 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 17200000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-20/WS#22",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-20/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 20 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 18690000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-25/WS#23",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-25/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 25 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 20190000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-10K-30/WS#24",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-10K-30/WS",
+        "spec": "10K Tag / Web + Development+Runtime+Keylock, 10K Tag, 동시접속 30 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 21680000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-01/WS#25",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-01/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 1 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 23920000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-03/WS#26",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-03/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 3 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 25420000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-05/WS#27",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-05/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 5 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 26910000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-10/WS#28",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-10/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 10 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 28410000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-15/WS#29",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-15/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 15 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 29900000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-20/WS#30",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-20/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 20 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 31400000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-25/WS#31",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-25/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 25 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 32890000
+          }
+        ]
+      },
+      {
+        "id": "SCADA PRO. Web:CM03-100K-30/WS#32",
+        "sheet": "SCADA PRO. Web",
+        "categoryLabel": "SCADA PRO - 개발용",
+        "name": "CM03-100K-30/WS",
+        "spec": "100K Tag / Web + Development+Runtime+Keylock, 100K Tag, 동시접속 30 User",
+        "tiers": [
+          {
+            "minQty": 1,
+            "unitPrice": 34390000
+          }
+        ]
+      }
+    ]
+  },
+  {
     "sheet": "SCADA . Web",
     "items": [
       {
@@ -5022,7 +5443,7 @@ export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined
 
 export const QUOTE_PRODUCT_CATALOG_META = {
   source: 'Quote_manage/기본자료/Product_Prise.xlsx',
-  generatedAt: '2026-09-21T01:41:19.958Z',
-  groupCount: 15,
-  itemCount: 341,
+  generatedAt: '2026-10-14T04:18:54.116Z',
+  groupCount: 16,
+  itemCount: 373,
 } as const;
