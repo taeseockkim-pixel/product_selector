@@ -2278,7 +2278,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-[1fr_1.4fr_120px_150px] gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-[minmax(150px,0.85fr)_minmax(240px,1.55fr)_84px_minmax(150px,auto)] gap-2 items-stretch">
                   <select
                     value={selectedSheet}
                     onChange={(e) => handleSheetChange(e.target.value)}
@@ -2318,7 +2318,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   </button>
                 </div>
                 {selectedCatalogItem?.spec && (
-                  <p className="text-xs text-[#777777] mt-2 line-clamp-2">{translateSpecValue(selectedCatalogItem.spec, lang)}</p>
+                  <div className="mt-2 max-h-24 overflow-y-auto rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-xs leading-5 text-[#555555] whitespace-pre-wrap break-words">
+                    {translateSpecValue(selectedCatalogItem.spec, lang)}
+                  </div>
                 )}
                 {selectedCatalogTiered && (
                   <p className="text-xs text-blue-600 mt-1">{t(UI.quoteTieredHint)}</p>
@@ -2329,13 +2331,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <thead className="bg-[#e6e2dc]">
                     <tr>
                       <th className="w-10"></th>
-                      <th className="text-left px-4 py-2.5 font-medium text-[#555555] text-xs">{t(UI.quoteModelName)}</th>
-                      <th className="text-center px-3 py-2.5 font-medium text-[#555555] text-xs w-20">{t(UI.quoteSpecAction)}</th>
-                      <th className="text-center px-3 py-2.5 font-medium text-[#555555] text-xs w-20">{t(UI.quoteQty)}</th>
-                      <th className="text-right px-4 py-2.5 font-medium text-[#555555] text-xs w-28">{t(UI.quoteUnitPrice)}</th>
-                      <th className="text-right px-3 py-2.5 font-medium text-[#555555] text-xs w-20">{t(UI.quoteMultiplier)}</th>
-                      <th className="text-right px-4 py-2.5 font-medium text-[#555555] text-xs w-28">{t(UI.quoteTotal)}</th>
-                      <th className="text-center px-3 py-2.5 font-medium text-[#555555] text-xs w-16">{t(UI.quoteRemove)}</th>
+                      <th colSpan={7} className="text-left px-4 py-2.5 font-medium text-[#555555] text-xs">
+                        {t(UI.quoteModelName)} / {t(UI.quoteSpecAction)} · {t(UI.quoteQty)} / {t(UI.quoteUnitPrice)} / {t(UI.quoteMultiplier)} / {t(UI.quoteTotal)}
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2345,12 +2343,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                       const isDragging = draggedIndex === idx;
                       const isDropTarget = dragOverIndex === idx && draggedIndex !== null && draggedIndex !== idx;
                       const matchedProduct = findProductForItem(item);
-                      const isManualMultiline = Boolean(item.isCustom && !item.catalogItem && !item.product);
 
-                      // 가격표와 수기 항목은 PDF처럼 모델명·규격을 넓은 별도 칸에 배치하고,
-                      // 수량·단가 등 입력 컨트롤은 다음 줄에 둔다. 수기 모델명만 여러 줄을 허용한다.
-                      if (item.isCustom || item.catalogItem) {
-                        return (
+                      // 모든 견적 품목을 PDF처럼 모델명·규격 중심의 넓은 행으로 표시하고,
+                      // 수량·단가 등 입력 컨트롤은 다음 줄에 둔다.
+                      return (
                           <tr
                             key={item.key}
                             onDragOver={(e) => handleDragOver(idx, e)}
@@ -2403,25 +2399,18 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                                     <span>{idx + 1}. {lang === 'en' ? 'Product name' : '모델명'}</span>
                                     {item.isCustom && <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-700">수기작성</span>}
                                   </label>
-                                  {isManualMultiline ? (
-                                    <textarea
-                                      id={`quote-item-name-${idx}`}
-                                      rows={quoteItemTextareaRows(item.name, 22)}
-                                      value={item.name}
-                                      onChange={(e) => updateItemName(idx, e.target.value)}
-                                      placeholder={lang === 'en' ? 'Enter a product name. Press Enter to add a line.' : '품명/제품명을 직접 입력하세요. Enter로 줄바꿈할 수 있습니다.'}
-                                      className="w-full rounded-lg border border-indigo-300 bg-indigo-50/20 px-3 py-2 text-sm font-bold leading-5 text-indigo-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none whitespace-pre-wrap break-words"
-                                    />
-                                  ) : (
-                                    <input
-                                      id={`quote-item-name-${idx}`}
-                                      type="text"
-                                      value={item.name}
-                                      onChange={(e) => updateItemName(idx, e.target.value)}
-                                      placeholder={lang === 'en' ? 'Enter a model name' : '모델명 입력'}
-                                      className="w-full rounded-lg border border-[#ddd9d2] bg-white px-3 py-2 text-sm font-bold leading-5 text-[#191919] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                    />
-                                  )}
+                                  <textarea
+                                    id={`quote-item-name-${idx}`}
+                                    rows={quoteItemTextareaRows(item.name, 22)}
+                                    value={item.name}
+                                    onChange={(e) => updateItemName(idx, e.target.value)}
+                                    placeholder={lang === 'en' ? 'Enter a model name. Press Enter to add a line.' : '모델명을 입력하세요. Enter로 줄바꿈할 수 있습니다.'}
+                                    className={`w-full rounded-lg border px-3 py-2 text-sm font-bold leading-5 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none whitespace-pre-wrap break-words ${
+                                      item.isCustom
+                                        ? 'border-indigo-300 bg-indigo-50/20 text-indigo-950'
+                                        : 'border-[#ddd9d2] bg-white text-[#191919]'
+                                    }`}
+                                  />
                                 </div>
                                 <div className="min-w-0">
                                   <label htmlFor={`quote-item-spec-${idx}`} className="mb-1 block text-[11px] font-semibold text-[#64748b]">
@@ -2433,7 +2422,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                                     value={item.spec}
                                     onChange={(e) => updateItemSpec(idx, e.target.value)}
                                     placeholder={lang === 'en' ? 'Enter specifications. Press Enter to add a line.' : '규격/사양 상세 내용을 입력하세요. Enter로 줄바꿈할 수 있습니다.'}
-                                    className="w-full rounded-lg border border-blue-200 bg-blue-50/20 px-3 py-2 text-sm leading-5 text-blue-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none whitespace-pre-wrap break-words"
+                                    className={`w-full rounded-lg border px-3 py-2 text-sm leading-5 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none whitespace-pre-wrap break-words ${
+                                      item.isCustom
+                                        ? 'border-indigo-200 bg-indigo-50/10 text-indigo-900'
+                                        : 'border-[#ddd9d2] bg-white text-[#444444]'
+                                    }`}
                                   />
                                 </div>
                               </div>
@@ -2498,134 +2491,6 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                             </td>
                           </tr>
                         );
-                      }
-
-                      return (
-                        <tr
-                          key={item.key}
-                          onDragOver={(e) => handleDragOver(idx, e)}
-                          onDrop={(e) => handleDrop(idx, e)}
-                          className={`border-t border-[#ddd9d2] bg-white transition-colors ${
-                            isDragging ? 'opacity-50' : ''
-                          } ${isDropTarget ? 'bg-blue-50 outline outline-2 outline-blue-300 outline-offset-[-2px]' : ''}`}
-                        >
-                          <td className="px-1 py-3">
-                            <div className="flex items-center justify-center gap-1">
-                              <button
-                                type="button"
-                                draggable
-                                onDragStart={(e) => handleDragStart(idx, e)}
-                                onDragEnd={handleDragEnd}
-                                className="cursor-grab active:cursor-grabbing text-[#999999] hover:text-[#191919] p-1"
-                                aria-label={t(UI.quoteDragReorder)}
-                                title={t(UI.quoteDragReorder)}
-                              >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h8M8 12h8M8 17h8" />
-                                </svg>
-                              </button>
-                              <div className="flex flex-col items-center gap-0.5">
-                              <button
-                                type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0}
-                                className="text-[#999999] hover:text-[#191919] disabled:opacity-30 disabled:cursor-not-allowed"
-                                aria-label={t(UI.quoteMoveUp)}
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
-                                </svg>
-                              </button>
-                              <button
-                                type="button" onClick={() => moveItem(idx, 1)} disabled={idx === items.length - 1}
-                                className="text-[#999999] hover:text-[#191919] disabled:opacity-30 disabled:cursor-not-allowed"
-                                aria-label={t(UI.quoteMoveDown)}
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </button>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="text-[#777777] text-xs font-bold shrink-0">{idx + 1}.</span>
-                              <input
-                                type="text"
-                                value={item.name}
-                                onChange={(e) => updateItemName(idx, e.target.value)}
-                                placeholder="품명/제품명 직접 입력"
-                                className="w-full font-bold text-xs rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 border border-transparent hover:border-[#cbd5e1] focus:border-blue-500 text-[#191919]"
-                              />
-                            </div>
-                            <textarea
-                              rows={item.spec && (item.spec.includes('\n') || item.spec.length > 40) ? 3 : 1}
-                              value={item.spec}
-                              onChange={(e) => updateItemSpec(idx, e.target.value)}
-                              placeholder="규격/사양 상세 내용 직접 작성"
-                              className="w-full text-xs rounded px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none border border-transparent hover:border-[#cbd5e1] focus:border-blue-500 text-[#666]"
-                            />
-                            {tiered && <p className="text-[10px] text-blue-500 mt-0.5">{t(UI.quoteTieredHint)}</p>}
-                          </td>
-                          <td className="px-3 py-3 text-center">
-                            {matchedProduct ? (
-                              <button
-                                type="button"
-                                onClick={() => setDetailProduct(matchedProduct)}
-                                className="px-2.5 py-1.5 rounded-lg border border-[#ddd9d2] bg-white text-xs font-medium text-[#555555] hover:bg-[#e6e2dc] hover:text-[#191919] transition-colors"
-                              >
-                                {t(UI.detailBtn)}
-                              </button>
-                            ) : (
-                              <span className="text-xs text-[#bbbbbb]">—</span>
-                            )}
-                          </td>
-                          <td className="px-3 py-3 text-center">
-                            <input
-                              type="number" min={1} value={item.qty}
-                              onChange={(e) => updateQty(idx, parseInt(e.target.value, 10))}
-                              className="w-16 text-center border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:border-[#191919] bg-white"
-                            />
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={item.unitPrice != null ? formatKRW(item.unitPrice) : ''}
-                              onChange={(e) => updatePrice(idx, parseKRW(e.target.value))}
-                              placeholder={t(UI.quotePriceNone)}
-                              className={`w-24 text-right border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#191919] bg-white ${
-                                item.unitPrice == null ? 'placeholder:text-rose-600 placeholder:font-semibold' : ''
-                              }`}
-                            />
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <input
-                              type="number"
-                              min="0.01"
-                              step="0.01"
-                              value={item.multiplier}
-                              onChange={(e) => updateMultiplier(idx, e.target.value)}
-                              onBlur={() => normalizeMultiplier(idx)}
-                              aria-label={`${t(UI.quoteMultiplier)} ${idx + 1}`}
-                              className="w-20 text-right border border-[#ddd9d2] rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-[#191919] bg-white"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            {item.unitPrice != null
-                              ? <span className="font-semibold text-xs">{formatKRW(rowTotal)}</span>
-                              : <span className="text-[#999999] text-xs">—</span>}
-                          </td>
-                          <td className="px-3 py-3 text-center">
-                            <button
-                              type="button"
-                              onClick={() => removeItem(idx)}
-                              className="text-xs font-medium text-red-500 hover:text-red-700"
-                            >
-                              {t(UI.quoteRemove)}
-                            </button>
-                          </td>
-                        </tr>
-                      );
                     })}
                     {items.length === 0 && (
                       <tr className="border-t border-[#ddd9d2] bg-white">
