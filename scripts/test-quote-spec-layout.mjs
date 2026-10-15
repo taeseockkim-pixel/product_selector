@@ -31,8 +31,9 @@ try {
   assert.equal(quoteItemLayoutExports.quoteItemTextareaRows('첫 줄\n둘째 줄\n셋째 줄', 100), 3);
   assert.equal(quoteItemLayoutExports.quoteItemTextareaRows('abcdefghij', 4), 3);
   const quoteFormSource = await readFile(join(root, 'src', 'components', 'QuoteFormPage.tsx'), 'utf8');
-  assert.match(quoteFormSource, /if \(item\.isCustom\) \{[\s\S]*?colSpan=\{7\}[\s\S]*?rows=\{quoteItemTextareaRows\(item\.name, 22\)\}[\s\S]*?rows=\{quoteItemTextareaRows\(item\.spec, 58\)\}/);
-  assert.match(quoteFormSource, /type="text"\s+value=\{item\.name\}[\s\S]*?onChange=\{\(e\) => updateItemName\(idx, e\.target\.value\)\}/, '카탈로그 모델명은 일반 한 줄 input으로 유지해야 합니다.');
+  assert.match(quoteFormSource, /if \(item\.isCustom \|\| item\.catalogItem\) \{[\s\S]*?colSpan=\{7\}[\s\S]*?rows=\{quoteItemTextareaRows\(item\.spec, 58\)\}/, '수기 및 Product_Prise 품목은 넓은 모델명/규격과 하단 가격 행을 사용해야 합니다.');
+  assert.match(quoteFormSource, /const isManualMultiline = Boolean\(item\.isCustom && !item\.catalogItem && !item\.product\)/, '모델명 여러 줄 입력은 순수 수기 품목만 허용해야 합니다.');
+  assert.match(quoteFormSource, /isManualMultiline \? \([\s\S]*?rows=\{quoteItemTextareaRows\(item\.name, 22\)\}[\s\S]*?\) : \([\s\S]*?id=\{`quote-item-name-\$\{idx\}`\}\s+type="text"\s+value=\{item\.name\}/, 'Product_Prise 모델명은 같은 넓은 행에서 한 줄 input이어야 합니다.');
 
   await fillQuoteTemplate({
     client: { company: '규격 줄바꿈 테스트', contact: '테스트', phone: '000', email: 'test@example.com' },

@@ -2345,10 +2345,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                       const isDragging = draggedIndex === idx;
                       const isDropTarget = dragOverIndex === idx && draggedIndex !== null && draggedIndex !== idx;
                       const matchedProduct = findProductForItem(item);
+                      const isManualMultiline = Boolean(item.isCustom && !item.catalogItem && !item.product);
 
-                      // 수기 항목만 품명·규격을 넓은 별도 칸에 multiline으로 보여 주고,
-                      // 수량·단가 등 입력 컨트롤은 다음 줄에 배치한다.
-                      if (item.isCustom) {
+                      // 가격표와 수기 항목은 PDF처럼 모델명·규격을 넓은 별도 칸에 배치하고,
+                      // 수량·단가 등 입력 컨트롤은 다음 줄에 둔다. 수기 모델명만 여러 줄을 허용한다.
+                      if (item.isCustom || item.catalogItem) {
                         return (
                           <tr
                             key={item.key}
@@ -2400,16 +2401,27 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                                 <div className="min-w-0">
                                   <label htmlFor={`quote-item-name-${idx}`} className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-[#64748b]">
                                     <span>{idx + 1}. {lang === 'en' ? 'Product name' : '모델명'}</span>
-                                    <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-700">수기작성</span>
+                                    {item.isCustom && <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-700">수기작성</span>}
                                   </label>
-                                  <textarea
-                                    id={`quote-item-name-${idx}`}
-                                    rows={quoteItemTextareaRows(item.name, 22)}
-                                    value={item.name}
-                                    onChange={(e) => updateItemName(idx, e.target.value)}
-                                    placeholder={lang === 'en' ? 'Enter a product name. Press Enter to add a line.' : '품명/제품명을 직접 입력하세요. Enter로 줄바꿈할 수 있습니다.'}
-                                    className="w-full rounded-lg border border-indigo-300 bg-indigo-50/20 px-3 py-2 text-sm font-bold leading-5 text-indigo-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none whitespace-pre-wrap break-words"
-                                  />
+                                  {isManualMultiline ? (
+                                    <textarea
+                                      id={`quote-item-name-${idx}`}
+                                      rows={quoteItemTextareaRows(item.name, 22)}
+                                      value={item.name}
+                                      onChange={(e) => updateItemName(idx, e.target.value)}
+                                      placeholder={lang === 'en' ? 'Enter a product name. Press Enter to add a line.' : '품명/제품명을 직접 입력하세요. Enter로 줄바꿈할 수 있습니다.'}
+                                      className="w-full rounded-lg border border-indigo-300 bg-indigo-50/20 px-3 py-2 text-sm font-bold leading-5 text-indigo-950 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none whitespace-pre-wrap break-words"
+                                    />
+                                  ) : (
+                                    <input
+                                      id={`quote-item-name-${idx}`}
+                                      type="text"
+                                      value={item.name}
+                                      onChange={(e) => updateItemName(idx, e.target.value)}
+                                      placeholder={lang === 'en' ? 'Enter a model name' : '모델명 입력'}
+                                      className="w-full rounded-lg border border-[#ddd9d2] bg-white px-3 py-2 text-sm font-bold leading-5 text-[#191919] focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  )}
                                 </div>
                                 <div className="min-w-0">
                                   <label htmlFor={`quote-item-spec-${idx}`} className="mb-1 block text-[11px] font-semibold text-[#64748b]">
