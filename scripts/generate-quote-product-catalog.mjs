@@ -374,7 +374,7 @@ export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined
     .toUpperCase()
     .replace(/\\s+/g, ' ')
     .replace(/\\s*\\([^)]*\\)\\s*$/, '')
-    .replace(/^CM03-(\\d+)(\\/)/, (_, digits, suffix) => \`CM03-\${digits.padStart(4, '0')}\${suffix}\`);
+    .replace(/^CM03-(\\d+)(?=-|\\/)/, (_, digits) => \`CM03-\${digits.padStart(4, '0')}\`);
   const normalized = normalizeName(name);
   const aliases: Record<string, string> = {
     'CM0-SCB15I': 'CM0-SCB15IR',

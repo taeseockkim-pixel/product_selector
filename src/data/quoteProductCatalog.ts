@@ -364,7 +364,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-01/WS",
-        "spec": "Web 동시접속 1 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 1 User, 150 Tag / Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -377,7 +377,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-03/WS",
-        "spec": "Web 동시접속 3 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 3 User, 150 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -390,7 +390,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-05/WS",
-        "spec": "Web 동시접속 5 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 5 User, 150 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -403,7 +403,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-10/WS",
-        "spec": "Web 동시접속 10 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 10 User, 150 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -416,7 +416,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-15/WS",
-        "spec": "Web 동시접속 15 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 15 User, 150 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -429,7 +429,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-20/WS",
-        "spec": "Web 동시접속 20 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 20 User, 150 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -442,7 +442,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-25/WS",
-        "spec": "Web 동시접속 25 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 25 User, 150 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -455,7 +455,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-0150-30/WS",
-        "spec": "Web 동시접속 30 User, 150 Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 30 User, 150 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -464,11 +464,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-01/WS#9",
+        "id": "SCADA PRO. Web:CM03-0500-01/WS#9",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-01/WS",
-        "spec": "Web 동시접속 1 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-01/WS",
+        "spec": "Web 동시접속 1 User, 500 Tag / Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -477,11 +477,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-03/WS#10",
+        "id": "SCADA PRO. Web:CM03-0500-03/WS#10",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-03/WS",
-        "spec": "Web 동시접속 3 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-03/WS",
+        "spec": "Web 동시접속 3 User, 500 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -490,11 +490,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-05/WS#11",
+        "id": "SCADA PRO. Web:CM03-0500-05/WS#11",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-05/WS",
-        "spec": "Web 동시접속 5 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-05/WS",
+        "spec": "Web 동시접속 5 User, 500 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -503,11 +503,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-10/WS#12",
+        "id": "SCADA PRO. Web:CM03-0500-10/WS#12",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-10/WS",
-        "spec": "Web 동시접속 10 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-10/WS",
+        "spec": "Web 동시접속 10 User, 500 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -516,11 +516,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-15/WS#13",
+        "id": "SCADA PRO. Web:CM03-0500-15/WS#13",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-15/WS",
-        "spec": "Web 동시접속 15 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-15/WS",
+        "spec": "Web 동시접속 15 User, 500 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -529,11 +529,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-20/WS#14",
+        "id": "SCADA PRO. Web:CM03-0500-20/WS#14",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-20/WS",
-        "spec": "Web 동시접속 20 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-20/WS",
+        "spec": "Web 동시접속 20 User, 500 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -542,11 +542,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-25/WS#15",
+        "id": "SCADA PRO. Web:CM03-0500-25/WS#15",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-25/WS",
-        "spec": "Web 동시접속 25 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-25/WS",
+        "spec": "Web 동시접속 25 User, 500 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -555,11 +555,11 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         ]
       },
       {
-        "id": "SCADA PRO. Web:CM03-500-30/WS#16",
+        "id": "SCADA PRO. Web:CM03-0500-30/WS#16",
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
-        "name": "CM03-500-30/WS",
-        "spec": "Web 동시접속 30 User, 500 Tag / Web + Development+Runtime+Keylock",
+        "name": "CM03-0500-30/WS",
+        "spec": "Web 동시접속 30 User, 500 Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -572,7 +572,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-01/WS",
-        "spec": "Web 동시접속 1 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 1 User, 10K Tag / Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -585,7 +585,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-03/WS",
-        "spec": "Web 동시접속 3 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 3 User, 10K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -598,7 +598,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-05/WS",
-        "spec": "Web 동시접속 5 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 5 User, 10K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -611,7 +611,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-10/WS",
-        "spec": "Web 동시접속 10 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 10 User, 10K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -624,7 +624,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-15/WS",
-        "spec": "Web 동시접속 15 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 15 User, 10K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -637,7 +637,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-20/WS",
-        "spec": "Web 동시접속 20 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 20 User, 10K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -650,7 +650,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-25/WS",
-        "spec": "Web 동시접속 25 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 25 User, 10K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -663,7 +663,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-10K-30/WS",
-        "spec": "Web 동시접속 30 User, 10K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 30 User, 10K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -676,7 +676,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-01/WS",
-        "spec": "Web 동시접속 1 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 1 User, 100K Tag / Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -689,7 +689,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-03/WS",
-        "spec": "Web 동시접속 3 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 3 User, 100K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -702,7 +702,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-05/WS",
-        "spec": "Web 동시접속 5 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 5 User, 100K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -715,7 +715,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-10/WS",
-        "spec": "Web 동시접속 10 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 10 User, 100K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -728,7 +728,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-15/WS",
-        "spec": "Web 동시접속 15 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 15 User, 100K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -741,7 +741,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-20/WS",
-        "spec": "Web 동시접속 20 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 20 User, 100K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -754,7 +754,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-25/WS",
-        "spec": "Web 동시접속 25 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 25 User, 100K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -767,7 +767,7 @@ export const QUOTE_PRODUCT_CATALOG: QuoteCatalogGroup[] = [
         "sheet": "SCADA PRO. Web",
         "categoryLabel": "SCADA PRO - Web Version",
         "name": "CM03-100K-30/WS",
-        "spec": "Web 동시접속 30 User, 100K Tag / Web + Development+Runtime+Keylock",
+        "spec": "Web 동시접속 30 User, 100K Tag / Mobile(2User) + Web + Development + Runtime + Keylock",
         "tiers": [
           {
             "minQty": 1,
@@ -5416,7 +5416,7 @@ export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined
     .toUpperCase()
     .replace(/\s+/g, ' ')
     .replace(/\s*\([^)]*\)\s*$/, '')
-    .replace(/^CM03-(\d+)(\/)/, (_, digits, suffix) => `CM03-${digits.padStart(4, '0')}${suffix}`);
+    .replace(/^CM03-(\d+)(?=-|\/)/, (_, digits) => `CM03-${digits.padStart(4, '0')}`);
   const normalized = normalizeName(name);
   const aliases: Record<string, string> = {
     'CM0-SCB15I': 'CM0-SCB15IR',
@@ -5443,7 +5443,7 @@ export function findQuoteCatalogItem(name: string): QuoteCatalogItem | undefined
 
 export const QUOTE_PRODUCT_CATALOG_META = {
   source: 'Quote_manage/기본자료/Product_Prise.xlsx',
-  generatedAt: '2026-10-14T04:47:31.451Z',
+  generatedAt: '2026-10-15T04:57:31.203Z',
   groupCount: 16,
   itemCount: 373,
 } as const;
