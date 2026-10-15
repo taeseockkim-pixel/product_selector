@@ -90,7 +90,7 @@ ProductTable.tsx  (렌더링 전용)
 | `CartPage.tsx` | 담기 목록 표시 | ❌ (props only) |
 | `ComparePage.tsx` | 비교 표 표시 | ❌ (props only) |
 | `SpecModal` (App 내) | 상세 사양 모달 | ❌ (props only) |
-| `QuoteFormPage.tsx` | 견적서 작성 폼, 가격표 기반 품목 추가/삭제, 배율을 반영한 금액 계산 | ✅ (폼 입력/품목 상태) |
+| `QuoteFormPage.tsx` | 견적서 작성 폼, 가격표 기반 품목 추가/삭제, 배율을 반영한 금액 계산. 수기 품목의 모델명·규격은 여러 줄로 입력하고 하단에 수량·가격을 배치 | ✅ (폼 입력/품목 상태) |
 | `QuoteListPage.tsx` | 저장된 견적서 목록 표시 | ❌ (localStorage 조회만) |
 | `QuotePrintView.tsx` | 견적서 인쇄 미리보기 | ❌ (props only) |
 

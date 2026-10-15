@@ -3,8 +3,10 @@ import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
+import ts from 'typescript';
 import { excelToPdf } from '../server/excelToPdf.js';
 import { fillQuoteTemplate, MAX_QUOTE_NOTES_LENGTH } from '../server/fillTemplate.js';
+import { generateQuoteHtml as generateServerQuoteHtml } from '../server/quoteHtml.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const templatePath = join(root, 'agent', 'templates', '견적서 샘플.xlsx');
@@ -18,6 +20,19 @@ try {
   const stressOutputPath = join(tempDir, 'one-page-stress.xlsx');
   const stressPdfPath = join(tempDir, 'one-page-stress.pdf');
   const longSpec = 'Intel Celeron Quad-Core J6412 SoC (FANLESS) / DDR4 SDRAM 8GB (Max. 32GB) / SSD 120 Gbyte / Windows 10 IoT Enterprise / Development + Runtime Keylock / Dual Ethernet / 내장 한글 글꼴 확인 / extended product configuration';
+
+  // 수기 품목 입력 행 수 계산은 사용자가 넣은 개행과 예상 자동 줄바꿈을 모두 반영해야 한다.
+  const quoteItemLayoutSource = await readFile(join(root, 'src', 'utils', 'quoteItemLayout.ts'), 'utf8');
+  const quoteItemLayoutJs = ts.transpileModule(quoteItemLayoutSource, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const quoteItemLayoutExports = {};
+  new Function('exports', quoteItemLayoutJs)(quoteItemLayoutExports);
+  assert.equal(quoteItemLayoutExports.quoteItemTextareaRows('첫 줄\n둘째 줄\n셋째 줄', 100), 3);
+  assert.equal(quoteItemLayoutExports.quoteItemTextareaRows('abcdefghij', 4), 3);
+  const quoteFormSource = await readFile(join(root, 'src', 'components', 'QuoteFormPage.tsx'), 'utf8');
+  assert.match(quoteFormSource, /if \(item\.isCustom\) \{[\s\S]*?colSpan=\{7\}[\s\S]*?rows=\{quoteItemTextareaRows\(item\.name, 22\)\}[\s\S]*?rows=\{quoteItemTextareaRows\(item\.spec, 58\)\}/);
+  assert.match(quoteFormSource, /type="text"\s+value=\{item\.name\}[\s\S]*?onChange=\{\(e\) => updateItemName\(idx, e\.target\.value\)\}/, '카탈로그 모델명은 일반 한 줄 input으로 유지해야 합니다.');
 
   await fillQuoteTemplate({
     client: { company: '규격 줄바꿈 테스트', contact: '테스트', phone: '000', email: 'test@example.com' },
@@ -34,6 +49,7 @@ try {
     items: [
       { name: 'CM-HNT515-A', spec: longSpec, quantity: 1, unitPrice: 100000, totalPrice: 100000 },
       { name: '단축 규격 제품', spec: '기본 규격', quantity: 1, unitPrice: 1000, totalPrice: 1000 },
+      { name: '기술지원 및 현장 설정\n두 번째 모델명 줄', spec: '현장 작업 내용\n시스템 설정 및 이관', quantity: 1, unitPrice: 50000, totalPrice: 50000 },
     ],
     vatTotal: 111100,
     author: { name: '테스트 작성자', phone: '000', email: 'test@example.com' },
@@ -44,12 +60,46 @@ try {
   const worksheet = workbook.worksheets[0];
   const longRow = worksheet.getRow(16);
   const shortRow = worksheet.getRow(17);
+  const multilineRow = worksheet.getRow(18);
 
   assert.equal(worksheet.getCell('D16').alignment.wrapText, true, '규격 셀은 줄바꿈이어야 합니다.');
   assert.ok(longRow.height >= 60, `긴 규격 행 높이가 부족합니다: ${longRow.height}`);
   assert.ok(longRow.height > shortRow.height, '긴 규격 행은 짧은 규격 행보다 높아야 합니다.');
+  assert.equal(worksheet.getCell('B18').value, '기술지원 및 현장 설정\n두 번째 모델명 줄', '수기 모델명의 명시적 줄바꿈을 Excel 셀에 보존해야 합니다.');
+  assert.equal(worksheet.getCell('D18').value, '현장 작업 내용\n시스템 설정 및 이관', '수기 규격의 명시적 줄바꿈을 Excel 셀에 보존해야 합니다.');
+  assert.equal(worksheet.getCell('B18').alignment.wrapText, true, '여러 줄 모델명 셀은 자동 줄바꿈이어야 합니다.');
+  assert.ok(multilineRow.height > shortRow.height, '명시적 줄바꿈이 있는 수기 품목 행은 짧은 품목 행보다 높아야 합니다.');
 
-  console.log(`✅ 규격 자동 줄바꿈/행 높이 검증 통과 (긴 규격 ${longRow.height}pt, 짧은 규격 ${shortRow.height}pt)`);
+  console.log(`✅ 수기 모델명/규격 줄바꿈 및 Excel 행 높이 검증 통과 (긴 규격 ${longRow.height}pt, 여러 줄 ${multilineRow.height}pt, 짧은 규격 ${shortRow.height}pt)`);
+
+  // 브라우저 미리보기와 인쇄 HTML도 모델명·규격의 입력 개행을 그대로 렌더링한다.
+  const multilineName = '기술지원 및 현장 설정\n두 번째 모델명 줄';
+  const multilineSpec = '현장 작업 내용\n시스템 설정 및 이관';
+  const quoteHtmlSource = await readFile(join(root, 'src', 'utils', 'quoteHtml.ts'), 'utf8');
+  const quoteHtmlJs = ts.transpileModule(quoteHtmlSource, {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+  }).outputText;
+  const quoteHtmlExports = {};
+  new Function('exports', quoteHtmlJs)(quoteHtmlExports);
+  const multilineQuote = {
+    client: { company: '테스트 업체', contact: '담당자', phone: '000', email: 'test@example.com' },
+    author: { name: '테스트 작성자', phone: '000', email: 'test@example.com' },
+    details: { quoteDate: '2026-10-15', deliveryLocation: '', deliveryDeadline: '', paymentTerms: '', validityPeriod: '', packing: '', notes: '' },
+    items: [{ name: multilineName, spec: multilineSpec, quantity: 1, unitPrice: 1000, multiplier: 1, totalPrice: 1000 }],
+    vatTotal: 1100,
+    quoteNumber: '테스트 2610-001',
+  };
+  const browserPrintHtml = quoteHtmlExports.generateQuoteHtml(multilineQuote);
+  assert.ok(browserPrintHtml.includes(`<td class="l b">${multilineName}</td>`), '인쇄 HTML은 제품명 줄바꿈을 보존해야 합니다.');
+  assert.ok(browserPrintHtml.includes(`<td class="l sm">${multilineSpec}</td>`), '인쇄 HTML은 규격 줄바꿈을 보존해야 합니다.');
+  assert.match(browserPrintHtml, /\.l\s*\{\s*text-align:\s*left;\s*white-space:\s*pre-wrap;\s*overflow-wrap:\s*anywhere;/);
+  const serverPrintHtml = generateServerQuoteHtml(multilineQuote);
+  assert.ok(serverPrintHtml.includes(`<td class="l b">${multilineName}</td>`), '서버 인쇄 HTML은 제품명 줄바꿈을 보존해야 합니다.');
+  assert.ok(serverPrintHtml.includes(`<td class="l sm">${multilineSpec}</td>`), '서버 인쇄 HTML은 규격 줄바꿈을 보존해야 합니다.');
+  assert.match(serverPrintHtml, /\.l\s*\{\s*text-align:\s*left;\s*white-space:\s*pre-wrap;\s*overflow-wrap:\s*anywhere;/);
+  const printViewSource = await readFile(join(root, 'src', 'components', 'QuotePrintView.tsx'), 'utf8');
+  assert.match(printViewSource, /font-medium whitespace-pre-wrap break-words">\{item\.name\}/, '화면 미리보기는 제품명 줄바꿈을 보존해야 합니다.');
+  console.log('✅ 화면 미리보기 및 인쇄 HTML에서 제품명/규격 개행 보존 확인');
 
   const stressNotes = '비'.repeat(MAX_QUOTE_NOTES_LENGTH);
   const stressQuote = {

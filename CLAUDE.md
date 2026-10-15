@@ -116,6 +116,7 @@ QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ←
 - **견적 품목 추가**: `Quote_manage/기본자료/Product_Prise.xlsx`를
   `npm run generate:quote-products`로 변환한 `src/data/quoteProductCatalog.ts`를 사용한다. 사용자는
   견적 작성 화면에서 가격표 시트와 품명을 선택해 품목을 추가/삭제할 수 있다.
+- **수기 견적 품목 입력**: `수기작성` 품목은 모델명과 규격을 각각 여러 줄로 입력할 수 있고, 수량·단가·배율·금액은 아래 줄에 표시한다. 가격표 카탈로그 품목의 모델명은 기존 한 줄 입력을 유지한다. 작성한 줄바꿈은 브라우저 초안/견적 데이터와 미리보기·인쇄에 보존한다.
 - **가격 계산**: 가격표 기반 추가 품목은 `quoteProductCatalog.ts`, 기존 카트 품목의 fallback은
   `src/data/priceData.ts`의 `getUnitPrice()`가 수량 구간별 단가를 조회한다. 최종 품목 금액은
   `단가 × 배율 × 수량`으로 계산되며 배율 기본값은 `1`이다. 배율은 화면·미리보기에는 표시되지만
