@@ -87,7 +87,7 @@ const MAX_JOB_ATTEMPTS = 3;
 const ITEMS_PER_FILE = 14;
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 // 에이전트 생존 신호. Apps Script가 이 신호가 오래되면 견적 접수를 거부한다.
-const AGENT_VERSION = '2026-10-20-quote-file-link-recovery';
+const AGENT_VERSION = '2026-10-20-quote-file-link-recovery2';
 const AGENT_FEATURES = ['draftAttachments'];
 const HEARTBEAT_INTERVAL_MS = Number(config.heartbeatIntervalMs || 20000);
 // 숨김 Excel을 유지해 작업마다 Excel을 새로 띄우는 시간을 줄인다. 문제가 있으면 config에서 false로 끈다.
