@@ -3241,25 +3241,30 @@ function resetDepartmentQuoteHistory(options) {
   const ledgerSS = SpreadsheetApp.open(ledgerFile);
   const ledgerSheet = ledgerSS.getSheetByName(CONFIG.LEDGER_SHEET_NAME) || ledgerSS.getSheets()[0];
 
-  // 1. 대장에서 보존 번호 외 행
+  // 1. 대장에서 보존 번호 외 행 (현재 대장에 있는 번호도 함께 수집해 미리보기에 보여준다)
   const ledgerRowsToDelete = [];
+  const allLedgerNumbers = [];
   const ledgerLastRow = ledgerSheet.getLastRow();
   if (ledgerLastRow >= 2) {
     const quoteNumbers = ledgerSheet.getRange(2, LEDGER_COL.QUOTE_NUMBER, ledgerLastRow - 1, 1).getDisplayValues();
     for (let i = 0; i < quoteNumbers.length; i++) {
       const value = String(quoteNumbers[i][0] || '').trim();
+      allLedgerNumbers.push(value);
       if (!value || baseQuoteNumber_(value) === keepBase) continue;
       ledgerRowsToDelete.push({ row: i + 2, quoteNumber: value });
     }
   }
+  const keepInLedger = allLedgerNumbers.some(function(value) { return baseQuoteNumber_(value) === keepBase; });
 
   // 2. 스냅샷에서 보존 번호 외 행
   const snapshot = getQuoteSnapshotSheet_(ledgerSS, false);
   const snapshotRowsToDelete = [];
+  const snapshotBases = {};
   if (snapshot && snapshot.getLastRow() >= 2) {
     const snap = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 2).getValues();
     for (let i = 0; i < snap.length; i++) {
       const base = baseQuoteNumber_(String(snap[i][1] || snap[i][0] || '').trim());
+      if (base) snapshotBases[base] = (snapshotBases[base] || 0) + 1;
       if (base === keepBase) continue;
       snapshotRowsToDelete.push(i + 2);
     }
@@ -3283,8 +3288,11 @@ function resetDepartmentQuoteHistory(options) {
 
   Logger.log('====================================================');
   Logger.log(`[${department} ${yearStr}] 보존 견적번호: ${keepBase}`);
+  Logger.log(`[대장] 현재 ${allLedgerNumbers.length}행: ${allLedgerNumbers.slice(0, 50).join(', ') || '(없음)'}`);
+  Logger.log(`[대장] 보존 번호 존재 여부: ${keepInLedger ? '있음' : '없음'}`);
   Logger.log(`[대장] 삭제 대상 ${ledgerRowsToDelete.length}행: ${ledgerRowsToDelete.map(function(item){ return item.quoteNumber; }).slice(0, 50).join(', ')}`);
-  Logger.log(`[스냅샷] 삭제 대상 ${snapshotRowsToDelete.length}행`);
+  Logger.log(`[스냅샷] 삭제 대상 ${snapshotRowsToDelete.length}행 / 보존 번호 존재 여부: ${snapshotBases[keepBase] ? '있음' : '없음'}`);
+  Logger.log(`[스냅샷] 현재 기본번호 종류: ${Object.keys(snapshotBases).slice(0, 50).join(', ') || '(없음)'}`);
   Logger.log(`[Drive 폴더] 휴지통 이동 대상 ${foldersToTrash.length}개: ${foldersToTrash.slice(0, 50).join(', ')}`);
   Logger.log(dryRun ? '※ 미리보기입니다. 실제로 삭제하지 않았습니다.' : '※ 실제 삭제를 실행합니다.');
   Logger.log('====================================================');
