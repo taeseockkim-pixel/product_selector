@@ -27,6 +27,8 @@ function toAppsScriptPayload(quote, options = {}) {
       authorPhone: quote.author?.phone ?? '',
       authorEmail: quote.author?.email ?? '',
       authorDepartment: quote.author?.department ?? '',
+      // 같은 사용자 확정에 대한 중복 제출을 Apps Script가 한 건으로 처리하도록 요청 토큰을 전달한다.
+      requestToken: options.requestToken ?? '',
     },
     items: (quote.items ?? []).map((item) => {
       const quantity = Number(item.quantity ?? 0);

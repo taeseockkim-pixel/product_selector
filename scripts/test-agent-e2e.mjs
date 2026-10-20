@@ -207,6 +207,20 @@ try {
   assert.equal(plainResult.actualFolderName, '기술영업 2610-901_E2E 고객');
   assert.equal(plainResult.pdfFileNames.length, 1);
 
+  // 성공 처리한 작업은 처리 표시를 남겨, Drive 재동기화로 같은 pending이 다시 들어와도 재처리하지 않는다.
+  const processedMarker = join(agentFolder, 'processed', `${plainOperation}.json`);
+  assert.ok(existsSync(processedMarker), '성공 처리 표시가 남아야 합니다.');
+  assert.equal(JSON.parse(await readFile(processedMarker, 'utf8')).quoteNumber, plainNumber);
+  await writeFile(
+    join(agentFolder, 'pending', `${plainNumber}.json`),
+    JSON.stringify(makeJob({ quoteNumber: plainNumber, operationId: plainOperation, createDraft: false, items: quoteItems(1) })),
+    'utf8',
+  );
+  await waitFor(async () => (
+    agentLog.includes('이미 처리된 작업 건너뜀')
+    && !existsSync(join(agentFolder, 'pending', `${plainNumber}.json`))
+  ), '재동기화된 pending 건너뜀', 15000);
+
   // 저장 파일이 다른 견적번호 폴더에 놓였어도, 서명된 링크는 같은 부서/연도 안의 정확한 견적 파일을 찾아야 한다.
   const yearDir = dirname(plainResult.localPath);
   const misplacedFolder = join(yearDir, '기술영업 2610-900_이전 폴더에 잘못 저장된 901');

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, type DragEvent } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, type DragEvent } from 'react';
 import type { Product } from '../types';
 import type { Quote, QuoteItem, AuthorInfo } from '../types/quote';
 import { useT, useLang, type Lang } from '../context/LangContext';
@@ -345,6 +345,8 @@ interface AppsScriptPayload {
     authorPhone: string;
     authorEmail: string;
     authorDepartment: string;
+    /** 한 번의 사용자 저장 확정을 식별하는 토큰 — Apps Script가 중복 제출을 같은 견적으로 처리한다 */
+    requestToken?: string;
   };
   items: Array<{
     type: string;
@@ -548,6 +550,7 @@ function quoteToAppsScriptPayload(
   overwriteTargetNumber?: string,
   quoteNumberMode: QuoteNumberMode = 'continue',
   quoteNumberSequence?: number,
+  requestToken = '',
 ): AppsScriptPayload {
   return {
     details: {
@@ -567,6 +570,7 @@ function quoteToAppsScriptPayload(
       authorPhone: quote.author.phone,
       authorEmail: quote.author.email,
       authorDepartment: quote.author.department ?? '',
+      requestToken: requestToken || undefined,
     },
     items: quote.items.map((item) => ({
       type: item.type,
@@ -654,6 +658,7 @@ async function processQuoteRequest(
   overwriteTargetNumber?: string,
   quoteNumberMode: QuoteNumberMode = 'continue',
   quoteNumberSequence?: number,
+  requestToken = '',
 ): Promise<QuoteProcessResult> {
   const appsScriptPayload = quoteToAppsScriptPayload(
     quote,
@@ -667,6 +672,7 @@ async function processQuoteRequest(
     overwriteTargetNumber,
     quoteNumberMode,
     quoteNumberSequence,
+    requestToken,
   );
 
   if (window.parent && window.parent !== window) {
@@ -692,6 +698,7 @@ async function processQuoteRequest(
       overwriteTargetNumber,
       quoteNumberMode,
       quoteNumberSequence,
+      requestToken,
     }),
   });
   const result = await readJsonResponse<QuoteProcessResult>(res);
@@ -899,6 +906,13 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [ledgerFirstMissingSeq, setLedgerFirstMissingSeq] = useState<number | null>(null);
   const [numberingChoiceOpen, setNumberingChoiceOpen] = useState(false);
   const [pendingNumberingAction, setPendingNumberingAction] = useState<PendingNewQuoteNumberAction | null>(null);
+
+  // 저장 요청 중복 생성 방지:
+  //  - submitInFlightRef는 상태 갱신(리렌더) 전에 발생하는 연속 클릭/두 버튼 교차 클릭을 원자적으로 막는다.
+  //  - requestTokenRef는 한 번의 사용자 확정을 식별해, 같은 제출이 네트워크·모달 재확정으로 다시 가도
+  //    Apps Script가 같은 견적으로 처리하도록 한다. (번호 선택 모달 재확정 시에도 같은 토큰을 재사용)
+  const submitInFlightRef = useRef(false);
+  const requestTokenRef = useRef('');
 
   // ── 견적 수정 시 저장 방식 선택 모달 상태 ──
   const [revisionModalOpen, setRevisionModalOpen] = useState(false);
@@ -1398,6 +1412,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     asNewQuote = false,
     quoteNumberMode: QuoteNumberMode = 'continue',
     quoteNumberSequence?: number,
+    requestToken = '',
   ) {
     if (acceptedQuoteNumber) {
       alert(t(UI.quoteAcceptedCompletionDelayed).replace('{quoteNumber}', acceptedQuoteNumber));
@@ -1405,6 +1420,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       return;
     }
     if (!validateForSubmit()) return;
+    // 이미 저장 요청이 진행 중이면(리렌더 전 연속 클릭 등) 두 번째 제출을 무시해 중복 견적 생성을 막는다.
+    if (submitInFlightRef.current) return;
+    submitInFlightRef.current = true;
     if (createDraft) setEmailing(true);
     else setSubmitting(true);
     setProcessingMessage(createDraft ? '메일 초안을 준비하고 있습니다...' : '견적서를 저장하고 있습니다...');
@@ -1428,6 +1446,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         overwriteTargetNumber,
         quoteNumberMode,
         quoteNumberSequence,
+        requestToken,
       );
       if (!result.success) {
         if (result.quoteNumberChoiceStale) {
@@ -1496,11 +1515,16 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         alert(`${t(UI.quoteSaveFailed)}: ${String(err)}`);
       }
     } finally {
+      submitInFlightRef.current = false;
       setSubmitting(false);
       setEmailing(false);
       setWaitingForCompletion(false);
       setProcessingMessage('');
     }
+  }
+
+  function createRequestToken() {
+    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   }
 
   function formatQuoteNumberSequence(sequence: number) {
@@ -1513,6 +1537,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       alert('견적번호 확인 중입니다. 잠시 후 다시 저장해 주세요.');
       return;
     }
+    // 새 신규 저장 확정마다 토큰을 새로 만든다. 번호 선택 모달을 거쳐도 confirmNewQuoteNumber가
+    // 같은 토큰을 재사용하므로, 그 사이 중복 제출은 Apps Script에서 같은 견적으로 처리된다.
+    requestTokenRef.current = createRequestToken();
     const hasGap = ledgerFirstMissingSeq !== null && ledgerFirstMissingSeq < ledgerNextSeq;
     if (hasGap) {
       setPendingNumberingAction(action);
@@ -1528,6 +1555,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       action.asNewQuote,
       'continue',
       ledgerNextSeq,
+      requestTokenRef.current,
     );
   }
 
@@ -1552,6 +1580,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       action.asNewQuote,
       mode,
       sequence,
+      requestTokenRef.current,
     );
   }
 
@@ -1603,12 +1632,17 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       return;
     }
     setRevisionModalOpen(false);
+    requestTokenRef.current = createRequestToken();
     void processGoogleQuote(
       pendingDraftAction,
       pendingDraftAction ? emailSubject : '',
       pendingDraftAction ? emailBody : '',
       revisionSaveMode,
       revisionSaveMode === 'overwrite' ? overwriteTarget : '',
+      false,
+      'continue',
+      undefined,
+      requestTokenRef.current,
     );
   }
 

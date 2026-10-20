@@ -56,6 +56,9 @@ const AGENT_DRAFT_FEATURE = 'draftAttachments';
 const QUOTE_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 const QUOTE_NUMBER_RESERVATION_PREFIX = 'QUOTE_NUMBER_RESERVATION_';
 const QUOTE_NUMBER_RESERVATION_TTL_MS = 24 * 60 * 60 * 1000;
+// 한 번의 사용자 저장 확정(요청 토큰)을 기록해, 같은 제출이 중복 도착해도 새 견적을 만들지 않는다.
+const QUOTE_REQUEST_PREFIX = 'QUOTE_REQUEST_';
+const QUOTE_REQUEST_TTL_MS = 24 * 60 * 60 * 1000;
 const QUOTE_SNAPSHOT_SHEET_NAME = '견적원본데이터';
 
 // 견적관리대장 열 번호 (1부터 시작). 운영 대장은 E열 발주, F열 작성자,
@@ -2210,6 +2213,42 @@ function releaseQuoteNumberReservation_(quoteNumber, operationId) {
   props.deleteProperty(propertyKey);
 }
 
+// 요청 토큰별 처리 결과를 읽는다. TTL이 지나거나 손상된 기록은 정리하고 null을 돌려준다.
+function readQuoteRequestResult_(token) {
+  const key = QUOTE_REQUEST_PREFIX + sanitizeDriveName(token);
+  const props = PropertiesService.getScriptProperties();
+  let raw = null;
+  try { raw = props.getProperty(key); } catch (err) { raw = null; }
+  if (!raw) return null;
+  let record = null;
+  try { record = JSON.parse(raw); } catch (err) { record = null; }
+  if (!record || !record.response) {
+    try { props.deleteProperty(key); } catch (err) { /* noop */ }
+    return null;
+  }
+  if (Date.now() - Number(record.createdAt || 0) > QUOTE_REQUEST_TTL_MS) {
+    try { props.deleteProperty(key); } catch (err) { /* noop */ }
+    return null;
+  }
+  return record;
+}
+
+// 성공 접수 결과를 요청 토큰에 기록한다. 같은 토큰의 재요청은 새 견적을 만들지 않고 이 결과를 재사용한다.
+function writeQuoteRequestResult_(token, response, details) {
+  try {
+    PropertiesService.getScriptProperties().setProperty(
+      QUOTE_REQUEST_PREFIX + sanitizeDriveName(token),
+      JSON.stringify({
+        createdAt: Date.now(),
+        operationId: String((details && details.operationId) || ''),
+        quoteNumber: String((response && response.newQuoteNumber) || ''),
+        department: String((details && details.authorDepartment) || ''),
+        response: response
+      })
+    );
+  } catch (err) { /* 기록 실패 시에도 저장 자체는 유지한다. */ }
+}
+
 function getNextQuoteNumber(rootFolderId, department, knownSystem, knownYear, numberingMode, knownOptions) {
   try {
     const today = new Date();
@@ -2264,8 +2303,23 @@ function deleteQuoteFromReact(payload) {
     if (row < 2) return { success: false, message: '삭제할 견적을 대장에서 찾을 수 없습니다.' };
 
     if (mode === 'permanent') {
-      // 대장 행 삭제
-      sheet.deleteRow(row);
+      // 같은 기본 번호의 대장 행을 전부 찾아 삭제한다. 중복 행이 남아 삭제된 폴더를 가리키는
+      // orphan 파일링크(Not found)가 생기지 않도록, 한 행만 지우고 끝내지 않는다.
+      const lastRow = sheet.getLastRow();
+      const rowsToDelete = [];
+      if (lastRow >= 2) {
+        const quoteNumbers = sheet.getRange(2, LEDGER_COL.QUOTE_NUMBER, lastRow - 1, 1).getDisplayValues();
+        for (let i = 0; i < quoteNumbers.length; i++) {
+          if (baseQuoteNumber_(String(quoteNumbers[i][0] || '').trim()) === baseQuoteNumber) rowsToDelete.push(i + 2);
+        }
+      }
+      // 아래에서부터 지워야 앞선 삭제로 행 번호가 밀리지 않는다.
+      for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+        sheet.deleteRow(rowsToDelete[i]);
+      }
+      if (rowsToDelete.length > 1) {
+        Logger.log('[영구삭제] 같은 번호의 대장 행 ' + rowsToDelete.length + '개를 함께 삭제: ' + baseQuoteNumber);
+      }
       // 스냅샷 삭제
       const snapshot = getQuoteSnapshotSheet_(system.ledger, false);
       if (snapshot && snapshot.getLastRow() >= 2) {
@@ -2379,6 +2433,20 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
 
   try {
     const details = quoteData.details;
+    // 같은 요청 토큰으로 이미 접수된 저장이면 새 견적/번호를 만들지 않고 그 결과를 그대로 돌려준다.
+    // (연속 클릭·모달 재확정·네트워크 재전송으로 processQuote가 두 번 실행되는 것을 한 건으로 합친다.)
+    const requestToken = String(details.requestToken || '').trim();
+    if (requestToken) {
+      const priorRequest = readQuoteRequestResult_(requestToken);
+      if (priorRequest && priorRequest.response) {
+        lock.releaseLock();
+        Logger.log('[중복 저장 차단] 토큰 재사용: ' + priorRequest.quoteNumber);
+        return Object.assign({}, priorRequest.response, {
+          message: '[접수] 견적번호: ' + String(priorRequest.quoteNumber || '') +
+            '\n동일한 저장 요청이 이미 접수되어 중복 생성하지 않았습니다. 견적 목록에서 확인해 주세요.'
+        });
+      }
+    }
     details.operationId = details.operationId || Utilities.getUuid();
     const requestedBaseQuoteNumber = baseQuoteNumber_(revisionOf);
     // 수정본은 원본을 조회했을 때의 부서(revisionDepartment)를 그대로 사용해야 한다.
@@ -2515,8 +2583,7 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
       returnMessage += '\n\nExcel로 만든 견적서 PDF가 준비되면 Gmail 초안이 자동으로 만들어집니다.';
     }
 
-    lock.releaseLock();
-    return {
+    const successResponse = {
       success: true,
       url: '',
       pdfUrl: '',
@@ -2528,6 +2595,10 @@ function processQuote(quoteData, createDraft, customSubject, customBody, revisio
       operationId: details.operationId,
       message: returnMessage
     };
+    // 같은 토큰의 재요청이 새 견적을 만들지 않도록 접수 결과를 기록한다.
+    if (requestToken) writeQuoteRequestResult_(requestToken, successResponse, details);
+    lock.releaseLock();
+    return successResponse;
   } catch (err) {
     if (reservedQuoteNumber) releaseQuoteNumberReservation_(reservedQuoteNumber, quoteData.details && quoteData.details.operationId);
     lock.releaseLock();

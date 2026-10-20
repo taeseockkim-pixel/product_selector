@@ -26,6 +26,14 @@ assert.match(source, /const currentFileLink = String\(sheet\.getRange\(r, LEDGER
 assert.match(source, /result\.details\.actualFolderName = sanitizeDriveName\(actualFolderName\)/, '완료 스냅샷에는 에이전트가 실제로 사용한 폴더명이 보존되어야 합니다.');
 assert.match(source, /result\.details\.pdfFileNames = result\.pdfFileNames/, '완료 스냅샷에는 실제 PDF 파일명이 보존되어야 합니다.');
 assert.match(source, /\[파일 링크 복구 보류\] 실제 폴더 경로가 스냅샷에 없습니다/, '실제 경로 정보가 없는 과거 스냅샷으로 추측 링크를 만들면 안 됩니다.');
+// 중복 저장 방지: 같은 요청 토큰은 새 견적을 만들지 않고 이미 접수한 결과를 재사용한다.
+assert.match(source, /const QUOTE_REQUEST_PREFIX = 'QUOTE_REQUEST_';/);
+assert.match(source, /const priorRequest = readQuoteRequestResult_\(requestToken\);/, 'processQuote는 요청 토큰으로 중복 접수를 확인해야 합니다.');
+assert.match(source, /\[중복 저장 차단\]/, '중복 저장을 차단한 사실을 로그에 남겨야 합니다.');
+assert.match(source, /writeQuoteRequestResult_\(requestToken, successResponse, details\)/, '접수 결과를 요청 토큰에 기록해야 합니다.');
+// 영구삭제는 같은 번호의 대장 행을 모두 지워 orphan 파일링크(Not found)를 남기지 않는다.
+assert.match(source, /baseQuoteNumber_\(String\(quoteNumbers\[i\]\[0\] \|\| ''\)\.trim\(\)\) === baseQuoteNumber/, '영구삭제는 같은 기본 번호의 모든 대장 행을 찾아야 합니다.');
+assert.match(source, /for \(let i = rowsToDelete\.length - 1; i >= 0; i--\) \{[\s\S]*?sheet\.deleteRow\(rowsToDelete\[i\]\)/, '영구삭제는 찾은 행을 모두 삭제해야 합니다.');
 
 // ── 메모리 Drive / Gmail / Cache / Lock ──────────────────────────────────────────────
 const state = { userEmail: 'taeseock.kim@cimon.com', now: Date.now(), gmailDrafts: [], logs: [], exports: [] };
@@ -297,6 +305,26 @@ assert.equal(folders.pending, undefined, '이메일이 잘못되면 접수하지
 
 response = sandbox.processQuote({ ...quoteData, details: { ...quoteData.details, notes: '비'.repeat(301) } }, false, '', '', '', undefined, '', 'newRevision', '');
 assert.match(response.message, /300자/);
+
+// ── 2-1. 같은 요청 토큰의 중복 제출은 새 견적을 만들지 않는다 ────────────────────────────
+resetWorld();
+setHeartbeat({ ageMs: 1000 });
+const storedResponse = {
+  success: true,
+  newQuoteNumber: '영업 2610-003',
+  baseQuoteNumber: '영업 2610-003',
+  operationId: 'op-dup',
+  message: '[접수] 견적번호: 영업 2610-003',
+};
+sandbox.writeQuoteRequestResult_('dup-token-1', storedResponse, { authorDepartment: '영업' });
+const duplicate = sandbox.processQuote({
+  details: { requestToken: 'dup-token-1', clientName: '고객', authorDepartment: '영업', quoteDate: '2026년 10월 20일' },
+  items: [],
+}, false, '', '', '', undefined, '', 'newRevision', '');
+assert.equal(duplicate.success, true);
+assert.equal(duplicate.newQuoteNumber, '영업 2610-003', '같은 토큰의 재요청은 새 번호를 만들지 않아야 합니다.');
+assert.match(duplicate.message, /중복 생성하지 않았습니다/);
+assert.equal(folders.pending, undefined, '중복 토큰은 pending 대기열을 새로 만들면 안 됩니다.');
 
 // ── 3. 메일 초안: 대기 → 생성 ──────────────────────────────────────────────────────────
 resetWorld();

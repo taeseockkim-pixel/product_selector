@@ -36,6 +36,11 @@ try {
   assert.match(quoteFormSource, /rows=\{quoteItemTextareaRows\(item\.spec, 58\)\}/, '모든 견적 품목의 규격은 여러 줄 textarea여야 합니다.');
   assert.ok(!quoteFormSource.includes('isManualMultiline'), '모델명 다중 줄 입력을 수기 품목으로 제한하는 분기는 제거해야 합니다.');
   assert.ok(!quoteFormSource.includes('placeholder="품명/제품명 직접 입력"'), '좁은 한 줄 품목 행은 제거해야 합니다.');
+  // 중복 견적 생성을 막는 클라이언트 안전장치: 진행 중 재진입 차단 + 한 번의 확정 식별 토큰.
+  assert.match(quoteFormSource, /if \(submitInFlightRef\.current\) return;/, '진행 중 연속 클릭은 두 번째 저장을 무시해야 합니다.');
+  assert.match(quoteFormSource, /submitInFlightRef\.current = true;/);
+  assert.match(quoteFormSource, /requestTokenRef\.current = createRequestToken\(\);/, '저장 확정마다 요청 토큰을 만들어야 합니다.');
+  assert.match(quoteFormSource, /requestToken: requestToken \|\| undefined/, '요청 토큰을 Apps Script 페이로드에 실어야 합니다.');
 
   await fillQuoteTemplate({
     client: { company: '규격 줄바꿈 테스트', contact: '테스트', phone: '000', email: 'test@example.com' },

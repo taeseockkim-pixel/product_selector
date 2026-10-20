@@ -79,6 +79,9 @@ try {
   assert.match(agentSource, /startHeartbeat\(\);/, '에이전트가 생존 신호를 보내야 합니다.');
   assert.match(agentSource, /app\.get\('\/health'/, '/health 엔드포인트가 있어야 합니다.');
   assert.match(agentSource, /heartbeatStarted/, '중복 실행 프로세스가 정지 신호를 덮어쓰지 않아야 합니다.');
+  assert.match(agentSource, /processedMarkerPath\(/, '성공 처리한 작업을 operationId로 표시해야 합니다.');
+  assert.match(agentSource, /markJobProcessed\(/, '성공 처리 후 표시를 기록해야 합니다.');
+  assert.match(agentSource, /이미 처리된 작업 건너뜀/, '재동기화된 pending은 재처리하지 않아야 합니다.');
 
   console.log('✅ 에이전트 첨부 PDF·생존 신호 파일 처리 검증 통과');
 } finally {

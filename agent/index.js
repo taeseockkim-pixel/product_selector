@@ -101,6 +101,9 @@ const RESULTS_DIR = join(AGENT_FOLDER, 'results');
 const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
 // 메일 초안에 첨부할 Excel PDF를 Apps Script로 전달하는 Drive 동기화 폴더
 const ATTACHMENTS_DIR = join(AGENT_FOLDER, 'attachments');
+// 성공 처리한 작업(operationId) 표시를 남겨, Drive 재동기화로 같은 pending 파일이 다시 들어와도
+// 같은 견적을 다시 생성하지 않는다.
+const PROCESSED_DIR = join(AGENT_FOLDER, 'processed');
 const HEARTBEAT_FILE = join(AGENT_FOLDER, 'heartbeat.json');
 const FAILED_JOBS_DIR = join(__dirname, 'failed-jobs');
 // Apps Script가 로컬 LOG에 남기고 싶은 활동 로그를 큐잉하는 폴더 (Drive 동기화 → 에이전트가 LOG 폴더로 복사)
@@ -168,12 +171,15 @@ try {
   mkdirSync(RESULTS_DIR, { recursive: true });
   mkdirSync(DELIVERY_DIR, { recursive: true });
   mkdirSync(ATTACHMENTS_DIR, { recursive: true });
+  mkdirSync(PROCESSED_DIR, { recursive: true });
   // 업로드 문서(발주서, 사업자등록증 등) 미러 전용 — Apps Script가 목록/첨부를 읽도록 Drive 동기화 폴더 사용
   mkdirSync(LOG_QUEUE_DIR, { recursive: true });
 } catch (err) {
   console.error(`[에이전트] pending/results 폴더를 생성하지 못했습니다: ${describeError(err)}`);
   process.exit(1);
 }
+// 시작 시 오래된 처리 표시를 정리해 재동기화 방지 목록이 무한히 커지지 않게 한다.
+pruneProcessedMarkers();
 
 if (!folderReady || !existsSync(PENDING_DIR) || !existsSync(RESULTS_DIR)) {
   console.error('[에이전트] Drive 폴더 가시성 진단:');
@@ -586,6 +592,39 @@ function removeFiles(filePaths) {
   }
 }
 
+// 성공 처리한 작업(operationId)을 표시하는 파일 경로. 견적번호가 아니라 operationId로 키를 잡아
+// 같은 번호를 다시 저장(덮어쓰기/수정)하는 정상 재요청은 막지 않는다.
+function processedMarkerPath(operationId) {
+  return join(PROCESSED_DIR, `${safeSegment(operationId)}.json`);
+}
+
+function markJobProcessed(operationId, quoteNumber) {
+  const id = String(operationId || '').trim();
+  if (!id) return;
+  try {
+    writeFileSync(processedMarkerPath(id), JSON.stringify({ quoteNumber: quoteNumber || '', processedAt: Date.now() }), 'utf8');
+  } catch (err) {
+    console.warn(`[에이전트] 처리 표시 기록 실패: ${describeError(err)}`);
+  }
+}
+
+// 오래된 처리 표시를 정리한다(Drive 재동기화 방지 목적이므로 30일이면 충분하다).
+function pruneProcessedMarkers(maxAgeMs = 30 * 24 * 60 * 60 * 1000) {
+  try {
+    if (!existsSync(PROCESSED_DIR)) return;
+    const now = Date.now();
+    for (const name of readdirSync(PROCESSED_DIR)) {
+      const file = join(PROCESSED_DIR, name);
+      try {
+        const info = JSON.parse(readFileSync(file, 'utf8'));
+        if (now - Number(info.processedAt || 0) > maxAgeMs) unlinkSync(file);
+      } catch {
+        try { unlinkSync(file); } catch { /* noop */ }
+      }
+    }
+  } catch { /* noop */ }
+}
+
 // 견적 폴더 삭제 작업 — pending의 delete_<견적번호>.json을 처리해 로컬 폴더를 영구 삭제한다.
 function processDeleteJob(fileName, payload) {
   const department = safeDepartmentSegment(payload.department || DEFAULT_DEPARTMENT);
@@ -912,6 +951,13 @@ async function pollPending() {
       }
 
       if (!payload?.details) continue;
+      // Drive 재동기화로 이미 성공 처리한 작업이 다시 들어오면 같은 견적을 다시 만들지 않는다.
+      const operationId = String(payload.details.operationId || '').trim();
+      if (operationId && existsSync(processedMarkerPath(operationId))) {
+        try { unlinkSync(jsonPath); } catch { /* noop */ }
+        console.log(`[에이전트] 이미 처리된 작업 건너뜀(재동기화): ${payload.details.quoteNumber ?? fileName}`);
+        continue;
+      }
       if (!fileName.endsWith('.json')) {
         // 확장자 없이 동기화된 경우에도 처리 가능하도록 원본을 .json으로 복제해 처리한다
         try {
@@ -925,6 +971,8 @@ async function pollPending() {
         await processJob(jobFileName);
         jobAttempts.delete(jobFileName);
         jobAttempts.delete(fileName);
+        // 성공한 작업은 처리 표시를 남겨, pending 파일이 재동기화되어도 재처리하지 않는다.
+        markJobProcessed(operationId, payload.details.quoteNumber);
         console.log(`[에이전트] 저장 완료: ${payload.details.quoteNumber}`);
         // 저장 완료 직후 부서 통계 JSON에 반영한다 (대시보드·AI 분석용).
         appendQuoteToStatsJson(AGENT_FOLDER, safeDepartmentSegment(payload.details.authorDepartment || DEFAULT_DEPARTMENT), {
