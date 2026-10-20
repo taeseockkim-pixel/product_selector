@@ -3272,12 +3272,14 @@ function resetDepartmentQuoteHistory(options) {
 
   // 3. 견적 폴더(견적번호 형식) 중 보존 폴더 외 → 휴지통 이동. '발주 내역' 등은 패턴에 안 걸려 보존된다.
   const foldersToTrash = [];
+  const allFolderNames = [];
   let keepFolderFound = false;
   const quoteFolderPattern = /\s\d{4}-\d{3}(?:_|$)/;
   const subFolders = yearFolder.getFolders();
   while (subFolders.hasNext()) {
     const folder = subFolders.next();
     const name = String(folder.getName());
+    allFolderNames.push(name);
     if (!quoteFolderPattern.test(name)) continue;
     if (name === keepBase || name.indexOf(keepBase + '_') === 0) { keepFolderFound = true; continue; }
     foldersToTrash.push(name);
@@ -3293,6 +3295,7 @@ function resetDepartmentQuoteHistory(options) {
   Logger.log(`[대장] 삭제 대상 ${ledgerRowsToDelete.length}행: ${ledgerRowsToDelete.map(function(item){ return item.quoteNumber; }).slice(0, 50).join(', ')}`);
   Logger.log(`[스냅샷] 삭제 대상 ${snapshotRowsToDelete.length}행 / 보존 번호 존재 여부: ${snapshotBases[keepBase] ? '있음' : '없음'}`);
   Logger.log(`[스냅샷] 현재 기본번호 종류: ${Object.keys(snapshotBases).slice(0, 50).join(', ') || '(없음)'}`);
+  Logger.log(`[Drive] 연도 폴더(${yearStr}) 하위 폴더 전체: ${allFolderNames.slice(0, 100).join(' | ') || '(없음)'}`);
   Logger.log(`[Drive 폴더] 휴지통 이동 대상 ${foldersToTrash.length}개: ${foldersToTrash.slice(0, 50).join(', ')}`);
   Logger.log(dryRun ? '※ 미리보기입니다. 실제로 삭제하지 않았습니다.' : '※ 실제 삭제를 실행합니다.');
   Logger.log('====================================================');
