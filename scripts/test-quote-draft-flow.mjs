@@ -34,6 +34,13 @@ assert.match(source, /writeQuoteRequestResult_\(requestToken, successResponse, d
 // 영구삭제는 같은 번호의 대장 행을 모두 지워 orphan 파일링크(Not found)를 남기지 않는다.
 assert.match(source, /baseQuoteNumber_\(String\(quoteNumbers\[i\]\[0\] \|\| ''\)\.trim\(\)\) === baseQuoteNumber/, '영구삭제는 같은 기본 번호의 모든 대장 행을 찾아야 합니다.');
 assert.match(source, /for \(let i = rowsToDelete\.length - 1; i >= 0; i--\) \{[\s\S]*?sheet\.deleteRow\(rowsToDelete\[i\]\)/, '영구삭제는 찾은 행을 모두 삭제해야 합니다.');
+// 부서 초기화(1건 보존) 유틸리티: 기본 미리보기, confirm 필요, 대장 백업, 폴더는 휴지통 이동(복구 가능).
+assert.match(source, /function resetDepartmentQuoteHistory\(options\) \{/, '부서 초기화 함수가 있어야 합니다.');
+assert.match(source, /const dryRun = opts\.dryRun !== false;/, '초기화는 기본이 미리보기(삭제 안 함)여야 합니다.');
+assert.match(source, /if \(!dryRun && !confirmed\) \{/, '실제 삭제는 confirm 승인이 있어야 합니다.');
+assert.match(source, /ledgerFile\.makeCopy\(backupName, yearFolder\)/, '실제 삭제 전에 대장을 백업해야 합니다.');
+assert.match(source, /setTrashed\(true\)/, '견적 폴더는 영구삭제가 아니라 휴지통 이동이어야 합니다.');
+assert.ok(!/resetDepartmentQuoteHistory[\s\S]*?permanentlyDeleteFile_/.test(source.split('function resetDepartmentQuoteHistory')[1].split('function diagnoseFileLinkHmac')[0]), '초기화는 파일을 영구삭제하면 안 됩니다.');
 
 // ── 메모리 Drive / Gmail / Cache / Lock ──────────────────────────────────────────────
 const state = { userEmail: 'taeseock.kim@cimon.com', now: Date.now(), gmailDrafts: [], logs: [], exports: [] };

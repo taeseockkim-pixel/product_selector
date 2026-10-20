@@ -3169,6 +3169,179 @@ function resetAllTestQuotes() {
   Logger.log('====================================================');
 }
 
+// ── 부서 견적 이력 초기화 (지정한 견적번호 1건만 남김) ────────────────────────
+// 용도: 한 부서(예: 영업)의 견적 이력을 특정 1건만 남기고 정리해 다음 번호가 이어지게 한다.
+// 안전장치:
+//  - 기본은 미리보기(dryRun). 실제 삭제는 dryRun:false + confirm:true 일 때만 수행한다.
+//  - 실제 실행 시 대장 스프레드시트를 먼저 백업 복사한다.
+//  - Drive 견적 폴더는 영구삭제가 아니라 휴지통 이동(복구 가능)이다.
+// 실행 방법(편집기):
+//  1) previewResetDepartmentQuotesKeepOne 실행 → 로그로 삭제 대상 확인
+//  2) 문제 없으면 applyResetDepartmentQuotesKeepOne 실행
+function previewResetDepartmentQuotesKeepOne() {
+  return resetDepartmentQuoteHistory({
+    department: '영업',
+    year: new Date().getFullYear(),
+    keepQuoteNumber: '영업 2610-001',
+    dryRun: true
+  });
+}
+
+function applyResetDepartmentQuotesKeepOne() {
+  return resetDepartmentQuoteHistory({
+    department: '영업',
+    year: new Date().getFullYear(),
+    keepQuoteNumber: '영업 2610-001',
+    dryRun: false,
+    confirm: true
+  });
+}
+
+function resetDepartmentQuoteHistory(options) {
+  const opts = options || {};
+  const department = String(opts.department || CONFIG.DEFAULT_DEPARTMENT).trim();
+  const year = Number(opts.year) || new Date().getFullYear();
+  const keepBase = baseQuoteNumber_(String(opts.keepQuoteNumber || '').trim());
+  const dryRun = opts.dryRun !== false;
+  const confirmed = opts.confirm === true;
+  if (!keepBase) {
+    Logger.log('보존할 견적번호(keepQuoteNumber)가 필요합니다. 중단합니다.');
+    return { success: false, message: 'keepQuoteNumber가 필요합니다.' };
+  }
+  if (!dryRun && !confirmed) {
+    Logger.log('실제 삭제는 confirm:true 가 있어야 합니다. 중단합니다.');
+    return { success: false, message: 'confirm:true가 필요합니다.' };
+  }
+
+  const rootFolderId = resolveRootFolderId({ authorDepartment: department });
+  const rootFolder = DriveApp.getFolderById(rootFolderId);
+  const yearStr = String(year);
+
+  const yearFolders = rootFolder.getFoldersByName(yearStr);
+  const yearFolder = yearFolders.hasNext() ? yearFolders.next() : null;
+  if (!yearFolder) {
+    Logger.log(`[${department} ${yearStr}] 연도 폴더가 없습니다. 중단합니다.`);
+    return { success: false, message: '연도 폴더가 없습니다.' };
+  }
+
+  // 동명 대장 파일이 여러 개면(수동 삭제/복구 중 중복) 먼저 알린다.
+  const ledgerIter = yearFolder.getFilesByName(`${yearStr}_견적관리대장`);
+  let ledgerFileCount = 0;
+  let ledgerFile = null;
+  while (ledgerIter.hasNext()) {
+    ledgerFileCount++;
+    if (!ledgerFile) ledgerFile = ledgerIter.next();
+  }
+  Logger.log(`[${department} ${yearStr}] ${yearStr}_견적관리대장 파일 수: ${ledgerFileCount}`);
+  if (!ledgerFile) {
+    Logger.log('대장을 찾을 수 없습니다. 중단합니다.');
+    return { success: false, message: '대장을 찾을 수 없습니다.' };
+  }
+
+  const ledgerSS = SpreadsheetApp.open(ledgerFile);
+  const ledgerSheet = ledgerSS.getSheetByName(CONFIG.LEDGER_SHEET_NAME) || ledgerSS.getSheets()[0];
+
+  // 1. 대장에서 보존 번호 외 행
+  const ledgerRowsToDelete = [];
+  const ledgerLastRow = ledgerSheet.getLastRow();
+  if (ledgerLastRow >= 2) {
+    const quoteNumbers = ledgerSheet.getRange(2, LEDGER_COL.QUOTE_NUMBER, ledgerLastRow - 1, 1).getDisplayValues();
+    for (let i = 0; i < quoteNumbers.length; i++) {
+      const value = String(quoteNumbers[i][0] || '').trim();
+      if (!value || baseQuoteNumber_(value) === keepBase) continue;
+      ledgerRowsToDelete.push({ row: i + 2, quoteNumber: value });
+    }
+  }
+
+  // 2. 스냅샷에서 보존 번호 외 행
+  const snapshot = getQuoteSnapshotSheet_(ledgerSS, false);
+  const snapshotRowsToDelete = [];
+  if (snapshot && snapshot.getLastRow() >= 2) {
+    const snap = snapshot.getRange(2, 1, snapshot.getLastRow() - 1, 2).getValues();
+    for (let i = 0; i < snap.length; i++) {
+      const base = baseQuoteNumber_(String(snap[i][1] || snap[i][0] || '').trim());
+      if (base === keepBase) continue;
+      snapshotRowsToDelete.push(i + 2);
+    }
+  }
+
+  // 3. 견적 폴더(견적번호 형식) 중 보존 폴더 외 → 휴지통 이동. '발주 내역' 등은 패턴에 안 걸려 보존된다.
+  const foldersToTrash = [];
+  let keepFolderFound = false;
+  const quoteFolderPattern = /\s\d{4}-\d{3}(?:_|$)/;
+  const subFolders = yearFolder.getFolders();
+  while (subFolders.hasNext()) {
+    const folder = subFolders.next();
+    const name = String(folder.getName());
+    if (!quoteFolderPattern.test(name)) continue;
+    if (name === keepBase || name.indexOf(keepBase + '_') === 0) { keepFolderFound = true; continue; }
+    foldersToTrash.push(name);
+  }
+  if (!keepFolderFound) {
+    Logger.log(`⚠️ 보존 대상 폴더(${keepBase}_...)를 찾지 못했습니다. 해당 견적의 파일링크가 깨질 수 있습니다.`);
+  }
+
+  Logger.log('====================================================');
+  Logger.log(`[${department} ${yearStr}] 보존 견적번호: ${keepBase}`);
+  Logger.log(`[대장] 삭제 대상 ${ledgerRowsToDelete.length}행: ${ledgerRowsToDelete.map(function(item){ return item.quoteNumber; }).slice(0, 50).join(', ')}`);
+  Logger.log(`[스냅샷] 삭제 대상 ${snapshotRowsToDelete.length}행`);
+  Logger.log(`[Drive 폴더] 휴지통 이동 대상 ${foldersToTrash.length}개: ${foldersToTrash.slice(0, 50).join(', ')}`);
+  Logger.log(dryRun ? '※ 미리보기입니다. 실제로 삭제하지 않았습니다.' : '※ 실제 삭제를 실행합니다.');
+  Logger.log('====================================================');
+
+  if (dryRun) {
+    return {
+      success: true, dryRun: true,
+      ledgerRows: ledgerRowsToDelete.length,
+      snapshotRows: snapshotRowsToDelete.length,
+      folders: foldersToTrash.length
+    };
+  }
+
+  // 실제 실행: 대장 스프레드시트 백업을 먼저 만든다.
+  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd-HHmmss');
+  const backupName = `${yearStr}_견적관리대장_백업_${stamp}`;
+  const backupFile = ledgerFile.makeCopy(backupName, yearFolder);
+  Logger.log(`대장 백업 생성: ${backupName}`);
+
+  // 대장/스냅샷 행을 아래에서부터 삭제한다.
+  ledgerRowsToDelete.sort(function(a, b) { return b.row - a.row; }).forEach(function(item) { ledgerSheet.deleteRow(item.row); });
+  snapshotRowsToDelete.sort(function(a, b) { return b - a; }).forEach(function(rowIndex) { snapshot.deleteRow(rowIndex); });
+  SpreadsheetApp.flush();
+
+  // Drive 견적 폴더는 휴지통 이동(복구 가능).
+  foldersToTrash.forEach(function(name) {
+    const iter = yearFolder.getFoldersByName(name);
+    while (iter.hasNext()) {
+      try { iter.next().setTrashed(true); } catch (err) { Logger.log(`폴더 휴지통 실패: ${name}: ${err.toString()}`); }
+    }
+  });
+
+  // 이 부서/연도의 번호 예약과 레거시 시퀀스를 정리한다(보존 번호 제외).
+  const props = PropertiesService.getScriptProperties();
+  const allProps = props.getProperties();
+  Object.keys(allProps).forEach(function(key) {
+    if (key.indexOf(QUOTE_NUMBER_RESERVATION_PREFIX) !== 0) return;
+    let reservation = null;
+    try { reservation = JSON.parse(allProps[key]); } catch (err) { reservation = null; }
+    if (!reservation) return;
+    if (String(reservation.department || '') !== department) return;
+    if (Number(reservation.year) !== Number(year)) return;
+    if (baseQuoteNumber_(String(reservation.quoteNumber || '')) === keepBase) return;
+    try { props.deleteProperty(key); } catch (err) { /* noop */ }
+  });
+  try { props.deleteProperty(`QUOTE_SEQ_${sanitizeDriveName(department)}_${year}`); } catch (err) { /* noop */ }
+
+  Logger.log('초기화 완료. 견적 목록을 새로고침하세요. 대시보드 통계는 에이전트 재스캔(재시작) 후 정리됩니다.');
+  return {
+    success: true, dryRun: false,
+    backup: backupName,
+    ledgerRows: ledgerRowsToDelete.length,
+    snapshotRows: snapshotRowsToDelete.length,
+    folders: foldersToTrash.length
+  };
+}
+
 // ── 파일링크 서명 진단 (일회용) ──────────────────────────────────────────────
 // Apps Script 편집기에서 diagnoseFileLinkHmac 선택 → 실행 → 로그를 보면
 // Apps Script가 내는 서명과 Node(에이전트)가 내는 서명이 일치하는지 확인할 수 있다.
