@@ -875,6 +875,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     authorLocked ? (defaultAuthorName ?? '') : (initialDraft?.author || defaultAuthorName || ''),
   );
   const [authors, setAuthors] = useState<AuthorInfo[]>([]);
+  // 번호 계산·고객 조회는 '저장될 부서'(선택한 작성자의 부서)의 대장을 써야 한다.
+  // 로그인 계정 부서와 다를 수 있어(예: 관리자가 다른 부서 작성자 선택), 부서를 지정하지 않으면
+  // 서버가 로그인 부서 대장으로 번호를 계산해 저장 시 quoteNumberChoiceStale 오류가 난다.
+  const selectedAuthor = authors.find((a) => a.name === author) ?? null;
+  const authorDepartment = selectedAuthor?.department ?? '';
   const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
   const [customerPicker, setCustomerPicker] = useState<{ field: 'company' | 'contact'; matches: CustomerRecord[] } | null>(null);
@@ -1028,10 +1033,14 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
   const [ledgerNextSeq, setLedgerNextSeq] = useState<number | null>(null);
 
-  // 현재 접속 계정의 부서 대장에서 기존 고객 정보 및 최신 견적 일련번호를 읽어온다.
+  // '저장될 부서'(선택한 작성자의 부서) 대장에서 기존 고객 정보 및 최신 견적 일련번호를 읽어온다.
+  // 작성자 선택이 바뀌면 번호를 다시 계산한다.
   useEffect(() => {
     let cancelled = false;
-    fetchLedger().then((result) => {
+    // 부서가 바뀌는 순간 이전 부서의 번호가 남지 않도록 초기화한다.
+    setLedgerNextSeq(null);
+    setLedgerFirstMissingSeq(null);
+    fetchLedger(undefined, authorDepartment || undefined).then((result) => {
       if (!cancelled && result.success) {
         setCustomerRecords(customerRecordsFromLedger(result.headers ?? [], result.rows ?? []));
 
@@ -1045,7 +1054,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       console.warn('기존 고객 정보 및 대장 번호 조회 실패:', err);
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [authorDepartment]);
 
   // 입력 중인 견적은 계정별로 저장해 페이지 이동·브라우저 재실행 후 복원한다.
   // 수정(editQuote) 세션에서는 저장하지 않는다 — 그렇지 않으면 진행 중이던 "새 견적" 초안이
@@ -1294,13 +1303,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setItems((prev) => [...prev, itemFromCatalog(selectedCatalogItem, qty)]);
   }
 
-  const selectedAuthor = authors.find((a) => a.name === author) ?? null;
   // 시트에 연락처/이메일이 비어 있는 작성자는 수기 입력 필드를 표시한다.
   const needsManualAuthor = !selectedAuthor || !selectedAuthor.phone.trim() || !selectedAuthor.email.trim();
   const resolvedAuthorName = needsManualAuthor && customAuthorName.trim() ? customAuthorName.trim() : authorLabel(author, lang);
   const resolvedAuthorPhone = needsManualAuthor ? customAuthorPhone.trim() : (selectedAuthor?.phone ?? '');
   const resolvedAuthorEmail = needsManualAuthor ? customAuthorEmail.trim() : (selectedAuthor?.email ?? '');
-  const authorDepartment = selectedAuthor?.department ?? '';
   const subtotal = items.reduce((sum, it) => sum + itemTotal(it.unitPrice, it.multiplier, it.qty), 0);
   const vatTotal = Math.round(subtotal * 1.1);
 

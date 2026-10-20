@@ -41,6 +41,10 @@ try {
   assert.match(quoteFormSource, /submitInFlightRef\.current = true;/);
   assert.match(quoteFormSource, /requestTokenRef\.current = createRequestToken\(\);/, '저장 확정마다 요청 토큰을 만들어야 합니다.');
   assert.match(quoteFormSource, /requestToken: requestToken \|\| undefined/, '요청 토큰을 Apps Script 페이로드에 실어야 합니다.');
+  // 번호 계산은 저장될 부서(선택한 작성자의 부서) 대장을 사용해야 한다(로그인 부서와 다를 수 있음).
+  assert.match(quoteFormSource, /const authorDepartment = selectedAuthor\?\.department \?\? '';/, '선택 작성자의 부서를 저장 부서로 사용해야 합니다.');
+  assert.match(quoteFormSource, /fetchLedger\(undefined, authorDepartment \|\| undefined\)/, '번호/고객 조회는 저장 부서 대장을 지정해야 합니다.');
+  assert.match(quoteFormSource, /\}, \[authorDepartment\]\);/, '작성자 부서가 바뀌면 번호를 다시 계산해야 합니다.');
 
   await fillQuoteTemplate({
     client: { company: '규격 줄바꿈 테스트', contact: '테스트', phone: '000', email: 'test@example.com' },
