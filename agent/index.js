@@ -102,8 +102,9 @@ const DELIVERY_DIR = join(AGENT_FOLDER, 'delivery');
 // 메일 초안에 첨부할 Excel PDF를 Apps Script로 전달하는 Drive 동기화 폴더
 const ATTACHMENTS_DIR = join(AGENT_FOLDER, 'attachments');
 // 성공 처리한 작업(operationId) 표시를 남겨, Drive 재동기화로 같은 pending 파일이 다시 들어와도
-// 같은 견적을 다시 생성하지 않는다.
-const PROCESSED_DIR = join(AGENT_FOLDER, 'processed');
+// 같은 견적을 다시 생성하지 않는다. Drive 동기화 폴더가 아니라 에이전트 로컬 폴더에 둔다
+// (Drive에 불필요한 파일을 만들지 않고, 빈 폴더가 동기화되지 않는 문제도 피한다).
+const PROCESSED_DIR = resolve(String(config.processedJobsDir || join(__dirname, 'processed-jobs')));
 const HEARTBEAT_FILE = join(AGENT_FOLDER, 'heartbeat.json');
 const FAILED_JOBS_DIR = join(__dirname, 'failed-jobs');
 // Apps Script가 로컬 LOG에 남기고 싶은 활동 로그를 큐잉하는 폴더 (Drive 동기화 → 에이전트가 LOG 폴더로 복사)

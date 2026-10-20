@@ -12,7 +12,7 @@
 - **클라이언트 재진입 차단**: `submitInFlightRef`로 진행 중 연속 클릭/두 버튼 교차 클릭을 원자적으로 무시한다.
 - **저장 멱등성**: 한 번의 사용자 확정마다 `requestToken`을 만들어 페이로드에 담는다. `processQuote`는 같은 토큰의 재요청이면 새 번호/대장 행을 만들지 않고 이미 접수한 결과(`newQuoteNumber`, `operationId`, `folderUrl`)를 반환한다. 접수 결과는 ScriptProperties에 24시간 보관한다. 번호 선택 모달을 거쳐도 같은 토큰을 재사용한다.
 - **영구삭제 안전성**: 영구삭제 시 같은 기본 번호의 대장 행을 전부 찾아 아래에서부터 삭제해, 중복 행이 남아 삭제된 폴더를 가리키는 orphan 파일링크가 생기지 않게 한다.
-- **에이전트 재처리 방지**: 성공한 작업을 `operationId` 기준 `processed/` 표시로 남겨, Drive 재동기화로 같은 pending 파일이 다시 들어와도 재생성하지 않는다(30일 후 정리).
+- **에이전트 재처리 방지**: 성공한 작업을 `operationId` 기준 로컬 `agent/processed-jobs/`(config `processedJobsDir`) 표시로 남겨, Drive 재동기화로 같은 pending 파일이 다시 들어와도 재생성하지 않는다(30일 후 정리). Drive 동기화 폴더에는 만들지 않는다.
 - **폴백 서버 전달**: `/api/google/quote`(Vercel·로컬 Express)도 `requestToken`을 Apps Script로 전달한다.
 
 ## 검증

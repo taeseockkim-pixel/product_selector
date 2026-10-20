@@ -34,6 +34,7 @@ await writeFile(configPath, JSON.stringify({
   adminPassword: 'admin',
   templatePath: join(root, 'agent', 'templates', '견적서 샘플.xlsx'),
   excelWorkerPidFile: join(tempDir, 'excel-worker.pid'),
+  processedJobsDir: join(tempDir, 'processed-jobs'),
 }), 'utf8');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -208,7 +209,7 @@ try {
   assert.equal(plainResult.pdfFileNames.length, 1);
 
   // 성공 처리한 작업은 처리 표시를 남겨, Drive 재동기화로 같은 pending이 다시 들어와도 재처리하지 않는다.
-  const processedMarker = join(agentFolder, 'processed', `${plainOperation}.json`);
+  const processedMarker = join(tempDir, 'processed-jobs', `${plainOperation}.json`);
   assert.ok(existsSync(processedMarker), '성공 처리 표시가 남아야 합니다.');
   assert.equal(JSON.parse(await readFile(processedMarker, 'utf8')).quoteNumber, plainNumber);
   await writeFile(
