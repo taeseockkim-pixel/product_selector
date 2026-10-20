@@ -41,6 +41,13 @@ assert.match(source, /if \(!dryRun && !confirmed\) \{/, '실제 삭제는 confir
 assert.match(source, /ledgerFile\.makeCopy\(backupName, yearFolder\)/, '실제 삭제 전에 대장을 백업해야 합니다.');
 assert.match(source, /setTrashed\(true\)/, '견적 폴더는 영구삭제가 아니라 휴지통 이동이어야 합니다.');
 assert.ok(!/resetDepartmentQuoteHistory[\s\S]*?permanentlyDeleteFile_/.test(source.split('function resetDepartmentQuoteHistory')[1].split('function diagnoseFileLinkHmac')[0]), '초기화는 파일을 영구삭제하면 안 됩니다.');
+// 부서 초기화는 다른 부서(타부서 접두어) 행을 절대 삭제하지 않는다.
+assert.match(source, /function belongsToDepartment_\(quoteNumber\)/, '부서 접두어 판별 함수가 있어야 합니다.');
+assert.match(source, /if \(!belongsToDepartment_\(value\)\) \{ foreignLedgerRows\+\+; continue; \}/, '대장의 타부서 행은 삭제 대상에서 제외해야 합니다.');
+assert.match(source, /if \(!belongsToDepartment_\(base\)\) \{ foreignSnapshotRows\+\+; continue; \}/, '스냅샷의 타부서 행은 삭제 대상에서 제외해야 합니다.');
+assert.match(source, /function previewResetSalesQuotesAll\(\)/, '영업 전체 초기화 미리보기 함수가 있어야 합니다.');
+assert.match(source, /keepNothing: true/, 'keepNothing(전체 삭제) 모드가 있어야 합니다.');
+assert.match(source, /const keepNothing = opts\.keepNothing === true;/, 'keepNothing 옵션을 인식해야 합니다.');
 
 // ── 메모리 Drive / Gmail / Cache / Lock ──────────────────────────────────────────────
 const state = { userEmail: 'taeseock.kim@cimon.com', now: Date.now(), gmailDrafts: [], logs: [], exports: [] };
