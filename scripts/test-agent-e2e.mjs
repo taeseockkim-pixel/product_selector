@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { existsSync, readdirSync } from 'node:fs';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -138,12 +138,17 @@ try {
   }, '/health 응답', 30000);
   assert.equal(health.ok, true);
   assert.ok(health.features.includes('draftAttachments'), '에이전트가 첨부 기능을 알려야 합니다.');
+  assert.equal(health.publicBaseUrl, `http://127.0.0.1:${port}`);
+  assert.match(health.storageRootFingerprint, /^[a-f0-9]{16}$/);
+  assert.ok(health.host);
   assert.equal(health.pollIntervalMs, 500);
 
   const heartbeatPath = join(agentFolder, 'heartbeat.json');
   const heartbeat = await waitFor(async () => (existsSync(heartbeatPath) ? JSON.parse(await readFile(heartbeatPath, 'utf8')) : null), 'heartbeat.json');
   assert.equal(heartbeat.stopped, false);
   assert.ok(heartbeat.features.includes('draftAttachments'));
+  assert.equal(heartbeat.storageRootFingerprint, health.storageRootFingerprint);
+  assert.equal(heartbeat.publicBaseUrl, health.publicBaseUrl);
   const firstTs = heartbeat.ts;
   await waitFor(async () => JSON.parse(await readFile(heartbeatPath, 'utf8')).ts > firstTs, '생존 신호 갱신', 15000);
 
@@ -199,6 +204,29 @@ try {
   }, '일반 저장 완료 보고');
   assert.equal(plainResult.ok, true);
   assert.equal(existsSync(join(agentFolder, 'attachments', `${plainOperation}__manifest.json`)), false, '메일을 요청하지 않으면 첨부를 만들면 안 됩니다.');
+  assert.equal(plainResult.actualFolderName, '기술영업 2610-901_E2E 고객');
+  assert.equal(plainResult.pdfFileNames.length, 1);
+
+  // 저장 파일이 다른 견적번호 폴더에 놓였어도, 서명된 링크는 같은 부서/연도 안의 정확한 견적 파일을 찾아야 한다.
+  const yearDir = dirname(plainResult.localPath);
+  const misplacedFolder = join(yearDir, '기술영업 2610-900_이전 폴더에 잘못 저장된 901');
+  await rename(plainResult.localPath, misplacedFolder);
+  const recoveredResponse = await fetch(plainResult.fileUrl);
+  assert.equal(recoveredResponse.status, 200, '다른 폴더에 있는 정확한 파일은 서명된 견적 링크로 열려야 합니다.');
+  const recoveredPdf = Buffer.from(await recoveredResponse.arrayBuffer());
+  assert.equal(recoveredPdf.subarray(0, 8).toString('latin1'), '%PDF-1.7');
+  assert.match(agentLog, /파일 링크 다른 폴더에서 복구/, '다른 폴더에서 찾은 사실을 운영 로그에 남겨야 합니다.');
+
+  // 같은 기본 번호의 원본이 있어도 존재하지 않는 Rev 파일 링크에 원본 PDF를 대신 반환하면 안 된다.
+  const nonexistentRevisionName = '기술영업 2610-901_Rev01_E2E 고객_견적서.pdf';
+  const revisionRelativePath = [
+    '기술영업', '2026', plainResult.actualFolderName, nonexistentRevisionName,
+  ].map(encodeURIComponent).join('/');
+  const revisionSignature = createHmac('sha256', 'e2e-secret').update(revisionRelativePath).digest('hex');
+  const nonexistentRevisionResponse = await fetch(
+    `http://127.0.0.1:${port}/files/${revisionRelativePath}?k=${revisionSignature}`,
+  );
+  assert.equal(nonexistentRevisionResponse.status, 404, '없는 Rev 파일 요청에 원본 파일을 대신 반환하면 안 됩니다.');
 
   const finalHealth = await (await fetch(`http://127.0.0.1:${port}/health`)).json();
 

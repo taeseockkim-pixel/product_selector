@@ -16,9 +16,9 @@
 
 import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync, appendFileSync, rmSync, renameSync } from 'fs';
 import { writeFile } from 'fs/promises';
-import { join, dirname, resolve, sep, basename, extname } from 'path';
+import { join, dirname, resolve, sep, basename, extname, relative as relativePath } from 'path';
 import { fileURLToPath } from 'url';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHash, createHmac, timingSafeEqual } from 'crypto';
 import { hostname } from 'os';
 import express from 'express';
 import { fillQuoteTemplate } from '../server/fillTemplate.js';
@@ -65,6 +65,11 @@ try {
 
 const AGENT_FOLDER = resolve(String(config.agentFolderPath || ''));
 const STORAGE_ROOT = resolve(String(config.storageRoot || 'D:\\견적서'));
+// 절대 경로를 /health에 노출하지 않고 여러 에이전트의 저장 루트가 같은지 비교할 지문만 제공한다.
+const STORAGE_ROOT_FINGERPRINT = createHash('sha256')
+  .update(process.platform === 'win32' ? STORAGE_ROOT.toLowerCase() : STORAGE_ROOT)
+  .digest('hex')
+  .slice(0, 16);
 const DEFAULT_DEPARTMENT = String(config.defaultDepartment || '기술영업');
 // 설정 누락으로 fileUrl이 빈 값이 되면 Apps Script가 완료 보고를 버릴 수 있으므로
 // 사내 파일 서버 기본 주소를 사용한다.
@@ -82,7 +87,7 @@ const MAX_JOB_ATTEMPTS = 3;
 const ITEMS_PER_FILE = 14;
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 // 에이전트 생존 신호. Apps Script가 이 신호가 오래되면 견적 접수를 거부한다.
-const AGENT_VERSION = '2026-10-13-excel-pdf-attachments';
+const AGENT_VERSION = '2026-10-20-quote-file-link-recovery';
 const AGENT_FEATURES = ['draftAttachments'];
 const HEARTBEAT_INTERVAL_MS = Number(config.heartbeatIntervalMs || 20000);
 // 숨김 Excel을 유지해 작업마다 Excel을 새로 띄우는 시간을 줄인다. 문제가 있으면 config에서 false로 끈다.
@@ -302,49 +307,68 @@ function resolveQuoteFileForClaim(relative) {
       candidateDirs.unshift(exactDir);
     }
 
-    if (candidateDirs.length === 0) return null;
+    // 요청된 폴더를 우선하되, 파일이 그 폴더 밖에 잘못 저장된 경우도 같은 부서/연도 안에서
+    // 찾아준다. 파일명 또는 견적번호가 확실히 일치하는 경우만 허용하고 임의의 첫 PDF는 반환하지 않는다.
+    const requestedName = basename(fileName);
+    const requestedExt = extname(requestedName).toLowerCase() || '.pdf';
+    const requestedNameNorm = normKey(requestedName);
+    const quotePrefix = `${rawQuoteNum}_`.toLowerCase();
+    function outputVariant(name) {
+      const extension = extname(name);
+      const stem = extension ? name.slice(0, -extension.length) : name;
+      if (!stem.startsWith(rawQuoteNum)) return null;
+      const suffix = stem.slice(rawQuoteNum.length);
+      const match = suffix.match(/^(_Rev\d+(?:_\d+)?|_\d+)(?:_|$)/i);
+      return match ? match[1].toLowerCase() : '';
+    }
+    const requestedVariant = outputVariant(requestedName);
+    const searchDirs = [
+      ...candidateDirs,
+      ...allDirs.filter((entry) => !candidateDirs.some((candidate) => candidate.name === entry.name)),
+    ];
+    const matches = [];
+    const seenPaths = new Set();
 
-    // 폴더 내에서 파일 탐색
-    const requestedExt = extname(fileName).toLowerCase() || '.pdf';
-
-    for (const dir of candidateDirs) {
+    for (const dir of searchDirs) {
       const dirPath = join(yearRoot, dir.name);
-
-      // A) 정확한 파일명 존재 시 즉시 반환
-      const exactFilePath = resolve(join(dirPath, fileName));
-      if (exactFilePath.startsWith(yearRoot + sep) && existsSync(exactFilePath) && statSync(exactFilePath).isFile()) {
-        return exactFilePath;
+      let files;
+      try {
+        files = readdirSync(dirPath, { withFileTypes: true })
+          .filter((entry) => entry.isFile() && !entry.name.startsWith('.') && extname(entry.name).toLowerCase() === requestedExt);
+      } catch {
+        continue;
       }
 
-      // B) 해당 폴더 내 요청 확장자 파일 목록
-      const files = readdirSync(dirPath, { withFileTypes: true })
-        .filter((entry) => entry.isFile() && !entry.name.startsWith('.') && extname(entry.name).toLowerCase() === requestedExt);
+      for (const entry of files) {
+        const found = resolve(join(dirPath, entry.name));
+        if (!found.startsWith(yearRoot + sep) || seenPaths.has(found)) continue;
+        seenPaths.add(found);
 
-      if (files.length === 0) continue;
-
-      // B-1) 요청 파일명과 정규화가 일치하는 파일
-      const targetFileNorm = normKey(fileName);
-      const normMatch = files.find((f) => normKey(f.name) === targetFileNorm);
-      if (normMatch) {
-        const found = resolve(join(dirPath, normMatch.name));
-        if (found.startsWith(yearRoot + sep)) return found;
+        const score = entry.name === requestedName
+            ? 3
+            : normKey(entry.name) === requestedNameNorm
+              ? 2
+              : entry.name.toLowerCase().startsWith(quotePrefix) && outputVariant(entry.name) === requestedVariant
+                ? 1
+                : 0;
+        if (score > 0) matches.push({ path: found, name: entry.name, folder: dir.name, score });
       }
-
-      // B-2) 견적번호(또는 순수 번호)가 포함된 파일
-      const seqFileMatch = files.find((f) => {
-        const fNorm = normKey(f.name);
-        return fNorm.includes(rawNorm) || (seqNorm && fNorm.includes(seqNorm));
-      });
-      if (seqFileMatch) {
-        const found = resolve(join(dirPath, seqFileMatch.name));
-        if (found.startsWith(yearRoot + sep)) return found;
-      }
-
-      // B-3) 폴더 안에 존재하는 요청 확장자 파일
-      const found = resolve(join(dirPath, files[0].name));
-      if (found.startsWith(yearRoot + sep)) return found;
     }
 
+    const bestScore = matches.reduce((best, match) => Math.max(best, match.score), 0);
+    const bestMatches = matches.filter((match) => match.score === bestScore);
+    if (bestMatches.length === 1) {
+      if (bestMatches[0].folder !== folderRaw) {
+        console.warn(`[파일 링크 다른 폴더에서 복구] quote=${rawQuoteNum} requestedFolder=${folderRaw} actualFolder=${bestMatches[0].folder} file=${bestMatches[0].name}`);
+      }
+      return bestMatches[0].path;
+    }
+
+    console.error(
+      `[파일 링크 후보 없음/모호함] quote=${rawQuoteNum} year=${year} requestedFolder=${folderRaw} ` +
+      `file=${requestedName} candidateFolders=${JSON.stringify(candidateDirs.map((entry) => entry.name).slice(0, 20))} ` +
+      `matches=${JSON.stringify(bestMatches.map(({ folder, name }) => ({ folder, name })).slice(0, 20))}`,
+    );
     return null;
   } catch (err) {
     console.error(`[파일 클레임 해석 실패] ${relative}: ${describeError(err)}`);
@@ -781,6 +805,8 @@ async function processJob(fileName) {
     vatTotal: Number(payload.vatTotal || vatTotalForItems(items)),
     ok: true,
     fileUrl,
+    actualFolderName,
+    pdfFileNames,
     fileUrls: pdfFileNames.map((pdfFileName) => {
       const partPath = [department, year, actualFolderName, pdfFileName].map(encodeURIComponent).join('/');
       const partSignature = signRelativePath(partPath);
@@ -989,6 +1015,8 @@ const heartbeatInfo = () => ({
   version: AGENT_VERSION,
   features: AGENT_FEATURES,
   host: hostname(),
+  publicBaseUrl: PUBLIC_BASE_URL,
+  storageRootFingerprint: STORAGE_ROOT_FINGERPRINT,
   pid: process.pid,
 });
 
@@ -1475,6 +1503,9 @@ app.get('/health', (req, res) => {
     ok: true,
     version: AGENT_VERSION,
     features: AGENT_FEATURES,
+    host: hostname(),
+    publicBaseUrl: PUBLIC_BASE_URL,
+    storageRootFingerprint: STORAGE_ROOT_FINGERPRINT,
     heartbeatAt: lastHeartbeatAt,
     heartbeatAgeMs: lastHeartbeatAt ? Date.now() - lastHeartbeatAt : null,
     pollIntervalMs: POLL_INTERVAL_MS,
@@ -1890,6 +1921,7 @@ app.use('/files', (req, res) => {
         console.error(`[파일 링크 파일 없음] decoded=${relative} | storageRoot=${STORAGE_ROOT}`);
         return res.status(404).send('Not found');
       }
+      console.warn(`[파일 링크 경로 대체] requested=${relative} actual=${relativePath(STORAGE_ROOT, resolved).split(sep).join('/')}`);
       if (extname(resolved).toLowerCase() === '.xlsx') {
         return res.download(resolved, basename(resolved));
       }

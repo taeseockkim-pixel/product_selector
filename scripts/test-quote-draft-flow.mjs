@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,6 +20,12 @@ assert.match(source, /bcc: authorBcc/, '발주요청 메일에는 작성자 본�
 assert.match(source, /payload\.quoteNumberMode \|\| 'reuseGap'/, 'Apps Script는 누락 번호 재사용을 이전 버전 기본 동작으로 유지해야 합니다.');
 assert.match(source, /quoteNumberChoiceStale: true/, '동시 저장으로 선택 번호가 바뀌면 접수 전에 거부해야 합니다.');
 assert.match(source, /QUOTE_NUMBER_RESERVATION_PREFIX/, '아직 대장에 기록되지 않은 대기 견적도 번호를 예약해야 합니다.');
+assert.match(source, /const fileLinkText = String\(rows\[i\]\.values\[linkCol\] \|\| ''\)\.trim\(\);\s*if \(!rows\[i\]\.links\[linkCol\] && !fileLinkText\) hasMissing/, '조회 시 자동 복구는 P열이 실제로 빈 경우만 누락으로 취급해야 합니다.');
+assert.match(source, /const fileLinkText = String\(row\.values\[linkCol\] \|\| ''\)\.trim\(\);\s*if \(!row\.links\[linkCol\] && !fileLinkText\)/, '조회 시 자동 복구는 기존 P열 표시 문자열을 덮어쓰면 안 됩니다.');
+assert.match(source, /const currentFileLink = String\(sheet\.getRange\(r, LEDGER_COL\.FILE_LINK\)\.getDisplayValue\(\) \|\| ''\)\.trim\(\);\s*if \(currentFileLink\) continue;/, '전체 링크 복구는 이미 값이 있는 파일링크를 덮어쓰면 안 됩니다.');
+assert.match(source, /result\.details\.actualFolderName = sanitizeDriveName\(actualFolderName\)/, '완료 스냅샷에는 에이전트가 실제로 사용한 폴더명이 보존되어야 합니다.');
+assert.match(source, /result\.details\.pdfFileNames = result\.pdfFileNames/, '완료 스냅샷에는 실제 PDF 파일명이 보존되어야 합니다.');
+assert.match(source, /\[파일 링크 복구 보류\] 실제 폴더 경로가 스냅샷에 없습니다/, '실제 경로 정보가 없는 과거 스냅샷으로 추측 링크를 만들면 안 됩니다.');
 
 // ── 메모리 Drive / Gmail / Cache / Lock ──────────────────────────────────────────────
 const state = { userEmail: 'taeseock.kim@cimon.com', now: Date.now(), gmailDrafts: [], logs: [], exports: [] };
@@ -109,6 +116,10 @@ const sandbox = {
   },
   Utilities: {
     getUuid: () => '123e4567-e89b-12d3-a456-426614174000',
+    computeHmacSha256Signature: (value, secret) => Array.from(
+      createHmac('sha256', secret).update(String(value)).digest(),
+      (byte) => (byte > 127 ? byte - 256 : byte),
+    ),
     base64Decode: (value) => Array.from(Buffer.from(value, 'base64')),
     newBlob: (bytes, contentType) => ({
       bytes: Buffer.from(bytes),
@@ -130,6 +141,47 @@ const sandbox = {
 };
 const context = vm.createContext(sandbox);
 vm.runInContext(source, context);
+
+// 링크 복구는 업체명으로 추정한 경로보다 완료 보고에 저장된 실제 폴더/파일명을 우선해야 한다.
+const linkQuoteNumber = '영업 2610-003';
+const linkCompany = '사단법인 더불어사는장애인복지회 (기전사업단)';
+const actualFolderName = '영업 2610-002_실제 저장 폴더';
+const actualOriginalFileName = `${linkQuoteNumber}_${linkCompany}_견적서.pdf`;
+const actualRevisionFileName = `${linkQuoteNumber}_Rev01_${linkCompany}_견적서.pdf`;
+const linkSnapshotRows = [
+  [linkQuoteNumber, linkQuoteNumber, new Date(), state.userEmail, JSON.stringify({ details: {
+    quoteNumber: linkQuoteNumber,
+    folderClientName: linkCompany,
+    actualFolderName,
+    pdfFileNames: [actualOriginalFileName],
+  } })],
+  [`${linkQuoteNumber}_Rev01`, linkQuoteNumber, new Date(), state.userEmail, JSON.stringify({ details: {
+    quoteNumber: `${linkQuoteNumber}_Rev01`,
+    folderClientName: linkCompany,
+    actualFolderName,
+    pdfFileNames: [actualRevisionFileName],
+  } })],
+];
+const recoveredLinkItems = sandbox.buildRowLinkItems_('영업', 2026, linkQuoteNumber, linkCompany, linkSnapshotRows);
+assert.equal(recoveredLinkItems.length, 2);
+assert.equal(
+  decodeURIComponent(recoveredLinkItems[0].url.split('/files/')[1].split('?')[0]),
+  `영업/2026/${actualFolderName}/${actualOriginalFileName}`,
+  '원본 링크는 실제 저장 폴더와 실제 PDF 파일명을 사용해야 합니다.',
+);
+assert.equal(
+  decodeURIComponent(recoveredLinkItems[1].url.split('/files/')[1].split('?')[0]),
+  `영업/2026/${actualFolderName}/${actualRevisionFileName}`,
+  '수정본 링크도 실제 저장 폴더와 실제 PDF 파일명을 사용해야 합니다.',
+);
+const legacySnapshotRows = [[linkQuoteNumber, linkQuoteNumber, new Date(), state.userEmail, JSON.stringify({ details: {
+  folderClientName: linkCompany,
+} })]];
+assert.equal(
+  sandbox.buildRowLinkItems_('영업', 2026, linkQuoteNumber, linkCompany, legacySnapshotRows).length,
+  0,
+  '실제 경로를 모르는 구형 스냅샷은 새 추정 링크로 복구하지 않아야 합니다.',
+);
 
 // 실제 Drive 대신 메모리 폴더를 쓰도록 접근 함수만 교체한다.
 sandbox.getAgentFolder_ = () => agentRoot;

@@ -882,6 +882,14 @@ function commitLedgerAfterAgentSuccess_(result) {
   result.details.authorDepartment = result.department;
   result.details.year = year;
   result.details.quoteNumber = result.quoteNumber;
+  // 링크 복구 시 계산한 표준 업체명 경로가 아닌 에이전트가 실제 저장한 경로를 재사용한다.
+  const actualFolderName = String(result.actualFolderName || '').trim();
+  if (actualFolderName) result.details.actualFolderName = sanitizeDriveName(actualFolderName);
+  if (Array.isArray(result.pdfFileNames) && result.pdfFileNames.length > 0) {
+    result.details.pdfFileNames = result.pdfFileNames
+      .map(function(fileName) { return sanitizeDriveName(fileName); })
+      .filter(function(fileName) { return fileName && fileName !== '미입력'; });
+  }
   if (result.ledgerQuoteNumber && result.revisionNumber > 0) {
     result.details.baseQuoteNumber = result.ledgerQuoteNumber;
     result.details.revisionNumber = result.revisionNumber;
@@ -2774,35 +2782,58 @@ function buildRowLinkItems_(dept, year, quoteNumber, company, snapshotRows) {
     return String(row[1] || '').trim() === baseQuote;
   });
 
-  // 실제 폴더명에 사용된 업체명(스냅샷의 folderClientName)을 우선 사용한다.
-  let folderClientName = company;
+  // 새 스냅샷에 저장된 실제 폴더명과 PDF 파일명만 복구에 사용한다.
+  let actualFolderName = '';
+  let hasActualFolderName = false;
+  const snapshotDetails = [];
   for (let si = matchedSnapshots.length - 1; si >= 0; si--) {
     try {
       const stored = JSON.parse(String(matchedSnapshots[si][4] || '{}'));
-      const storedClient = String((stored.details && (stored.details.folderClientName || stored.details.clientName)) || '').trim();
-      if (storedClient) {
-        folderClientName = storedClient;
-        break;
+      const details = stored && stored.details && typeof stored.details === 'object' ? stored.details : {};
+      snapshotDetails.push({ row: matchedSnapshots[si], details: details });
+      if (!hasActualFolderName && String(details.actualFolderName || '').trim()) {
+        actualFolderName = sanitizeDriveName(details.actualFolderName);
+        hasActualFolderName = true;
       }
     } catch (err) { /* 다음 스냅샷 행으로 넘어간다 */ }
   }
 
-  const folderName = `${baseQuote}_${folderClientName}`;
+  if (!actualFolderName) {
+    Logger.log('[파일 링크 복구 보류] 실제 폴더 경로가 스냅샷에 없습니다: ' + baseQuote + ' / ' + String(company || ''));
+    return [];
+  }
+
+  function fileNameForOutput_(outputNumber) {
+    for (let si = 0; si < snapshotDetails.length; si++) {
+      const snapshot = snapshotDetails[si];
+      if (String(snapshot.row[0] || '').trim() !== outputNumber) continue;
+      const names = snapshot.details.pdfFileNames;
+      if (Array.isArray(names) && names.length > 0) {
+        const actualName = sanitizeDriveName(names[0]);
+        if (actualName && actualName !== '미입력') return actualName;
+      }
+    }
+    return '';
+  }
+
   const linkItems = [];
   const seenUrls = {};
 
-  const origFileName = `${baseQuote}_${folderClientName}_견적서.pdf`;
-  const origUrl = signedFileUrl_(dept, year, folderName, origFileName);
-  linkItems.push({ text: `원본: ${origFileName}`, url: origUrl });
-  seenUrls[origUrl] = true;
+  const origFileName = fileNameForOutput_(baseQuote);
+  if (origFileName) {
+    const origUrl = signedFileUrl_(dept, year, actualFolderName, origFileName);
+    linkItems.push({ text: `원본: ${origFileName}`, url: origUrl });
+    seenUrls[origUrl] = true;
+  }
 
   matchedSnapshots.forEach(function(row) {
     const outNum = String(row[0] || '').trim();
     const revMatch = outNum.match(/_Rev(\d+)$/i);
     if (!revMatch) return;
     const revNum = parseInt(revMatch[1], 10);
-    const revFileName = `${outNum}_${folderClientName}_견적서.pdf`;
-    const revUrl = signedFileUrl_(dept, year, folderName, revFileName);
+    const revFileName = fileNameForOutput_(outNum);
+    if (!revFileName) return;
+    const revUrl = signedFileUrl_(dept, year, actualFolderName, revFileName);
     if (seenUrls[revUrl]) return;
     seenUrls[revUrl] = true;
     linkItems.push({ text: `Rev${String(revNum).padStart(2, '0')}: ${revFileName}`, url: revUrl });
@@ -2888,7 +2919,8 @@ function repairEmptyLedgerLinks_(system, dept, year, rows) {
   let hasMissing = false;
   let hasLegacyNotes = false;
   for (let i = 0; i < rows.length; i++) {
-    if (!rows[i].links[linkCol]) hasMissing = true;
+    const fileLinkText = String(rows[i].values[linkCol] || '').trim();
+    if (!rows[i].links[linkCol] && !fileLinkText) hasMissing = true;
     if (isLegacyFileLinkInNotes_(rows[i].values[notesCol])) {
       hasMissing = true;
       hasLegacyNotes = true;
@@ -2920,7 +2952,8 @@ function repairEmptyLedgerLinks_(system, dept, year, rows) {
     const company = String(row.values[companyCol] || '').trim();
     if (!quoteNumber || !company) continue;
 
-    if (!row.links[linkCol]) {
+    const fileLinkText = String(row.values[linkCol] || '').trim();
+    if (!row.links[linkCol] && !fileLinkText) {
       const linkItems = buildRowLinkItems_(dept, year, quoteNumber, company, snapshotRows);
       if (linkItems.length) {
         writeLinkItemsToCell_(sheet, i + 2, linkItems);
@@ -2979,6 +3012,9 @@ function autoRepairAllMissingLedgerLinks() {
       const quoteNumber = String(sheet.getRange(r, LEDGER_COL.QUOTE_NUMBER).getDisplayValue() || '').trim();
       const company = String(sheet.getRange(r, LEDGER_COL.CLIENT_NAME).getDisplayValue() || '').trim();
       if (!quoteNumber || !company) continue;
+      // 기존 링크는 수동으로 복구했거나 실제 폴더명이 계산 경로와 다를 수 있으므로 덮어쓰지 않는다.
+      const currentFileLink = String(sheet.getRange(r, LEDGER_COL.FILE_LINK).getDisplayValue() || '').trim();
+      if (currentFileLink) continue;
       const linkItems = buildRowLinkItems_(dept, currentYear, quoteNumber, company, snapshotRows);
       if (!linkItems.length) continue;
       writeLinkItemsToCell_(sheet, r, linkItems);
