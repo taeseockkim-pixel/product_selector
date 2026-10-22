@@ -32,8 +32,10 @@ try {
   assert.equal(quoteItemLayoutExports.quoteItemTextareaRows('abcdefghij', 4), 3);
   const quoteFormSource = await readFile(join(root, 'src', 'components', 'QuoteFormPage.tsx'), 'utf8');
   assert.match(quoteFormSource, /<th colSpan=\{7\}[\s\S]*?\{t\(UI\.quoteModelName\)\} \/ \{t\(UI\.quoteSpecAction\)\}/, '품목 표 헤더는 카드형 입력 행과 맞는 통합 제목이어야 합니다.');
-  assert.match(quoteFormSource, /rows=\{quoteItemTextareaRows\(item\.name, 22\)\}/, '모든 견적 품목의 모델명은 여러 줄 textarea여야 합니다.');
-  assert.match(quoteFormSource, /rows=\{quoteItemTextareaRows\(item\.spec, 58\)\}/, '모든 견적 품목의 규격은 여러 줄 textarea여야 합니다.');
+  assert.match(quoteFormSource, /const itemTextareaRows = Math\.max\(\s*quoteItemTextareaRows\(item\.name, 22\),\s*quoteItemTextareaRows\(item\.spec, 58\)\s*\);/, '모델명·규격 입력칸은 같은 줄 수로 높이를 맞춰야 합니다.');
+  assert.equal((quoteFormSource.match(/rows=\{itemTextareaRows\}/g) || []).length, 2, '모델명과 규격 입력칸 모두 공통 줄 수를 사용해야 합니다.');
+  assert.match(quoteFormSource, /mb-1\.5 flex h-5 items-center gap-1\.5[^"]*text-\[11px\][^"]*leading-5/, '모델명 라벨은 수기작성 배지가 있어도 20px 높이로 고정되어야 합니다.');
+  assert.match(quoteFormSource, /mb-1\.5 flex h-5 items-center text-\[11px\][^"]*leading-5/, '규격 라벨은 모델명 라벨과 같은 높이여야 합니다.');
   assert.ok(!quoteFormSource.includes('isManualMultiline'), '모델명 다중 줄 입력을 수기 품목으로 제한하는 분기는 제거해야 합니다.');
   assert.ok(!quoteFormSource.includes('placeholder="품명/제품명 직접 입력"'), '좁은 한 줄 품목 행은 제거해야 합니다.');
   // 중복 견적 생성을 막는 클라이언트 안전장치: 진행 중 재진입 차단 + 한 번의 확정 식별 토큰.

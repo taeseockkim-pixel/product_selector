@@ -65,6 +65,33 @@ assert.ok(
   '모델명 라벨에 품목 번호를 중복 표시하지 않아야 합니다.'
 );
 
+// 6) 모델명/규격 라벨과 입력칸 높이 정렬
+assert.match(
+  source,
+  /mb-1\.5 flex h-5 items-center gap-1\.5[^"]*text-\[11px\][^"]*leading-5/,
+  '모델명 라벨은 수기작성 배지가 있어도 20px 높이로 고정되어야 합니다.'
+);
+assert.match(
+  source,
+  /mb-1\.5 flex h-5 items-center text-\[11px\][^"]*leading-5/,
+  '규격 라벨은 모델명 라벨과 같은 높이여야 합니다.'
+);
+assert.match(
+  source,
+  /const itemTextareaRows = Math\.max\(\s*quoteItemTextareaRows\(item\.name, 22\),\s*quoteItemTextareaRows\(item\.spec, 58\)\s*\);/,
+  '모델명·규격 입력칸은 같은 줄 수로 높이를 맞춰야 합니다.'
+);
+assert.equal(
+  (source.match(/rows=\{itemTextareaRows\}/g) || []).length,
+  2,
+  '모델명과 규격 입력칸 모두 공통 줄 수를 사용해야 합니다.'
+);
+assert.match(
+  source,
+  /grid grid-cols-1 items-start gap-3 md:grid-cols-\[minmax\(0,1fr\)_minmax\(0,1\.6fr\)\]/,
+  '모델명/규격 2단 영역은 위쪽 정렬이어야 합니다.'
+);
+
 // 긴 숫자에서도 정렬이 흔들리지 않도록 숫자 폭을 고정한다.
 const tabularCount = source.match(/tabular-nums/g) || [];
 assert.ok(tabularCount.length >= 5, `숫자 입력/표시에는 tabular-nums를 적용해야 합니다. (현재 ${tabularCount.length}개)`);

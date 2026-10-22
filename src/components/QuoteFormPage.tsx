@@ -2384,6 +2384,12 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                       const isDragging = draggedIndex === idx;
                       const isDropTarget = dragOverIndex === idx && draggedIndex !== null && draggedIndex !== idx;
                       const matchedProduct = findProductForItem(item);
+                      // 모델명과 규격 입력칸의 높이를 같게 맞춘다. 한쪽만 줄이 늘어나면
+                      // 행의 아래쪽 선이 어긋나므로 두 칸 모두 더 많은 줄 수를 사용한다.
+                      const itemTextareaRows = Math.max(
+                        quoteItemTextareaRows(item.name, 22),
+                        quoteItemTextareaRows(item.spec, 58)
+                      );
 
                       // 모든 견적 품목을 PDF처럼 모델명·규격 중심의 넓은 행으로 표시하고,
                       // 수량·단가 등 입력 컨트롤은 다음 줄에 둔다.
@@ -2443,15 +2449,15 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                               </div>
                             </td>
                             <td colSpan={7} className="px-4 py-3 align-top">
-                              <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-3">
+                              <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
                                 <div className="min-w-0">
-                                  <label htmlFor={`quote-item-name-${idx}`} className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-[#64748b]">
+                                  <label htmlFor={`quote-item-name-${idx}`} className="mb-1.5 flex h-5 items-center gap-1.5 text-[11px] font-semibold leading-5 text-[#64748b]">
                                     <span>{lang === 'en' ? 'Product name' : '모델명'}</span>
-                                    {item.isCustom && <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-extrabold text-indigo-700">수기작성</span>}
+                                    {item.isCustom && <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-0.5 text-[10px] font-extrabold leading-none text-indigo-700">수기작성</span>}
                                   </label>
                                   <textarea
                                     id={`quote-item-name-${idx}`}
-                                    rows={quoteItemTextareaRows(item.name, 22)}
+                                    rows={itemTextareaRows}
                                     value={item.name}
                                     onChange={(e) => updateItemName(idx, e.target.value)}
                                     placeholder={lang === 'en' ? 'Enter a model name. Press Enter to add a line.' : '모델명을 입력하세요. Enter로 줄바꿈할 수 있습니다.'}
@@ -2463,12 +2469,12 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                                   />
                                 </div>
                                 <div className="min-w-0">
-                                  <label htmlFor={`quote-item-spec-${idx}`} className="mb-1 block text-[11px] font-semibold text-[#64748b]">
+                                  <label htmlFor={`quote-item-spec-${idx}`} className="mb-1.5 flex h-5 items-center text-[11px] font-semibold leading-5 text-[#64748b]">
                                     {lang === 'en' ? 'Specification' : '규격 / 사양'}
                                   </label>
                                   <textarea
                                     id={`quote-item-spec-${idx}`}
-                                    rows={quoteItemTextareaRows(item.spec, 58)}
+                                    rows={itemTextareaRows}
                                     value={item.spec}
                                     onChange={(e) => updateItemSpec(idx, e.target.value)}
                                     placeholder={lang === 'en' ? 'Enter specifications. Press Enter to add a line.' : '규격/사양 상세 내용을 입력하세요. Enter로 줄바꿈할 수 있습니다.'}
