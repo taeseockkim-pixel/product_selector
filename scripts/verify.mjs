@@ -148,6 +148,12 @@ if (existsSync(imgRoot)) {
 }
 checkPublicDir('카탈로그 PDF (public/catalogs/)', 'public/catalogs', /\.pdf$/i);
 
+// ── 7. 완료 보고 반영 중복 방지 (Apps Script) ──────────────
+console.log('\n[7] 완료 보고 반영 중복 방지');
+check('processAgentResults 잠금/완료 표시 검사', () => {
+  execSync('node scripts/test-agent-result-lock.mjs', { cwd: root, stdio: 'pipe' });
+});
+
 // ── 결과 요약 ────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(40));
 console.log(`결과: ${passed} 통과 / ${failed} 실패`);

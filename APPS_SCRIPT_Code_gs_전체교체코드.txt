@@ -59,6 +59,14 @@ const QUOTE_NUMBER_RESERVATION_TTL_MS = 24 * 60 * 60 * 1000;
 // 한 번의 사용자 저장 확정(요청 토큰)을 기록해, 같은 제출이 중복 도착해도 새 견적을 만들지 않는다.
 const QUOTE_REQUEST_PREFIX = 'QUOTE_REQUEST_';
 const QUOTE_REQUEST_TTL_MS = 24 * 60 * 60 * 1000;
+// 완료 보고(에이전트 결과) 1건을 대장에 반영했다는 표시. 같은 operationId가 다시 처리되어도
+// 대장 행을 두 번 추가하지 않도록 한다. (잠금 시간 초과 등 잠금이 보장되지 않는 경우의 이중 안전장치)
+const LEDGER_COMMIT_PREFIX = 'LEDGER_COMMITTED_';
+const LEDGER_COMMIT_TTL_MS = 24 * 60 * 60 * 1000;
+// 완료 보고 1건 처리에 걸리는 시간(대장 기록·링크 갱신·결과 파일 삭제)을 감안한 잠금 대기 시간.
+// 이 함수는 견적 저장(processQuote)처럼 잠금을 오래 잡는 작업과 겹칠 수 있고, 그때는 잠금을
+// 얻지 못하면 다음 트리거나 2초 폴링에서 다시 시도하면 되므로 사용자 화면을 오래 붙잡지 않도록 짧게 둔다.
+const AGENT_RESULT_LOCK_WAIT_MS = 3000;
 const QUOTE_SNAPSHOT_SHEET_NAME = '견적원본데이터';
 
 // 견적관리대장 열 번호 (1부터 시작). 운영 대장은 E열 발주, F열 작성자,
@@ -907,96 +915,213 @@ function commitLedgerAfterAgentSuccess_(result) {
   return system;
 }
 
+// operationId별 대장 반영 완료 표시를 읽는다. TTL이 지난 기록은 정리하고 0을 돌려준다.
+function readLedgerCommit_(operationId) {
+  const id = String(operationId || '').trim();
+  if (!id) return 0;
+  const props = PropertiesService.getScriptProperties();
+  const key = LEDGER_COMMIT_PREFIX + sanitizeDriveName(id);
+  let raw = null;
+  try { raw = props.getProperty(key); } catch (err) { return 0; }
+  if (!raw) return 0;
+  let record = null;
+  try { record = JSON.parse(raw); } catch (err) { record = null; }
+  const at = Number(record && record.at ? record.at : 0);
+  if (!at || Date.now() - at > LEDGER_COMMIT_TTL_MS) {
+    try { props.deleteProperty(key); } catch (err) { /* noop */ }
+    return 0;
+  }
+  return at;
+}
+
+// 대장 반영이 끝난 완료 보고를 operationId로 표시한다.
+function markLedgerCommitted_(operationId, quoteNumber) {
+  const id = String(operationId || '').trim();
+  if (!id) return;
+  try {
+    PropertiesService.getScriptProperties().setProperty(
+      LEDGER_COMMIT_PREFIX + sanitizeDriveName(id),
+      JSON.stringify({ at: Date.now(), quoteNumber: String(quoteNumber || '') })
+    );
+  } catch (err) {
+    Logger.log('대장 반영 표시 기록 실패(' + id + '): ' + err.toString());
+  }
+}
+
+// 잠금을 기다리는 사이 다른 실행이 이미 처리해 영구 삭제한 결과 파일인지 확인한다.
+function isAgentResultFileAlive_(file) {
+  try {
+    file.getName();
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// 만료된 대장 반영 완료 표시를 정리한다. 1분 트리거에서만 호출하며, ScriptProperties가
+// operationId 기록으로 계속 커지지 않도록 1시간에 한 번만 훑는다.
+function cleanupExpiredLedgerCommits_() {
+  const cache = CacheService.getScriptCache();
+  try {
+    if (cache.get('LEDGER_COMMIT_SWEEP')) return;
+    cache.put('LEDGER_COMMIT_SWEEP', '1', 3600);
+  } catch (err) { /* 캐시를 못 쓰면 이번 실행에서 정리한다. */ }
+  const props = PropertiesService.getScriptProperties();
+  let properties = {};
+  try { properties = props.getProperties(); } catch (err) { return; }
+  const now = Date.now();
+  Object.keys(properties).forEach(function(key) {
+    if (key.indexOf(LEDGER_COMMIT_PREFIX) !== 0) return;
+    let record = null;
+    try { record = JSON.parse(properties[key]); } catch (err) { record = null; }
+    const at = Number(record && record.at ? record.at : 0);
+    if (!at || now - at > LEDGER_COMMIT_TTL_MS) {
+      try { props.deleteProperty(key); } catch (err) { /* noop */ }
+    }
+  });
+}
+
 // 1분마다 실행: 에이전트가 쓴 완료 보고를 반영해 대장 파일링크를 갱신하고 잔여 파일을 정리한다.
+// 이 함수는 트리거·완료 상태 폴링·견적 목록 조회에서 동시에 호출될 수 있다. 잠금이 없으면
+// 같은 결과 파일을 두 실행이 함께 읽어 "행 없음"을 동시에 확인한 뒤 각자 appendRow를 실행해
+// 같은 견적번호 행이 2개 생긴다. 따라서 완료 보고 1건 처리는 스크립트 잠금 안에서 원자적으로 수행한다.
 function processAgentResults(maxFiles, allowedDepartment) {
   const limit = Number.isInteger(maxFiles) && maxFiles > 0 ? maxFiles : 20;
-  let results;
+  const lock = LockService.getScriptLock();
+  let locked = false;
   try {
-    results = getAgentSubfolder_('results');
+    locked = lock.tryLock(AGENT_RESULT_LOCK_WAIT_MS);
   } catch (err) {
+    locked = false;
+  }
+  if (!locked) {
+    // 다른 실행이 이미 처리 중이다. 결과 파일은 지워지지 않았으므로 다음 트리거나 폴링에서 다시 처리한다.
+    Logger.log('완료 보고 처리 건너뜀(다른 실행이 처리 중): 부서=' + (allowedDepartment || '전체'));
     return;
   }
-  const files = results.getFiles();
-  let scannedCount = 0;
-  while (files.hasNext() && scannedCount < limit) {
-    const file = files.next();
-    scannedCount++;
-    let result = null;
+
+  // queueLedgerExport_는 같은 스크립트 잠금을 잡았다가 releaseLock()하므로 잠금을 잡은 채로
+  // 호출하면 바깥 잠금까지 풀려 버린다. 대기열 등록은 잠금을 푼 뒤에 수행한다.
+  const pendingExports = [];
+
+  try {
+    let results;
     try {
-      result = JSON.parse(file.getBlob().getDataAsString('utf8'));
+      results = getAgentSubfolder_('results');
     } catch (err) {
-      continue; // 아직 동기화 중인 파일 — 다음 트리거에서 재시도
+      return;
     }
-
-    if (
-      allowedDepartment &&
-      result &&
-      normalizeAuthorDepartment_(result.department) !== normalizeAuthorDepartment_(allowedDepartment)
-    ) {
-      continue;
-    }
-
-    if (result && result.ok && result.department && result.quoteNumber && result.fileUrl) {
-      const ledgerStartedAt = Date.now();
+    const files = results.getFiles();
+    let scannedCount = 0;
+    while (files.hasNext() && scannedCount < limit) {
+      const file = files.next();
+      scannedCount++;
+      // 잠금을 기다리는 사이 다른 실행이 같은 파일을 처리해 이미 지웠다면 다시 반영하지 않는다.
+      if (!isAgentResultFileAlive_(file)) continue;
+      let result = null;
       try {
-        // 파일 생성 성공을 먼저 확인한 뒤에만 대장 행을 만들고, 그 다음 링크를 기록한다.
-        const system = commitLedgerAfterAgentSuccess_(result);
-        updateLedgerLink_(result, system);
-        releaseQuoteNumberReservation_(result.quoteNumber, result.details && result.details.operationId);
-        // 사용자가 기다리는 완료 상태를 먼저 기록하고, 로컬 대장 사본 내보내기는 대기열로 넘겨 1분 트리거가 처리한다.
-        setQuoteOperationStatus_(result.details.operationId, 'completed', result.quoteNumber);
-        queueLedgerExport_(system, Number(result.year), result.quoteNumber);
-        logQuoteTimings_(result, ledgerStartedAt);
-        Logger.log('[성능] 대장/링크 반영 ' + result.quoteNumber + ': ' + (Date.now() - ledgerStartedAt) + 'ms');
-        Logger.log('대장 파일링크 갱신 완료(' + result.quoteNumber + '): ' + result.fileUrl);
+        result = JSON.parse(file.getBlob().getDataAsString('utf8'));
       } catch (err) {
-        setQuoteOperationStatus_(result.details && result.details.operationId, 'failed', result.quoteNumber, err.toString());
-        Logger.log('[성능] 대장/링크 실패 ' + result.quoteNumber + ': ' + (Date.now() - ledgerStartedAt) + 'ms');
-        // 파일은 이미 생성되었지만 대장 링크 갱신에 실패한 상태 — 결과를 지우면 영구히 유실되므로
-        // resultsFailed 폴더에 원본을 보존하고, 매분 트리거가 같은 오류로 계속 재시도하지 않도록
-        // results 폴더에서는 제거한다. 관리자가 수동으로 확인/재처리해야 한다.
-        Logger.log('대장 파일링크 갱신 실패(' + result.quoteNumber + '): ' + err.toString());
+        continue; // 아직 동기화 중인 파일 — 다음 트리거에서 재시도
+      }
+
+      if (
+        allowedDepartment &&
+        result &&
+        normalizeAuthorDepartment_(result.department) !== normalizeAuthorDepartment_(allowedDepartment)
+      ) {
+        continue;
+      }
+
+      if (result && result.ok && result.department && result.quoteNumber && result.fileUrl) {
+        const ledgerStartedAt = Date.now();
+        const operationId = result.details && result.details.operationId;
+        if (readLedgerCommit_(operationId) > 0) {
+          // 잠금 시간 초과 등으로 같은 완료 보고가 다시 도착한 경우 — 대장에는 다시 쓰지 않는다.
+          releaseQuoteNumberReservation_(result.quoteNumber, operationId);
+          setQuoteOperationStatus_(operationId, 'completed', result.quoteNumber);
+          Logger.log('[중복 반영 차단] 이미 대장에 반영된 완료 보고(' + result.quoteNumber + ')');
+        } else {
+          try {
+            // 파일 생성 성공을 먼저 확인한 뒤에만 대장 행을 만들고, 그 다음 링크를 기록한다.
+            const system = commitLedgerAfterAgentSuccess_(result);
+            updateLedgerLink_(result, system);
+            // 대장 행과 링크가 모두 반영된 뒤에 완료 표시를 남긴다.
+            // (링크 갱신 실패 시 재처리는 기존 행을 찾아 갱신하므로 중복 행이 생기지 않는다.)
+            markLedgerCommitted_(operationId, result.quoteNumber);
+            releaseQuoteNumberReservation_(result.quoteNumber, operationId);
+            // 사용자가 기다리는 완료 상태를 먼저 기록하고, 로컬 대장 사본 내보내기는 대기열로 넘겨 1분 트리거가 처리한다.
+            setQuoteOperationStatus_(operationId, 'completed', result.quoteNumber);
+            pendingExports.push({
+              system: system,
+              year: Number(result.year),
+              quoteNumber: result.quoteNumber
+            });
+            logQuoteTimings_(result, ledgerStartedAt);
+            Logger.log('[성능] 대장/링크 반영 ' + result.quoteNumber + ': ' + (Date.now() - ledgerStartedAt) + 'ms');
+            Logger.log('대장 파일링크 갱신 완료(' + result.quoteNumber + '): ' + result.fileUrl);
+          } catch (err) {
+            setQuoteOperationStatus_(operationId, 'failed', result.quoteNumber, err.toString());
+            Logger.log('[성능] 대장/링크 실패 ' + result.quoteNumber + ': ' + (Date.now() - ledgerStartedAt) + 'ms');
+            // 파일은 이미 생성되었지만 대장 링크 갱신에 실패한 상태 — 결과를 지우면 영구히 유실되므로
+            // resultsFailed 폴더에 원본을 보존하고, 매분 트리거가 같은 오류로 계속 재시도하지 않도록
+            // results 폴더에서는 제거한다. 관리자가 수동으로 확인/재처리해야 한다.
+            Logger.log('대장 파일링크 갱신 실패(' + result.quoteNumber + '): ' + err.toString());
+            try {
+              getAgentSubfolder_('resultsFailed').createFile(
+                `링크실패_${sanitizeDriveName(result.quoteNumber || file.getName())}_${Date.now()}.json`,
+                JSON.stringify({ result: result, error: err.toString() }),
+                MimeType.PLAIN_TEXT
+              );
+            } catch (copyErr) {
+              Logger.log('resultsFailed 보존 실패: ' + copyErr.toString());
+            }
+          }
+        }
+      } else if (result && result.ok) {
+        // 성공 보고인데 필수 값이 빠진 경우에는 조용히 삭제하지 않는다.
+        // fileUrl이 비어 있으면 대장 링크를 만들 수 없으므로 원본 결과를 보존해야 한다.
+        const missing = [];
+        if (!result.department) missing.push('department');
+        if (!result.quoteNumber) missing.push('quoteNumber');
+        if (!result.fileUrl) missing.push('fileUrl');
+        const message = '완료 보고 필수 값 누락: ' + missing.join(', ');
+        setQuoteOperationStatus_(result.details && result.details.operationId, 'failed', result.quoteNumber, message);
+        Logger.log('대장 파일링크 갱신 보류(' + (result.quoteNumber || file.getName()) + '): ' + message);
         try {
           getAgentSubfolder_('resultsFailed').createFile(
             `링크실패_${sanitizeDriveName(result.quoteNumber || file.getName())}_${Date.now()}.json`,
-            JSON.stringify({ result: result, error: err.toString() }),
+            JSON.stringify({ result: result, error: message }),
             MimeType.PLAIN_TEXT
           );
         } catch (copyErr) {
           Logger.log('resultsFailed 보존 실패: ' + copyErr.toString());
         }
+      } else if (result && result.ok === false) {
+        setQuoteOperationStatus_(result.operationId, 'failed', result.quoteNumber, result.error || '견적 파일 생성에 실패했습니다.');
+        movePendingToFailed_(result.quoteNumber, result.error || '알 수 없는 오류');
+        releaseQuoteNumberReservation_(result.quoteNumber, result.operationId);
       }
-    } else if (result && result.ok) {
-      // 성공 보고인데 필수 값이 빠진 경우에는 조용히 삭제하지 않는다.
-      // fileUrl이 비어 있으면 대장 링크를 만들 수 없으므로 원본 결과를 보존해야 한다.
-      const missing = [];
-      if (!result.department) missing.push('department');
-      if (!result.quoteNumber) missing.push('quoteNumber');
-      if (!result.fileUrl) missing.push('fileUrl');
-      const message = '완료 보고 필수 값 누락: ' + missing.join(', ');
-      setQuoteOperationStatus_(result.details && result.details.operationId, 'failed', result.quoteNumber, message);
-      Logger.log('대장 파일링크 갱신 보류(' + (result.quoteNumber || file.getName()) + '): ' + message);
-      try {
-        getAgentSubfolder_('resultsFailed').createFile(
-          `링크실패_${sanitizeDriveName(result.quoteNumber || file.getName())}_${Date.now()}.json`,
-          JSON.stringify({ result: result, error: message }),
-          MimeType.PLAIN_TEXT
-        );
-      } catch (copyErr) {
-        Logger.log('resultsFailed 보존 실패: ' + copyErr.toString());
-      }
-    } else if (result && result.ok === false) {
-      setQuoteOperationStatus_(result.operationId, 'failed', result.quoteNumber, result.error || '견적 파일 생성에 실패했습니다.');
-      movePendingToFailed_(result.quoteNumber, result.error || '알 수 없는 오류');
-      releaseQuoteNumberReservation_(result.quoteNumber, result.operationId);
+      permanentlyDeleteFile_(file.getId());
     }
-    permanentlyDeleteFile_(file.getId());
+  } finally {
+    try { lock.releaseLock(); } catch (err) { /* noop */ }
   }
+
+  // 잠금을 푼 뒤에 등록해야 queueLedgerExport_의 releaseLock이 이 실행의 잠금을 풀지 않는다.
+  pendingExports.forEach(function(entry) {
+    try {
+      queueLedgerExport_(entry.system, entry.year, entry.quoteNumber);
+    } catch (err) {
+      Logger.log('대장 사본 내보내기 등록 실패(' + entry.quoteNumber + '): ' + err.toString());
+    }
+  });
 
   // 사용자 조회가 아닌 1분 트리거에서만 후순위 작업(대장 사본 내보내기, 오래된 파일 정리)을 처리한다.
   if (!allowedDepartment) {
     try { processLedgerExportQueue_(); } catch (err) { Logger.log('대장 사본 내보내기 대기열 처리 실패: ' + err.toString()); }
     try { cleanupStaleQuoteDraftFiles_(); } catch (err) { Logger.log('오래된 메일 초안 파일 정리 실패: ' + err.toString()); }
+    try { cleanupExpiredLedgerCommits_(); } catch (err) { Logger.log('대장 반영 완료 표시 정리 실패: ' + err.toString()); }
   }
 }
 
