@@ -154,6 +154,12 @@ check('processAgentResults 잠금/완료 표시 검사', () => {
   execSync('node scripts/test-agent-result-lock.mjs', { cwd: root, stdio: 'pipe' });
 });
 
+// ── 8. 견적 품목 행 UI 정렬 ────────────────────────────────
+console.log('\n[8] 견적 품목 행 UI');
+check('품목 번호 배지 / 입력칸 정렬 검사', () => {
+  execSync('node scripts/test-quote-item-row-ui.mjs', { cwd: root, stdio: 'pipe' });
+});
+
 // ── 결과 요약 ────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(40));
 console.log(`결과: ${passed} 통과 / ${failed} 실패`);
