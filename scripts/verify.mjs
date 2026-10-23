@@ -160,6 +160,12 @@ check('품목 번호 배지 / 입력칸 정렬 검사', () => {
   execSync('node scripts/test-quote-item-row-ui.mjs', { cwd: root, stdio: 'pipe' });
 });
 
+// ── 9. 고객 정보 자동완성 수기 입력 보호 ─────────────────────
+console.log('\n[9] 고객 정보 자동완성');
+check('부분 일치/수정값 보호/명시적 선택 검사', () => {
+  execSync('node scripts/test-quote-customer-autocomplete.mjs', { cwd: root, stdio: 'pipe' });
+});
+
 // ── 결과 요약 ────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(40));
 console.log(`결과: ${passed} 통과 / ${failed} 실패`);

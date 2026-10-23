@@ -254,7 +254,7 @@ export const UI = {
   quoteListBtn:     t('견적 목록', 'Quotes'),
   quoteCustomerInfo: t('고객 정보', 'Customer Information'),
   quoteCustomerSelectTitle: t('기존 고객 정보 선택', 'Select Existing Customer'),
-  quoteCustomerSelectHint: t('일치하는 고객 정보가 여러 건입니다. 사용할 정보를 선택해 주세요.', 'Multiple customer records match. Select the record to use.'),
+  quoteCustomerSelectHint: t('현재 입력값을 유지하려면 취소하고, 이력을 적용하려면 사용할 정보를 선택해 주세요.', 'Cancel to keep your current input, or select a record to apply its customer information.'),
   quoteTradeTerms:  t('거래 조건', 'Trade Terms'),
   quoteDeliveryLocation: t('납품 장소', 'Delivery Location'),
   quotePaymentTerms: t('결제 조건', 'Payment Terms'),

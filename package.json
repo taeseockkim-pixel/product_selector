@@ -13,6 +13,7 @@
     "test:quote-layout": "node scripts/test-quote-spec-layout.mjs",
     "test:quote-item-ui": "node scripts/test-quote-item-row-ui.mjs",
     "test:quote-draft": "node scripts/test-quote-draft-flow.mjs",
+    "test:quote-customer-autocomplete": "node scripts/test-quote-customer-autocomplete.mjs",
     "test:agent-queue": "node scripts/test-agent-queue-files.mjs",
     "test:agent-result-lock": "node scripts/test-agent-result-lock.mjs",
     "test:excel-worker": "node scripts/test-excel-worker.mjs",

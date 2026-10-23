@@ -90,7 +90,7 @@ ProductTable.tsx  (렌더링 전용)
 | `CartPage.tsx` | 담기 목록 표시 | ❌ (props only) |
 | `ComparePage.tsx` | 비교 표 표시 | ❌ (props only) |
 | `SpecModal` (App 내) | 상세 사양 모달 | ❌ (props only) |
-| `QuoteFormPage.tsx` | 견적서 작성 폼, 가격표 기반 품목 추가/삭제, 배율을 반영한 금액 계산. 모든 견적 품목은 넓은 모델명·규격 textarea와 하단 가격 행을 사용하며, 품목명 수정 시 기존 로직대로 수기작성으로 표시 | ✅ (폼 입력/품목 상태) |
+| `QuoteFormPage.tsx` | 견적서 작성 폼, 가격표 기반 품목 추가/삭제, 배율을 반영한 금액 계산. 고객 이력 자동완성은 사용자가 수정한 입력만 조회하고, 단일 정확 일치이며 다른 고객 입력란이 비어 있을 때만 빈 정보를 채운다. 그 외 후보는 사용자가 명시적으로 선택한다. 모든 견적 품목은 넓은 모델명·규격 textarea와 하단 가격 행을 사용하며, 품목명 수정 시 기존 로직대로 수기작성으로 표시 | ✅ (폼 입력/품목 상태) |
 | `QuoteListPage.tsx` | 저장된 견적서 목록 표시 | ❌ (localStorage 조회만) |
 | `QuotePrintView.tsx` | 견적서 인쇄 미리보기 | ❌ (props only) |
 

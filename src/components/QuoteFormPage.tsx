@@ -16,6 +16,12 @@ import { getSeq, saveQuote } from '../utils/quoteStorage';
 import { quoteItemTextareaRows } from '../utils/quoteItemLayout';
 import { deriveQuoteNumberSequenceOptions } from '../utils/quoteNumbering';
 import {
+  customerRecordDedupKey,
+  resolveCustomerAutocomplete,
+  type CustomerField,
+  type CustomerRecord,
+} from '../utils/customerAutocomplete';
+import {
   fetchAuthors,
   fetchLedger,
   fetchQuoteOperationStatus,
@@ -91,15 +97,6 @@ interface ItemRow {
   product?: Product;
   /** 사용자가 직접 수기 작성한 품목 (기술지원비, 출장비 등) */
   isCustom?: boolean;
-}
-
-interface CustomerRecord {
-  id: string;
-  company: string;
-  contact: string;
-  phone: string;
-  email: string;
-  quoteNumber?: string;
 }
 
 interface StoredQuoteItem {
@@ -267,10 +264,6 @@ function findLedgerColumn(headers: string[], labels: string[]) {
   return headers.findIndex((header) => labels.some((label) => header.includes(label)));
 }
 
-function normalizePhone(value: string) {
-  return value.replace(/[^\d]/g, '');
-}
-
 function customerRecordsFromLedger(headers: string[], rows: LedgerRow[]): CustomerRecord[] {
   const companyIndex = findLedgerColumn(headers, ['업체명', '회사명', '회사']);
   const contactIndex = findLedgerColumn(headers, ['고객명', '담당자']);
@@ -294,7 +287,7 @@ function customerRecordsFromLedger(headers: string[], rows: LedgerRow[]): Custom
 
     // 업체명, 담당자, 연락처, 이메일 4가지 정보가 모두 일치하면 중복 제거 (1개만 유지)
     // 4가지 정보 중 1개라도 다르면 서로 다른 키가 생성되어 각각 보존됨
-    const dedupKey = `${company.toLowerCase()}|${contact.toLowerCase()}|${normalizePhone(phone)}|${email.toLowerCase()}`;
+    const dedupKey = customerRecordDedupKey({ company, contact, phone, email });
     if (seen.has(dedupKey)) continue;
     seen.add(dedupKey);
 
@@ -883,6 +876,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
   const [customerPicker, setCustomerPicker] = useState<{ field: 'company' | 'contact'; matches: CustomerRecord[] } | null>(null);
+  const editedCustomerFieldsRef = useRef<Set<CustomerField>>(new Set());
   const [customAuthorName, setCustomAuthorName] = useState(initialDraft?.customAuthorName ?? '');
   const [customAuthorPhone, setCustomAuthorPhone] = useState(initialDraft?.customAuthorPhone ?? '');
   const [customAuthorEmail, setCustomAuthorEmail] = useState(initialDraft?.customAuthorEmail ?? '');
@@ -1231,33 +1225,40 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setContact(record.contact);
     setPhone(record.phone);
     setEmail(record.email);
+    editedCustomerFieldsRef.current.clear();
     setCustomerPicker(null);
+  }
+
+  function handleCustomerInputChange(field: CustomerField, value: string) {
+    editedCustomerFieldsRef.current.add(field);
+    if (field === 'company') setCompany(value);
+    else if (field === 'contact') setContact(value);
+    else if (field === 'phone') setPhone(value);
+    else setEmail(value);
   }
 
   function handleCustomerBlur(field: 'company' | 'contact') {
     const value = field === 'company' ? company : contact;
-    const query = value.trim().toLocaleLowerCase('ko-KR');
-    if (!query) return;
-
-    const rawMatches = customerRecords.filter((record) =>
-      record[field].toLocaleLowerCase('ko-KR').includes(query),
+    const decision = resolveCustomerAutocomplete(
+      customerRecords,
+      field,
+      value,
+      { company, contact, phone, email },
+      editedCustomerFieldsRef.current,
     );
+    // 같은 입력값으로 다시 포커스가 빠져도 같은 후보 모달을 반복해서 띄우지 않는다.
+    editedCustomerFieldsRef.current.delete(field);
 
-    // 업체명, 담당자, 연락처, 이메일 4가지 정보 기준 중복 제거
-    // 4가지 정보가 모두 일치하면 1개만 남기고, 1개라도 다르면 모두 보존
-    const seen = new Set<string>();
-    const matches: CustomerRecord[] = [];
-    for (const record of rawMatches) {
-      const dedupKey = `${record.company.trim().toLowerCase()}|${record.contact.trim().toLowerCase()}|${normalizePhone(record.phone)}|${record.email.trim().toLowerCase()}`;
-      if (seen.has(dedupKey)) continue;
-      seen.add(dedupKey);
-      matches.push(record);
-    }
-
-    if (matches.length === 1) {
-      applyCustomerRecord(matches[0]);
-    } else if (matches.length > 1) {
-      setCustomerPicker({ field, matches });
+    if (decision.mode === 'autofill' && decision.values) {
+      if (decision.values.company !== undefined) setCompany(decision.values.company);
+      if (decision.values.contact !== undefined) setContact(decision.values.contact);
+      if (decision.values.phone !== undefined) setPhone(decision.values.phone);
+      if (decision.values.email !== undefined) setEmail(decision.values.email);
+      setCustomerPicker(null);
+    } else if (decision.mode === 'select') {
+      setCustomerPicker({ field, matches: decision.matches });
+    } else {
+      setCustomerPicker(null);
     }
   }
 
@@ -1267,6 +1268,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setContact('');
     setPhone('');
     setEmail('');
+    editedCustomerFieldsRef.current.clear();
     setAuthor(defaultAuthorName ?? (authorLocked ? '' : authors[0]?.name ?? ''));
     setCustomAuthorName('');
     setCustomAuthorPhone('');
@@ -2104,7 +2106,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteCompany)} *</label>
                   <input
                     value={company}
-                    onChange={(e) => setCompany(e.target.value)}
+                    onChange={(e) => handleCustomerInputChange('company', e.target.value)}
                     onBlur={() => handleCustomerBlur('company')}
                     placeholder={t(UI.quoteCompany)}
                     className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
@@ -2114,7 +2116,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <label className="block text-xs text-[#555555] mb-1">{t(UI.quoteContact)} *</label>
                   <input
                     value={contact}
-                    onChange={(e) => setContact(e.target.value)}
+                    onChange={(e) => handleCustomerInputChange('contact', e.target.value)}
                     onBlur={() => handleCustomerBlur('contact')}
                     placeholder={t(UI.quoteContact)}
                     className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
@@ -2124,7 +2126,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <label className="block text-xs text-[#555555] mb-1">{t(UI.quotePhone)} *</label>
                   <input
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => handleCustomerInputChange('phone', e.target.value)}
                     placeholder="010-0000-0000"
                     className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
                   />
@@ -2134,7 +2136,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => handleCustomerInputChange('email', e.target.value)}
                     placeholder="email@company.com"
                     className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
                   />
