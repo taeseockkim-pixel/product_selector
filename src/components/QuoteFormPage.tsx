@@ -1400,10 +1400,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
   function openEmailComposer() {
     const quote = previewQuote ?? buildDraftQuote();
-    setEmailSubject(`[CIMON] ${quote.client.company} - 제품 견적서 송부 드립니다.`);
+    setEmailSubject(`[싸이몬] ${quote.client.company} - 제품 견적서 송부 드립니다.`);
     setEmailBody(
       `안녕하세요, ${quote.client.contact} 님\n` +
-      `CIMON ${quote.author.name} 입니다.\n\n` +
+      `싸이몬 ${quote.author.name} 입니다.\n\n` +
       `요청하신 제품 견적서 송부 드립니다.\n` +
       `발주 시 발주서와 사업자등록증 전달 부탁 드립니다.\n\n` +
       `추가 문의 사항이 있으시다면 연락 / 회신 부탁 드립니다.\n\n` +
