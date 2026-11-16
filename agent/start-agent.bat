@@ -2,21 +2,6 @@
 title CIMON Quote File Local Save Agent
 cd /d "%~dp0.."
 
-rem Check if port 8790 is already running
-set "PORT_PID="
-for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr /r /c:":8790 .*LISTENING"') do set "PORT_PID=%%a"
-
-if defined PORT_PID (
-  echo ============================================================
-  echo [NOTICE] CIMON Agent is ALREADY running on port 8790
-  echo The background service is active and working normally
-  echo No duplicate instance will be launched
-  echo ============================================================
-  echo Press any key to close this window
-  pause >nul
-  exit /b 0
-)
-
 rem Trust the corporate CA certificate exported to agent\corp-ca.pem (recommended)
 if exist "agent\corp-ca.pem" set "NODE_EXTRA_CA_CERTS=%~dp0corp-ca.pem"
 
@@ -42,6 +27,36 @@ if not exist "agent\config.json" (
   exit /b 1
 )
 
+rem Verify the live /health response and the process lock. A listener alone is not proof of health.
+call node agent\agent-control.js preflight
+set "PREFLIGHT_RESULT=%ERRORLEVEL%"
+if "%PREFLIGHT_RESULT%"=="10" goto already_running
+if "%PREFLIGHT_RESULT%"=="20" goto needs_recovery
+if not "%PREFLIGHT_RESULT%"=="0" goto preflight_failed
+
 echo Starting CIMON quote file local save agent... (close this window or press Ctrl+C to stop)
 call npm run agent
+set "AGENT_RESULT=%ERRORLEVEL%"
 pause
+exit /b %AGENT_RESULT%
+
+:already_running
+echo ============================================================
+echo [NOTICE] CIMON Agent /health is responding; no second instance was started.
+echo ============================================================
+pause
+exit /b 0
+
+:needs_recovery
+echo ============================================================
+echo [WARNING] An agent process or port exists but /health is not responding.
+echo Review the diagnosis, then use agent\restart-agent.bat to recover safely.
+echo Do not launch another copy or end unrelated Node/Excel processes.
+echo ============================================================
+pause
+exit /b 1
+
+:preflight_failed
+echo [ERROR] Agent preflight failed. Check agent\config.json and the console output.
+pause
+exit /b 1

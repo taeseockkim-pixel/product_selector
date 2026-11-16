@@ -1,6 +1,9 @@
-import { execFileSync, spawn } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { excelToPdfBatch, POWERSHELL_CONVERT_FUNCTION } from './excelToPdf.js';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 
 /**
  * 이전 실행(강제 종료, 재부팅 등)에서 남은 숨김 Excel을 정리한다.
@@ -8,7 +11,7 @@ import { excelToPdfBatch, POWERSHELL_CONVERT_FUNCTION } from './excelToPdf.js';
  * 그래서 워커가 만든 Excel PID를 파일에 기록해 두고 다음 시작 때 창이 없는 EXCEL 프로세스만 종료한다
  * (사용자가 직접 연 Excel은 창이 있으므로 건드리지 않는다).
  */
-export function reapStaleExcelWorker(pidFile, log = console) {
+export async function reapStaleExcelWorker(pidFile, log = console) {
   if (!pidFile || !existsSync(pidFile)) return false;
   let pid = 0;
   try {
@@ -19,13 +22,13 @@ export function reapStaleExcelWorker(pidFile, log = console) {
   try { unlinkSync(pidFile); } catch { /* 이미 삭제됨 */ }
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
-    const output = execFileSync('powershell.exe', [
+    const { stdout } = await execFileAsync('powershell.exe', [
       '-NoProfile',
       '-NonInteractive',
       '-Command',
       `$p = Get-Process -Id ${pid} -ErrorAction SilentlyContinue; if ($p -and $p.ProcessName -eq 'EXCEL' -and $p.MainWindowHandle -eq 0) { $p.Kill(); 'killed' }`,
-    ], { encoding: 'utf8', timeout: 20000 });
-    if (output.includes('killed')) {
+    ], { encoding: 'utf8', timeout: 20000, windowsHide: true });
+    if (stdout.includes('killed')) {
       log.log?.(`[Excel 워커] 이전 실행에서 남은 숨김 Excel(PID ${pid})을 정리했습니다.`);
       return true;
     }
@@ -207,12 +210,12 @@ export class ExcelPdfWorker {
     }
   }
 
-  #ensureStarted() {
+  async #ensureStarted() {
     if (this.child && this.ready) return this.ready;
 
     const startedAt = Date.now();
     // 직전 실행이 비정상 종료되어 남긴 Excel이 있으면 먼저 정리한다(PID 파일이 없으면 즉시 지나간다).
-    reapStaleExcelWorker(this.pidFile);
+    await reapStaleExcelWorker(this.pidFile);
     const encoded = Buffer.from(WORKER_SCRIPT, 'utf16le').toString('base64');
     const child = this.spawnFn(
       'powershell.exe',
@@ -393,7 +396,8 @@ export function excelWorkerStatus() {
 }
 
 export function shutdownExcelPdfWorker() {
-  if (sharedWorker) sharedWorker.kill();
+  if (sharedWorker) return sharedWorker.stop();
+  return Promise.resolve();
 }
 
 /**

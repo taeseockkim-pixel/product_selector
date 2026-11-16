@@ -35,6 +35,7 @@ await writeFile(configPath, JSON.stringify({
   templatePath: join(root, 'agent', 'templates', '견적서 샘플.xlsx'),
   excelWorkerPidFile: join(tempDir, 'excel-worker.pid'),
   processedJobsDir: join(tempDir, 'processed-jobs'),
+  instanceLockDir: join(tempDir, 'instance-locks'),
 }), 'utf8');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -49,6 +50,16 @@ async function waitFor(check, description, timeoutMs = 90000) {
     await sleep(300);
   }
   throw new Error(`시간 초과: ${description}\n--- 에이전트 로그 ---\n${agentLog.slice(-3000)}`);
+}
+
+function waitForChildClose(child, description, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`시간 초과: ${description}\n--- 에이전트 로그 ---\n${agentLog.slice(-3000)}`)), timeoutMs);
+    child.once('close', (code) => {
+      clearTimeout(timer);
+      resolve(code);
+    });
+  });
 }
 
 function findFiles(dir, predicate, found = []) {
@@ -104,9 +115,9 @@ const quoteItems = (count) => Array.from({ length: count }, (_, index) => ({
 }));
 
 let agentLog = '';
-function startAgent() {
+function startAgent(agentConfigPath = configPath) {
   const child = spawn(process.execPath, [join(root, 'agent', 'index.js')], {
-    env: { ...process.env, CIMON_AGENT_CONFIG: configPath },
+    env: { ...process.env, CIMON_AGENT_CONFIG: agentConfigPath },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   });
@@ -126,6 +137,7 @@ function processExists(pid) {
 
 const pidFilePath = join(tempDir, 'excel-worker.pid');
 let agent = startAgent();
+const extraAgents = [];
 
 try {
   // 1. 생존 신호와 /health
@@ -138,11 +150,57 @@ try {
     }
   }, '/health 응답', 30000);
   assert.equal(health.ok, true);
+  assert.equal(health.pid, agent.pid, 'health는 실제 에이전트 프로세스 PID를 보여야 합니다.');
+  assert.match(health.agentFolderFingerprint, /^[a-f0-9]{16}$/);
+  assert.ok(health.instanceId, 'health에는 실행 인스턴스 식별자가 있어야 합니다.');
   assert.ok(health.features.includes('draftAttachments'), '에이전트가 첨부 기능을 알려야 합니다.');
   assert.equal(health.publicBaseUrl, `http://127.0.0.1:${port}`);
   assert.match(health.storageRootFingerprint, /^[a-f0-9]{16}$/);
   assert.ok(health.host);
   assert.equal(health.pollIntervalMs, 500);
+
+  // 같은 Drive 대기 폴더로 두 번째 Node 프로세스를 띄워도 첫 인스턴스 상태를 덮지 않아야 한다.
+  const duplicate = startAgent();
+  extraAgents.push(duplicate);
+  const duplicateExitCode = await waitForChildClose(duplicate, '중복 인스턴스 차단 종료');
+  assert.equal(duplicateExitCode, 0, '중복 실행 프로세스는 견적 큐를 시작하지 않고 조용히 끝나야 합니다.');
+  assert.match(agentLog, /같은 견적에이전트 폴더를 사용하는 실행 인스턴스가 이미 있습니다/);
+  const stillHealthy = await (await fetch(`http://127.0.0.1:${port}/health`)).json();
+  assert.equal(stillHealthy.pid, agent.pid, '중복 실행이 기존 health 서버를 바꾸면 안 됩니다.');
+
+  const control = spawn(process.execPath, [join(root, 'agent', 'agent-control.js'), 'preflight'], {
+    cwd: root,
+    env: { ...process.env, CIMON_AGENT_CONFIG: configPath },
+    stdio: ['ignore', 'pipe', 'pipe'],
+    windowsHide: true,
+  });
+  let controlOutput = '';
+  control.stdout.on('data', (data) => { controlOutput += data.toString('utf8'); });
+  control.stderr.on('data', (data) => { controlOutput += data.toString('utf8'); });
+  const controlExitCode = await new Promise((resolveExit) => control.once('close', resolveExit));
+  assert.equal(controlExitCode, 10, `실행 전 점검은 health 응답 중인 에이전트를 구분해야 합니다.\n${controlOutput}`);
+  assert.match(controlOutput, /정상 실행 중/);
+
+  // 다른 Drive 폴더로 설정된 인스턴스가 같은 포트를 차지하려 하면 비정상 종료로 보고해야 한다.
+  const conflictingConfigPath = join(tempDir, 'port-conflict-config.json');
+  await writeFile(conflictingConfigPath, JSON.stringify({
+    agentFolderPath: join(tempDir, '다른-에이전트'),
+    storageRoot: join(tempDir, '다른-저장소'),
+    defaultDepartment: '기술영업',
+    publicBaseUrl: `http://127.0.0.1:${port}`,
+    httpPort: port,
+    pollIntervalMs: 500,
+    heartbeatIntervalMs: 1000,
+    fileLinkSecret: 'e2e-secret',
+    folderPasswords: { 기술영업: 'pw' },
+    templatePath: join(root, 'agent', 'templates', '견적서 샘플.xlsx'),
+    instanceLockDir: join(tempDir, 'other-instance-locks'),
+  }), 'utf8');
+  const portConflict = startAgent(conflictingConfigPath);
+  extraAgents.push(portConflict);
+  const portConflictExitCode = await waitForChildClose(portConflict, '포트 충돌 프로세스 종료');
+  assert.equal(portConflictExitCode, 1, '포트 충돌 프로세스는 정상 실행으로 종료되면 안 됩니다.');
+  assert.equal((await (await fetch(`http://127.0.0.1:${port}/health`)).json()).pid, agent.pid);
 
   const heartbeatPath = join(agentFolder, 'heartbeat.json');
   const heartbeat = await waitFor(async () => (existsSync(heartbeatPath) ? JSON.parse(await readFile(heartbeatPath, 'utf8')) : null), 'heartbeat.json');
@@ -268,9 +326,12 @@ try {
   console.log(
     `✅ 에이전트 통합 시험 통과 (분할 2파일 PDF ${result.timings.pdfConversionMs}ms[${result.timings.pdfConversionMode}], ` +
     `첨부 전달 ${result.timings.attachmentMs}ms, 에이전트 합계 ${result.timings.agentTotalMs}ms / 이어서 일반 저장 ${plainResult.timings.pdfConversionMs}ms, ` +
-    `Excel 워커 시작 ${finalHealth.excelWorker.starts}회, 강제 종료 뒤 잔여 Excel 정리 확인)`,
+    `Excel 워커 시작 ${finalHealth.excelWorker.starts}회, 중복 실행 차단, 강제 종료 뒤 잔여 Excel 정리 확인)`,
   );
 } finally {
+  for (const child of extraAgents) {
+    if (child.exitCode === null) child.kill();
+  }
   agent.kill();
   await sleep(1500);
   // 시험이 실패해도 숨김 Excel이 남지 않도록 PID 파일에 기록된 프로세스를 정리한다.

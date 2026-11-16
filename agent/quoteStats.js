@@ -6,7 +6,8 @@
  *  2. {agentFolder}/stats/{부서}.json        — Drive 동기화 폴더의 경량 JSON (Apps Script 대시보드용)
  */
 import ExcelJS from 'exceljs';
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from 'fs';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, join, sep } from 'path';
 
 // 견적서 샘플.xlsx 셀 매핑 (fillTemplate.js와 동일)
@@ -228,9 +229,9 @@ export async function writeStatsWorkbook(storageRoot, department, quotes) {
 }
 
 /** 부서 통계 JSON을 Drive 동기화 폴더에 기록한다 (Apps Script 대시보드용). */
-export function writeStatsJson(agentFolder, department, quotes) {
+export async function writeStatsJson(agentFolder, department, quotes) {
   const statsDir = join(agentFolder, 'stats');
-  mkdirSync(statsDir, { recursive: true });
+  await mkdir(statsDir, { recursive: true });
 
   const records = (quotes || []).map((q) => ({
     quoteNumber: q.quoteNumber,
@@ -255,7 +256,7 @@ export function writeStatsJson(agentFolder, department, quotes) {
     fileName: q.fileName,
   }));
 
-  writeFileSync(
+  await writeFile(
     join(statsDir, `${department}.json`),
     JSON.stringify({ department, generatedAt: new Date().toISOString(), records }),
     'utf8',
@@ -267,7 +268,7 @@ export async function refreshDepartmentStats(storageRoot, agentFolder, departmen
   try {
     const quotes = await scanDepartmentQuotes(storageRoot, department);
     await writeStatsWorkbook(storageRoot, department, quotes);
-    writeStatsJson(agentFolder, department, quotes);
+    await writeStatsJson(agentFolder, department, quotes);
     console.log(`[통계] ${department} 갱신 완료: ${quotes.length}건`);
     return quotes.length;
   } catch (err) {
@@ -277,14 +278,14 @@ export async function refreshDepartmentStats(storageRoot, agentFolder, departmen
 }
 
 /** 저장 직후 단일 견적을 통계 JSON에 반영한다 (전체 재스캔 없이). */
-export function appendQuoteToStatsJson(agentFolder, department, quoteData) {
+export async function appendQuoteToStatsJson(agentFolder, department, quoteData) {
   try {
     const statsDir = join(agentFolder, 'stats');
-    mkdirSync(statsDir, { recursive: true });
+    await mkdir(statsDir, { recursive: true });
     const jsonPath = join(statsDir, `${department}.json`);
 
     let payload = { department, generatedAt: new Date().toISOString(), records: [] };
-    try { payload = JSON.parse(readFileSync(jsonPath, 'utf8')); } catch { /* 첫 생성 */ }
+    try { payload = JSON.parse(await readFile(jsonPath, 'utf8')); } catch { /* 첫 생성 */ }
 
     // 같은 견적번호의 기존 기록이 있으면 교체한다 (Rev 재처리 대비).
     payload.records = (payload.records || []).filter(
@@ -315,7 +316,7 @@ export function appendQuoteToStatsJson(agentFolder, department, quoteData) {
     });
     payload.generatedAt = new Date().toISOString();
 
-    writeFileSync(jsonPath, JSON.stringify(payload), 'utf8');
+    await writeFile(jsonPath, JSON.stringify(payload), 'utf8');
     console.log(`[통계] ${department} JSON 갱신: ${quoteData.quoteNumber ?? ''}`);
   } catch (err) {
     console.error(`[통계] JSON 갱신 실패: ${err.message}`);

@@ -15,6 +15,7 @@
     "test:quote-draft": "node scripts/test-quote-draft-flow.mjs",
     "test:quote-customer-autocomplete": "node scripts/test-quote-customer-autocomplete.mjs",
     "test:agent-queue": "node scripts/test-agent-queue-files.mjs",
+    "test:agent-instance-lock": "node scripts/test-agent-instance-lock.mjs",
     "test:agent-result-lock": "node scripts/test-agent-result-lock.mjs",
     "test:excel-worker": "node scripts/test-excel-worker.mjs",
     "test:agent-e2e": "node scripts/test-agent-e2e.mjs",

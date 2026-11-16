@@ -166,6 +166,15 @@ check('부분 일치/수정값 보호/명시적 선택 검사', () => {
   execSync('node scripts/test-quote-customer-autocomplete.mjs', { cwd: root, stdio: 'pipe' });
 });
 
+// ── 10. 에이전트 단일 실행과 비동기 Drive 큐 파일 ───────────
+console.log('\n[10] 에이전트 중복 실행 방지 / heartbeat 파일 처리');
+check('동일 대기 폴더의 단일 인스턴스 잠금 검사', () => {
+  execSync('node scripts/test-agent-instance-lock.mjs', { cwd: root, stdio: 'pipe' });
+});
+check('첨부 전달·비동기 생존 신호 검사', () => {
+  execSync('node scripts/test-agent-queue-files.mjs', { cwd: root, stdio: 'pipe' });
+});
+
 // ── 결과 요약 ────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(40));
 console.log(`결과: ${passed} 통과 / ${failed} 실패`);

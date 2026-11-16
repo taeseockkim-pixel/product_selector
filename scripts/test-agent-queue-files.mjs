@@ -28,7 +28,7 @@ try {
   await writeFile(pdfB, Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(4096, 9), Buffer.from('\n%%EOF')]));
 
   // 1. 분할 견적의 PDF가 모두 같은 내용·같은 이름으로 복사되고 manifest가 기록된다.
-  const manifest = publishDraftAttachments({ attachmentsDir, operationId, pdfPaths: [pdfA, pdfB] });
+  const manifest = await publishDraftAttachments({ attachmentsDir, operationId, pdfPaths: [pdfA, pdfB] });
   assert.equal(manifest.ok, true);
   assert.equal(manifest.files.length, 2);
   assert.deepEqual(manifest.files.map((file) => file.name), [
@@ -48,7 +48,7 @@ try {
 
   // 2. 원본 PDF가 없으면 오류 manifest만 남기고 부분 복사본은 첨부 대상으로 노출하지 않는다(ok:false).
   const failedId = '223e4567-e89b-12d3-a456-426614174111';
-  const failed = publishDraftAttachments({ attachmentsDir, operationId: failedId, pdfPaths: [pdfA, join(tempDir, '없는파일.pdf')] });
+  const failed = await publishDraftAttachments({ attachmentsDir, operationId: failedId, pdfPaths: [pdfA, join(tempDir, '없는파일.pdf')] });
   assert.equal(failed.ok, false);
   assert.match(failed.error, /ENOENT|없|no such file/i);
   assert.deepEqual(failed.files, []);
@@ -58,18 +58,18 @@ try {
   // 3. 경로 조작이 가능한 작업 ID는 거부한다.
   for (const badId of ['', '../evil', 'a/b', 'short', 'x'.repeat(80)]) {
     assert.equal(isSafeOperationId(badId), false, `허용하면 안 되는 ID: ${badId}`);
-    assert.throws(() => publishDraftAttachments({ attachmentsDir, operationId: badId, pdfPaths: [pdfA] }));
+    await assert.rejects(publishDraftAttachments({ attachmentsDir, operationId: badId, pdfPaths: [pdfA] }));
   }
   assert.equal(isSafeOperationId(operationId), true);
 
   // 4. 생존 신호와 정지 신호.
   const heartbeatPath = join(tempDir, 'heartbeat.json');
-  writeHeartbeatFile(heartbeatPath, { version: 'test', features: ['draftAttachments'], host: 'PC' });
+  await writeHeartbeatFile(heartbeatPath, { version: 'test', features: ['draftAttachments'], host: 'PC' });
   const alive = JSON.parse(await readFile(heartbeatPath, 'utf8'));
   assert.equal(alive.stopped, false);
   assert.deepEqual(alive.features, ['draftAttachments']);
   assert.ok(Math.abs(Date.now() - alive.ts) < 5000);
-  writeStoppedHeartbeatFile(heartbeatPath, { version: 'test', features: ['draftAttachments'], host: 'PC' });
+  await writeStoppedHeartbeatFile(heartbeatPath, { version: 'test', features: ['draftAttachments'], host: 'PC' });
   assert.equal(JSON.parse(await readFile(heartbeatPath, 'utf8')).stopped, true);
 
   // 5. 에이전트 소스가 새 흐름을 실제로 연결하고 있는지 확인한다.
@@ -78,6 +78,8 @@ try {
   assert.match(agentSource, /payload\.attachPdf/, '새 Apps Script가 요청한 경우에만 첨부를 복사해야 합니다.');
   assert.match(agentSource, /startHeartbeat\(\);/, '에이전트가 생존 신호를 보내야 합니다.');
   assert.match(agentSource, /app\.get\('\/health'/, '/health 엔드포인트가 있어야 합니다.');
+  assert.match(agentSource, /agentFolderFingerprint: AGENT_FOLDER_FINGERPRINT/, '/health는 에이전트 설정 지문을 제공해야 합니다.');
+  assert.match(agentSource, /eventLoopDelayP99Ms/, '/health는 이벤트 루프 지연 진단을 제공해야 합니다.');
   assert.match(agentSource, /heartbeatStarted/, '중복 실행 프로세스가 정지 신호를 덮어쓰지 않아야 합니다.');
   assert.match(agentSource, /processedMarkerPath\(/, '성공 처리한 작업을 operationId로 표시해야 합니다.');
   assert.match(agentSource, /markJobProcessed\(/, '성공 처리 후 표시를 기록해야 합니다.');

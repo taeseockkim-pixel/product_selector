@@ -2540,10 +2540,10 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                                     : <span className="flex h-10 items-center justify-end px-1.5 text-sm text-[#999999]">—</span>}
                                 </div>
                                 <div className="min-w-0 text-center">
-                                  <span className="mb-1.5 block h-5 leading-5 text-xs text-[#94a3b8]">{t(UI.quoteRemove)}</span>
+                                  <span className="mb-1.5 block h-5 leading-5 text-xs text-[#94a3b8]" aria-hidden="true" />
                                   <button
                                     type="button" onClick={() => removeItem(idx)}
-                                    className="flex h-10 w-full items-center justify-center rounded-lg px-2 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-700"
+                                    className="flex h-10 w-full items-center justify-center rounded-lg border border-red-200 bg-white px-1 text-xs font-medium text-red-600 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                                   >
                                     {t(UI.quoteRemove)}
                                   </button>

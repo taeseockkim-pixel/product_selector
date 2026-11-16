@@ -9,7 +9,8 @@
  */
 import { execFileSync } from 'child_process';
 import ExcelJS from 'exceljs';
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync } from 'fs';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'os';
 import { extname, join } from 'path';
 
@@ -412,10 +413,10 @@ export async function parseOrderHistoryWorkbook(filePath) {
 }
 
 /** Drive 동기화 폴더(stats/{department}_orders.json)에 캐시 파일 저장 */
-export function syncOrderHistoryToDrive(agentFolder, department, year, orderStats, fileName) {
+export async function syncOrderHistoryToDrive(agentFolder, department, year, orderStats, fileName) {
   try {
     const statsDir = join(agentFolder, 'stats');
-    if (!existsSync(statsDir)) mkdirSync(statsDir, { recursive: true });
+    await mkdir(statsDir, { recursive: true });
     const payload = {
       department,
       year,
@@ -424,7 +425,7 @@ export function syncOrderHistoryToDrive(agentFolder, department, year, orderStat
       ...orderStats,
     };
     const targetFile = join(statsDir, `${department}_orders.json`);
-    writeFileSync(targetFile, JSON.stringify(payload), 'utf8');
+    await writeFile(targetFile, JSON.stringify(payload), 'utf8');
     console.log(`[에이전트] 발주 내역 통계 JSON 동기화 완료: ${targetFile}`);
   } catch (err) {
     console.warn(`[에이전트] 발주 내역 JSON 동기화 실패: ${err.message}`);

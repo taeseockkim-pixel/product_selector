@@ -38,6 +38,11 @@ assert.equal(
   6,
   `하단 6개 항목의 라벨은 동일한 높이(h-5)를 사용해야 합니다. (현재 ${labelHeights.length}개)`
 );
+const deleteColumn = source.match(/<div className="min-w-0 text-center">([\s\S]*?)<\/button>\s*<\/div>/)?.[1] ?? '';
+assert.ok(deleteColumn, '품목별 삭제 버튼 영역이 있어야 합니다.');
+assert.match(deleteColumn, /<span className="mb-1\.5 block h-5 leading-5 text-xs text-\[#94a3b8\]" aria-hidden="true"\s*\/>/, '삭제 버튼 위 라벨은 정렬용 빈 공간이어야 합니다.');
+assert.doesNotMatch(deleteColumn, /<span[^>]*>\s*\{t\(UI\.quoteRemove\)\}\s*<\/span>/, '삭제 버튼 위에 삭제 제목을 중복 표시하지 않아야 합니다.');
+assert.match(deleteColumn, /<button[\s\S]*?border border-red-200[\s\S]*?\{t\(UI\.quoteRemove\)\}/, '삭제 동작은 눈에 보이는 단일 버튼으로 표시해야 합니다.');
 const controlHeights = source.match(/\bh-10\b/g) || [];
 assert.ok(
   controlHeights.length >= 6,

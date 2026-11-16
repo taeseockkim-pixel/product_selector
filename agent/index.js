@@ -15,11 +15,12 @@
  */
 
 import { readFileSync, existsSync, mkdirSync, statSync, unlinkSync, writeFileSync, readdirSync, copyFileSync, appendFileSync, rmSync, renameSync } from 'fs';
-import { writeFile } from 'fs/promises';
+import { copyFile, readFile, readdir, unlink, writeFile } from 'fs/promises';
 import { join, dirname, resolve, sep, basename, extname, relative as relativePath } from 'path';
 import { fileURLToPath } from 'url';
 import { createHash, createHmac, timingSafeEqual } from 'crypto';
 import { hostname } from 'os';
+import { monitorEventLoopDelay } from 'node:perf_hooks';
 import express from 'express';
 import { fillQuoteTemplate } from '../server/fillTemplate.js';
 import { excelToPdfBatch } from '../server/excelToPdf.js';
@@ -31,6 +32,7 @@ import {
   shutdownExcelPdfWorker,
 } from '../server/excelPdfWorker.js';
 import { publishDraftAttachments, writeHeartbeatFile, writeStoppedHeartbeatFile } from './queueFiles.js';
+import { acquireAgentInstanceLock, getAgentFolderFingerprint } from './instanceLock.js';
 import { appendQuoteToStatsJson, refreshDepartmentStats } from './quoteStats.js';
 import {
   getOrderHistoryDir,
@@ -63,8 +65,14 @@ try {
   process.exit(1);
 }
 
-const AGENT_FOLDER = resolve(String(config.agentFolderPath || ''));
+const AGENT_FOLDER_SETTING = String(config.agentFolderPath || '').trim();
+if (!AGENT_FOLDER_SETTING) {
+  console.error('[에이전트] config.json에 agentFolderPath를 입력해 주세요 (Drive 동기화된 견적에이전트 폴더 경로).');
+  process.exit(1);
+}
+const AGENT_FOLDER = resolve(AGENT_FOLDER_SETTING);
 const STORAGE_ROOT = resolve(String(config.storageRoot || 'D:\\견적서'));
+const AGENT_FOLDER_FINGERPRINT = getAgentFolderFingerprint(AGENT_FOLDER);
 // 절대 경로를 /health에 노출하지 않고 여러 에이전트의 저장 루트가 같은지 비교할 지문만 제공한다.
 const STORAGE_ROOT_FINGERPRINT = createHash('sha256')
   .update(process.platform === 'win32' ? STORAGE_ROOT.toLowerCase() : STORAGE_ROOT)
@@ -75,6 +83,28 @@ const DEFAULT_DEPARTMENT = String(config.defaultDepartment || '기술영업');
 // 사내 파일 서버 기본 주소를 사용한다.
 const PUBLIC_BASE_URL = String(config.publicBaseUrl || 'http://172.35.12.36:8790').replace(/\/+$/, '');
 const HTTP_PORT = Number(config.httpPort || 8790);
+let INSTANCE_LOCK;
+try {
+  INSTANCE_LOCK = acquireAgentInstanceLock({
+    agentFolder: AGENT_FOLDER,
+    lockDirectory: String(config.instanceLockDir || ''),
+  });
+} catch (err) {
+  console.error(`[에이전트] 단일 실행 잠금을 만들지 못했습니다: ${describeError(err)}`);
+  console.error('config.json의 instanceLockDir 권한과 로컬 디스크 경로를 확인해 주세요.');
+  process.exit(1);
+}
+if (!INSTANCE_LOCK.acquired) {
+  const owner = INSTANCE_LOCK.owner || {};
+  console.error(`[에이전트] 같은 견적에이전트 폴더를 사용하는 실행 인스턴스가 이미 있습니다 (PID ${owner.pid || '확인 불가'}, PC ${owner.host || '확인 불가'}).`);
+  console.error('[에이전트] 중복 실행은 시작하지 않았으며 기존 heartbeat와 작업 파일은 변경하지 않았습니다.');
+  process.exit(0);
+}
+const AGENT_INSTANCE_ID = INSTANCE_LOCK.owner.instanceId;
+const AGENT_STARTED_AT = new Date().toISOString();
+// 비정상 종료 시에도 로컬 잠금은 다음 시작에서 PID를 확인해 안전하게 회수한다.
+// exit hook에서는 Drive 파일 작업을 하지 않아 종료 중 동기화 드라이브 대기를 피한다.
+process.on('exit', () => { INSTANCE_LOCK.release(); });
 const FILE_LINK_SECRET = String(config.fileLinkSecret || '');
 // 부서별 폴더 브라우저 비밀번호: { 부서: 비밀번호 }. adminPassword가 설정되어 있으면
 // 모든 부서 폴더를 열람할 수 있는 관리자 비밀번호로 동작한다.
@@ -87,7 +117,7 @@ const MAX_JOB_ATTEMPTS = 3;
 const ITEMS_PER_FILE = 14;
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024; // 1GB
 // 에이전트 생존 신호. Apps Script가 이 신호가 오래되면 견적 접수를 거부한다.
-const AGENT_VERSION = '2026-10-20-quote-file-link-recovery2';
+const AGENT_VERSION = '2026-10-27-single-instance-health';
 const AGENT_FEATURES = ['draftAttachments'];
 const HEARTBEAT_INTERVAL_MS = Number(config.heartbeatIntervalMs || 20000);
 // 숨김 Excel을 유지해 작업마다 Excel을 새로 띄우는 시간을 줄인다. 문제가 있으면 config에서 false로 끈다.
@@ -161,10 +191,6 @@ function appendActivityLog(account, eventType, detailText) {
   }
 }
 
-if (!AGENT_FOLDER) {
-  console.error('[에이전트] config.json에 agentFolderPath를 입력해 주세요 (Drive 동기화된 견적에이전트 폴더 경로).');
-  process.exit(1);
-}
 // Drive 가상 드라이브는 세션/권한에 따라 보이지 않을 수 있어 단계별로 가시성을 검사한다.
 let folderReady = true;
 try {
@@ -627,7 +653,7 @@ function pruneProcessedMarkers(maxAgeMs = 30 * 24 * 60 * 60 * 1000) {
 }
 
 // 견적 폴더 삭제 작업 — pending의 delete_<견적번호>.json을 처리해 로컬 폴더를 영구 삭제한다.
-function processDeleteJob(fileName, payload) {
+async function processDeleteJob(fileName, payload) {
   const department = safeDepartmentSegment(payload.department || DEFAULT_DEPARTMENT);
   const year = String(payload.year || new Date().getFullYear());
   const baseQuoteNumber = safeSegment(payload.quoteNumber);
@@ -635,7 +661,7 @@ function processDeleteJob(fileName, payload) {
 
   const yearDir = join(STORAGE_ROOT, department, year);
   if (!existsSync(yearDir)) {
-    unlinkSync(join(PENDING_DIR, fileName));
+    await unlink(join(PENDING_DIR, fileName));
     return;
   }
   // 견적번호로 시작하는 폴더를 찾아 삭제한다 (업체명 표기 차이·폴더명 수동 수정 대응).
@@ -650,12 +676,12 @@ function processDeleteJob(fileName, payload) {
       console.error(`[에이전트] 폴더 삭제 실패: ${target}: ${describeError(err)}`);
     }
   }
-  unlinkSync(join(PENDING_DIR, fileName));
+  await unlink(join(PENDING_DIR, fileName));
 }
 
 async function processJob(fileName) {
   const jsonPath = join(PENDING_DIR, fileName);
-  const payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
+  const payload = JSON.parse(await readFile(jsonPath, 'utf8'));
   const details = payload.details || {};
   const items = payload.items || [];
   const jobStartedAt = Date.now();
@@ -799,7 +825,7 @@ async function processJob(fileName) {
   if (payload.attachPdf && details.operationId) {
     const attachmentStartedAt = Date.now();
     try {
-      attachmentManifest = publishDraftAttachments({
+      attachmentManifest = await publishDraftAttachments({
         attachmentsDir: ATTACHMENTS_DIR,
         operationId: String(details.operationId),
         pdfPaths: finalPdfPaths,
@@ -864,8 +890,8 @@ async function processJob(fileName) {
       completedAt: Date.now(),
     },
   };
-  writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber)}.json`), JSON.stringify(result), 'utf8');
-  unlinkSync(jsonPath);
+  await writeFile(join(RESULTS_DIR, `${safeSegment(details.quoteNumber)}.json`), JSON.stringify(result), 'utf8');
+  await unlink(jsonPath);
 
   // ── 활동 로그 기록 (저장 / 수정 / 이메일 송부) ──
   const account = details.authorEmail || details.authorName || 'unknown';
@@ -892,7 +918,7 @@ async function processJob(fileName) {
   }
 }
 
-function reportJobFailure(fileName, payload, errorMessage) {
+async function reportJobFailure(fileName, payload, errorMessage) {
   const details = payload?.details || {};
   // 원본 데이터 유실 방지를 위해 로컬 백업을 먼저 남긴다
   const backupDir = FAILED_JOBS_DIR;
@@ -907,8 +933,8 @@ function reportJobFailure(fileName, payload, errorMessage) {
     ok: false,
     error: String(errorMessage),
   };
-  writeFileSync(join(RESULTS_DIR, `${safeSegment(details.quoteNumber) || fileName}`), JSON.stringify(result), 'utf8');
-  unlinkSync(join(PENDING_DIR, fileName));
+  await writeFile(join(RESULTS_DIR, `${safeSegment(details.quoteNumber) || fileName}`), JSON.stringify(result), 'utf8');
+  await unlink(join(PENDING_DIR, fileName));
 }
 
 // ── 대기 폴더 폴링 ─────────────────────────────────────────────────────────
@@ -922,10 +948,10 @@ async function pollPending() {
   processing = true;
   try {
     await processDeferredLedgerCopies();
-    processLogQueue();
+    await processLogQueue();
     let fileNames = [];
     try {
-      fileNames = readdirSync(PENDING_DIR).filter((f) => !f.startsWith('.') && f !== 'desktop.ini');
+      fileNames = (await readdir(PENDING_DIR)).filter((f) => !f.startsWith('.') && f !== 'desktop.ini');
     } catch {
       return;
     }
@@ -934,7 +960,7 @@ async function pollPending() {
       const jsonPath = join(PENDING_DIR, fileName);
       let payload = null;
       try {
-        payload = JSON.parse(readFileSync(jsonPath, 'utf8'));
+        payload = JSON.parse(await readFile(jsonPath, 'utf8'));
       } catch {
         // Drive 동기화가 아직 완료되지 않았을 수 있음 — 다음 폴링에서 재시도
         continue;
@@ -943,7 +969,7 @@ async function pollPending() {
       // 견적 폴더 삭제 작업 (영구삭제 요청)
       if (payload?.action === 'deleteQuote') {
         try {
-          processDeleteJob(fileName, payload);
+          await processDeleteJob(fileName, payload);
           console.log(`[에이전트] 견적 폴더 삭제 완료: ${payload.quoteNumber ?? fileName}`);
         } catch (err) {
           console.error(`[에이전트] 견적 폴더 삭제 실패: ${payload.quoteNumber ?? fileName}: ${describeError(err)}`);
@@ -955,19 +981,20 @@ async function pollPending() {
       // Drive 재동기화로 이미 성공 처리한 작업이 다시 들어오면 같은 견적을 다시 만들지 않는다.
       const operationId = String(payload.details.operationId || '').trim();
       if (operationId && existsSync(processedMarkerPath(operationId))) {
-        try { unlinkSync(jsonPath); } catch { /* noop */ }
+        try { await unlink(jsonPath); } catch { /* noop */ }
         console.log(`[에이전트] 이미 처리된 작업 건너뜀(재동기화): ${payload.details.quoteNumber ?? fileName}`);
         continue;
       }
       if (!fileName.endsWith('.json')) {
         // 확장자 없이 동기화된 경우에도 처리 가능하도록 원본을 .json으로 복제해 처리한다
         try {
-          copyFileSync(jsonPath, jsonPath + '.json');
+          await copyFile(jsonPath, jsonPath + '.json');
         } catch { /* 복제 실패 시 원본 그대로 처리 */ }
       }
       const jobFileName = fileName.endsWith('.json') ? fileName : fileName + '.json';
 
       console.log(`[에이전트] 저장 대기 견적 처리 시작: ${payload.details.quoteNumber ?? fileName}`);
+      currentJobStartedAt = Date.now();
       try {
         await processJob(jobFileName);
         jobAttempts.delete(jobFileName);
@@ -976,7 +1003,7 @@ async function pollPending() {
         markJobProcessed(operationId, payload.details.quoteNumber);
         console.log(`[에이전트] 저장 완료: ${payload.details.quoteNumber}`);
         // 저장 완료 직후 부서 통계 JSON에 반영한다 (대시보드·AI 분석용).
-        appendQuoteToStatsJson(AGENT_FOLDER, safeDepartmentSegment(payload.details.authorDepartment || DEFAULT_DEPARTMENT), {
+        await appendQuoteToStatsJson(AGENT_FOLDER, safeDepartmentSegment(payload.details.authorDepartment || DEFAULT_DEPARTMENT), {
           ...payload.details,
           year: quoteYear(payload.details),
           items: payload.items || [],
@@ -988,12 +1015,14 @@ async function pollPending() {
         if (attempts >= MAX_JOB_ATTEMPTS) {
           jobAttempts.delete(jobFileName);
           try {
-            reportJobFailure(jobFileName, payload, err.message);
+            await reportJobFailure(jobFileName, payload, err.message);
             console.error(`[에이전트] ${MAX_JOB_ATTEMPTS}회 실패 — 실패 보고를 기록했습니다. (로컬 백업: agent\\failed-jobs\\${fileName})`);
           } catch (reportErr) {
             console.error(`[에이전트] 실패 보고 기록 실패: ${describeError(reportErr)} — 원본은 pending에 유지되며 백업은 agent\\failed-jobs\\에 있습니다.`);
           }
         }
+      } finally {
+        currentJobStartedAt = 0;
       }
     }
   } finally {
@@ -1003,24 +1032,23 @@ async function pollPending() {
 
 // Apps Script(구글 클라우드)가 남긴 활동 로그 큐 파일을 LOG 폴더로 복사한다.
 // 브라우저는 HTTPS 페이지에서 사내 http 서버로 fetch할 수 없으므로, Drive 동기화 폴더를 경유한다.
-function processLogQueue() {
+async function processLogQueue() {
   try {
-    if (!existsSync(LOG_QUEUE_DIR)) return;
-    const files = readdirSync(LOG_QUEUE_DIR).filter((f) => f.endsWith('.json') && !f.startsWith('.'));
+    const files = (await readdir(LOG_QUEUE_DIR)).filter((f) => f.endsWith('.json') && !f.startsWith('.'));
     for (const fileName of files) {
       try {
-        const payload = JSON.parse(readFileSync(join(LOG_QUEUE_DIR, fileName), 'utf8'));
+        const payload = JSON.parse(await readFile(join(LOG_QUEUE_DIR, fileName), 'utf8'));
         if (payload && payload.eventType) {
           appendActivityLog(payload.account, payload.eventType, String(payload.detail || ''));
         }
       } catch (err) {
         console.error(`[로그 큐 처리 실패] ${fileName}: ${describeError(err)}`);
       } finally {
-        try { unlinkSync(join(LOG_QUEUE_DIR, fileName)); } catch { /* noop */ }
+        try { await unlink(join(LOG_QUEUE_DIR, fileName)); } catch { /* noop */ }
       }
     }
   } catch (err) {
-    console.error(`[로그 큐 스캔 실패] ${describeError(err)}`);
+    if (err?.code !== 'ENOENT') console.error(`[로그 큐 스캔 실패] ${describeError(err)}`);
   }
 }
 
@@ -1035,13 +1063,9 @@ async function processDeferredLedgerCopies() {
       console.warn(`[에이전트] 대장 사본 수신 대기 포기 (15분 초과): ${info.quoteNumber}`);
       continue;
     }
-    if (!existsSync(source)) {
-      info.attempts += 1;
-      continue;
-    }
     try {
-      copyFileSync(source, target);
-      try { unlinkSync(source); } catch { /* 동기화 중 잠금 — 남아있어도 무해 */ }
+      await copyFile(source, target);
+      try { await unlink(source); } catch { /* 동기화 중 잠금 — 남아있어도 무해 */ }
       deferredLedgerCopies.delete(key);
       console.log(`[에이전트] 대장 사본 갱신(지연 처리): ${target}`);
     } catch {
@@ -1050,9 +1074,34 @@ async function processDeferredLedgerCopies() {
   }
 }
 
+let shutdownMarked = false;
+let pollingTimer = null;
+let activePollPromise = Promise.resolve();
+let pollInFlight = false;
+let lastPollStartedAt = 0;
+let lastPollCompletedAt = 0;
+let lastPollDurationMs = 0;
+let currentJobStartedAt = 0;
+let startupPrerequisitesPromise = Promise.resolve();
+let startupMaintenancePromise = Promise.resolve();
+let orderHistorySyncPromise = Promise.resolve();
+let orderHistorySyncInFlight = false;
+let maintenanceTimer = null;
+let orderHistoryTimer = null;
+
 function startPolling() {
-  void pollPending().finally(() => {
-    setTimeout(startPolling, POLL_INTERVAL_MS);
+  if (shutdownMarked) return;
+  pollInFlight = true;
+  lastPollStartedAt = Date.now();
+  const task = pollPending();
+  activePollPromise = task;
+  void task.catch((err) => {
+    console.error(`[에이전트] 대기열 폴링 오류: ${describeError(err)}`);
+  }).finally(() => {
+    pollInFlight = false;
+    lastPollCompletedAt = Date.now();
+    lastPollDurationMs = lastPollCompletedAt - lastPollStartedAt;
+    if (!shutdownMarked) pollingTimer = setTimeout(startPolling, POLL_INTERVAL_MS);
   });
 }
 
@@ -1060,50 +1109,87 @@ function startPolling() {
 // Apps Script는 agent 폴더의 heartbeat.json 수정 시각이 오래되면 에이전트가 꺼진 것으로 보고
 // 견적 접수를 거부한다(에이전트가 꺼진 상태에서 접수된 작업이 쌓여 다른 작업과 충돌하는 것을 막는다).
 let lastHeartbeatAt = 0;
+let lastHeartbeatError = '';
+let heartbeatWriteInProgress = false;
+let heartbeatWriteStartedAt = 0;
+let heartbeatTimer = null;
+let httpServer = null;
+let shutdownPromise = null;
+const eventLoopMonitor = monitorEventLoopDelay({ resolution: 20 });
+eventLoopMonitor.enable();
 const heartbeatInfo = () => ({
   version: AGENT_VERSION,
   features: AGENT_FEATURES,
   host: hostname(),
   publicBaseUrl: PUBLIC_BASE_URL,
   storageRootFingerprint: STORAGE_ROOT_FINGERPRINT,
+  agentFolderFingerprint: AGENT_FOLDER_FINGERPRINT,
+  instanceId: AGENT_INSTANCE_ID,
   pid: process.pid,
 });
 
-function emitHeartbeat() {
+async function emitHeartbeat() {
+  if (heartbeatWriteInProgress || shutdownMarked) return;
+  heartbeatWriteInProgress = true;
+  heartbeatWriteStartedAt = Date.now();
   try {
-    writeHeartbeatFile(HEARTBEAT_FILE, heartbeatInfo());
+    await writeHeartbeatFile(HEARTBEAT_FILE, heartbeatInfo());
     lastHeartbeatAt = Date.now();
+    lastHeartbeatError = '';
   } catch (err) {
+    lastHeartbeatError = String(err?.code || 'WRITE_FAILED');
     console.warn(`[에이전트] 생존 신호 기록 실패: ${describeError(err)}`);
+  } finally {
+    heartbeatWriteInProgress = false;
+    heartbeatWriteStartedAt = 0;
   }
 }
 
 let heartbeatStarted = false;
 function startHeartbeat() {
   heartbeatStarted = true;
-  emitHeartbeat();
-  const timer = setInterval(emitHeartbeat, HEARTBEAT_INTERVAL_MS);
-  timer.unref?.();
+  void emitHeartbeat();
+  heartbeatTimer = setInterval(() => { void emitHeartbeat(); }, HEARTBEAT_INTERVAL_MS);
+  heartbeatTimer.unref?.();
 }
 
-let shutdownMarked = false;
-function markAgentStopped() {
-  // 포트 충돌로 바로 종료되는 중복 실행 프로세스는 실행 중인 에이전트의 신호를 덮어쓰면 안 된다.
-  if (shutdownMarked || !heartbeatStarted) return;
+async function shutdownGracefully(signal) {
+  if (shutdownPromise) return shutdownPromise;
   shutdownMarked = true;
-  try {
-    shutdownExcelPdfWorker();
-  } catch { /* 종료 중 오류는 무시 */ }
-  try {
-    writeStoppedHeartbeatFile(HEARTBEAT_FILE, heartbeatInfo());
-  } catch { /* 종료 중 오류는 무시 */ }
-}
-process.on('exit', markAgentStopped);
-for (const signal of ['SIGINT', 'SIGTERM', 'SIGBREAK']) {
-  process.on(signal, () => {
-    markAgentStopped();
+  if (pollingTimer) clearTimeout(pollingTimer);
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  if (maintenanceTimer) clearTimeout(maintenanceTimer);
+  if (orderHistoryTimer) clearInterval(orderHistoryTimer);
+  const shutdownTimeoutMs = Math.max(30_000, Number(config.shutdownTimeoutMs) || 10 * 60 * 1000);
+  const forceExitTimer = setTimeout(() => {
+    console.error(`[에이전트] ${Math.round(shutdownTimeoutMs / 1000)}초 안에 종료되지 않아 강제 종료합니다.`);
+    process.exit(1);
+  }, shutdownTimeoutMs);
+  forceExitTimer.unref?.();
+
+  shutdownPromise = (async () => {
+    console.log(`[에이전트] ${signal} 종료 요청 — 진행 중인 작업을 마친 뒤 종료합니다.`);
+    try {
+      await activePollPromise;
+      await startupPrerequisitesPromise;
+      await startupMaintenancePromise;
+      await orderHistorySyncPromise;
+      await shutdownExcelPdfWorker();
+      if (heartbeatStarted) await writeStoppedHeartbeatFile(HEARTBEAT_FILE, heartbeatInfo());
+    } catch (err) {
+      console.warn(`[에이전트] 정상 종료 중 일부 작업 실패: ${describeError(err)}`);
+    }
+    if (httpServer?.listening) {
+      await new Promise((resolveClose) => httpServer.close(() => resolveClose()));
+    }
+    clearTimeout(forceExitTimer);
+    console.log('[에이전트] 정상 종료 완료');
     process.exit(0);
-  });
+  })();
+  return shutdownPromise;
+}
+for (const signal of ['SIGINT', 'SIGTERM', 'SIGBREAK']) {
+  process.on(signal, () => { void shutdownGracefully(signal); });
 }
 
 // ── 사내 파일 브라우저/다운로드 서버 ───────────────────────────────────────
@@ -1280,7 +1366,7 @@ function mimeTypeForFileName(name) {
 const DELIVERY_ADDRESS_FILE = join(__dirname, 'delivery-addresses.json');
 
 /** 특정 고객사(업체명)의 과거 납품 주소 이력 조회 (최신순) */
-function getDeliveryAddressesForClient(department, company) {
+async function getDeliveryAddressesForClient(department, company) {
   const cleanComp = String(company || '').trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
   if (!cleanComp) return [];
   const addresses = [];
@@ -1288,19 +1374,17 @@ function getDeliveryAddressesForClient(department, company) {
 
   // 1) delivery-addresses.json 확인
   try {
-    if (existsSync(DELIVERY_ADDRESS_FILE)) {
-      const map = JSON.parse(readFileSync(DELIVERY_ADDRESS_FILE, 'utf8'));
-      for (const [cName, list] of Object.entries(map)) {
-        const cClean = String(cName).trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
-        if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
-          (Array.isArray(list) ? list : [list]).forEach((a) => {
-            const trimmed = String(a || '').trim();
-            if (trimmed && !seen.has(trimmed)) {
-              seen.add(trimmed);
-              addresses.push(trimmed);
-            }
-          });
-        }
+    const map = JSON.parse(await readFile(DELIVERY_ADDRESS_FILE, 'utf8'));
+    for (const [cName, list] of Object.entries(map)) {
+      const cClean = String(cName).trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+      if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
+        (Array.isArray(list) ? list : [list]).forEach((a) => {
+          const trimmed = String(a || '').trim();
+          if (trimmed && !seen.has(trimmed)) {
+            seen.add(trimmed);
+            addresses.push(trimmed);
+          }
+        });
       }
     }
   } catch { /* noop */ }
@@ -1308,18 +1392,16 @@ function getDeliveryAddressesForClient(department, company) {
   // 2) stats/{department}.json 확인 (기존 견적서의 납품장소 스캔)
   try {
     const statsPath = join(AGENT_FOLDER, 'stats', `${safeDepartmentSegment(department)}.json`);
-    if (existsSync(statsPath)) {
-      const stats = JSON.parse(readFileSync(statsPath, 'utf8'));
-      const records = Array.isArray(stats.records) ? stats.records : [];
-      for (let i = records.length - 1; i >= 0; i--) {
-        const r = records[i];
-        const cClean = String(r.company || '').trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
-        if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
-          const loc = String(r.deliveryLocation || '').trim();
-          if (loc && !seen.has(loc) && !loc.includes('택배 배송') && loc.length >= 4) {
-            seen.add(loc);
-            addresses.push(loc);
-          }
+    const stats = JSON.parse(await readFile(statsPath, 'utf8'));
+    const records = Array.isArray(stats.records) ? stats.records : [];
+    for (let i = records.length - 1; i >= 0; i--) {
+      const r = records[i];
+      const cClean = String(r.company || '').trim().toLowerCase().replace(/[\s\-_(주)주식회사]/g, '');
+      if (cClean.includes(cleanComp) || cleanComp.includes(cClean)) {
+        const loc = String(r.deliveryLocation || '').trim();
+        if (loc && !seen.has(loc) && !loc.includes('택배 배송') && loc.length >= 4) {
+          seen.add(loc);
+          addresses.push(loc);
         }
       }
     }
@@ -1329,24 +1411,22 @@ function getDeliveryAddressesForClient(department, company) {
 }
 
 /** 납품 주소 이력 파일에 저장 (최신 주소를 맨 앞으로 최대 8개 유지) */
-function saveDeliveryAddress(company, address) {
+async function saveDeliveryAddress(company, address) {
   const cleanComp = String(company || '').trim();
   const cleanAddr = String(address || '').trim();
   if (!cleanComp || !cleanAddr) return;
   try {
     let map = {};
-    if (existsSync(DELIVERY_ADDRESS_FILE)) {
-      map = JSON.parse(readFileSync(DELIVERY_ADDRESS_FILE, 'utf8'));
-    }
+    try { map = JSON.parse(await readFile(DELIVERY_ADDRESS_FILE, 'utf8')); } catch { /* 첫 생성 */ }
     const currentList = Array.isArray(map[cleanComp]) ? map[cleanComp] : [];
     const filtered = currentList.filter((a) => a !== cleanAddr);
     filtered.unshift(cleanAddr);
     map[cleanComp] = filtered.slice(0, 8);
-    writeFileSync(DELIVERY_ADDRESS_FILE, JSON.stringify(map, null, 2), 'utf8');
+    await writeFile(DELIVERY_ADDRESS_FILE, JSON.stringify(map, null, 2), 'utf8');
   } catch { /* noop */ }
 }
 
-function orderEmailPageHtml(session, targetInfo, values) {
+async function orderEmailPageHtml(session, targetInfo, values) {
   const departmentLabel = session.department === '*' ? `전체 부서 (관리자) / ${escHtml(targetInfo.department)}` : escHtml(session.department);
   const entries = readdirSync(targetInfo.target, { withFileTypes: true })
     .filter((entry) => !entry.isDirectory() && !entry.name.startsWith('.') && entry.name.toLowerCase() !== 'desktop.ini')
@@ -1364,7 +1444,7 @@ function orderEmailPageHtml(session, targetInfo, values) {
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 
-  const savedAddresses = getDeliveryAddressesForClient(targetInfo.department, targetInfo.company);
+  const savedAddresses = await getDeliveryAddressesForClient(targetInfo.department, targetInfo.company);
   const defaultAddress = savedAddresses.length > 0 ? savedAddresses[0] : '';
 
   const orderData = JSON.stringify({
@@ -1548,16 +1628,34 @@ function uploadPageHtml(session, targetInfo, message = '', isError = false) {
 // 에이전트 상태 확인용(인증 불필요, 비밀 정보 없음). 배포 전후로 어떤 버전이 실행 중인지 점검할 때 쓴다.
 app.get('/health', (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
+  const eventLoopP99Ms = eventLoopMonitor.percentile(99) / 1e6;
+  const eventLoopMaxMs = eventLoopMonitor.max / 1e6;
   res.json({
     ok: true,
     version: AGENT_VERSION,
     features: AGENT_FEATURES,
     host: hostname(),
+    pid: process.pid,
+    instanceId: AGENT_INSTANCE_ID,
+    startedAt: AGENT_STARTED_AT,
     publicBaseUrl: PUBLIC_BASE_URL,
     storageRootFingerprint: STORAGE_ROOT_FINGERPRINT,
+    agentFolderFingerprint: AGENT_FOLDER_FINGERPRINT,
     heartbeatAt: lastHeartbeatAt,
     heartbeatAgeMs: lastHeartbeatAt ? Date.now() - lastHeartbeatAt : null,
+    heartbeatWriteInProgress,
+    heartbeatWriteDurationMs: heartbeatWriteStartedAt ? Date.now() - heartbeatWriteStartedAt : 0,
+    heartbeatError: lastHeartbeatError,
     pollIntervalMs: POLL_INTERVAL_MS,
+    pollInFlight,
+    lastPollStartedAt,
+    lastPollCompletedAt,
+    lastPollDurationMs,
+    currentJobRunning: currentJobStartedAt > 0,
+    currentJobElapsedMs: currentJobStartedAt ? Date.now() - currentJobStartedAt : 0,
+    orderHistorySyncInFlight,
+    eventLoopDelayP99Ms: Number.isFinite(eventLoopP99Ms) ? Math.round(eventLoopP99Ms) : null,
+    eventLoopDelayMaxMs: Number.isFinite(eventLoopMaxMs) ? Math.round(eventLoopMaxMs) : null,
     excelWorker: USE_EXCEL_WORKER ? excelWorkerStatus() : { disabled: true },
   });
 });
@@ -1583,7 +1681,7 @@ app.get('/logout', (req, res) => {
   res.redirect(safeNextPath(req.query.next));
 });
 
-app.get('/order-email', (req, res) => {
+app.get('/order-email', async (req, res) => {
   const session = readSession(req);
   if (!session) return res.redirect('/?next=' + encodeURIComponent(req.originalUrl));
   const mismatch = detectDepartmentMismatch(session, req.query);
@@ -1593,13 +1691,13 @@ app.get('/order-email', (req, res) => {
     logUploadFolderFailure(req.query, session.department);
     return res.status(404).type('html').send('견적 폴더를 찾을 수 없습니다. 견적번호와 업체명을 확인해 주세요.');
   }
-  res.type('html').send(orderEmailPageHtml(session, targetInfo, req.query));
+  res.type('html').send(await orderEmailPageHtml(session, targetInfo, req.query));
 });
 
 // ── 발주 납품 주소 이력 저장 API ──
-app.post('/api/save-delivery-address', uploadJsonParser, (req, res) => {
+app.post('/api/save-delivery-address', uploadJsonParser, async (req, res) => {
   const { company, address } = req.body || {};
-  saveDeliveryAddress(company, address);
+  await saveDeliveryAddress(company, address);
   res.json({ success: true });
 });
 
@@ -1652,7 +1750,7 @@ app.post('/api/order-history/upload', uploadJsonParser, async (req, res) => {
 
     // 즉시 파싱 및 통계 갱신
     const orderStats = await parseOrderHistoryWorkbook(targetPath);
-    syncOrderHistoryToDrive(AGENT_FOLDER, safeDept, safeYear, orderStats, fileName);
+    await syncOrderHistoryToDrive(AGENT_FOLDER, safeDept, safeYear, orderStats, fileName);
 
     res.json({ success: true, message: '발주 내역이 성공적으로 반영되었습니다.', orderStats });
   } catch (err) {
@@ -1673,7 +1771,7 @@ app.get('/api/order-history/latest', async (req, res) => {
       return res.json({ success: true, hasFile: false, records: [] });
     }
     const orderStats = await parseOrderHistoryWorkbook(latestFile.fullPath);
-    syncOrderHistoryToDrive(AGENT_FOLDER, department, year, orderStats, latestFile.name);
+    await syncOrderHistoryToDrive(AGENT_FOLDER, department, year, orderStats, latestFile.name);
     res.json({
       success: true,
       hasFile: true,
@@ -1987,6 +2085,7 @@ app.use('/files', (req, res) => {
 });
 
 const server = app.listen(HTTP_PORT, '0.0.0.0', () => {
+  httpServer = server;
   console.log(`[에이전트] 파일 브라우저: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`} (부서 비밀번호로 접속)`);
   console.log(`[에이전트] 서명된 파일 링크: ${PUBLIC_BASE_URL || `http://0.0.0.0:${HTTP_PORT}`}/files/...`);
 
@@ -1998,57 +2097,83 @@ const server = app.listen(HTTP_PORT, '0.0.0.0', () => {
   console.log(`[에이전트] 템플릿: ${TEMPLATE_PATH}`);
   console.log(`[에이전트] 폴링 주기: ${POLL_INTERVAL_MS}ms`);
   console.log(`[에이전트] 버전 ${AGENT_VERSION} / Excel 상시 변환: ${USE_EXCEL_WORKER ? '사용' : '끔'}`);
-  // 포트를 실제로 차지한 인스턴스만 이전 실행의 잔여 Excel을 정리한다(중복 실행 프로세스는 여기까지 오지 않는다).
-  if (USE_EXCEL_WORKER) reapStaleExcelWorker(EXCEL_PID_FILE);
   startHeartbeat();
-  startPolling();
+  startupPrerequisitesPromise = (USE_EXCEL_WORKER
+    ? reapStaleExcelWorker(EXCEL_PID_FILE)
+    : Promise.resolve(false))
+    .catch((err) => {
+      console.warn(`[Excel 워커] 이전 실행 잔여 프로세스 점검 실패: ${describeError(err)}`);
+    })
+    .then(() => {
+      if (!shutdownMarked) startPolling();
+    });
+  // HTTP/health 응답을 먼저 준비하고, 무거울 수 있는 통계 스캔은 잠시 뒤 시작한다.
+  maintenanceTimer = setTimeout(() => {
+    if (shutdownMarked) return;
+    console.log(`[통계] 기존 견적서 스캔 시작 (부서: ${statsDepartments.join(', ')})`);
+    startupMaintenancePromise = (async () => {
+      for (const dept of statsDepartments) {
+        if (shutdownMarked) break;
+        await refreshDepartmentStats(STORAGE_ROOT, AGENT_FOLDER, dept);
+        // ExcelJS/파일시스템 작업 사이에 HTTP와 heartbeat가 실행될 기회를 준다.
+        await new Promise((resolveYield) => setTimeout(resolveYield, 25));
+      }
+      if (!shutdownMarked) {
+        orderHistorySyncPromise = checkAndSyncOrderHistory();
+        await orderHistorySyncPromise;
+      }
+      console.log('[통계] 초기 스캔 완료');
+    })();
+    orderHistoryTimer = setInterval(() => {
+      if (shutdownMarked || orderHistorySyncInFlight) return;
+      orderHistorySyncPromise = checkAndSyncOrderHistory();
+    }, 10000);
+    orderHistoryTimer.unref?.();
+  }, 3000);
+  maintenanceTimer.unref?.();
 });
 
 server.on('error', (err) => {
+  eventLoopMonitor.disable();
   if (err.code === 'EADDRINUSE') {
-    console.warn(`[에이전트 안내] ${HTTP_PORT} 포트가 이미 사용 중입니다. 에이전트가 다른 창이나 백그라운드에서 이미 실행 중이므로 중복 실행을 방지하고 안전하게 종료합니다.`);
-    process.exit(0);
+    console.error(`[에이전트 오류] ${HTTP_PORT} 포트가 이미 사용 중입니다. 실행 프로세스와 /health 상태를 확인해 주세요.`);
+    process.exit(1);
   }
   console.error(`[에이전트] 파일 서버를 시작하지 못했습니다: ${err.code || err.message}`);
-  process.exitCode = 1;
+  process.exit(1);
 });
 
 // 시작 시 기존 견적서를 스캔해 부서별 통계 Workbook(XLSX)과 JSON을 생성/갱신한다.
 // 기존 데이터가 많으면 시간이 걸리므로 폴링과 병렬로 실행한다.
 const statsDepartments = [DEFAULT_DEPARTMENT, ...Object.keys(FOLDER_PASSWORDS)]
   .filter((dept, index, arr) => arr.indexOf(dept) === index);
-console.log(`[통계] 기존 견적서 스캔 시작 (부서: ${statsDepartments.join(', ')})`);
 
 const lastProcessedOrderFiles = new Map();
 
 async function checkAndSyncOrderHistory() {
+  if (orderHistorySyncInFlight || shutdownMarked) return;
+  orderHistorySyncInFlight = true;
   const currentYear = new Date().getFullYear();
-  for (const dept of statsDepartments) {
-    try {
-      const orderDir = getOrderHistoryDir(STORAGE_ROOT, dept, currentYear);
-      const latest = getLatestOrderHistoryFile(orderDir);
-      if (!latest) continue;
+  try {
+    for (const dept of statsDepartments) {
+      try {
+        const orderDir = getOrderHistoryDir(STORAGE_ROOT, dept, currentYear);
+        const latest = getLatestOrderHistoryFile(orderDir);
+        if (!latest) continue;
 
-      const cached = lastProcessedOrderFiles.get(dept);
-      if (!cached || cached.filePath !== latest.fullPath || cached.mtime !== latest.mtime) {
-        console.log(`[발주내역] ${dept} 새 발주 파일 감지 및 분석 시작: ${latest.name}`);
-        const orderStats = await parseOrderHistoryWorkbook(latest.fullPath);
-        syncOrderHistoryToDrive(AGENT_FOLDER, dept, currentYear, orderStats, latest.name);
-        lastProcessedOrderFiles.set(dept, { filePath: latest.fullPath, mtime: latest.mtime });
+        const cached = lastProcessedOrderFiles.get(dept);
+        if (!cached || cached.filePath !== latest.fullPath || cached.mtime !== latest.mtime) {
+          console.log(`[발주내역] ${dept} 새 발주 파일 감지 및 분석 시작: ${latest.name}`);
+          const orderStats = await parseOrderHistoryWorkbook(latest.fullPath);
+          await syncOrderHistoryToDrive(AGENT_FOLDER, dept, currentYear, orderStats, latest.name);
+          lastProcessedOrderFiles.set(dept, { filePath: latest.fullPath, mtime: latest.mtime });
+        }
+      } catch (orderErr) {
+        // 파일 접근 중 일시 잠금 시 다음 주기에 재시도
+        console.warn(`[발주내역] ${dept} 동기화 확인 실패: ${describeError(orderErr)}`);
       }
-    } catch (orderErr) {
-      // 파일 접근 중 일시 잠금 시 다음 주기에 재시도
     }
+  } finally {
+    orderHistorySyncInFlight = false;
   }
 }
-
-// 10초마다 발주 내역 폴더의 새 파일 변경을 자동 감지하여 갱신
-setInterval(() => { void checkAndSyncOrderHistory(); }, 10000);
-
-void (async () => {
-  for (const dept of statsDepartments) {
-    await refreshDepartmentStats(STORAGE_ROOT, AGENT_FOLDER, dept);
-  }
-  await checkAndSyncOrderHistory();
-  console.log('[통계] 초기 스캔 완료');
-})();
