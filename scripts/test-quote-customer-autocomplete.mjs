@@ -118,6 +118,11 @@ assert.equal(noMatch.mode, 'none');
 assert.match(componentSource, /editedCustomerFieldsRef = useRef<Set<CustomerField>>\(new Set\(\)\)/);
 assert.match(componentSource, /editedCustomerFieldsRef\.current\.add\(field\)/);
 assert.match(componentSource, /resolveCustomerAutocomplete\(/);
+assert.match(
+  componentSource,
+  /function handleCustomerBlur\(field: 'company' \| 'contact'\) \{\s*\/\/ 선택 팝업이 열린 상태에서 뒤쪽 입력칸이 blur되어도 팝업을 유지한다\.\s*\/\/ 그렇지 않으면 항목을 누르는 mousedown 단계에서 팝업이 unmount되어 click이 실행되지 않는다\.\s*if \(customerPicker\) return;/,
+  '선택 팝업이 열린 상태의 blur는 항목 클릭이 완료될 때까지 팝업을 유지해야 합니다.',
+);
 assert.match(componentSource, /setCustomerPicker\(\{ field, matches: decision\.matches \}\)/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('company', e\.target\.value\)\}/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('contact', e\.target\.value\)\}/);
