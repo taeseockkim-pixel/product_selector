@@ -110,7 +110,7 @@ QuoteFormPage.tsx → localStorage ("cimon-quote-draft:<계정 이메일>")  ←
                   └── excelToPdf.js  → PDF 변환 (Windows Excel COM 필요)
 ```
 
-- **고객 정보 자동완성**: 사용자가 실제 수정한 업체명/담당자 입력에서만 기존 이력을 검색한다. 단일 정확 일치이고 다른 고객 입력란이 비어 있으며 직접 편집되지 않았을 때만 해당 입력란을 제외한 빈 값을 자동으로 채운다. 부분 일치, 복수 후보 또는 입력된 고객 정보가 있으면 선택 모달에서 명시적으로 적용해야 하며, 취소하면 현재 입력값을 유지한다. 선택 모달은 뒤쪽 입력칸의 blur로 닫히지 않고, 후보를 누르면 해당 고객 정보가 적용된다. 회귀 테스트: `npm run test:quote-customer-autocomplete`.
+- **고객 정보 자동완성**: 선택 작성자의 부서가 확정된 후 대장을 조회한다. 사용자가 수정한 업체명/담당자 입력은 300ms debounce로 검색하고, blur/Enter에서는 즉시 검색한다. 한글 IME 조합 완료 후 검색하며 공백·zero-width 문자 차이를 무시한다. 대장 로딩 중 입력된 최신 요청은 조회 완료 후 처리하고, 조회 실패는 화면에 표시해 재시도할 수 있다. 단일 정확 일치이고 다른 고객 입력란이 비어 있으며 직접 편집되지 않았을 때만 빈 값을 자동으로 채우고, 부분 일치·복수 후보·기존 고객 정보가 있으면 선택 모달에서 명시적으로 적용한다. 선택 모달은 뒤쪽 입력칸의 blur로 닫히지 않으며 취소하면 현재 입력값을 유지한다. 회귀 테스트: `npm run test:quote-customer-autocomplete`.
 
 - **견적서 서명/직인 템플릿 보존**: `agent/templates/견적서 샘플.xlsx`의 회사명·대표이사 문구는 이미지가 아니라 Excel floating text box(`xdr:sp`)이며, ExcelJS는 XLSX 재저장 시 이 도형을 제거한다. `server/fillTemplate.js`는 ExcelJS 기록 후 원본 템플릿의 관계 없는 DrawingML 텍스트 도형 앵커를 결과 XLSX에 복원한다. 템플릿 또는 ExcelJS를 변경할 때는 결과 PDF 하단의 대표이사 문구와 직인 표시를 함께 확인한다.
 

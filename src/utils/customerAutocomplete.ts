@@ -24,6 +24,14 @@ function normalizeText(value: string) {
   return value.trim().toLocaleLowerCase('ko-KR');
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/\s+/g, '')
+    .toLocaleLowerCase('ko-KR');
+}
+
 export function customerRecordDedupKey(record: CustomerInfo) {
   return [
     normalizeText(record.company),
@@ -45,13 +53,13 @@ export function resolveCustomerAutocomplete(
   current: CustomerInfo,
   editedFields: ReadonlySet<CustomerField>,
 ): CustomerAutocompleteDecision {
-  const query = normalizeText(value);
+  const query = normalizeSearchText(value);
   if (!query || !editedFields.has(field)) return { mode: 'none', matches: [] };
 
   const seen = new Set<string>();
   const matches: CustomerRecord[] = [];
   for (const record of records) {
-    if (!normalizeText(record[field]).includes(query)) continue;
+    if (!normalizeSearchText(record[field]).includes(query)) continue;
     const key = customerRecordDedupKey(record);
     if (seen.has(key)) continue;
     seen.add(key);
@@ -60,7 +68,7 @@ export function resolveCustomerAutocomplete(
 
   if (matches.length === 0) return { mode: 'none', matches };
 
-  const exactMatches = matches.filter((record) => normalizeText(record[field]) === query);
+  const exactMatches = matches.filter((record) => normalizeSearchText(record[field]) === query);
   const relatedFieldsAreBlankAndUntouched = CUSTOMER_FIELDS
     .filter((candidate) => candidate !== field)
     .every((candidate) => !current[candidate].trim() && !editedFields.has(candidate));

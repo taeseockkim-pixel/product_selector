@@ -43,6 +43,43 @@ const partial = resolveCustomerAutocomplete(
 assert.equal(partial.mode, 'select', '부분 일치는 자동 적용하지 않아야 합니다.');
 assert.equal(partial.matches[0].company, original.company);
 
+const tripleMax = {
+  id: 'ledger-row-triple',
+  company: '트리플맥스',
+  contact: '박정현',
+  phone: '010-7161-7662',
+  email: 'kopje@triplemax.com',
+  quoteNumber: '기술영업 2611-559',
+};
+const spacedPartial = resolveCustomerAutocomplete(
+  [tripleMax],
+  'company',
+  '트리 플',
+  { ...emptyInfo, company: '트리 플' },
+  new Set(['company']),
+);
+assert.equal(spacedPartial.mode, 'select', '일부 문자열과 내부 공백 차이를 허용해 후보를 찾아야 합니다.');
+assert.equal(spacedPartial.matches[0].company, tripleMax.company);
+
+const spacedExact = resolveCustomerAutocomplete(
+  [tripleMax],
+  'company',
+  '트리 플 맥스',
+  { ...emptyInfo, company: '트리 플 맥스' },
+  new Set(['company']),
+);
+assert.equal(spacedExact.mode, 'autofill', '공백 표기만 다른 전체 업체명도 정확 일치로 처리해야 합니다.');
+assert.equal(spacedExact.values.phone, tripleMax.phone);
+
+const invisibleCharacterPartial = resolveCustomerAutocomplete(
+  [tripleMax],
+  'company',
+  '트리\u200B플',
+  { ...emptyInfo, company: '트리\u200B플' },
+  new Set(['company']),
+);
+assert.equal(invisibleCharacterPartial.mode, 'select', '복사/붙여넣기에 섞인 zero-width 문자는 검색에서 무시해야 합니다.');
+
 // 한 건의 정확한 일치이고 나머지 칸이 모두 비어 있을 때만 빈 정보가 자동 완성된다.
 const exact = resolveCustomerAutocomplete(
   [original],
@@ -118,17 +155,24 @@ assert.equal(noMatch.mode, 'none');
 assert.match(componentSource, /editedCustomerFieldsRef = useRef<Set<CustomerField>>\(new Set\(\)\)/);
 assert.match(componentSource, /editedCustomerFieldsRef\.current\.add\(field\)/);
 assert.match(componentSource, /resolveCustomerAutocomplete\(/);
+assert.match(componentSource, /customerLedgerStatus !== 'ready'/, '대장 로딩 중 검색 요청은 완료 상태가 될 때까지 보존해야 합니다.');
+assert.match(componentSource, /customerLookupRequest\.immediate \? 0 : 300/, '입력 중 검색은 debounce, blur/Enter 검색은 즉시 실행해야 합니다.');
+assert.match(componentSource, /if \(!result\.success\) throw new Error\(result\.message/);
+assert.match(componentSource, /if \(authorsLoading\) return;/, '작성자 부서가 정해지기 전에 잘못된 부서의 대장을 조회하면 안 됩니다.');
+assert.match(componentSource, /setCustomerLedgerRetry\(\(retry\) => retry \+ 1\)/, '조회 실패 후 재시도 동작이 있어야 합니다.');
 assert.match(
   componentSource,
   /function handleCustomerBlur\(field: 'company' \| 'contact'\) \{\s*\/\/ 선택 팝업이 열린 상태에서 뒤쪽 입력칸이 blur되어도 팝업을 유지한다\.\s*\/\/ 그렇지 않으면 항목을 누르는 mousedown 단계에서 팝업이 unmount되어 click이 실행되지 않는다\.\s*if \(customerPicker\) return;/,
   '선택 팝업이 열린 상태의 blur는 항목 클릭이 완료될 때까지 팝업을 유지해야 합니다.',
 );
-assert.match(componentSource, /setCustomerPicker\(\{ field, matches: decision\.matches \}\)/);
+assert.match(componentSource, /setCustomerPicker\(\{ field: request\.field, matches: decision\.matches \}\)/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('company', e\.target\.value\)\}/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('contact', e\.target\.value\)\}/);
+assert.match(componentSource, /onCompositionEnd=\{\(e\) => handleCustomerCompositionEnd\('company', e\.currentTarget\.value\)\}/);
+assert.match(componentSource, /onCompositionEnd=\{\(e\) => handleCustomerCompositionEnd\('contact', e\.currentTarget\.value\)\}/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('phone', e\.target\.value\)\}/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('email', e\.target\.value\)\}/);
 assert.match(componentSource, /client: \{ company, contact, phone, email \}/);
 assert.match(componentSource, /clientName: quote\.client\.company/);
 
-console.log('✅ 고객 자동완성의 부분일치/수정값 보호/명시적 선택 회귀 테스트 통과');
+console.log('✅ 고객 자동완성의 부분일치/로딩 대기/정규화/수정값 보호 회귀 테스트 통과');

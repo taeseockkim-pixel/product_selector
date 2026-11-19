@@ -872,11 +872,52 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   // 로그인 계정 부서와 다를 수 있어(예: 관리자가 다른 부서 작성자 선택), 부서를 지정하지 않으면
   // 서버가 로그인 부서 대장으로 번호를 계산해 저장 시 quoteNumberChoiceStale 오류가 난다.
   const selectedAuthor = authors.find((a) => a.name === author) ?? null;
-  const authorDepartment = selectedAuthor?.department ?? '';
+  const authorDepartment = selectedAuthor?.department ?? department ?? '';
   const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
+  const [customerLedgerStatus, setCustomerLedgerStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [customerLedgerRetry, setCustomerLedgerRetry] = useState(0);
   const [customerPicker, setCustomerPicker] = useState<{ field: 'company' | 'contact'; matches: CustomerRecord[] } | null>(null);
   const editedCustomerFieldsRef = useRef<Set<CustomerField>>(new Set());
+  const customerLookupRequestIdRef = useRef(0);
+  const customerSearchComposingRef = useRef<CustomerField | null>(null);
+  const [customerLookupRequest, setCustomerLookupRequest] = useState<{
+    field: 'company' | 'contact';
+    query: string;
+    requestId: number;
+    immediate: boolean;
+  } | null>(null);
+
+  const executeCustomerLookup = useCallback((request: NonNullable<typeof customerLookupRequest>) => {
+    const currentValue = request.field === 'company' ? company : contact;
+    if (currentValue !== request.query || !editedCustomerFieldsRef.current.has(request.field)) {
+      setCustomerLookupRequest((current) => current?.requestId === request.requestId ? null : current);
+      return;
+    }
+
+    const decision = resolveCustomerAutocomplete(
+      customerRecords,
+      request.field,
+      request.query,
+      { company, contact, phone, email },
+      editedCustomerFieldsRef.current,
+    );
+    editedCustomerFieldsRef.current.delete(request.field);
+    setCustomerLookupRequest((current) => current?.requestId === request.requestId ? null : current);
+
+    if (decision.mode === 'autofill' && decision.values) {
+      if (decision.values.company !== undefined) setCompany(decision.values.company);
+      if (decision.values.contact !== undefined) setContact(decision.values.contact);
+      if (decision.values.phone !== undefined) setPhone(decision.values.phone);
+      if (decision.values.email !== undefined) setEmail(decision.values.email);
+      setCustomerPicker(null);
+    } else if (decision.mode === 'select') {
+      setCustomerPicker({ field: request.field, matches: decision.matches });
+    } else {
+      setCustomerPicker(null);
+    }
+  }, [company, contact, customerRecords, email, phone]);
+
   const [customAuthorName, setCustomAuthorName] = useState(initialDraft?.customAuthorName ?? '');
   const [customAuthorPhone, setCustomAuthorPhone] = useState(initialDraft?.customAuthorPhone ?? '');
   const [customAuthorEmail, setCustomAuthorEmail] = useState(initialDraft?.customAuthorEmail ?? '');
@@ -1021,6 +1062,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
         if (defaultAuthorName && list.some((a) => a.name === defaultAuthorName)) return defaultAuthorName;
         return list[0]?.name ?? '';
       });
+    }).catch((err) => {
+      if (cancelled) return;
+      console.warn('작성자 목록 조회 실패:', err);
+      setAuthors([]);
+      setAuthorsLoading(false);
     });
     return () => { cancelled = true; };
   }, [authorLocked, defaultAuthorName]);
@@ -1031,24 +1077,54 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   // 작성자 선택이 바뀌면 번호를 다시 계산한다.
   useEffect(() => {
     let cancelled = false;
+    // 작성자 목록이 확정되기 전에 기본 부서의 대장을 조회해 결과를 잘못 적용하지 않는다.
+    if (authorsLoading) return;
+
     // 부서가 바뀌는 순간 이전 부서의 번호가 남지 않도록 초기화한다.
     setLedgerNextSeq(null);
     setLedgerFirstMissingSeq(null);
-    fetchLedger(undefined, authorDepartment || undefined).then((result) => {
-      if (!cancelled && result.success) {
+    setCustomerLedgerStatus('loading');
+    setCustomerRecords([]);
+    setCustomerPicker(null);
+
+    async function loadCustomerLedger() {
+      try {
+        const result = await fetchLedger(undefined, authorDepartment || undefined);
+        if (cancelled) return;
+        if (!result.success) throw new Error(result.message || '고객 이력을 불러오지 못했습니다.');
+
         setCustomerRecords(customerRecordsFromLedger(result.headers ?? [], result.rows ?? []));
+        setCustomerLedgerStatus('ready');
 
         // 대장의 NO/견적번호에서 누락 번호와 마지막 번호 다음을 계산한다.
         const quoteIndex = (result.headers ?? []).findIndex((h) => h.includes('견적번호'));
         const sequenceOptions = deriveQuoteNumberSequenceOptions(result.rows ?? [], quoteIndex);
         setLedgerNextSeq(sequenceOptions.nextSequentialSequence);
         setLedgerFirstMissingSeq(sequenceOptions.hasGap ? sequenceOptions.firstMissingSequence : null);
+      } catch (err) {
+        if (cancelled) return;
+        console.warn('기존 고객 정보 및 대장 번호 조회 실패:', err);
+        setCustomerRecords([]);
+        setCustomerLedgerStatus('error');
+        setLedgerNextSeq(null);
+        setLedgerFirstMissingSeq(null);
       }
-    }).catch((err) => {
-      console.warn('기존 고객 정보 및 대장 번호 조회 실패:', err);
-    });
+    }
+
+    void loadCustomerLedger();
     return () => { cancelled = true; };
-  }, [authorDepartment]);
+  }, [authorDepartment, authorsLoading, customerLedgerRetry]);
+
+  // 입력 중인 조회는 300ms debounce로 실행한다. 대장 로딩 중 만들어진 요청은
+  // 요청 상태를 유지했다가 조회 성공 후 현재 입력값 기준으로 처리한다.
+  useEffect(() => {
+    if (!customerLookupRequest || customerLedgerStatus !== 'ready') return;
+    const timeout = window.setTimeout(
+      () => executeCustomerLookup(customerLookupRequest),
+      customerLookupRequest.immediate ? 0 : 300,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [customerLedgerStatus, customerLookupRequest, executeCustomerLookup]);
 
   // 입력 중인 견적은 계정별로 저장해 페이지 이동·브라우저 재실행 후 복원한다.
   // 수정(editQuote) 세션에서는 저장하지 않는다 — 그렇지 않으면 진행 중이던 "새 견적" 초안이
@@ -1226,7 +1302,24 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setPhone(record.phone);
     setEmail(record.email);
     editedCustomerFieldsRef.current.clear();
+    customerSearchComposingRef.current = null;
+    setCustomerLookupRequest(null);
     setCustomerPicker(null);
+  }
+
+  function queueCustomerLookup(field: 'company' | 'contact', query: string, immediate = false) {
+    if (!query.trim()) {
+      editedCustomerFieldsRef.current.delete(field);
+      setCustomerLookupRequest((current) => current?.field === field ? null : current);
+      return;
+    }
+
+    setCustomerLookupRequest({
+      field,
+      query,
+      requestId: ++customerLookupRequestIdRef.current,
+      immediate,
+    });
   }
 
   function handleCustomerInputChange(field: CustomerField, value: string) {
@@ -1235,35 +1328,37 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     else if (field === 'contact') setContact(value);
     else if (field === 'phone') setPhone(value);
     else setEmail(value);
+
+    if (field === 'company' || field === 'contact') {
+      setCustomerPicker(null);
+      if (customerSearchComposingRef.current !== field) queueCustomerLookup(field, value);
+    }
+  }
+
+  function handleCustomerCompositionStart(field: 'company' | 'contact') {
+    customerSearchComposingRef.current = field;
+    setCustomerLookupRequest((current) => current?.field === field ? null : current);
+  }
+
+  function handleCustomerCompositionEnd(field: 'company' | 'contact', value: string) {
+    customerSearchComposingRef.current = null;
+    handleCustomerInputChange(field, value);
+  }
+
+  function handleCustomerSearchKeyDown(field: 'company' | 'contact', event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    if (!editedCustomerFieldsRef.current.has(field)) return;
+    queueCustomerLookup(field, field === 'company' ? company : contact, true);
   }
 
   function handleCustomerBlur(field: 'company' | 'contact') {
     // 선택 팝업이 열린 상태에서 뒤쪽 입력칸이 blur되어도 팝업을 유지한다.
     // 그렇지 않으면 항목을 누르는 mousedown 단계에서 팝업이 unmount되어 click이 실행되지 않는다.
     if (customerPicker) return;
-
-    const value = field === 'company' ? company : contact;
-    const decision = resolveCustomerAutocomplete(
-      customerRecords,
-      field,
-      value,
-      { company, contact, phone, email },
-      editedCustomerFieldsRef.current,
-    );
-    // 같은 입력값으로 다시 포커스가 빠져도 같은 후보 모달을 반복해서 띄우지 않는다.
-    editedCustomerFieldsRef.current.delete(field);
-
-    if (decision.mode === 'autofill' && decision.values) {
-      if (decision.values.company !== undefined) setCompany(decision.values.company);
-      if (decision.values.contact !== undefined) setContact(decision.values.contact);
-      if (decision.values.phone !== undefined) setPhone(decision.values.phone);
-      if (decision.values.email !== undefined) setEmail(decision.values.email);
-      setCustomerPicker(null);
-    } else if (decision.mode === 'select') {
-      setCustomerPicker({ field, matches: decision.matches });
-    } else {
-      setCustomerPicker(null);
-    }
+    if (!editedCustomerFieldsRef.current.has(field)) return;
+    // 로딩 중이면 요청과 dirty 표시를 보존하고, 대장 조회 완료 후 처리한다.
+    queueCustomerLookup(field, field === 'company' ? company : contact, true);
   }
 
   function handleResetForm() {
@@ -1273,6 +1368,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     setPhone('');
     setEmail('');
     editedCustomerFieldsRef.current.clear();
+    customerSearchComposingRef.current = null;
+    setCustomerLookupRequest(null);
+    setCustomerPicker(null);
     setAuthor(defaultAuthorName ?? (authorLocked ? '' : authors[0]?.name ?? ''));
     setCustomAuthorName('');
     setCustomAuthorPhone('');
@@ -2111,6 +2209,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <input
                     value={company}
                     onChange={(e) => handleCustomerInputChange('company', e.target.value)}
+                    onCompositionStart={() => handleCustomerCompositionStart('company')}
+                    onCompositionEnd={(e) => handleCustomerCompositionEnd('company', e.currentTarget.value)}
+                    onKeyDown={(e) => handleCustomerSearchKeyDown('company', e)}
                     onBlur={() => handleCustomerBlur('company')}
                     placeholder={t(UI.quoteCompany)}
                     className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
@@ -2121,6 +2222,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   <input
                     value={contact}
                     onChange={(e) => handleCustomerInputChange('contact', e.target.value)}
+                    onCompositionStart={() => handleCustomerCompositionStart('contact')}
+                    onCompositionEnd={(e) => handleCustomerCompositionEnd('contact', e.currentTarget.value)}
+                    onKeyDown={(e) => handleCustomerSearchKeyDown('contact', e)}
                     onBlur={() => handleCustomerBlur('contact')}
                     placeholder={t(UI.quoteContact)}
                     className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
@@ -2145,6 +2249,31 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                     className="w-full border border-[#ddd9d2] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#191919]"
                   />
                 </div>
+              </div>
+              <div className="mt-3 min-h-4 text-[11px]" aria-live="polite">
+                {customerLedgerStatus === 'loading' && (
+                  <p className="text-[#777777]">{t(UI.quoteCustomerLedgerLoading)}</p>
+                )}
+                {customerLedgerStatus === 'error' && (
+                  <div className="flex items-center justify-between gap-2 text-red-600" role="alert">
+                    <span>{t(UI.quoteCustomerLedgerError)}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCustomerLedgerRetry((retry) => retry + 1)}
+                      className="shrink-0 font-semibold underline underline-offset-2 hover:text-red-800"
+                    >
+                      {t(UI.quoteRetry)}
+                    </button>
+                  </div>
+                )}
+                {customerLedgerStatus === 'ready' && (
+                  <p className="text-[#777777]">
+                    {t(UI.quoteCustomerLedgerReady)}
+                    <span className="ml-1 text-[#999999]">
+                      ({customerRecords.length} · {authorDepartment || t(UI.quoteCustomerLedgerDepartment)} · {new Date().getFullYear()})
+                    </span>
+                  </p>
+                )}
               </div>
             </section>
 
