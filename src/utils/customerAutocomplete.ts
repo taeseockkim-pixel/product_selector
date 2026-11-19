@@ -13,7 +13,7 @@ export interface CustomerRecord extends CustomerInfo {
 export type CustomerField = keyof CustomerInfo;
 
 export interface CustomerAutocompleteDecision {
-  mode: 'none' | 'autofill' | 'select';
+  mode: 'none' | 'autofill' | 'select' | 'suggest';
   matches: CustomerRecord[];
   values?: Partial<CustomerInfo>;
 }
@@ -30,6 +30,32 @@ function normalizeSearchText(value: string) {
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
     .replace(/\s+/g, '')
     .toLocaleLowerCase('ko-KR');
+}
+
+function differsByAtMostOneCharacter(left: string, right: string) {
+  if (Math.abs(left.length - right.length) > 1) return false;
+
+  let leftIndex = 0;
+  let rightIndex = 0;
+  let differences = 0;
+  while (leftIndex < left.length && rightIndex < right.length) {
+    if (left[leftIndex] === right[rightIndex]) {
+      leftIndex++;
+      rightIndex++;
+      continue;
+    }
+
+    if (++differences > 1) return false;
+    if (left.length > right.length) leftIndex++;
+    else if (right.length > left.length) rightIndex++;
+    else {
+      leftIndex++;
+      rightIndex++;
+    }
+  }
+
+  if (leftIndex < left.length || rightIndex < right.length) differences++;
+  return differences <= 1;
 }
 
 export function customerRecordDedupKey(record: CustomerInfo) {
@@ -66,7 +92,21 @@ export function resolveCustomerAutocomplete(
     matches.push(record);
   }
 
-  if (matches.length === 0) return { mode: 'none', matches };
+  if (matches.length === 0) {
+    // 회사명 4자 이상에서 한 글자 오타 후보만 제안한다. 유사 후보는 자동 적용하지 않는다.
+    if (field === 'company' && query.length >= 4) {
+      const similarSeen = new Set<string>();
+      const similarMatches = records.filter((record) => {
+        if (!differsByAtMostOneCharacter(query, normalizeSearchText(record.company))) return false;
+        const key = customerRecordDedupKey(record);
+        if (similarSeen.has(key)) return false;
+        similarSeen.add(key);
+        return true;
+      });
+      if (similarMatches.length > 0) return { mode: 'suggest', matches: similarMatches.slice(0, 8) };
+    }
+    return { mode: 'none', matches };
+  }
 
   const exactMatches = matches.filter((record) => normalizeSearchText(record[field]) === query);
   const relatedFieldsAreBlankAndUntouched = CUSTOMER_FIELDS

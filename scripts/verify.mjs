@@ -165,6 +165,9 @@ console.log('\n[9] 고객 정보 자동완성');
 check('부분 일치/수정값 보호/명시적 선택 검사', () => {
   execSync('node scripts/test-quote-customer-autocomplete.mjs', { cwd: root, stdio: 'pipe' });
 });
+check('계정/연도/부서별 견적 대장 캐시 검사', () => {
+  execSync('node scripts/test-quote-ledger-cache.mjs', { cwd: root, stdio: 'pipe' });
+});
 
 // ── 10. 에이전트 단일 실행과 비동기 Drive 큐 파일 ───────────
 console.log('\n[10] 에이전트 중복 실행 방지 / heartbeat 파일 처리');

@@ -45,7 +45,7 @@ assert.equal(partial.matches[0].company, original.company);
 
 const tripleMax = {
   id: 'ledger-row-triple',
-  company: '트리플맥스',
+  company: '트리폴맥스',
   contact: '박정현',
   phone: '010-7161-7662',
   email: 'kopje@triplemax.com',
@@ -54,8 +54,8 @@ const tripleMax = {
 const spacedPartial = resolveCustomerAutocomplete(
   [tripleMax],
   'company',
-  '트리 플',
-  { ...emptyInfo, company: '트리 플' },
+  '트리 폴',
+  { ...emptyInfo, company: '트리 폴' },
   new Set(['company']),
 );
 assert.equal(spacedPartial.mode, 'select', '일부 문자열과 내부 공백 차이를 허용해 후보를 찾아야 합니다.');
@@ -64,18 +64,28 @@ assert.equal(spacedPartial.matches[0].company, tripleMax.company);
 const spacedExact = resolveCustomerAutocomplete(
   [tripleMax],
   'company',
-  '트리 플 맥스',
-  { ...emptyInfo, company: '트리 플 맥스' },
+  '트리 폴 맥스',
+  { ...emptyInfo, company: '트리 폴 맥스' },
   new Set(['company']),
 );
 assert.equal(spacedExact.mode, 'autofill', '공백 표기만 다른 전체 업체명도 정확 일치로 처리해야 합니다.');
 assert.equal(spacedExact.values.phone, tripleMax.phone);
 
+const oneCharacterTypo = resolveCustomerAutocomplete(
+  [tripleMax],
+  'company',
+  '트리플맥스',
+  { ...emptyInfo, company: '트리플맥스' },
+  new Set(['company']),
+);
+assert.equal(oneCharacterTypo.mode, 'suggest', '한 글자 오타 후보는 자동 입력하지 않고 선택 후보로 제안해야 합니다.');
+assert.equal(oneCharacterTypo.matches[0].company, tripleMax.company);
+
 const invisibleCharacterPartial = resolveCustomerAutocomplete(
   [tripleMax],
   'company',
-  '트리\u200B플',
-  { ...emptyInfo, company: '트리\u200B플' },
+  '트리\u200B폴',
+  { ...emptyInfo, company: '트리\u200B폴' },
   new Set(['company']),
 );
 assert.equal(invisibleCharacterPartial.mode, 'select', '복사/붙여넣기에 섞인 zero-width 문자는 검색에서 무시해야 합니다.');
@@ -165,7 +175,8 @@ assert.match(
   /function handleCustomerBlur\(field: 'company' \| 'contact'\) \{\s*\/\/ 선택 팝업이 열린 상태에서 뒤쪽 입력칸이 blur되어도 팝업을 유지한다\.\s*\/\/ 그렇지 않으면 항목을 누르는 mousedown 단계에서 팝업이 unmount되어 click이 실행되지 않는다\.\s*if \(customerPicker\) return;/,
   '선택 팝업이 열린 상태의 blur는 항목 클릭이 완료될 때까지 팝업을 유지해야 합니다.',
 );
-assert.match(componentSource, /setCustomerPicker\(\{ field: request\.field, matches: decision\.matches \}\)/);
+assert.match(componentSource, /setCustomerPicker\(\{ field: request\.field, matches: decision\.matches, similar: decision\.mode === 'suggest' \}\)/);
+assert.match(componentSource, /customerLookupNoMatch &&/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('company', e\.target\.value\)\}/);
 assert.match(componentSource, /onChange=\{\(e\) => handleCustomerInputChange\('contact', e\.target\.value\)\}/);
 assert.match(componentSource, /onCompositionEnd=\{\(e\) => handleCustomerCompositionEnd\('company', e\.currentTarget\.value\)\}/);

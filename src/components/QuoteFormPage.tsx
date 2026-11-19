@@ -22,7 +22,7 @@ import {
   type CustomerRecord,
 } from '../utils/customerAutocomplete';
 import {
-  fetchAuthors,
+  fetchQuoteAuthors,
   fetchLedger,
   fetchQuoteOperationStatus,
   fetchQuoteForEdit,
@@ -33,6 +33,7 @@ import {
   type AppsScriptBridgeResponse,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
+import { getCachedQuoteLedger, cacheQuoteLedger } from '../utils/quoteLedgerCache';
 import QuotePrintView from './QuotePrintView';
 import SpecModal from './SpecModal';
 
@@ -629,14 +630,13 @@ function processQuoteViaGoogleScript(payload: AppsScriptPayload): Promise<QuoteP
 }
 
 /** 작성자 DB 시트에서 작성자 목록을 읽어온다. 실패 시 빈 배열을 반환한다. */
-async function loadAuthors(): Promise<AuthorInfo[]> {
+async function loadAuthors(ownerEmail?: string): Promise<AuthorInfo[]> {
   try {
-    const result = await fetchAuthors();
-    if (result.success && result.authors?.length) return result.authors;
+    return await fetchQuoteAuthors(ownerEmail);
   } catch (err) {
     console.warn('작성자 목록 조회 실패:', err);
+    return [];
   }
-  return [];
 }
 
 async function processQuoteRequest(
@@ -876,8 +876,15 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   const [authorsLoading, setAuthorsLoading] = useState(true);
   const [customerRecords, setCustomerRecords] = useState<CustomerRecord[]>([]);
   const [customerLedgerStatus, setCustomerLedgerStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [customerLedgerRefreshing, setCustomerLedgerRefreshing] = useState(false);
+  const [customerLedgerRefreshError, setCustomerLedgerRefreshError] = useState(false);
   const [customerLedgerRetry, setCustomerLedgerRetry] = useState(0);
-  const [customerPicker, setCustomerPicker] = useState<{ field: 'company' | 'contact'; matches: CustomerRecord[] } | null>(null);
+  const [customerPicker, setCustomerPicker] = useState<{
+    field: 'company' | 'contact';
+    matches: CustomerRecord[];
+    similar: boolean;
+  } | null>(null);
+  const [customerLookupNoMatch, setCustomerLookupNoMatch] = useState<{ field: 'company' | 'contact'; query: string } | null>(null);
   const editedCustomerFieldsRef = useRef<Set<CustomerField>>(new Set());
   const customerLookupRequestIdRef = useRef(0);
   const customerSearchComposingRef = useRef<CustomerField | null>(null);
@@ -904,6 +911,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     );
     editedCustomerFieldsRef.current.delete(request.field);
     setCustomerLookupRequest((current) => current?.requestId === request.requestId ? null : current);
+    setCustomerLookupNoMatch(null);
 
     if (decision.mode === 'autofill' && decision.values) {
       if (decision.values.company !== undefined) setCompany(decision.values.company);
@@ -911,10 +919,11 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       if (decision.values.phone !== undefined) setPhone(decision.values.phone);
       if (decision.values.email !== undefined) setEmail(decision.values.email);
       setCustomerPicker(null);
-    } else if (decision.mode === 'select') {
-      setCustomerPicker({ field: request.field, matches: decision.matches });
+    } else if (decision.mode === 'select' || decision.mode === 'suggest') {
+      setCustomerPicker({ field: request.field, matches: decision.matches, similar: decision.mode === 'suggest' });
     } else {
       setCustomerPicker(null);
+      setCustomerLookupNoMatch({ field: request.field, query: request.query });
     }
   }, [company, contact, customerRecords, email, phone]);
 
@@ -1050,7 +1059,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
   // 마운트 시 작성자 DB 시트에서 작성자 목록을 읽어온다
   useEffect(() => {
     let cancelled = false;
-    loadAuthors().then((list) => {
+    loadAuthors(draftOwnerEmail).then((list) => {
       if (cancelled) return;
       setAuthors(list);
       setAuthorsLoading(false);
@@ -1069,7 +1078,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       setAuthorsLoading(false);
     });
     return () => { cancelled = true; };
-  }, [authorLocked, defaultAuthorName]);
+  }, [authorLocked, defaultAuthorName, draftOwnerEmail]);
 
   const [ledgerNextSeq, setLedgerNextSeq] = useState<number | null>(null);
 
@@ -1080,21 +1089,47 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     // 작성자 목록이 확정되기 전에 기본 부서의 대장을 조회해 결과를 잘못 적용하지 않는다.
     if (authorsLoading) return;
 
-    // 부서가 바뀌는 순간 이전 부서의 번호가 남지 않도록 초기화한다.
-    setLedgerNextSeq(null);
-    setLedgerFirstMissingSeq(null);
-    setCustomerLedgerStatus('loading');
-    setCustomerRecords([]);
+    const ledgerYear = new Date().getFullYear();
+    const ledgerDepartment = authorDepartment || department || '';
+    const cached = getCachedQuoteLedger(draftOwnerEmail, ledgerYear, ledgerDepartment);
+    if (cached) {
+      const cachedResult = cached.result;
+      setCustomerRecords(customerRecordsFromLedger(cachedResult.headers ?? [], cachedResult.rows ?? []));
+      setCustomerLedgerStatus('ready');
+      setCustomerLedgerRefreshing(!cached.fresh);
+      setCustomerLedgerRefreshError(false);
+
+      const quoteIndex = (cachedResult.headers ?? []).findIndex((h) => h.includes('견적번호'));
+      const sequenceOptions = deriveQuoteNumberSequenceOptions(cachedResult.rows ?? [], quoteIndex);
+      setLedgerNextSeq(sequenceOptions.nextSequentialSequence);
+      setLedgerFirstMissingSeq(sequenceOptions.hasGap ? sequenceOptions.firstMissingSequence : null);
+    } else {
+      // 부서가 바뀌는 순간 이전 부서의 번호와 고객 정보가 남지 않도록 초기화한다.
+      setLedgerNextSeq(null);
+      setLedgerFirstMissingSeq(null);
+      setCustomerLedgerStatus('loading');
+      setCustomerLedgerRefreshing(false);
+      setCustomerLedgerRefreshError(false);
+      setCustomerRecords([]);
+    }
     setCustomerPicker(null);
+    setCustomerLookupNoMatch(null);
+
+    // 목록에서 최근 조회한 동일 사용자/연도/부서 대장이면 네트워크 왕복 없이 사용한다.
+    if (cached?.fresh) return;
+    if (cached) setCustomerLedgerRefreshing(true);
 
     async function loadCustomerLedger() {
       try {
-        const result = await fetchLedger(undefined, authorDepartment || undefined);
+        const result = await fetchLedger(ledgerYear, ledgerDepartment || undefined);
         if (cancelled) return;
         if (!result.success) throw new Error(result.message || '고객 이력을 불러오지 못했습니다.');
 
+        cacheQuoteLedger(draftOwnerEmail, ledgerYear, result.department || ledgerDepartment, result);
         setCustomerRecords(customerRecordsFromLedger(result.headers ?? [], result.rows ?? []));
         setCustomerLedgerStatus('ready');
+        setCustomerLedgerRefreshing(false);
+        setCustomerLedgerRefreshError(false);
 
         // 대장의 NO/견적번호에서 누락 번호와 마지막 번호 다음을 계산한다.
         const quoteIndex = (result.headers ?? []).findIndex((h) => h.includes('견적번호'));
@@ -1104,16 +1139,23 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
       } catch (err) {
         if (cancelled) return;
         console.warn('기존 고객 정보 및 대장 번호 조회 실패:', err);
-        setCustomerRecords([]);
-        setCustomerLedgerStatus('error');
-        setLedgerNextSeq(null);
-        setLedgerFirstMissingSeq(null);
+        setCustomerLedgerRefreshing(false);
+        if (cached) {
+          // 만료된 캐시는 검색용으로 계속 제공하되, 갱신 실패를 명확히 알린다.
+          setCustomerLedgerStatus('ready');
+          setCustomerLedgerRefreshError(true);
+        } else {
+          setCustomerRecords([]);
+          setCustomerLedgerStatus('error');
+          setLedgerNextSeq(null);
+          setLedgerFirstMissingSeq(null);
+        }
       }
     }
 
     void loadCustomerLedger();
     return () => { cancelled = true; };
-  }, [authorDepartment, authorsLoading, customerLedgerRetry]);
+  }, [authorDepartment, authorsLoading, customerLedgerRetry, department, draftOwnerEmail]);
 
   // 입력 중인 조회는 300ms debounce로 실행한다. 대장 로딩 중 만들어진 요청은
   // 요청 상태를 유지했다가 조회 성공 후 현재 입력값 기준으로 처리한다.
@@ -1304,12 +1346,14 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     editedCustomerFieldsRef.current.clear();
     customerSearchComposingRef.current = null;
     setCustomerLookupRequest(null);
+    setCustomerLookupNoMatch(null);
     setCustomerPicker(null);
   }
 
   function queueCustomerLookup(field: 'company' | 'contact', query: string, immediate = false) {
     if (!query.trim()) {
       editedCustomerFieldsRef.current.delete(field);
+      setCustomerLookupNoMatch(null);
       setCustomerLookupRequest((current) => current?.field === field ? null : current);
       return;
     }
@@ -1331,6 +1375,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
 
     if (field === 'company' || field === 'contact') {
       setCustomerPicker(null);
+      setCustomerLookupNoMatch(null);
       if (customerSearchComposingRef.current !== field) queueCustomerLookup(field, value);
     }
   }
@@ -1370,6 +1415,7 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
     editedCustomerFieldsRef.current.clear();
     customerSearchComposingRef.current = null;
     setCustomerLookupRequest(null);
+    setCustomerLookupNoMatch(null);
     setCustomerPicker(null);
     setAuthor(defaultAuthorName ?? (authorLocked ? '' : authors[0]?.name ?? ''));
     setCustomAuthorName('');
@@ -2019,7 +2065,9 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
             <div className="flex items-center justify-between px-5 py-3 bg-blue-600 text-white">
               <div>
                 <h2 className="text-sm font-bold">{t(UI.quoteCustomerSelectTitle)}</h2>
-                <p className="text-xs text-blue-100 mt-1">{t(UI.quoteCustomerSelectHint)}</p>
+                <p className="text-xs text-blue-100 mt-1">
+                  {t(customerPicker.similar ? UI.quoteCustomerSimilarHint : UI.quoteCustomerSelectHint)}
+                </p>
               </div>
               <button
                 type="button"
@@ -2267,12 +2315,31 @@ export default function QuoteFormPage({ cartProducts, onBack, onSuccess, default
                   </div>
                 )}
                 {customerLedgerStatus === 'ready' && (
-                  <p className="text-[#777777]">
-                    {t(UI.quoteCustomerLedgerReady)}
-                    <span className="ml-1 text-[#999999]">
-                      ({customerRecords.length} · {authorDepartment || t(UI.quoteCustomerLedgerDepartment)} · {new Date().getFullYear()})
-                    </span>
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-[#777777]">
+                      {customerLedgerRefreshing ? t(UI.quoteCustomerLedgerRefreshing) : t(UI.quoteCustomerLedgerReady)}
+                      <span className="ml-1 text-[#999999]">
+                        ({customerRecords.length} · {authorDepartment || t(UI.quoteCustomerLedgerDepartment)} · {new Date().getFullYear()})
+                      </span>
+                    </p>
+                    {customerLedgerRefreshError && (
+                      <div className="flex items-center justify-between gap-2 text-amber-700" role="status">
+                        <span>{t(UI.quoteCustomerLedgerRefreshError)}</span>
+                        <button
+                          type="button"
+                          onClick={() => setCustomerLedgerRetry((retry) => retry + 1)}
+                          className="shrink-0 font-semibold underline underline-offset-2 hover:text-amber-900"
+                        >
+                          {t(UI.quoteRetry)}
+                        </button>
+                      </div>
+                    )}
+                    {customerLookupNoMatch && (
+                      <p className="text-amber-700">
+                        {t(UI.quoteCustomerNoMatch)} <span className="font-semibold">{customerLookupNoMatch.query}</span>
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </section>

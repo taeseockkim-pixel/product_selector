@@ -418,6 +418,48 @@ export function fetchAuthors(): Promise<AuthorListResult> {
   return callAppsScriptFn<AuthorListResult>('getAuthorsFromReact');
 }
 
+const QUOTE_AUTHORS_CACHE_TTL_MS = 5 * 60 * 1000;
+const quoteAuthorsCache = new Map<string, { authors: AuthorInfo[]; fetchedAt: number }>();
+const quoteAuthorsRequests = new Map<string, Promise<AuthorInfo[]>>();
+
+/** Quote list entry can warm this cache so the create form doesn't repeat author-sheet latency. */
+export function fetchQuoteAuthors(ownerEmail?: string): Promise<AuthorInfo[]> {
+  const key = ownerEmail?.trim().toLocaleLowerCase('en-US') ?? '';
+  if (!key) {
+    return fetchAuthors().then((result) => result.success ? result.authors ?? [] : []);
+  }
+
+  const cached = quoteAuthorsCache.get(key);
+  if (cached && Date.now() - cached.fetchedAt <= QUOTE_AUTHORS_CACHE_TTL_MS) {
+    return Promise.resolve(cached.authors);
+  }
+
+  const inFlight = quoteAuthorsRequests.get(key);
+  if (inFlight) return inFlight;
+
+  const request = fetchAuthors()
+    .then((result) => {
+      if (!result.success) return [];
+      const authors = result.authors ?? [];
+      quoteAuthorsCache.set(key, { authors, fetchedAt: Date.now() });
+      while (quoteAuthorsCache.size > 10) {
+        const oldestKey = quoteAuthorsCache.keys().next().value;
+        if (oldestKey === undefined) break;
+        quoteAuthorsCache.delete(oldestKey);
+      }
+      return authors;
+    })
+    .catch((error) => {
+      console.warn('견적 작성자 목록 조회 실패:', error);
+      return [];
+    })
+    .finally(() => {
+      if (quoteAuthorsRequests.get(key) === request) quoteAuthorsRequests.delete(key);
+    });
+  quoteAuthorsRequests.set(key, request);
+  return request;
+}
+
 /** 접속 Google 계정이 작성자 DB에 등록되어 있는지 확인한다 */
 export function fetchAuthorization(): Promise<AuthorizationResult> {
   if (window.parent && window.parent !== window) {

@@ -11,6 +11,7 @@ import {
   type OrderDraftRequest,
   type LedgerRow,
 } from '../utils/appsScriptBridge';
+import { cacheQuoteLedger } from '../utils/quoteLedgerCache';
 import AiSearchPanel from './AiSearchPanel';
 
 const FOLDER_BROWSER_URL = 'http://172.35.12.36:8790/';
@@ -266,6 +267,7 @@ export default function QuoteListPage({
     try {
       const result = await fetchLedger(targetYear, targetDept);
       if (!result.success) throw new Error(result.message || '견적관리대장을 불러오지 못했습니다.');
+      cacheQuoteLedger(authorEmail, targetYear, result.department || targetDept, result);
       const availableYears = (result.availableYears ?? [targetYear])
         .filter((year) => Number.isInteger(year) && year >= 2000 && year <= currentYear)
         .sort((left, right) => right - left);
@@ -282,7 +284,7 @@ export default function QuoteListPage({
     } finally {
       setLoading(false);
     }
-  }, [currentYear, selectedYear, currentDepartment]);
+  }, [authorEmail, currentYear, selectedYear, currentDepartment]);
 
   useEffect(() => {
     void loadQuotes(selectedYear, currentDepartment);

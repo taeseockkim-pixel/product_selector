@@ -15,6 +15,7 @@ import DashboardPage from './components/DashboardPage';
 import SearchOverlay from './components/SearchOverlay';
 import {
   checkQuoteAccess,
+  fetchQuoteAuthors,
   fetchQuoteForEdit,
   updateQuoteOrder,
   type QuoteEditData,
@@ -206,11 +207,15 @@ function AppInner() {
   }
 
   async function handleQuoteListClick() {
-    if (await ensureQuoteAccess()) setViewMode('quotelist');
+    if (await ensureQuoteAccess()) {
+      void fetchQuoteAuthors(authEmailRef.current || authAuthor?.email);
+      setViewMode('quotelist');
+    }
   }
 
   async function handleGoToQuoteCreate() {
     if (await ensureQuoteAccess()) {
+      void fetchQuoteAuthors(authEmailRef.current || authAuthor?.email);
       setEditingQuote(null);
       setViewMode('quotecreate');
     }
@@ -218,6 +223,7 @@ function AppInner() {
 
   async function handleEditQuote(year: number, quoteNumber: string, department?: string) {
     if (!(await ensureQuoteAccess())) return;
+    void fetchQuoteAuthors(authEmailRef.current || authAuthor?.email);
     try {
       const result = await fetchQuoteForEdit(year, quoteNumber, department);
       if (!result.success || !result.quote) throw new Error(result.message || t(UI.quoteEditLoadFailed));
